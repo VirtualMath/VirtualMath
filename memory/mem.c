@@ -47,9 +47,6 @@ char *memStrcpy(size_t nsize, int free_old, char *str, int write, ...) {  // 复
     if (str != NULL){
         strcpy(tmp, str);
         tmp[memStrlen(str)] = (char)0;  // 去除多余的\0
-        if (free_old){
-            memFree(str);
-        }
     }
     if (write){
         va_list argp;
@@ -58,6 +55,9 @@ char *memStrcpy(size_t nsize, int free_old, char *str, int write, ...) {  // 复
             tmp[memStrlen(str) + i] = (char)va_arg(argp, int);
         }
         va_end(argp);
+    }
+    if (free_old){
+        memFree(str);
     }
     return tmp;
 }
