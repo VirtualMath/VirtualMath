@@ -1,5 +1,6 @@
 #ifndef VIRTUALMATH_SYNTAX_H
 #define VIRTUALMATH_SYNTAX_H
+
 #include "lexical.h"
 #include "token.h"
 
@@ -11,4 +12,5 @@ void charMather(char p, lexMather *mather, char dest_p);
 
 #define strMatherMacro(n, word) strMather(p, mathers->mathers[n], word) /*这个宏只能用于getMatherStatus*/
 #define charMatherMacro(n, word) charMather(p, mathers->mathers[n], word) /*这个宏只能用于getMatherStatus*/
+
 #endif //VIRTUALMATH_SYNTAX_H

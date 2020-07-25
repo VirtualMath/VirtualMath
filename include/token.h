@@ -1,6 +1,5 @@
 #ifndef VIRTUALMATH_TOKEN_H
 #define VIRTUALMATH_TOKEN_H
-#include "__virtualmath.h"
 
 #define MATHER_NUMBER 0
 #define MATHER_STRING 1
@@ -86,17 +85,24 @@
 
 #define MATHER_MAX 74
 
+// 从-5开始是为了避开status的特殊值，尽管这并没有什么影响
+#define COMMANDLIST -5
+#define COMMAND -6
+#define OPERATION -7
+#define POLYNOMIAL -8
+#define BASEVALUE -9
+
 // 预定义一部分的内容
-struct statement;
+struct Statement;
 struct lexFile;
 struct lexMathers;
 
 typedef struct token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配
-    struct data{
+    struct{
         char *str;
         char *second_str;  // 针对123.4j这种形式设定的，其中second_str存储j
-        struct statement *st;
+        struct Statement *st;
     } data;
 } token;
 
@@ -115,16 +121,12 @@ typedef struct tokenMessage{
 
 token *makeToken();
 token *makeLexToken(int type, char *str, char *second_str);
-token *makeStatementToken(int type, struct statement *st);
-void freeToken(token *tk, bool self);
+token *makeStatementToken(int type, struct Statement *st);
+void freeToken(token *tk, bool self, bool error);
 
 extern token *getToken(struct lexFile *file, struct lexMathers *mathers);
 
-extern struct lexFile *makeLexFile(char *dir);
-extern void freeLexFile(struct lexFile *file, bool self);
 
-extern struct lexMathers *makeMathers(int size);
-extern void freeMathers(struct lexMathers *mathers, bool self);
 int safeGetToken(tokenMessage *tm);
 token *forwardToken(tokenStream *ts);
 token *backToken(tokenStream *ts);

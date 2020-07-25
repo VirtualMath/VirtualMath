@@ -1,4 +1,4 @@
-#include "syntax.h"
+#include "__virtualmath.h"
 
 /**
  * 匹配一个数字字面量
@@ -15,7 +15,7 @@
 void numberMather(char p, lexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT){
         if ('0'<= p && '9' >= p || '.' == p && mather->status == LEXMATHER_ING){
-            mather->str = memStrcpy(1, true, mather->str, true, p);
+            mather->str = memStrcpy(mather->str, 1, true, true, p);
             mather->len += 1;
             if ('.' == p)
                 mather->status = LEXMATHER_INGPOINT;
@@ -24,7 +24,7 @@ void numberMather(char p, lexMather *mather){
         }
         else if(mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT){
             if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p){
-                mather->second_str = memStrcpy(1, true, mather->second_str, true, p);
+                mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
                 mather->status = LEXMATHER_INGSECOND;
             }
             else{
@@ -38,7 +38,7 @@ void numberMather(char p, lexMather *mather){
     else if (mather->status == LEXMATHER_INGSECOND){
         if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
             '0'<= p && '9' >= p){
-            mather->second_str = memStrcpy(1, true, mather->second_str, true, p);
+            mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
         }
         else{
             mather->status = LEXMATHER_END;
@@ -61,7 +61,7 @@ void varMather(char p, lexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
         if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
             '0'<= p && '9' >= p && mather->status == LEXMATHER_ING){
-            mather->str = memStrcpy(1, true, mather->str, true, p);
+            mather->str = memStrcpy(mather->str, 1, true, true, p);
             mather->len ++;
             mather->status = LEXMATHER_ING;
         }
@@ -100,7 +100,7 @@ void stringMather(char p, lexMather *mather){
             mather->status = LEXMATHER_PASS;
         }
         else{
-            mather->str = memStrcpy(1, true, mather->str, true, p);
+            mather->str = memStrcpy(mather->str, 1, true, true, p);
             mather->len ++;
             mather->status = LEXMATHER_ING;
         }
@@ -108,7 +108,7 @@ void stringMather(char p, lexMather *mather){
     else if (mather->status == LEXMATHER_INGSECOND){
         if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
             '0'<= p && '9' >= p){
-            mather->second_str = memStrcpy(1, true, mather->second_str, true, p);
+            mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
         }
         else{
             mather->status = LEXMATHER_END;
@@ -116,7 +116,7 @@ void stringMather(char p, lexMather *mather){
     }
     else if(mather->status == LEXMATHER_PASS){
         if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p){
-            mather->second_str = memStrcpy(1, true, mather->second_str, true, p);
+            mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
             mather->status = LEXMATHER_INGSECOND;
         }
         else{
@@ -137,7 +137,7 @@ void stringMather(char p, lexMather *mather){
 void strMather(char p, lexMather *mather, const char *dest_p){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
         if (p == dest_p[mather->len]){
-            mather->str = memStrcpy(1, true, mather->str, true, p);
+            mather->str = memStrcpy(mather->str, 1, true, true, p);
             mather->len ++;
             mather->status = LEXMATHER_ING;
         }
@@ -163,7 +163,7 @@ void strMather(char p, lexMather *mather, const char *dest_p){
 void charMather(char p, lexMather *mather, char dest_p){
     int tmp_p = (int)p, tmp_dest = (int)dest_p;
     if (tmp_p == tmp_dest && mather->status == LEXMATHER_START){
-        mather->str = memStrcpy(1, true, mather->str, true, p);
+        mather->str = memStrcpy(mather->str, 1, true, true, p);
         mather->len ++;
         mather->status = LEXMATHER_ING;
     }
@@ -173,15 +173,6 @@ void charMather(char p, lexMather *mather, char dest_p){
     else{
         mather->status = LEXMATHER_MISTAKE;
     }
-}
-
-bool isIn(char p, char *list){
-    int max = memStrlen(list);
-    for (int i=0;i < max;i++){
-        if (p == list[i])
-            return true;
-    }
-    return false;
 }
 
 /**

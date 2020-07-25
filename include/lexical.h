@@ -1,6 +1,7 @@
 #ifndef VIRTUALMATH_LEXICAL_H
 #define VIRTUALMATH_LEXICAL_H
-#include "__virtualmath.h"
+#include "__macro.h"
+#include "stdio.h"
 
 typedef struct lexFile{
     FILE *file;

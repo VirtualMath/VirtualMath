@@ -1,4 +1,4 @@
-#include "token.h"
+#include "__virtualmath.h"
 
 token *makeToken(){
     token *tmp = memCalloc(1, sizeof(token));
@@ -12,21 +12,24 @@ token *makeToken(){
 token *makeLexToken(int type, char *str, char *second_str) {
     struct token *tmp = makeToken();
     tmp->token_type = type;
-    tmp->data.str = memStrcpy(0, false, str, false);
-    tmp->data.second_str = memStrcpy(0, false, second_str, false);
+    tmp->data.str = memStrcpy(str, 0, false, false);
+    tmp->data.second_str = memStrcpy(second_str, 0, false, false);
     return tmp;
 }
 
-token *makeStatementToken(int type, struct statement *st){
+token *makeStatementToken(int type, struct Statement *st){
     struct token *tmp = makeToken();
     tmp->token_type = type;
     tmp->data.st = st;
     return tmp;
 }
 
-void freeToken(token *tk, bool self){
+void freeToken(token *tk, bool self, bool error) {
     memFree(tk->data.str);
     memFree(tk->data.second_str);
+    if (error){
+        freeStatement(tk->data.st);
+    }
     if (self){
         memFree(tk);
     }
@@ -41,12 +44,12 @@ tokenStream *makeTokenStream(){
     return tmp;
 }
 
-void freeToekStream(tokenStream *ts, bool self){
+void freeToekStream(tokenStream *ts, bool self) {
     for (int i=0; i < ts->size; i++){
-        freeToken(ts->token_list[i], true);
+        freeToken(ts->token_list[i], true, false);
     }
     for (int i=0; i < ts->ahead; i++){
-        freeToken(ts->token_ahead[i], true);
+        freeToken(ts->token_ahead[i], true, false);
     }
     memFree(ts->token_list);
     memFree(ts->token_ahead);
@@ -63,7 +66,7 @@ tokenMessage *makeTokenMessage(char *file_dir){
     return tm;
 }
 
-void freeTokenMessage(tokenMessage *tm, bool self){
+void freeTokenMessage(tokenMessage *tm, bool self) {
     freeLexFile(tm->file, true);
     freeToekStream(tm->ts, true);
     freeMathers(tm->mathers, true);

@@ -1,7 +1,4 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "mem.h"
+#include "__virtualmath.h"
 
 void *memFreeCore(void *p){
     if (p != NULL)
@@ -37,16 +34,18 @@ size_t memStrlen(char *p){  // 可以读取NULL的strlen
 }
 
 char *memString(size_t size) {  // 比memCalloc多了一个设置\0的步骤
+    if (size == 0){
+        return NULL;
+    }
     char *tmp = (char *)memCalloc(size + 1, sizeof(char));
     tmp[size] = '\0';
     return tmp;
 }
 
-char *memStrcpy(size_t nsize, int free_old, char *str, int write, ...) {  // 复制str到新的空间，nszie是要扩展的大小。该函数支持让str=NULL，则变为单纯的memString
+char *memStrcpy(char *str, size_t nsize, bool free_old, bool write, ...) {  // 复制str到新的空间，nszie是要扩展的大小。该函数支持让str=NULL，则变为单纯的memString
     char *tmp = memString(memStrlen(str) + nsize + 1);
     if (str != NULL){
         strcpy(tmp, str);
-        tmp[memStrlen(str)] = (char)0;  // 去除多余的\0
     }
     if (write){
         va_list argp;
@@ -60,4 +59,48 @@ char *memStrcpy(size_t nsize, int free_old, char *str, int write, ...) {  // 复
         memFree(str);
     }
     return tmp;
+}
+
+char *memStrcat(char *first, char *second){
+    if (first == NULL && second == NULL){
+        return NULL;
+    }
+    else if (first == NULL){
+        first = second;
+        second = NULL;
+    }
+
+    char *new = memStrcpy(first, memStrlen(second), false, false);
+    if (second != NULL){
+        strcat(new, second);
+    }
+    return new;
+}
+
+char *memStrcpySelf(char *str, number_type times){
+    bool need_free = false;
+    if (times < 0){
+        str = memStrrev(str);
+        times = -times;
+        need_free = true;
+    }
+    char *new_str = memStrcpy(str, 0, false, false), *tmp;
+    for (number_type i=0;i < times - 1;i++){
+        tmp = memStrcat(new_str, str);
+        memFree(new_str);
+        new_str = tmp;
+    }
+    if (need_free){
+        memFree(str);
+    }
+    return new_str;
+}
+
+char *memStrrev(char *str){
+    size_t len_str = memStrlen(str);
+    char *new_str = memString(len_str);
+    for (int i = 0;i < len_str;i++){
+        new_str[i] = str[len_str - i - 1];
+    }
+    return new_str;
 }
