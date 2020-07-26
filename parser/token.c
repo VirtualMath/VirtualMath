@@ -1,4 +1,4 @@
-#include "__virtualmath.h"
+#include "__token.h"
 
 Token *makeToken(){
     Token *tmp = memCalloc(1, sizeof(Token));
@@ -58,11 +58,23 @@ void freeToekStream(TokenStream *ts, bool self) {
     }
 }
 
-TokenMessage *makeTokenMessage(char *file_dir){
+TokenMessage *makeTokenMessage(char *file_dir, char *debug) {
     TokenMessage *tm = memCalloc(1, sizeof(TokenMessage));
     tm->file = makeLexFile(file_dir);
     tm->mathers = makeMathers(MATHER_MAX);
     tm->ts = makeTokenStream();
+#if OUT_LOG
+    if (debug != NULL){
+        char *debug_dir = memStrcat(debug, LEXICAL_LOG);
+        tm->debug = fopen(debug_dir, "w");
+        memFree(debug_dir);
+    }
+    else{
+        tm->debug = NULL;
+    }
+#else
+    tm->debug = NULL;
+#endif
     return tm;
 }
 
@@ -70,6 +82,10 @@ void freeTokenMessage(TokenMessage *tm, bool self) {
     freeLexFile(tm->file, true);
     freeToekStream(tm->ts, true);
     freeMathers(tm->mathers, true);
+#if OUT_LOG
+    if (tm->debug != NULL)
+        fclose(tm->debug);
+#endif
     if (self){
         free(tm);
     }
@@ -80,7 +96,8 @@ void freeTokenMessage(TokenMessage *tm, bool self) {
  * @param ts
  * @param new_tk
  */
-void addToken(TokenStream *ts, Token *new_tk){
+void addToken(TokenStream *ts, Token *new_tk, FILE *debug) {
+    printTokenEnter(new_tk, debug, DEBUG, "add Token: ");
     Token **new_list = memCalloc(ts->size + 1, sizeof(Token *));
     for (int i=0; i < ts->size; i++){
         new_list[i] = ts->token_list[i];
@@ -89,6 +106,7 @@ void addToken(TokenStream *ts, Token *new_tk){
     ts->size ++;
     memFree(ts->token_list);
     ts->token_list = new_list;
+    MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
 }
 
 /**
@@ -96,7 +114,7 @@ void addToken(TokenStream *ts, Token *new_tk){
  * @param ts
  * @return
  */
-Token *popToken(TokenStream *ts){
+Token *popToken(TokenStream *ts, FILE *debug) {
     Token **new_list = memCalloc(ts->size - 1, sizeof(Token *));
     for (int i=0; i < ts->size - 1; i++){
         new_list[i] = ts->token_list[i];
@@ -105,6 +123,8 @@ Token *popToken(TokenStream *ts){
     memFree(ts->token_list);
     ts->token_list = new_list;
     ts->size --;
+    printTokenEnter(tmp, debug, DEBUG, "pop Token: ");
+    MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
     return tmp;
 }
 
@@ -113,7 +133,7 @@ Token *popToken(TokenStream *ts){
  * @param ts
  * @return
  */
-Token *backToken(TokenStream *ts){
+Token *backToken(TokenStream *ts, FILE *debug) {
     Token **new_list = memCalloc(ts->size - 1, sizeof(Token *));
     Token **new_ahead = memCalloc(ts->ahead + 1, sizeof(Token *));
     for (int i=0; i < ts->size - 1; i++){
@@ -129,6 +149,8 @@ Token *backToken(TokenStream *ts){
     ts->token_list = new_list;
     ts->size --;
     ts->ahead ++;
+    printTokenEnter(new_ahead[ts->ahead - 1], debug, DEBUG, "back Token: ");
+    MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
     return new_ahead[ts->ahead - 1];
 }
 
@@ -137,7 +159,7 @@ Token *backToken(TokenStream *ts){
  * @param ts
  * @return
  */
-Token *forwardToken(TokenStream *ts){
+Token *forwardToken(TokenStream *ts, FILE *debug) {
     Token **new_list = memCalloc(ts->size + 1, sizeof(Token *));
     Token **new_ahead = memCalloc(ts->ahead - 1, sizeof(Token *));
     for (int i=0; i < ts->size; i++){
@@ -153,6 +175,8 @@ Token *forwardToken(TokenStream *ts){
     ts->token_list = new_list;
     ts->size ++;
     ts->ahead --;
+    printTokenEnter(new_list[ts->size - 1], debug, DEBUG, "forward Token: ");
+    MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
     return new_list[ts->size - 1];
 }
 
@@ -162,14 +186,56 @@ Token *forwardToken(TokenStream *ts){
  * @param tm
  * @return 返回获取token的token_type
  */
-int safeGetToken(TokenMessage *tm){
+int safeGetToken(TokenMessage *tm, FILE *debug) {
+    writeLog_(debug, DEBUG, "safe get token : ", NULL);
     Token *tmp;
     if (tm->ts->ahead == 0){
-        tmp = getToken(tm->file, tm->mathers);
-        addToken(tm->ts, tmp);
+        writeLog_(debug, DEBUG, "get token: %d\n", tm->file->count);
+        tmp = getToken(tm->file, tm->mathers, tm->debug);
+        addToken(tm->ts, tmp, debug);
+        MACRO_printTokenStream(tm->ts, debug, DEBUG);
     }
     else{
-        tmp = forwardToken(tm->ts);
+        // forwardToken 会有详细的日志输出
+        tmp = forwardToken(tm->ts, debug);
     }
     return tmp->token_type;
+}
+
+
+void printToken(Token *tk, FILE *debug, int type) {
+    if (tk->token_type >= 0) {
+        char *tmp = tk->data.str, *second_tmp = tk->data.second_str;
+        if (!strcmp(tmp, "\n")) {
+            tmp = "\\n";
+        }
+        if (!strcmp(second_tmp, "\n")) {
+            second_tmp = "\\n";
+        }
+        if (tmp[0] == EOF) {
+            tmp = "(EOF)";
+        }
+        writeLog_(debug, type, "<token str = ('%s','%s'), type = %d>", tmp, second_tmp, tk->token_type);
+    }
+    else{
+        writeLog_(debug, type, "<token statement, type = %d>", tk->token_type);
+    }
+
+}
+
+void printTokenStream(TokenStream *ts, FILE *debug, int type) {
+    writeLog_(debug, type, "token_list: ", NULL);
+    for (int i=0; i < ts->size; i ++){
+        if (i > 0)
+            writeLog_(debug, type, "-", NULL);
+        printToken(ts->token_list[i], debug, type);
+    }
+    writeLog_(debug, type, "\n", NULL);
+    writeLog_(debug, type, "token_ahead: ", NULL);
+    for (int i=0; i < ts->ahead; i ++){
+        if (i > 0)
+            writeLog_(debug, type, "-", NULL);
+        printToken(ts->token_ahead[i], debug, type);
+    }
+    writeLog_(debug, type, "\n", NULL);
 }

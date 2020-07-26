@@ -1,4 +1,4 @@
-#include "__virtualmath.h"
+#include "__syntax.h"
 
 /**
  * 匹配一个数字字面量
@@ -97,7 +97,10 @@ void stringMather(char p, LexMather *mather){
     }
     else if (mather->status == LEXMATHER_ING){
         if (mather->string_type == p){
-            mather->status = LEXMATHER_PASS;
+            mather->status = LEXMATHER_INGPASS;
+        }
+        else if (EOF == p){
+            mather->status = LEXMATHER_MISTAKE;
         }
         else{
             mather->str = memStrcpy(mather->str, 1, true, true, p);
@@ -114,7 +117,7 @@ void stringMather(char p, LexMather *mather){
             mather->status = LEXMATHER_END;
         }
     }
-    else if(mather->status == LEXMATHER_PASS){
+    else if(mather->status == LEXMATHER_INGPASS){
         if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p){
             mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
             mather->status = LEXMATHER_INGSECOND;
@@ -181,11 +184,17 @@ void charMather(char p, LexMather *mather, char dest_p){
  * @param mathers
  * @return
  */
-int getMatherStatus(LexFile *file, LexMathers *mathers){
+int getMatherStatus(LexFile *file, LexMathers *mathers, FILE *debug) {
     setupMathers(mathers);
     int status = -1;
     while (status == -1){
         char p = readChar(file);
+        if (p == EOF)
+            writeLog_(debug, LEXICAL_DEBUG, "get char: (EOF)\n", NULL);
+        else if (p == '\n')
+            writeLog_(debug, LEXICAL_DEBUG, "get char: (\\n)\n", NULL);
+        else
+            writeLog_(debug, LEXICAL_DEBUG, "get char: '%c'\n", p);
         numberMather(p ,mathers->mathers[MATHER_NUMBER]);
         stringMather(p ,mathers->mathers[MATHER_STRING]);
         varMather(p ,mathers->mathers[MATHER_VAR]);
@@ -273,7 +282,8 @@ int getMatherStatus(LexFile *file, LexMathers *mathers){
 
         strMatherMacro(MATHER_Link, "->");
 
-        status = checkoutMather(mathers, MATHER_MAX);
+        status = checkoutMather(mathers, MATHER_MAX, debug);
+        writeLog_(debug, LEXICAL_DEBUG, "get status: %d\n", status);
     }
     backChar(file);
     return status;
@@ -285,14 +295,23 @@ int getMatherStatus(LexFile *file, LexMathers *mathers){
  * @param mathers
  * @return
  */
-Token *getToken(LexFile *file, LexMathers *mathers){
+Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug) {
+    writeLog_(debug, DEBUG, "get token: [%d]\n", file->count);
     int status = MATHER_SPACE;
     while (status == MATHER_SPACE){
-        status = getMatherStatus(file, mathers);
+        status = getMatherStatus(file, mathers, debug);
     }
+    Token *tmp;
     if (status == -2){
-        status = MATHER_EOF;
-        printf("lexical ERROR\n");
+        status = MATHER_ERROR_;
+        writeLog_(debug, LEXICAL_DEBUG, "lexical ERROR\n", NULL);
+        tmp = makeLexToken(status, NULL, NULL);
+        goto return_;
     }
-    return makeLexToken(status, mathers->mathers[status]->str, mathers->mathers[status]->second_str);
+    tmp = makeLexToken(status, mathers->mathers[status]->str, mathers->mathers[status]->second_str);
+    printTokenEnter(tmp, debug, DEBUG, "new token: ");
+    writeLog_(debug, DEBUG, "\n", NULL);
+    return_:
+    file->count ++;
+    return tmp;
 }

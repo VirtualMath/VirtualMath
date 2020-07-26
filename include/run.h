@@ -1,14 +1,11 @@
 #ifndef VIRTUALMATH_RUN_H
 #define VIRTUALMATH_RUN_H
-#include "statement.h"
+#include "__macro.h"
+#include "value.h"
+#include "var.h"
 
-typedef struct globalInterpreter{
-    struct VirtualMathValue *base;
-    struct VirtualMathLinkValue *link_base;
-    struct VirtualMathHashTable *hash_base;
-    Statement *statement;
-    VarList *var_list;
-} Inter;
-
+Result iterStatement(INTER_FUNCTIONSIG);
+Result operationStatement(INTER_FUNCTIONSIG);
+Result globalIterStatement(Inter *inter);
 
 #endif //VIRTUALMATH_RUN_H

@@ -1,17 +1,4 @@
-#include "__virtualmath.h"
-#define printResult(result, first, last) do{ \
-switch (result.value->value->type){ \
-    case number: \
-        printf("%s %ld %s \n", first, result.value->value->data.num.num, last); \
-        break; \
-    case string: \
-        printf("%s %s %s \n", first, result.value->value->data.str.str, last); \
-        break; \
-    default: \
-        printf("%s default %s \n", first, last); \
-        break; \
-} \
-} while(0) \
+#include "__run.h"
 
 Result getBaseVar(INTER_FUNCTIONSIG) {
     Result times, result;
@@ -26,13 +13,13 @@ Result getBaseVar(INTER_FUNCTIONSIG) {
     not_times:
     result.value = findFromVarList(st->u.base_var.name, var_list, int_times);
     if (result.value == NULL){
-        printf("not found[%s]\n", st->u.base_var.name);
+        writeLog_(inter->debug, WARNING, "not found[%s]\n", st->u.base_var.name);
     }
     return result;
 }
 
 /**
- * 运行但个statement
+ * 运行单个statement
  * @param st
  * @param inter
  * @param var_list
@@ -50,7 +37,7 @@ Result runStatement(INTER_FUNCTIONSIG) {
             break;
         case operation:
             result = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-            printResult(result, "operation result = ", "");
+            printResult(result, "operation result = ", "", inter->debug);
             break;
         default:
             break;

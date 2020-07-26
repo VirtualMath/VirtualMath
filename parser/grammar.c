@@ -1,46 +1,38 @@
-#include "__virtualmath.h"
+#include "__grammar.h"
 
-#define readBackToken(status, pm) do{ \
-status = safeGetToken(pm->tm); \
-backToken(pm->tm->ts); \
-} while(0) /*预读token*/
-
-#define popAheadToken(token_var, pm) do{ \
-safeGetToken(pm->tm); \
-token_var = popToken(pm->tm->ts); \
-} while(0) /*弹出预读的token*/
-
-#define addStatementToken(type, st, pm) do{\
-Token *tmp_new_token; \
-tmp_new_token = makeStatementToken(type, st); \
-addToken(pm->tm->ts, tmp_new_token); \
-backToken(pm->tm->ts); \
-} while(0)
-
-#define backToken_(pm, token) do{ \
-addToken(pm->tm->ts, token); \
-backToken(pm->tm->ts); \
-}while(0)
-
-#define call_success(pm) (pm->status == success)
-
-void parserCommand(PASERSSIGNATURE);
-void parserOperation(PASERSSIGNATURE);
-void parserPolynomial(PASERSSIGNATURE);
-void parserBaseValue(PASERSSIGNATURE);
-
-void syntaxError(ParserMessage *pm, char *message, int status);
-
-ParserMessage *makeParserMessage(char *file_dir){
+ParserMessage *makeParserMessage(char *file_dir, char *debug){
     ParserMessage *tmp = memCalloc(1, sizeof(ParserMessage));
-    tmp->tm = makeTokenMessage(file_dir);
+    tmp->tm = makeTokenMessage(file_dir, debug);
     tmp->status = success;
     tmp->status_message = NULL;
+    tmp->count = 0;
+#if OUT_LOG
+    if (debug != NULL){
+        char *debug_dir = memStrcat(debug, PASERS_LOG), *grammar_dir = memStrcat(debug, GRAMMAR_LOG);
+        tmp->paser_debug = fopen(debug_dir, "w");
+        tmp->grammar_debug = fopen(grammar_dir, "w");
+        memFree(debug_dir);
+        memFree(debug_dir);
+    }
+    else{
+        tmp->paser_debug = NULL;
+        tmp->grammar_debug = NULL;
+    }
+#else
+    tmp->paser_debug = NULL;
+    tmp->grammar_debug = NULL;
+#endif
     return tmp;
 }
 
 void freePasersMessage(ParserMessage *pm, bool self) {
     freeTokenMessage(pm->tm, true);
+#if OUT_LOG
+    if (pm->paser_debug != NULL)
+        fclose(pm->paser_debug);
+    if (pm->grammar_debug != NULL)
+        fclose(pm->grammar_debug);
+#endif
     memFree(pm->status_message);
     if (self){
         memFree(pm);
@@ -60,20 +52,21 @@ void pasersCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *
     while (true){
         readBackToken(token_type, pm);
         if (token_type == MATHER_EOF){
-            // printf("get EOF\n");
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: <EOF>\n", NULL);
             Token *tmp;
             popAheadToken(tmp, pm);
             freeToken(tmp, true, false);
             goto return_;
         }
         else if (token_type == MATHER_ENTER){
-            // 处理空语句
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: <ENTER>\n", NULL);
             Token *tmp;
             popAheadToken(tmp, pm);
             freeToken(tmp, true, false);
             continue;
         }
         else{
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: call command\n", NULL);
             Token *command_token,*stop_token;
             parserCommand(CALLPASERSSIGNATURE);
             if (!call_success(pm)){
@@ -98,17 +91,30 @@ void pasersCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *
                 backToken_(pm, stop_token);
             }
             else{
-                syntaxError(pm, "ERROR from parserCommand list(get stop)", command_list_error);
-                freeToken(command_token, true, true);
+                if (global) {
+                    syntaxError(pm, "ERROR from parserCommand list(get stop)", command_list_error);
+                    freeToken(command_token, true, true);
+                }
+                else{
+                    // 若非global模式, 即可以匹配大括号
+                    popAheadToken(stop_token, pm);
+                    backToken_(pm, stop_token);
+                    connectStatement(base_st, command_token->data.st);
+                    freeToken(command_token, true, false);
+                    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
+                            "Command List: get command success[at !global end]\n", NULL);
+                }
                 goto return_;
             }
             /*...do something for commandList...*/
             // printf("do something for commandList\n");
             connectStatement(base_st, command_token->data.st);
             freeToken(command_token, true, false);
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: get command success\n", NULL);
         }
     }
     return_:
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: return\n", NULL);
     addStatementToken(COMMANDLIST, base_st, pm);
 }
 
@@ -122,9 +128,10 @@ void parserCommand(PASERSSIGNATURE){
     Statement *st = NULL;
     readBackToken(token_type, pm);
     if (false){
-        PASS
+        PASS;
     }
     else{
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: call operation\n", NULL);
         int command_int;
         Token *command_token;
         parserOperation(CALLPASERSSIGNATURE);
@@ -142,9 +149,9 @@ void parserCommand(PASERSSIGNATURE){
         freeToken(command_token, true, false);
     }
     addStatementToken(COMMAND, st, pm);
-
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: get  command success\n", NULL);
     return_:
-    return;
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: get return\n", NULL);
 }
 
 /**
@@ -154,6 +161,7 @@ void parserCommand(PASERSSIGNATURE){
  */
 void parserOperation(PASERSSIGNATURE){
     int operation_int;
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: call polynomial\n", NULL);
     parserPolynomial(CALLPASERSSIGNATURE);
     if (!call_success(pm)){
         goto return_;
@@ -169,9 +177,10 @@ void parserOperation(PASERSSIGNATURE){
 
     addStatementToken(OPERATION, operation_token->data.st, pm);
     freeToken(operation_token, true, false);
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: get polynomial success\n", NULL);
 
     return_:
-    return;
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: return\n", NULL);
 }
 
 /**
@@ -188,6 +197,7 @@ void parserPolynomial(PASERSSIGNATURE){
         struct Statement *st = NULL;
         readBackToken(left, pm);
         if (left != POLYNOMIAL){
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: cal base value(left)\n", NULL);
             // 情况[1]
             parserBaseValue(CALLPASERSSIGNATURE);  // 获得左值
             if (!call_success(pm)){
@@ -200,9 +210,11 @@ void parserPolynomial(PASERSSIGNATURE){
             popAheadToken(left_token, pm);
             addStatementToken(POLYNOMIAL, left_token->data.st, pm);
             freeToken(left_token, true, false);
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
+                    "Polynomial: get base value(left) success[push polynomial]\n", NULL);
             continue;
-            // printf("polynomial: get base value\n");
         }
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: call symbol\n", NULL);
         popAheadToken(left_token, pm);
         readBackToken(symbol, pm);
         switch (symbol) {
@@ -231,7 +243,8 @@ void parserPolynomial(PASERSSIGNATURE){
                 backToken_(pm, left_token);
                 goto return_;
         }
-
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
+                "Polynomial: get symbol success\nPolynomial: call base value[right]\n", NULL);
         parserBaseValue(CALLPASERSSIGNATURE);  // 获得左值
         if (!call_success(pm)){
             freeToken(left_token, true, false);
@@ -253,6 +266,7 @@ void parserPolynomial(PASERSSIGNATURE){
         freeToken(left_token, true, false);
         freeToken(right_token, true, false);
         addStatementToken(POLYNOMIAL, st, pm);
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: get base value(right) success[push polynomial]\n", NULL);
         // printf("polynomial: push token\n");
     }
     return_:
@@ -270,7 +284,7 @@ void parserBaseValue(PASERSSIGNATURE){
     struct Statement *st = NULL;
     readBackToken(token_type, pm);
     if(MATHER_NUMBER == token_type){
-        // 匹配到正常字面量
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number\n", NULL);
         Token *value_token;
         char *stop;
         popAheadToken(value_token, pm);
@@ -280,6 +294,7 @@ void parserBaseValue(PASERSSIGNATURE){
         freeToken(value_token, true, false);
     }
     else if(MATHER_STRING == token_type){
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string\n", NULL);
         Token *value_token;
         popAheadToken(value_token, pm);
         st = makeStatement();
@@ -288,6 +303,7 @@ void parserBaseValue(PASERSSIGNATURE){
         freeToken(value_token, true, false);
     }
     else{
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: else\n", NULL);
         goto return_;
     }
     addStatementToken(BASEVALUE, st, pm);
@@ -302,6 +318,8 @@ void parserBaseValue(PASERSSIGNATURE){
  * @param status 错误类型
  */
 void syntaxError(ParserMessage *pm, char *message, int status){
+    if (pm->status != success)
+        return;
     pm->status = status;
     pm->status_message = memStrcpy(message, 0, false, false);
 }

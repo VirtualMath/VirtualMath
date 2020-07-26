@@ -1,6 +1,7 @@
 #ifndef VIRTUALMATH_TOKEN_H
 #define VIRTUALMATH_TOKEN_H
 
+#define MATHER_ERROR_ -1
 #define MATHER_NUMBER 0
 #define MATHER_STRING 1
 #define MATHER_VAR 2
@@ -112,6 +113,7 @@ typedef struct TokenMessage{
     TokenStream *ts;
     struct LexFile *file;
     struct LexMathers *mathers;
+    FILE *debug;
 } TokenMessage;
 
 Token *makeToken();
@@ -119,15 +121,26 @@ Token *makeLexToken(int type, char *str, char *second_str);
 Token *makeStatementToken(int type, struct Statement *st);
 void freeToken(Token *tk, bool self, bool error);
 
-extern Token *getToken(struct LexFile *file, struct LexMathers *mathers);
+extern Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug);
 
 
-int safeGetToken(TokenMessage *tm);
-Token *forwardToken(TokenStream *ts);
-Token *backToken(TokenStream *ts);
-void addToken(TokenStream *ts, Token *new_tk);
-Token *popToken(TokenStream *ts);
+int safeGetToken(TokenMessage *tm, FILE *debug);
+Token *forwardToken(TokenStream *ts, FILE *debug);
+Token *backToken(TokenStream *ts, FILE *debug);
+void addToken(TokenStream *ts, Token *new_tk, FILE *debug);
+Token *popToken(TokenStream *ts, FILE *debug);
 
-TokenMessage *makeTokenMessage(char *file_dir);
+TokenMessage *makeTokenMessage(char *file_dir, char *debug);
 void freeTokenMessage(TokenMessage *tm, bool self);
+
+// token 可视化函数
+void printTokenStream(TokenStream *ts, FILE *debug, int type);
+void printToken(Token *tk, FILE *debug, int type);
+
+#define printTokenEnter(tk, debug, type, message) do{ \
+writeLog(debug, type, message, NULL); \
+printToken(tk, debug, type); \
+writeLog(debug, type, "\n", NULL); \
+} while(0)
+
 #endif //VIRTUALMATH_TOKEN_H

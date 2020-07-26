@@ -9,7 +9,7 @@
 #define true 1
 #define false 0
 
-#define PASS ;
+#define PASS do{}while(0)
 
 #define NUMBER_TYPE long int
 #define HASH_INDEX unsigned int

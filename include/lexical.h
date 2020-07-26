@@ -9,6 +9,7 @@ typedef struct LexFile{
         bool is_back;
         char p;
     } back;
+    int count;
 } LexFile;
 
 typedef struct LexMather{
@@ -21,7 +22,7 @@ typedef struct LexMather{
         LEXMATHER_ING,
         LEXMATHER_INGPOINT,
         LEXMATHER_INGSECOND,
-        LEXMATHER_PASS,
+        LEXMATHER_INGPASS,
         LEXMATHER_END,
         LEXMATHER_END_SECOND,
         LEXMATHER_MISTAKE,
@@ -46,5 +47,5 @@ void freeMather(LexMather *mather, bool self);
 LexMathers *makeMathers(int size);
 void freeMathers(LexMathers *mathers, bool self);
 void setupMathers(LexMathers *mathers);
-int checkoutMather(LexMathers *mathers, int max);
+int checkoutMather(LexMathers *mathers, int max, FILE *debug);
 #endif //VIRTUALMATH_LEXICAL_H

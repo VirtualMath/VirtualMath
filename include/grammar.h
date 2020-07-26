@@ -7,15 +7,19 @@
 
 typedef struct ParserMessage{
     struct TokenMessage *tm;
+    FILE *paser_debug;
+    FILE *grammar_debug;
+    int count;
     enum {
         success = 1,
         syntax_error,
         command_list_error,
+        lexical_error,
     } status;
     char *status_message;
 } ParserMessage;
 
-ParserMessage *makeParserMessage(char *file_dir);
+ParserMessage *makeParserMessage(char *file_dir, char *debug);
 void freePasersMessage(ParserMessage *pm, bool self);
 void pasersCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st);
 #endif //VIRTUALMATH_GRAMMAR_H
