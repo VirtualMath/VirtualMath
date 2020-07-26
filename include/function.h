@@ -26,15 +26,15 @@ void connectStatement(Statement *base, Statement *new);
 void freeStatement(Statement *st);
 
 // run的处理
-Result iterStatement(baseFunctionSig);
-Result operationStatement(baseFunctionSig);
+Result iterStatement(INTER_FUNCTIONSIG);
+Result operationStatement(INTER_FUNCTIONSIG);
 Result globalIterStatement(Inter *inter);
 
 // var的处理
 VarList *makeVarList(Inter *inter);
 VarList *freeVarList(VarList *vl, bool self);
-LinkValue *findFromVarList(char *name, VarList *var_list, number_type times);
-void addFromVarList(char *name, VarList *var_list, number_type times, LinkValue *value);
+LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times);
+void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value);
 void freeHashTable(HashTable *ht, Inter *inter);
 
 #endif //VIRTUALMATH_FUNCTION_H

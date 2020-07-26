@@ -92,47 +92,42 @@
 #define POLYNOMIAL -8
 #define BASEVALUE -9
 
-// 预定义一部分的内容
-struct Statement;
-struct lexFile;
-struct lexMathers;
-
-typedef struct token{
+typedef struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配
     struct{
         char *str;
         char *second_str;  // 针对123.4j这种形式设定的，其中second_str存储j
         struct Statement *st;
     } data;
-} token;
+} Token;
 
-typedef struct tokenStream{
-    token **token_list;  // 存储token的列表
-    token **token_ahead;  // 提前存储token的列表
+typedef struct TokenStream{
+    Token **token_list;  // 存储token的列表
+    Token **token_ahead;  // 提前存储token的列表
     int size;
     int ahead;
-} tokenStream;
+} TokenStream;
 
-typedef struct tokenMessage{
-    tokenStream *ts;
-    struct lexFile *file;
-    struct lexMathers *mathers;
-} tokenMessage;
+typedef struct TokenMessage{
+    TokenStream *ts;
+    struct LexFile *file;
+    struct LexMathers *mathers;
+} TokenMessage;
 
-token *makeToken();
-token *makeLexToken(int type, char *str, char *second_str);
-token *makeStatementToken(int type, struct Statement *st);
-void freeToken(token *tk, bool self, bool error);
+Token *makeToken();
+Token *makeLexToken(int type, char *str, char *second_str);
+Token *makeStatementToken(int type, struct Statement *st);
+void freeToken(Token *tk, bool self, bool error);
 
-extern token *getToken(struct lexFile *file, struct lexMathers *mathers);
+extern Token *getToken(struct LexFile *file, struct LexMathers *mathers);
 
 
-int safeGetToken(tokenMessage *tm);
-token *forwardToken(tokenStream *ts);
-token *backToken(tokenStream *ts);
-void addToken(tokenStream *ts, token *new_tk);
-token *popToken(tokenStream *ts);
+int safeGetToken(TokenMessage *tm);
+Token *forwardToken(TokenStream *ts);
+Token *backToken(TokenStream *ts);
+void addToken(TokenStream *ts, Token *new_tk);
+Token *popToken(TokenStream *ts);
 
-tokenMessage *makeTokenMessage(char *file_dir);
-void freeTokenMessage(tokenMessage *tm, bool self);
+TokenMessage *makeTokenMessage(char *file_dir);
+void freeTokenMessage(TokenMessage *tm, bool self);
 #endif //VIRTUALMATH_TOKEN_H

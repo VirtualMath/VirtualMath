@@ -9,10 +9,11 @@
 #define true 1
 #define false 0
 
-#define pass ;
+#define PASS ;
 
-#define number_type long int
-#define baseFunctionSig Statement *st, Inter *inter, VarList *var_list
-#define callFunctionSig(st, var_list) st, inter, var_list
+#define NUMBER_TYPE long int
+#define HASH_INDEX unsigned int
+#define INTER_FUNCTIONSIG Statement *st, Inter *inter, VarList *var_list
+#define CALL_INTER_FUNCTIONSIG(st, var_list) st, inter, var_list
 
 #endif //VIRTUALMATH___MACRO_H

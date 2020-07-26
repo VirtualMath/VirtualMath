@@ -3,20 +3,20 @@
 #include "__macro.h"
 #include "stdio.h"
 
-typedef struct lexFile{
+typedef struct LexFile{
     FILE *file;
-    struct back{
+    struct {
         bool is_back;
         char p;
     } back;
-} lexFile;
+} LexFile;
 
-typedef struct lexMather{
+typedef struct LexMather{
     int len;
     int string_type;
     char *str;
     char *second_str;
-    enum status{
+    enum {
         LEXMATHER_START=1,
         LEXMATHER_ING,
         LEXMATHER_INGPOINT,
@@ -26,25 +26,25 @@ typedef struct lexMather{
         LEXMATHER_END_SECOND,
         LEXMATHER_MISTAKE,
     } status;
-} lexMather;
+} LexMather;
 
-typedef struct lexMathers{
+typedef struct LexMathers{
     int size;
-    struct lexMather **mathers;
-} lexMathers;
+    struct LexMather **mathers;
+} LexMathers;
 
-char readChar(lexFile *file);
-void backChar(lexFile *file);
+char readChar(LexFile *file);
+void backChar(LexFile *file);
 
-lexFile *makeLexFile(char *dir);
-void freeLexFile(lexFile *file, bool self);
+LexFile *makeLexFile(char *dir);
+void freeLexFile(LexFile *file, bool self);
 
-void setupMather(lexMather *mather);
-lexMather *makeMather();
-void freeMather(lexMather *mather, bool self);
+void setupMather(LexMather *mather);
+LexMather *makeMather();
+void freeMather(LexMather *mather, bool self);
 
-lexMathers *makeMathers(int size);
-void freeMathers(lexMathers *mathers, bool self);
-void setupMathers(lexMathers *mathers);
-int checkoutMather(lexMathers *mathers, int max);
+LexMathers *makeMathers(int size);
+void freeMathers(LexMathers *mathers, bool self);
+void setupMathers(LexMathers *mathers);
+int checkoutMather(LexMathers *mathers, int max);
 #endif //VIRTUALMATH_LEXICAL_H

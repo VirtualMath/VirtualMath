@@ -8,10 +8,10 @@ backToken(pm->tm->ts); \
 #define popAheadToken(token_var, pm) do{ \
 safeGetToken(pm->tm); \
 token_var = popToken(pm->tm->ts); \
-} while(0)
+} while(0) /*弹出预读的token*/
 
 #define addStatementToken(type, st, pm) do{\
-token *tmp_new_token; \
+Token *tmp_new_token; \
 tmp_new_token = makeStatementToken(type, st); \
 addToken(pm->tm->ts, tmp_new_token); \
 backToken(pm->tm->ts); \
@@ -24,22 +24,22 @@ backToken(pm->tm->ts); \
 
 #define call_success(pm) (pm->status == success)
 
-void command(PASERSSIGNATURE);
+void parserCommand(PASERSSIGNATURE);
 void parserOperation(PASERSSIGNATURE);
-void polynomial(PASERSSIGNATURE);
-void baseValue(PASERSSIGNATURE);
+void parserPolynomial(PASERSSIGNATURE);
+void parserBaseValue(PASERSSIGNATURE);
 
-void syntaxError(parserMessage *pm, char *message, enum parserMessageStatus status);
+void syntaxError(ParserMessage *pm, char *message, int status);
 
-parserMessage *makeParserMessage(char *file_dir){
-    parserMessage *tmp = memCalloc(1, sizeof(parserMessage));
+ParserMessage *makeParserMessage(char *file_dir){
+    ParserMessage *tmp = memCalloc(1, sizeof(ParserMessage));
     tmp->tm = makeTokenMessage(file_dir);
     tmp->status = success;
     tmp->status_message = NULL;
     return tmp;
 }
 
-void freePasersMessage(parserMessage *pm, bool self) {
+void freePasersMessage(ParserMessage *pm, bool self) {
     freeTokenMessage(pm->tm, true);
     memFree(pm->status_message);
     if (self){
@@ -47,26 +47,42 @@ void freePasersMessage(parserMessage *pm, bool self) {
     }
 }
 
-// TODO-szh 代码重构, 匹配器函数加前缀pasers或者grammar
-void commandList(parserMessage *pm, Inter *inter, bool global, Statement *st) {
+/**
+ * 命令表匹配
+ * pasersCommandList :
+ * | MATHER_EOF
+ * | parserCommand MATHER_ENTER
+ * | parserCommand MATHER_EOF
+ */
+void pasersCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st) {
     int token_type, command_int, stop;
     struct Statement *base_st = st;
     while (true){
         readBackToken(token_type, pm);
         if (token_type == MATHER_EOF){
             // printf("get EOF\n");
+            Token *tmp;
+            popAheadToken(tmp, pm);
+            freeToken(tmp, true, false);
             goto return_;
         }
+        else if (token_type == MATHER_ENTER){
+            // 处理空语句
+            Token *tmp;
+            popAheadToken(tmp, pm);
+            freeToken(tmp, true, false);
+            continue;
+        }
         else{
-            token *command_token,*stop_token;
-            command(CALLPASERSSIGNATURE);
+            Token *command_token,*stop_token;
+            parserCommand(CALLPASERSSIGNATURE);
             if (!call_success(pm)){
                 goto return_;
             }
             readBackToken(command_int, pm);
             if (COMMAND != command_int){
                 if (global){
-                    syntaxError(pm, "ERROR from command list(get command)", command_list_error);
+                    syntaxError(pm, "ERROR from command list(get parserCommand)", command_list_error);
                 }
                 goto return_;
             }
@@ -82,7 +98,7 @@ void commandList(parserMessage *pm, Inter *inter, bool global, Statement *st) {
                 backToken_(pm, stop_token);
             }
             else{
-                syntaxError(pm, "ERROR from command list(get stop)", command_list_error);
+                syntaxError(pm, "ERROR from parserCommand list(get stop)", command_list_error);
                 freeToken(command_token, true, true);
                 goto return_;
             }
@@ -96,16 +112,21 @@ void commandList(parserMessage *pm, Inter *inter, bool global, Statement *st) {
     addStatementToken(COMMANDLIST, base_st, pm);
 }
 
-void command(PASERSSIGNATURE){
+/**
+ * 命令匹配
+ * parserCommand：
+ * | parserOperation
+ */
+void parserCommand(PASERSSIGNATURE){
     int token_type;
     Statement *st = NULL;
     readBackToken(token_type, pm);
     if (false){
-        pass
+        PASS
     }
     else{
         int command_int;
-        token *command_token;
+        Token *command_token;
         parserOperation(CALLPASERSSIGNATURE);
         if (!call_success(pm)){
             goto return_;
@@ -126,9 +147,14 @@ void command(PASERSSIGNATURE){
     return;
 }
 
+/**
+ * 表达式匹配
+ * parserOperation：
+ * | parserPolynomial
+ */
 void parserOperation(PASERSSIGNATURE){
     int operation_int;
-    polynomial(CALLPASERSSIGNATURE);
+    parserPolynomial(CALLPASERSSIGNATURE);
     if (!call_success(pm)){
         goto return_;
     }
@@ -136,7 +162,7 @@ void parserOperation(PASERSSIGNATURE){
     if (operation_int != POLYNOMIAL){
         goto return_;
     }
-    token *operation_token;
+    Token *operation_token;
     popAheadToken(operation_token, pm);
     /*...do something for operation...*/
     // printf("do something for operation\n");
@@ -148,14 +174,22 @@ void parserOperation(PASERSSIGNATURE){
     return;
 }
 
-void polynomial(PASERSSIGNATURE){
+/**
+ * 多项式匹配
+ * parserPolynomial：
+ * | parserBaseValue [1]
+ * | parserPolynomial ADD parserBaseValue
+ * | parserPolynomial SUB parserBaseValue
+ */
+void parserPolynomial(PASERSSIGNATURE){
     while(true){
         int left, symbol, right;
-        token *left_token, *symbol_token, *right_token;
+        Token *left_token, *symbol_token, *right_token;
         struct Statement *st = NULL;
         readBackToken(left, pm);
         if (left != POLYNOMIAL){
-            baseValue(CALLPASERSSIGNATURE);  // 获得左值
+            // 情况[1]
+            parserBaseValue(CALLPASERSSIGNATURE);  // 获得左值
             if (!call_success(pm)){
                 goto return_;
             }
@@ -163,6 +197,10 @@ void polynomial(PASERSSIGNATURE){
             if (left != BASEVALUE){  // 若非正确数值
                 goto return_;
             }
+            popAheadToken(left_token, pm);
+            addStatementToken(POLYNOMIAL, left_token->data.st, pm);
+            freeToken(left_token, true, false);
+            continue;
             // printf("polynomial: get base value\n");
         }
         popAheadToken(left_token, pm);
@@ -194,7 +232,7 @@ void polynomial(PASERSSIGNATURE){
                 goto return_;
         }
 
-        baseValue(CALLPASERSSIGNATURE);  // 获得左值
+        parserBaseValue(CALLPASERSSIGNATURE);  // 获得左值
         if (!call_success(pm)){
             freeToken(left_token, true, false);
             freeStatement(st);
@@ -202,7 +240,7 @@ void polynomial(PASERSSIGNATURE){
         }
         readBackToken(right, pm);
         if (right != BASEVALUE){  // 若非正确数值
-            syntaxError(pm, "ERROR from polynomial(get right)", syntax_error);
+            syntaxError(pm, "ERROR from parserPolynomial(get right)", syntax_error);
             freeToken(left_token, true, true);
             freeStatement(st);
             goto return_;
@@ -223,18 +261,17 @@ void polynomial(PASERSSIGNATURE){
 
 /**
  * 字面量匹配
- * baseValue：
+ * parserBaseValue：
  * | MATHER_NUMBER
  * | MATHER_STRING
- * @param pm
  */
-void baseValue(PASERSSIGNATURE){
+void parserBaseValue(PASERSSIGNATURE){
     int token_type;
     struct Statement *st = NULL;
     readBackToken(token_type, pm);
     if(MATHER_NUMBER == token_type){
         // 匹配到正常字面量
-        token *value_token;
+        Token *value_token;
         char *stop;
         popAheadToken(value_token, pm);
         st = makeStatement();
@@ -243,7 +280,7 @@ void baseValue(PASERSSIGNATURE){
         freeToken(value_token, true, false);
     }
     else if(MATHER_STRING == token_type){
-        token *value_token;
+        Token *value_token;
         popAheadToken(value_token, pm);
         st = makeStatement();
         st->type = base_value;
@@ -258,7 +295,13 @@ void baseValue(PASERSSIGNATURE){
     return;
 }
 
-void syntaxError(parserMessage *pm, char *message, enum parserMessageStatus status){
+/**
+ * syntax错误处理器
+ * @param pm
+ * @param message 错误信息
+ * @param status 错误类型
+ */
+void syntaxError(ParserMessage *pm, char *message, int status){
     pm->status = status;
     pm->status_message = memStrcpy(message, 0, false, false);
 }

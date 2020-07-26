@@ -6,7 +6,7 @@
  * @param file
  * @return 返回一个字符，若为EOF则返回-1
  */
-char readChar(lexFile *file){
+char readChar(LexFile *file){
     if (file->back.is_back){
         file->back.is_back = false;
     }
@@ -19,19 +19,19 @@ char readChar(lexFile *file){
  * 设置字符回退
  * @param file
  */
-void backChar(lexFile *file){
+void backChar(LexFile *file){
     file->back.is_back = true;
 }
 
-lexFile *makeLexFile(char *dir){
-    lexFile *tmp = memCalloc(1, sizeof(lexFile));
+LexFile *makeLexFile(char *dir){
+    LexFile *tmp = memCalloc(1, sizeof(LexFile));
     tmp->file = fopen(dir, "r");
     tmp->back.is_back = false;
     tmp->back.p = EOF;
     return tmp;
 }
 
-void freeLexFile(lexFile *file, bool self){
+void freeLexFile(LexFile *file, bool self){
     fclose(file->file);
     if (self){
         memFree(file);
@@ -42,7 +42,7 @@ void freeLexFile(lexFile *file, bool self){
  * 初始化mather，代码被复用
  * @param mather
  */
-void setupMather(lexMather *mather){
+void setupMather(LexMather *mather){
     mather->len = 0;
     mather->str = NULL;
     mather->second_str = NULL;
@@ -50,13 +50,13 @@ void setupMather(lexMather *mather){
     mather->status = LEXMATHER_START;
 }
 
-lexMather *makeMather(){
-    lexMather *tmp = memCalloc(1, sizeof(lexMather));
+LexMather *makeMather(){
+    LexMather *tmp = memCalloc(1, sizeof(LexMather));
     setupMather(tmp);
     return tmp;
 }
 
-void freeMather(lexMather *mather, bool self){
+void freeMather(LexMather *mather, bool self){
     memFree(mather->str);
     memFree(mather->second_str);
     mather->len = 0;
@@ -65,17 +65,17 @@ void freeMather(lexMather *mather, bool self){
     }
 }
 
-lexMathers *makeMathers(int size){
-    lexMathers *tmp = memCalloc(1, sizeof(lexMathers));
+LexMathers *makeMathers(int size){
+    LexMathers *tmp = memCalloc(1, sizeof(LexMathers));
     tmp->size = size;
-    tmp->mathers = (struct lexMather**)memCalloc(size, sizeof(lexMather*));
+    tmp->mathers = (struct LexMather**)memCalloc(size, sizeof(LexMather*));
     for(int i=0;i < size; i++){
         tmp->mathers[i] = makeMather();
     }
     return tmp;
 }
 
-void freeMathers(lexMathers *mathers, bool self){
+void freeMathers(LexMathers *mathers, bool self){
     for(int i=0;i < mathers->size; i++){
         freeMather(mathers->mathers[i], true);
     }
@@ -90,7 +90,7 @@ void freeMathers(lexMathers *mathers, bool self){
  * 初始化mathers，本质是初始化mathers.mathers内所有的mather
  * @param mathers
  */
-void setupMathers(lexMathers *mathers){
+void setupMathers(LexMathers *mathers){
     for (int i=0;i < mathers->size;i++){
         if(mathers->mathers[i]->str != NULL){
             memFree(mathers->mathers[i]->str);
@@ -110,7 +110,7 @@ void setupMathers(lexMathers *mathers){
  * @param max
  * @return
  */
-int checkoutMather(lexMathers *mathers, int max) {
+int checkoutMather(LexMathers *mathers, int max) {
     int mistake_count = 0;
     int end_count = 0, end_index = -1;
     int end_second_count = 0, end_second_index = -1;

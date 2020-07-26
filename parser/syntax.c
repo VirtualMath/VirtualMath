@@ -12,7 +12,7 @@
  * @param p
  * @param mather
  */
-void numberMather(char p, lexMather *mather){
+void numberMather(char p, LexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT){
         if ('0'<= p && '9' >= p || '.' == p && mather->status == LEXMATHER_ING){
             mather->str = memStrcpy(mather->str, 1, true, true, p);
@@ -57,7 +57,7 @@ void numberMather(char p, lexMather *mather){
  * @param p
  * @param mather
  */
-void varMather(char p, lexMather *mather){
+void varMather(char p, LexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
         if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
             '0'<= p && '9' >= p && mather->status == LEXMATHER_ING){
@@ -85,7 +85,7 @@ void varMather(char p, lexMather *mather){
  * @param p
  * @param mather
  */
-void stringMather(char p, lexMather *mather){
+void stringMather(char p, LexMather *mather){
     if (mather->status == LEXMATHER_START){
         if ('\"' == p || '\'' == p){
             mather->status = LEXMATHER_ING;
@@ -134,7 +134,7 @@ void stringMather(char p, lexMather *mather){
  * @param mather
  * @param dest_p
  */
-void strMather(char p, lexMather *mather, const char *dest_p){
+void strMather(char p, LexMather *mather, const char *dest_p){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
         if (p == dest_p[mather->len]){
             mather->str = memStrcpy(mather->str, 1, true, true, p);
@@ -160,7 +160,7 @@ void strMather(char p, lexMather *mather, const char *dest_p){
  * @param mather
  * @param dest_p
  */
-void charMather(char p, lexMather *mather, char dest_p){
+void charMather(char p, LexMather *mather, char dest_p){
     int tmp_p = (int)p, tmp_dest = (int)dest_p;
     if (tmp_p == tmp_dest && mather->status == LEXMATHER_START){
         mather->str = memStrcpy(mather->str, 1, true, true, p);
@@ -181,7 +181,7 @@ void charMather(char p, lexMather *mather, char dest_p){
  * @param mathers
  * @return
  */
-int getMatherStatus(lexFile *file, lexMathers *mathers){
+int getMatherStatus(LexFile *file, LexMathers *mathers){
     setupMathers(mathers);
     int status = -1;
     while (status == -1){
@@ -285,7 +285,7 @@ int getMatherStatus(lexFile *file, lexMathers *mathers){
  * @param mathers
  * @return
  */
-token *getToken(lexFile *file, lexMathers *mathers){
+Token *getToken(LexFile *file, LexMathers *mathers){
     int status = MATHER_SPACE;
     while (status == MATHER_SPACE){
         status = getMatherStatus(file, mathers);

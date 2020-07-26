@@ -22,7 +22,7 @@ Value *makeValue(Inter *inter) {
     return tmp;
 }
 
-Value *makeNumberValue(number_type num, Inter *inter) {
+Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
     Value *tmp;
     tmp = makeValue(inter);
     tmp->type = number;

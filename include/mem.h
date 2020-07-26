@@ -10,7 +10,7 @@ char *memStrcpy(char *str, size_t nsize, int free_old, int write, ...);
 char *memString(size_t size);
 size_t memStrlen(char *p);
 char *memStrcat(char *first, char *second);
-char *memStrcpySelf(char *str, number_type times);
+char *memStrcpySelf(char *str, NUMBER_TYPE times);
 char *memStrrev(char *str);
 
 #define memFree(p) p=memFreeCore(p)

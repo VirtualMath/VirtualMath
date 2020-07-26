@@ -12,7 +12,7 @@ typedef struct VirtualMathValue{
     } type;
     union data{
         struct Number{
-            number_type num;
+            NUMBER_TYPE num;
         } num;
         struct String{
             char *str;

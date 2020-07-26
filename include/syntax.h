@@ -4,11 +4,11 @@
 #include "lexical.h"
 #include "token.h"
 
-void numberMather(char p, lexMather *mather);
-void varMather(char p, lexMather *mather);
-void stringMather(char p, lexMather *mather);
-void strMather(char p, lexMather *mather, const char *dest_p);
-void charMather(char p, lexMather *mather, char dest_p);
+void numberMather(char p, LexMather *mather);
+void varMather(char p, LexMather *mather);
+void stringMather(char p, LexMather *mather);
+void strMather(char p, LexMather *mather, const char *dest_p);
+void charMather(char p, LexMather *mather, char dest_p);
 
 #define strMatherMacro(n, word) strMather(p, mathers->mathers[n], word) /*这个宏只能用于getMatherStatus*/
 #define charMatherMacro(n, word) charMather(p, mathers->mathers[n], word) /*这个宏只能用于getMatherStatus*/

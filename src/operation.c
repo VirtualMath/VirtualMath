@@ -3,36 +3,43 @@
  * operation.c中是用于数学计算的函数
  */
 
-#define getresult(base, var, inter) var = iterStatement(callFunctionSig(st->u.operation. base, var_list))
+#define getresult(base, var, inter) var = iterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation. base, var_list))
 #define viewtype_core(a, b, valuetype_a, valuetype_a_b) a .value->value->type == valuetype_a && b.value->value->type == valuetype_a_b
 #define viewtype(a, b, valuetype) viewtype_core(a, b, valuetype, valuetype)
 #define operationValue(a, b, type, symbol) a.value->value->data.type symbol b.value->value->data.type
 #define valueToResult(result, result_value, type, inter) result.value->value = make##type##Value(result_value, inter)
 
-Result addOperation(baseFunctionSig);
-Result subOperation(baseFunctionSig);
-Result mulOperation(baseFunctionSig);
-Result divOperation(baseFunctionSig);
-Result assOperation(baseFunctionSig);
+Result addOperation(INTER_FUNCTIONSIG);
+Result subOperation(INTER_FUNCTIONSIG);
+Result mulOperation(INTER_FUNCTIONSIG);
+Result divOperation(INTER_FUNCTIONSIG);
+Result assOperation(INTER_FUNCTIONSIG);
 
-Result operationStatement(baseFunctionSig) {
+/**
+ * operation的整体操作
+ * @param st
+ * @param inter
+ * @param var_list
+ * @return
+ */
+Result operationStatement(INTER_FUNCTIONSIG) {
     Result result;
     setResult(&result, true, inter);
     switch (st->u.operation.OperationType) {
         case ADD:
-            result = addOperation(callFunctionSig(st, var_list));
+            result = addOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         case SUB:
-            result = subOperation(callFunctionSig(st, var_list));
+            result = subOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         case MUL:
-            result = mulOperation(callFunctionSig(st, var_list));
+            result = mulOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         case DIV:
-            result = divOperation(callFunctionSig(st, var_list));
+            result = divOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         case ASS:
-            result = assOperation(callFunctionSig(st, var_list));
+            result = assOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         default:
             break;
@@ -40,7 +47,7 @@ Result operationStatement(baseFunctionSig) {
     return result;
 }
 
-Result addOperation(baseFunctionSig) {
+Result addOperation(INTER_FUNCTIONSIG) {
     Result left, right, result;
     setResult(&result, true, inter);
     getresult(left, left, inter);
@@ -56,7 +63,7 @@ Result addOperation(baseFunctionSig) {
     return result;
 }
 
-Result subOperation(baseFunctionSig) {
+Result subOperation(INTER_FUNCTIONSIG) {
     Result left, right, result;
     setResult(&result, true, inter);
     getresult(left, left, inter);
@@ -67,7 +74,7 @@ Result subOperation(baseFunctionSig) {
     return result;
 }
 
-Result mulOperation(baseFunctionSig) {
+Result mulOperation(INTER_FUNCTIONSIG) {
     Result left, right, result;
     setResult(&result, true, inter);
     getresult(left, left, inter);
@@ -92,7 +99,7 @@ Result mulOperation(baseFunctionSig) {
     return result;
 }
 
-Result divOperation(baseFunctionSig) {
+Result divOperation(INTER_FUNCTIONSIG) {
     Result left, right, result;
     setResult(&result, true, inter);
     getresult(left, left, inter);
@@ -103,7 +110,7 @@ Result divOperation(baseFunctionSig) {
     return result;
 }
 
-Result assOperation(baseFunctionSig) {
+Result assOperation(INTER_FUNCTIONSIG) {
     Result times, right;
     int int_times;
     getresult(right, right, inter);
@@ -112,7 +119,7 @@ Result assOperation(baseFunctionSig) {
             int_times = 0;
             goto not_times;
         }
-        times = iterStatement(callFunctionSig(st->u.operation.left->u.base_var.times, var_list));
+        times = iterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left->u.base_var.times, var_list));
         int_times = (int)times.value->value->data.num.num;
         not_times:
         addFromVarList(st->u.operation.left->u.base_var.name, var_list, int_times, right.value);

@@ -78,17 +78,22 @@ VarList *freeVarList(VarList *vl, bool self){
 
 }
 
-unsigned int time33(char *key){ // hash function
-    unsigned int hash = 5381;
+/**
+ * hashTable使用time33算法
+ * @param key
+ * @return
+ */
+HASH_INDEX time33(char *key){ // hash function
+    HASH_INDEX hash = 5381;
     while(*key){
-        hash += (hash << (unsigned int)5) + (*key++);
+        hash += (hash << (HASH_INDEX)5) + (*key++);
     }
-    return (hash & (unsigned int)0x7FFFFFFF) % MAX_SIZE;
+    return (hash & (HASH_INDEX)0x7FFFFFFF) % MAX_SIZE;
 }
 
 
 void addVar(char *name, LinkValue *value, VarList *var_list){
-    unsigned int index = time33(name);
+    HASH_INDEX index = time33(name);
     Var *base = var_list->hashtable->hashtable[index];
     if (base == NULL){
         var_list->hashtable->hashtable[index] = makeVar(name, value);
@@ -104,7 +109,7 @@ void addVar(char *name, LinkValue *value, VarList *var_list){
 
 LinkValue *findVar(char *name, VarList *var_list){
     LinkValue *tmp = NULL;
-    unsigned int index = time33(name);
+    HASH_INDEX index = time33(name);
     Var *base = var_list->hashtable->hashtable[index];
     if (base == NULL){
         goto return_;
@@ -120,9 +125,9 @@ LinkValue *findVar(char *name, VarList *var_list){
     return tmp;
 }
 
-LinkValue *findFromVarList(char *name, VarList *var_list, number_type times){
+LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times){
     LinkValue *tmp = NULL;
-    for (number_type i=0;i<times && var_list->next != NULL;i++){
+    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++){
         var_list = var_list->next;
     }
     while (var_list != NULL){
@@ -136,8 +141,8 @@ LinkValue *findFromVarList(char *name, VarList *var_list, number_type times){
     return tmp;
 }
 
-void addFromVarList(char *name, VarList *var_list, number_type times, LinkValue *value){
-    for (number_type i=0;i<times && var_list->next != NULL;i++){
+void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value){
+    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++){
         var_list = var_list->next;
     }
     addVar(name, value, var_list);
