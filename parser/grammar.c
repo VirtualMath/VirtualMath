@@ -12,7 +12,7 @@ ParserMessage *makeParserMessage(char *file_dir, char *debug){
         tmp->paser_debug = fopen(debug_dir, "w");
         tmp->grammar_debug = fopen(grammar_dir, "w");
         memFree(debug_dir);
-        memFree(debug_dir);
+        memFree(grammar_dir);
     }
     else{
         tmp->paser_debug = NULL;
@@ -107,7 +107,6 @@ void pasersCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *
                 goto return_;
             }
             /*...do something for commandList...*/
-            // printf("do something for commandList\n");
             connectStatement(base_st, command_token->data.st);
             freeToken(command_token, true, false);
             writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: get command success\n", NULL);
@@ -144,7 +143,6 @@ void parserCommand(PASERSSIGNATURE){
         }
         popAheadToken(command_token, pm);
         /*...do something for command...*/
-        // printf("do something for command\n");
         st = command_token->data.st;
         freeToken(command_token, true, false);
     }
@@ -157,23 +155,14 @@ void parserCommand(PASERSSIGNATURE){
 /**
  * 表达式匹配
  * parserOperation：
- * | parserPolynomial
+ * | parserAssignment
  */
 void parserOperation(PASERSSIGNATURE){
     int operation_int;
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: call polynomial\n", NULL);
-    parserPolynomial(CALLPASERSSIGNATURE);
-    if (!call_success(pm)){
-        goto return_;
-    }
-    readBackToken(operation_int, pm);
-    if (operation_int != POLYNOMIAL){
-        goto return_;
-    }
     Token *operation_token;
-    popAheadToken(operation_token, pm);
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: call assignment\n", NULL);
+    callChild(pm, operation_int, operation_token, parserAssignment, ASSIGNMENT, return_);
     /*...do something for operation...*/
-    // printf("do something for operation\n");
 
     addStatementToken(OPERATION, operation_token->data.st, pm);
     freeToken(operation_token, true, false);
@@ -184,93 +173,74 @@ void parserOperation(PASERSSIGNATURE){
 }
 
 /**
+ * 赋值表达式匹配
+ * parserAssignment:
+ * | parserPolynomial
+ * | parserAssignment ASSIGNMENT parserPolynomial
+ */
+bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
+    switch (symbol) {
+        case MATHER_ASSIGNMENT:
+            *st = makeOperationStatement(ASS);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+void parserAssignment(PASERSSIGNATURE){
+    return twoOperation(CALLPASERSSIGNATURE, parserPolynomial, switchAssignment, POLYNOMIAL, ASSIGNMENT,
+                        "polynomial", "assignment");
+}
+
+/**
  * 多项式匹配
  * parserPolynomial：
- * | parserBaseValue [1]
- * | parserPolynomial ADD parserBaseValue
- * | parserPolynomial SUB parserBaseValue
+ * | parserBaseValue
+ * | parserPolynomial ADD parserFactor
+ * | parserPolynomial SUB parserFactor
  */
-void parserPolynomial(PASERSSIGNATURE){
-    while(true){
-        int left, symbol, right;
-        Token *left_token, *symbol_token, *right_token;
-        struct Statement *st = NULL;
-        readBackToken(left, pm);
-        if (left != POLYNOMIAL){
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: cal base value(left)\n", NULL);
-            // 情况[1]
-            parserBaseValue(CALLPASERSSIGNATURE);  // 获得左值
-            if (!call_success(pm)){
-                goto return_;
-            }
-            readBackToken(left, pm);
-            if (left != BASEVALUE){  // 若非正确数值
-                goto return_;
-            }
-            popAheadToken(left_token, pm);
-            addStatementToken(POLYNOMIAL, left_token->data.st, pm);
-            freeToken(left_token, true, false);
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
-                    "Polynomial: get base value(left) success[push polynomial]\n", NULL);
-            continue;
-        }
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: call symbol\n", NULL);
-        popAheadToken(left_token, pm);
-        readBackToken(symbol, pm);
-        switch (symbol) {
-            case MATHER_ADD:
-                // printf("polynomial: get a add symbol\n");
-                popAheadToken(symbol_token, pm);
-                freeToken(symbol_token, true, false);
-                symbol_token = NULL;
-
-                st = makeStatement();
-                st->type = operation;
-                st->u.operation.OperationType = ADD;
-                break;
-            case MATHER_SUB:
-                // printf("polynomial: get a sub symbol\n");
-                popAheadToken(symbol_token, pm);
-                freeToken(symbol_token, true, false);
-                symbol_token = NULL;
-
-                st = makeStatement();
-                st->type = operation;
-                st->u.operation.OperationType = SUB;
-                break;
-            default:
-                // printf("polynomial: get another symbol\n");
-                backToken_(pm, left_token);
-                goto return_;
-        }
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
-                "Polynomial: get symbol success\nPolynomial: call base value[right]\n", NULL);
-        parserBaseValue(CALLPASERSSIGNATURE);  // 获得左值
-        if (!call_success(pm)){
-            freeToken(left_token, true, false);
-            freeStatement(st);
-            goto return_;
-        }
-        readBackToken(right, pm);
-        if (right != BASEVALUE){  // 若非正确数值
-            syntaxError(pm, "ERROR from parserPolynomial(get right)", syntax_error);
-            freeToken(left_token, true, true);
-            freeStatement(st);
-            goto return_;
-        }
-        popAheadToken(right_token, pm);
-
-        st->u.operation.left = left_token->data.st;
-        st->u.operation.right = right_token->data.st;
-
-        freeToken(left_token, true, false);
-        freeToken(right_token, true, false);
-        addStatementToken(POLYNOMIAL, st, pm);
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: get base value(right) success[push polynomial]\n", NULL);
-        // printf("polynomial: push token\n");
+bool switchPolynomial(PASERSSIGNATURE, int symbol, Statement **st){
+    switch (symbol) {
+        case MATHER_ADD:
+            *st = makeOperationStatement(ADD);
+            break;
+        case MATHER_SUB:
+            *st = makeOperationStatement(SUB);
+            break;
+        default:
+            return false;
     }
-    return_:
-    return;
+    return true;
+}
+void parserPolynomial(PASERSSIGNATURE){
+    return twoOperation(CALLPASERSSIGNATURE, parserFactor, switchPolynomial, FACTOR, POLYNOMIAL,
+            "factor", "polynomial");
+}
+
+/**
+ * 因式匹配
+ * parserFactor：
+ * | parserBaseValue [1]
+ * | switchFactor ADD parserBaseValue
+ * | switchFactor SUB parserBaseValue
+ */
+bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
+    switch (symbol) {
+        case MATHER_MUL:
+            *st = makeOperationStatement(MUL);
+            break;
+        case MATHER_DIV:
+            *st = makeOperationStatement(DIV);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+void parserFactor(PASERSSIGNATURE){
+    return twoOperation(CALLPASERSSIGNATURE, parserBaseValue, switchFactor, BASEVALUE, FACTOR,
+                        "base value", "factor");
 }
 
 /**
@@ -281,32 +251,96 @@ void parserPolynomial(PASERSSIGNATURE){
  */
 void parserBaseValue(PASERSSIGNATURE){
     int token_type;
+    Token *value_token;
     struct Statement *st = NULL;
     readBackToken(token_type, pm);
     if(MATHER_NUMBER == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number\n", NULL);
-        Token *value_token;
-        char *stop;
         popAheadToken(value_token, pm);
+        char *stop;
         st = makeStatement();
         st->type = base_value;
         st->u.base_value.value = makeNumberValue(strtol(value_token->data.str, &stop, 10), inter);
-        freeToken(value_token, true, false);
     }
     else if(MATHER_STRING == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string\n", NULL);
-        Token *value_token;
         popAheadToken(value_token, pm);
         st = makeStatement();
         st->type = base_value;
         st->u.base_value.value = makeStringValue(value_token->data.str, inter);
-        freeToken(value_token, true, false);
+    }
+    else if(MATHER_VAR == token_type){
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var\n", NULL);
+        popAheadToken(value_token, pm);
+        st = makeStatement();
+        st->type = base_var;
+        st->u.base_var.name = memStrcpy(value_token->data.str, 0, false, false);
+        st->u.base_var.times = NULL;
     }
     else{
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: else\n", NULL);
         goto return_;
     }
+    freeToken(value_token, true, false);
     addStatementToken(BASEVALUE, st, pm);
+
+    return_:
+    return;
+}
+
+inline void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*getSymbol)(PASERSSIGNATURE, int symbol, Statement **st), int type, int self_type, char *call_name, char *self_name){
+    while(true){
+        int left, symbol, right;
+        Token *left_token, *symbol_token, *right_token;
+        struct Statement *st = NULL;
+
+        readBackToken(left, pm);
+        if (left != self_type){
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call %s(left)\n", self_name, call_name);
+            callChild(pm, left, left_token, callBack, type, return_);
+            addStatementToken(self_type, left_token->data.st, pm);
+            freeToken(left_token, true, false);
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
+                      "%s: get %s(left) success[push %s]\n", self_name, call_name, self_name);
+            continue;
+        }
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call symbol\n", self_name);
+        popAheadToken(left_token, pm);
+
+        readBackToken(symbol, pm);
+        if (getSymbol(CALLPASERSSIGNATURE, symbol, &st)){
+            delToken(pm);
+        }
+        else{
+            backToken_(pm, left_token);
+            goto return_;
+        }
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
+                  "%s: get symbol success\n%s: call %s[right]\n", self_name, self_name, call_name);
+
+        callBack(CALLPASERSSIGNATURE);  // 获得左值
+        if (!call_success(pm)){
+            freeToken(left_token, true, false);
+            freeStatement(st);
+            goto return_;
+        }
+        readBackToken(right, pm);
+        if (right != type){  // 若非正确数值
+            char *tmp1, *tmp2;
+            tmp1 = memStrcat("ERROR from ", self_name);
+            tmp2 = memStrcat(tmp1, "(get right)");
+            syntaxError(pm, tmp2, syntax_error);
+            memFree(tmp1);
+            memFree(tmp2);
+            freeToken(left_token, true, true);
+            freeStatement(st);
+            goto return_;
+        }
+
+        popAheadToken(right_token, pm);
+        addToken_(pm, setOperationFromToken(st, left_token, right_token, self_type));
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: get base value(right) success[push polynomial]\n", NULL);
+    }
     return_:
     return;
 }

@@ -145,7 +145,6 @@ void strMather(char p, LexMather *mather, const char *dest_p){
             mather->status = LEXMATHER_ING;
         }
         else if(mather->status == LEXMATHER_ING && mather->len == memStrlen((char *)dest_p)){
-            printf("G\n");
             mather->status = LEXMATHER_END;
         }
         else{

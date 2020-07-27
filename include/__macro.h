@@ -17,4 +17,10 @@
 #define INTER_FUNCTIONSIG Statement *st, Inter *inter, VarList *var_list
 #define CALL_INTER_FUNCTIONSIG(st, var_list) st, inter, var_list
 
+#define freeBase(element, return_) do{ \
+if (element == NULL){ \
+goto return_; \
+} \
+}while(0) \
+
 #endif //VIRTUALMATH___MACRO_H

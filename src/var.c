@@ -10,12 +10,14 @@ Var *makeVar(char *name, LinkValue *value){
 }
 
 Var *freeVar(Var *var, bool self){
+    freeBase(var, return_);
     memFree(var->name);
     if (self){
         Var *next_var = var->next;
         memFree(var);
         return next_var;
     }
+    return_:
     return var;
 }
 
@@ -41,6 +43,7 @@ HashTable *makeHashTable(Inter *inter) {
 }
 
 void freeHashTable(HashTable *ht, Inter *inter){
+    freeBase(ht, return_);
     if (ht->last == NULL){
         inter->hash_base = ht->next;
     }
@@ -59,6 +62,8 @@ void freeHashTable(HashTable *ht, Inter *inter){
     }
     memFree(ht->hashtable);
     memFree(ht);
+    return_:
+    return;
 }
 
 VarList *makeVarList(Inter *inter) {
@@ -69,13 +74,14 @@ VarList *makeVarList(Inter *inter) {
 }
 
 VarList *freeVarList(VarList *vl, bool self){
+    freeBase(vl, return_);
     if (self){
         VarList *next_var = vl->next;
         memFree(vl);
         return next_var;
     }
+    return_:
     return vl;
-
 }
 
 /**

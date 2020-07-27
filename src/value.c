@@ -39,6 +39,7 @@ Value *makeStringValue(char *str, Inter *inter) {
 }
 
 void freeValue(Value *value, Inter *inter){
+    freeBase(value, return_);
     if (value->last == NULL){
         inter->base = value->next;
     }
@@ -56,6 +57,8 @@ void freeValue(Value *value, Inter *inter){
             break;
     }
     memFree(value);
+    return_:
+    return;
 }
 
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
@@ -80,6 +83,7 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
 }
 
 void freeLinkValue(LinkValue *value, Inter *inter){
+    freeBase(value, return_);
     if (value->last == NULL){
         inter->link_base = value->next;
     }
@@ -90,6 +94,8 @@ void freeLinkValue(LinkValue *value, Inter *inter){
         value->next->last = value->last;
     }
     memFree(value);
+    return_:
+    return;
 }
 
 void setResult(Result *ru, bool link, Inter *inter) {

@@ -7,7 +7,7 @@ Inter *makeInter(char *debug){
     tmp->statement = makeStatement();
     tmp->var_list = makeVarList(tmp);
     tmp->log_dir = memStrcpy(debug, 0, false, false);
-    if (debug != NULL){
+    if (debug != NULL && !args.stdout_inter){
         char *debug_dir = memStrcat(debug, INTER_LOG);
         tmp->debug = fopen(debug_dir, "w");
         memFree(debug_dir);
@@ -18,6 +18,7 @@ Inter *makeInter(char *debug){
 }
 
 void freeInter(Inter *inter, bool self){
+    freeBase(inter, return_);
     while (inter->base != NULL){
         freeValue(inter->base, inter);
     }
@@ -35,4 +36,6 @@ void freeInter(Inter *inter, bool self){
     if (self){
         memFree(inter);
     }
+    return_:
+    return;
 }

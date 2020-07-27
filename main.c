@@ -3,6 +3,7 @@
 
 static const struct option long_option[]={
         {"input",required_argument,NULL,'i'},
+        {"stdout",no_argument,NULL,'s'},
 
 #if OUT_LOG
         {"log",required_argument,NULL,'l'},
@@ -17,9 +18,9 @@ static const struct option long_option[]={
 };
 
 #if OUT_LOG
-static const char *short_option = "i:l:";
+static const char *short_option = "si:l:";
 #else
-static const char *short_option = "i:";
+static const char *short_option = "si:";
 #endif
 int getArgs(int argc, char *argv[]);
 void freeArgs();
@@ -34,6 +35,7 @@ int main(int argc, char *argv[]) {
     pasersCommandList(pm, global_iter, true, global_iter->statement);
     if (pm->status != success){
         writeLog(pm->paser_debug, ERROR, "Syntax Error: %s\n", pm->status_message);
+        writeLog(stdout, ERROR, "Syntax Error: %s\n", pm->status_message);
         goto return_;
     }
     globalIterStatement(global_iter);
@@ -60,6 +62,7 @@ int getArgs(int argc, char *argv[])
     args.file = NULL;
     args.log_file = NULL;
     args.level = LEXICAL_CHECKOUT_DEBUG;
+    args.stdout_inter = false;
     opterr = false;
     int opt;
     while((opt=getopt_long(argc,argv,short_option ,long_option,NULL))!=-1)
@@ -73,6 +76,9 @@ int getArgs(int argc, char *argv[])
                 break;
             case 'l':
                 args.log_file = memStrcpy(optarg, 0, false, false);
+                break;
+            case 's':
+                args.stdout_inter = true;
                 break;
             case '?':
                 printf("[Error]: get not success args : -%c\n", (char)optopt);

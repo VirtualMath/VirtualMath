@@ -20,6 +20,7 @@ struct Args{
     char *file;
     char *log_file;
     int level;
+    bool stdout_inter;
 } args;
 
 #endif //VIRTUALMATH___VIRTUALMATH_H

@@ -33,10 +33,13 @@ LexFile *makeLexFile(char *dir){
 }
 
 void freeLexFile(LexFile *file, bool self){
+    freeBase(file, return_);
     fclose(file->file);
     if (self){
         memFree(file);
     }
+    return_:
+    return;
 }
 
 /**
@@ -77,6 +80,7 @@ LexMathers *makeMathers(int size){
 }
 
 void freeMathers(LexMathers *mathers, bool self){
+    freeBase(mathers, return_);
     for(int i=0;i < mathers->size; i++){
         freeMather(mathers->mathers[i], true);
     }
@@ -85,6 +89,8 @@ void freeMathers(LexMathers *mathers, bool self){
     if (self){
         memFree(mathers);
     }
+    return_:
+    return;
 }
 
 /**

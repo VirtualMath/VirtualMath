@@ -33,6 +33,9 @@ typedef struct Statement{
 } Statement;
 
 Statement *makeStatement();
+Statement *makeOperationStatement(int type);
+struct Token *setOperationFromToken(Statement *st, struct Token *left, struct Token *right, int type);
+
 void connectStatement(Statement *base, Statement *new);
 void freeStatement(Statement *st);
 

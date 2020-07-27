@@ -43,16 +43,40 @@ backToken(pm->tm->ts, pm->paser_debug); \
 } while(0)
 
 #define backToken_(pm, token) do{ \
-addToken(pm->tm->ts, token, pm->paser_debug); \
+addToken(pm->tm->ts, (token), pm->paser_debug); \
 backToken(pm->tm->ts, pm->paser_debug); \
 }while(0)
 
+#define addToken_ backToken_
+
 #define call_success(pm) (pm->status == success)
+
+#define delToken(pm) do{ \
+Token *tmp_token; \
+popAheadToken(tmp_token, pm); \
+freeToken(tmp_token, true, false); \
+tmp_token = NULL; \
+}while(0)
+
+#define callChild(pm, status, token, call, type, error_) do{ \
+call(CALLPASERSSIGNATURE); \
+if (!call_success(pm)){ \
+goto error_; \
+} \
+readBackToken(status, pm); \
+if (status != type){ \
+goto error_; \
+} \
+popAheadToken(token, pm); \
+}while(0)
 
 void parserCommand(PASERSSIGNATURE);
 void parserOperation(PASERSSIGNATURE);
 void parserPolynomial(PASERSSIGNATURE);
 void parserBaseValue(PASERSSIGNATURE);
-
+void parserFactor(PASERSSIGNATURE);
+void parserAssignment(PASERSSIGNATURE);
 void syntaxError(ParserMessage *pm, char *message, int status);
+void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*getSymbol)(PASERSSIGNATURE, int symbol, Statement **st), int, int, char *, char *);
+
 #endif //VIRTUALMATH___GRAMMAR_H

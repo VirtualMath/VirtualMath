@@ -8,6 +8,29 @@ Statement *makeStatement(){
     return tmp;
 }
 
+Statement *makeOperationStatement(int type){
+    Statement *tmp;
+    tmp = memCalloc(1, sizeof(Statement));
+    tmp->type = operation;
+    tmp->u.operation.OperationType = type;
+    tmp->u.operation.left = NULL;
+    tmp->u.operation.right = NULL;
+    return tmp;
+}
+
+Token *setOperationFromToken(Statement *st, Token *left, Token *right, int type) {
+    Token *new_token;
+    st->u.operation.left = left->data.st;
+    st->u.operation.right = right->data.st;
+    new_token = makeToken();
+    new_token->token_type = type;
+    new_token->data.st = st;
+
+    freeToken(left, true, false);
+    freeToken(right, true, false);
+    return new_token;
+}
+
 void connectStatement(Statement *base, Statement *new){
     while (base->next != NULL){
         base = base->next;
@@ -16,9 +39,7 @@ void connectStatement(Statement *base, Statement *new){
 }
 
 void freeStatement(Statement *st){
-    if (st == NULL){
-        return;
-    }
+    freeBase(st, return_);
     Statement *next_tmp;
     while (st != NULL){
         switch (st->type) {
@@ -37,4 +58,6 @@ void freeStatement(Statement *st){
         memFree(st);
         st = next_tmp;
     }
+    return_:
+    return;
 }
