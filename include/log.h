@@ -47,7 +47,7 @@ fprintf(file, message, __VA_ARGS__); \
 #define doubleLog(...) PASS
 #endif
 
-#ifdef unix
+#ifdef __unix__
 #define GRAMMAR_LOG "/grammar.log"
 #define PASERS_LOG "/pasers.log"
 #define LEXICAL_LOG "/lexical.log"
