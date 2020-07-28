@@ -8,6 +8,13 @@ typedef struct Statement{
         base_value,
         base_var,
         operation,
+        set_function,
+        call_function,
+        if_branch,
+        while_branch,
+        for_branch,
+        try_branch,
+        with_branch,
     } type;
     union StatementU{
         struct base_value{
@@ -28,15 +35,66 @@ typedef struct Statement{
             struct Statement *left;
             struct Statement *right;
         } operation;
+        struct {
+            struct Statement *name;
+            struct Statement *function;
+        } set_function;
+        struct {
+            struct Statement *function;
+        } call_function;
+        struct {
+            struct StatementList *if_list;  // if elif
+            struct Statement *else_list;  // else分支(无condition)
+            struct Statement *finally;
+        } if_branch;
+        struct {
+            enum {
+                while_,
+                do_while_,
+            } type;
+            struct Statement *first;  // first do
+            struct StatementList *while_list;  // while循环体
+            struct Statement *after;  // after do
+            struct Statement *else_list;  // else分支(无condition)
+            struct Statement *finally;
+        } while_branch;
+        struct {
+            struct Statement *var;  // first do
+            struct Statement *iter;  // after do
+            struct StatementList *for_list;  // for循环体
+            struct Statement *else_list;  // else分支(无condition)
+            struct Statement *finally;
+        } for_branch;
+        struct {
+            struct Statement *try;  // first do
+            struct StatementList *except_list;  // for循环体
+            struct Statement *else_list;  // else分支(无condition)
+            struct Statement *finally;
+        } try_branch;
     }u;
     struct Statement *next;
 } Statement;
+
+typedef struct StatementList{
+    struct Statement *condition;
+    struct Statement *var;  // TODO-szh if等分支计算结果允许赋值
+    struct Statement *code;
+    struct StatementList *next;
+} StatementList;
 
 Statement *makeStatement();
 Statement *makeOperationStatement(int type);
 struct Token *setOperationFromToken(Statement *st, struct Token *left, struct Token *right, int type);
 
+Statement *makeFunctionStatement(Statement *name, Statement *function);
+Statement *makeCallStatement(Statement *function);
+
 void connectStatement(Statement *base, Statement *new);
 void freeStatement(Statement *st);
+
+StatementList *connectStatementList(StatementList *base, StatementList *new);
+StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code);
+void freeStatementList(StatementList *base);
+#define makeConnectStatementList(base, condition, var, code) connectStatementList(base, makeStatementList(condition, var, code))
 
 #endif //VIRTUALMATH_STATEMENT_H

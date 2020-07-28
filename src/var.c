@@ -105,10 +105,21 @@ void addVar(char *name, LinkValue *value, VarList *var_list){
         var_list->hashtable->hashtable[index] = makeVar(name, value);
         goto return_;
     }
-    while (base->next != NULL){
+    while (true){
+        if (base->next != NULL)
+            goto new_one;
+        if (eqString(base->name, name))
+            goto change;
         base = base->next;
     }
+    new_one:
     base->next = makeVar(name, value);
+    goto return_;
+
+    change:
+    base->value = value;
+    goto return_;
+
     return_:
     return;
 }
@@ -152,4 +163,35 @@ void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue 
         var_list = var_list->next;
     }
     addVar(name, value, var_list);
+}
+
+VarList *pushVarList(VarList *base, Inter *inter){
+    VarList *new = makeVarList(inter);
+    new->next = base;
+    return new;
+}
+
+VarList *popVarList(VarList *base, Inter *inter){
+    if (base->next == NULL)
+        return base;
+    return freeVarList(base, true);
+}
+
+VarList *copyVarListCore(VarList *base, Inter *inter){
+    VarList *tmp = makeVarList(inter);
+    tmp->hashtable = base->hashtable;
+    return tmp;
+}
+
+VarList *copyVarList(VarList *base, bool n_new, Inter *inter){
+    VarList *new, *tmp;
+    new = tmp = copyVarListCore(base, inter);
+    while (base->next != NULL){
+        tmp->next = copyVarListCore(base->next, inter);
+        tmp = tmp->next;
+        base = base->next;
+    }
+    if (n_new)
+        new = pushVarList(new, inter);
+    return new;
 }

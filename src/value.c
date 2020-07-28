@@ -3,8 +3,7 @@
 Value *makeValue(Inter *inter) {
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
-    tmp->type = number;
-    tmp->data.num.num = 0;
+    tmp->type = none;
     tmp->next = NULL;
     if (list_tmp == NULL){
         inter->base = tmp;
@@ -38,6 +37,15 @@ Value *makeStringValue(char *str, Inter *inter) {
     return tmp;
 }
 
+Value *makeFunctionValue(Statement *st, VarList *var_list, Inter *inter) {
+    Value *tmp;
+    tmp = makeValue(inter);
+    tmp->type = function;
+    tmp->data.function.function = st;
+    tmp->data.function.var = copyVarList(var_list, true, inter);
+    return tmp;
+}
+
 void freeValue(Value *value, Inter *inter){
     freeBase(value, return_);
     if (value->last == NULL){
@@ -53,6 +61,12 @@ void freeValue(Value *value, Inter *inter){
         case string:
             memFree(value->data.str.str);
             break;
+        case function: {
+            VarList *tmp = value->data.function.var;
+            while (tmp != NULL)
+                tmp = freeVarList(tmp, true);
+            break;
+        }
         default:
             break;
     }
@@ -99,8 +113,19 @@ void freeLinkValue(LinkValue *value, Inter *inter){
 }
 
 void setResult(Result *ru, bool link, Inter *inter) {
-    ru->type = statement_end;
+    ru->type = not_return;
     if (link){
-        ru->value = makeLinkValue(NULL, NULL, inter);
+        // inter->base即None值
+        ru->value = makeLinkValue(inter->base, NULL, inter);
     }
+}
+
+void setResultError(Result *ru, Inter *inter) {
+    ru->type = error_return;
+    ru->value = makeLinkValue(inter->base, NULL, inter);
+}
+
+void setResultOperation(Result *ru, Inter *inter) {
+    ru->type = operation_return;
+    ru->value = makeLinkValue(inter->base, NULL, inter);
 }

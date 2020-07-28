@@ -7,6 +7,7 @@ Inter *makeInter(char *debug){
     tmp->statement = makeStatement();
     tmp->var_list = makeVarList(tmp);
     tmp->log_dir = memStrcpy(debug, 0, false, false);
+    makeValue(tmp);  // 注册None值
     if (debug != NULL && !args.stdout_inter){
         char *debug_dir = memStrcat(debug, INTER_LOG);
         tmp->debug = fopen(debug_dir, "w");

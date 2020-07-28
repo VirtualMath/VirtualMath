@@ -1,23 +1,5 @@
 #include "__run.h"
 
-Result getBaseVar(INTER_FUNCTIONSIG) {
-    Result times, result;
-    int int_times;
-    if (st->u.base_var.times == NULL){
-        int_times = 0;
-        goto not_times;
-    }
-    times = iterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list));
-    int_times = (int)times.value->value->data.num.num;
-
-    not_times:
-    result.value = findFromVarList(st->u.base_var.name, var_list, int_times);
-    if (result.value == NULL){
-        writeLog_(inter->debug, WARNING, "not found[%s]\n", st->u.base_var.name);
-    }
-    return result;
-}
-
 /**
  * 运行单个statement
  * @param st
@@ -27,10 +9,9 @@ Result getBaseVar(INTER_FUNCTIONSIG) {
  */
 Result runStatement(INTER_FUNCTIONSIG) {
     Result result;
-    setResult(&result, true, inter);
     switch (st->type) {
         case base_value:
-            result.value->value = st->u.base_value.value;
+            result = getBaseValue(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         case base_var:
             result = getBaseVar(CALL_INTER_FUNCTIONSIG(st, var_list));
@@ -39,7 +20,14 @@ Result runStatement(INTER_FUNCTIONSIG) {
             result = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
             printResult(result, "operation result = ", "", inter->debug);
             break;
+        case set_function:
+            result = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
+        case call_function:
+            result = callFunction(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         default:
+            setResult(&result, true, inter);
             break;
     }
     return result;
@@ -55,11 +43,14 @@ Result runStatement(INTER_FUNCTIONSIG) {
 Result iterStatement(INTER_FUNCTIONSIG) {
     Result result;
     Statement *base_st = st;
-    VarList *new_var_list = var_list;
     while(base_st != NULL){
-        result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, new_var_list));
+        result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
+        if (!runContinue(result))
+            break;
         base_st = base_st->next;
     }
+    if (result.type == not_return)
+        setResult(&result, true, inter);
     return result;
 }
 
@@ -71,10 +62,14 @@ Result iterStatement(INTER_FUNCTIONSIG) {
 Result globalIterStatement(Inter *inter) {
     Result result;
     Statement *base_st = inter->statement;
-    VarList *new_var_list = inter->var_list;
+    VarList *var_list = inter->var_list;
     while(base_st != NULL){
-        result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, new_var_list));
+        result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
+        if (!runContinue(result))
+            break;
         base_st = base_st->next;
     }
+    if (result.type != error_return || result.type != function_return)
+        setResult(&result, true, inter);
     return result;
 }

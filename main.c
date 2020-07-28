@@ -35,10 +35,15 @@ int main(int argc, char *argv[]) {
     pasersCommandList(pm, global_iter, true, global_iter->statement);
     if (pm->status != success){
         writeLog(pm->paser_debug, ERROR, "Syntax Error: %s\n", pm->status_message);
-        writeLog(stdout, ERROR, "Syntax Error: %s\n", pm->status_message);
+        writeLog(stderr, ERROR, "Syntax Error: %s\n", pm->status_message);
         goto return_;
     }
-    globalIterStatement(global_iter);
+    Result tmp;
+    tmp = globalIterStatement(global_iter);
+    if (tmp.type == error_return){
+        writeLog(global_iter->debug, ERROR, "Run Error\n", NULL);
+        writeLog(stderr, ERROR, "Run Error\n", NULL);
+    }
 
     return_:
     freePasersMessage(pm, true);

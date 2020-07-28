@@ -4,8 +4,10 @@
 
 typedef struct VirtualMathValue{
     enum ValueType{
+        none=0,
         number=1,
         string,
+        function,
     } type;
     union data{
         struct Number{
@@ -14,6 +16,10 @@ typedef struct VirtualMathValue{
         struct String{
             char *str;
         } str;
+        struct {
+            struct Statement *function;
+            struct VirtualMathVarList *var;
+        } function;
     }data;
     struct VirtualMathValue *next;
     struct VirtualMathValue *last;
@@ -28,7 +34,10 @@ typedef struct VirtualMathLinkValue{
 
 typedef struct VirtualMathResult{
     enum ResultType{
-        statement_end = 1,
+        not_return = 1,  // 无返回值
+        function_return,  // 函数返回值
+        operation_return,  // 表达式返回值
+        error_return,  // 错误
     } type;
     struct VirtualMathLinkValue *value;
 } Result;
@@ -39,8 +48,10 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
 void freeLinkValue(LinkValue *value, Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
+Value *makeFunctionValue(Statement *st, struct VirtualMathVarList *var_list, Inter *inter);
 
 void setResult(Result *ru, bool link, Inter *inter);
-
+void setResultError(Result *ru, Inter *inter);
+void setResultOperation(Result *ru, Inter *inter);
 
 #endif //VIRTUALMATH_VALUE_H

@@ -12,8 +12,14 @@ switch (result.value->value->type){ \
     case string: \
         writeLog(debug, INFO, "%s%s%s\n", first, result.value->value->data.str.str, last); \
         break; \
+    case function: \
+        writeLog(debug, INFO, "%sfunction on %x%s\n", first, (int)result.value->value, last); \
+        break; \
+    case none: \
+        writeLog(debug, INFO, "%sNone%s\n", first, last); \
+        break; \
     default: \
-        writeLog(debug, INFO, "%sdefault%s\n", first, last); \
+        writeLog(debug, INFO, "%sdefault on %x%s\n", first, (int)result.value->value, last); \
         break; \
 } \
 } while(0)
