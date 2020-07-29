@@ -26,18 +26,23 @@ int getArgs(int argc, char *argv[]);
 void freeArgs();
 
 int main(int argc, char *argv[]) {
+    printf("[start VirtualMath]\n");
     if (getArgs(argc, argv)){
         goto args_error_;
     }
 
     Inter *global_iter = makeInter(args.log_file);
     ParserMessage *pm = makeParserMessage(args.file, args.log_file);
+
+    printf("[start to lexical]\n");
     pasersCommandList(pm, global_iter, true, global_iter->statement);
     if (pm->status != success){
         writeLog(pm->paser_debug, ERROR, "Syntax Error: %s\n", pm->status_message);
         writeLog(stderr, ERROR, "Syntax Error: %s\n", pm->status_message);
         goto return_;
     }
+
+    printf("[start to run]\n");
     Result tmp;
     tmp = globalIterStatement(global_iter);
     if (tmp.type == error_return){
@@ -49,10 +54,12 @@ int main(int argc, char *argv[]) {
     freePasersMessage(pm, true);
     freeInter(global_iter, true);
     freeArgs();
+    printf("[exit Virtual [0]]\n");
     return 0;
 
     args_error_:
     freeArgs();
+    printf("[exit Virtual [1]]\n");
     return 1;
 }
 

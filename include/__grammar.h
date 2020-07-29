@@ -17,16 +17,7 @@ writeLog(pm->paser_debug, pasers_level, "\n"message, __VA_ARGS__); \
 #define writeLog_(...) PASS
 #endif
 
-#define readBackToken(status, pm) do{ \
-doubleLog(pm, GRAMMAR_DEBUG, DEBUG, "token operation number : %d\n", pm->count); \
-pm->count ++; \
-status = safeGetToken(pm->tm, pm->paser_debug); \
-if (status == -2){ \
-syntaxError(pm, "lexical make some error", lexical_error); \
-} \
-backToken(pm->tm->ts, pm->paser_debug); \
-} while(0) /*预读token*/
-
+// TODO-szh 优化token操作, 减少内存操作
 #define popAheadToken(token_var, pm) do{ \
 doubleLog(pm, GRAMMAR_DEBUG, DEBUG, "token operation number : %d\n", pm->count); \
 pm->count ++; \
@@ -52,27 +43,47 @@ backToken(pm->tm->ts, pm->paser_debug); \
 #define call_success(pm) (pm->status == success)
 
 #define delToken(pm) do{ \
-delTokenCore(pm, false); \
-}while(0)
-
-#define delTokenCore(pm, del_st) do{ \
 Token *tmp_token; \
 popAheadToken(tmp_token, pm); \
-freeToken(tmp_token, true, del_st); \
-tmp_token = NULL; \
+freeToken(tmp_token, true, false); \
 }while(0)
 
 #define checkToken(pm, type, error_) do{ \
-int token; \
-readBackToken(token, pm); \
+int token = readBackToken(pm); \
 if (token != type){ \
 goto error_; \
 } \
 delToken(pm); \
 }while(0)
 
+// pasersCommand专属macro
+#define commandCallBack(pm, st, call, type, return_) do{ \
+writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: call "#call"\n", NULL); \
+Token *tmp_token = NULL; \
+call(CALLPASERSSIGNATURE); \
+if (!call_success(pm) || readBackToken(pm) != type) \
+goto return_; \
+popAheadToken(tmp_token, pm); \
+st = tmp_token->data.st; \
+freeToken(tmp_token, true, false); \
+} while(0)
+
+#define commandCallControl(pm, st, call, type, return_) do{ \
+writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: call pasers"#call"\n", NULL); \
+Token *tmp_token = NULL; \
+parserControl(CALLPASERSSIGNATURE, call, type); \
+if (!call_success(pm) || readBackToken(pm) != type) \
+goto return_; \
+popAheadToken(tmp_token, pm); \
+st = tmp_token->data.st; \
+freeToken(tmp_token, true, false); \
+} while(0)
+
 void parserCommand(PASERSSIGNATURE);
+void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type);
 void parserDef(PASERSSIGNATURE);
+void parserIf(PASERSSIGNATURE);
+void parserWhile(PASERSSIGNATURE);
 void parserCode(PASERSSIGNATURE);
 void parserOperation(PASERSSIGNATURE);
 void parserPolynomial(PASERSSIGNATURE);
@@ -80,8 +91,10 @@ void parserBaseValue(PASERSSIGNATURE);
 void parserCallBack(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
-void syntaxError(ParserMessage *pm, char *message, int status);
 void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*getSymbol)(PASERSSIGNATURE, int symbol, Statement **st), int, int, char *, char *);
 void tailOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*tailFunction)(PASERSSIGNATURE, Token *left_token,  Statement **st), int , int , char *, char *);
+
+void syntaxError(ParserMessage *pm, char *message, int status);
+int readBackToken(ParserMessage *pm);
 
 #endif //VIRTUALMATH___GRAMMAR_H

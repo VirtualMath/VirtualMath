@@ -38,8 +38,11 @@ typedef struct VirtualMathResult{
         function_return,  // 函数返回值
         operation_return,  // 表达式返回值
         error_return,  // 错误
+        break_return,
+        continue_return,
     } type;
     struct VirtualMathLinkValue *value;
+    int times;
 } Result;
 
 Value *makeValue(Inter *inter);

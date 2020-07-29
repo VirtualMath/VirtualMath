@@ -44,6 +44,41 @@ Statement *makeCallStatement(Statement *function){
     return tmp;
 }
 
+Statement *makeIfStatement(){
+    Statement *tmp = makeStatement();
+    tmp->type = if_branch;
+    tmp->u.if_branch.if_list = NULL;
+    tmp->u.if_branch.else_list = NULL;
+    tmp->u.if_branch.finally = NULL;
+    return tmp;
+}
+
+Statement *makeWhileStatement(){
+    Statement *tmp = makeStatement();
+    tmp->type = while_branch;
+    tmp->u.while_branch.type = while_;
+    tmp->u.while_branch.while_list = NULL;
+    tmp->u.while_branch.else_list = NULL;
+    tmp->u.while_branch.finally = NULL;
+    tmp->u.while_branch.first = NULL;
+    tmp->u.while_branch.after = NULL;
+    return tmp;
+}
+
+Statement *makeBreakStatement(Statement *times){
+    Statement *tmp = makeStatement();
+    tmp->type = break_cycle;
+    tmp->u.break_cycle.times = times;
+    return tmp;
+}
+
+Statement *makeContinueStatement(Statement *times){
+    Statement *tmp = makeStatement();
+    tmp->type = continue_cycle;
+    tmp->u.continue_cycle.times = times;
+    return tmp;
+}
+
 void connectStatement(Statement *base, Statement *new){
     while (base->next != NULL){
         base = base->next;
@@ -97,6 +132,17 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.try_branch.else_list);
                 freeStatement(st->u.try_branch.finally);
                 break;
+            case with_branch:
+                freeStatementList(st->u.with_branch.with_list);
+                freeStatement(st->u.with_branch.else_list);
+                freeStatement(st->u.with_branch.finally);
+                break;
+            case break_cycle:
+                freeStatement(st->u.break_cycle.times);
+                break;
+            case continue_cycle:
+                freeStatement(st->u.continue_cycle.times);
+                break;
             default:
                 break;
         }
@@ -108,11 +154,12 @@ void freeStatement(Statement *st){
     return;
 }
 
-StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code){
+StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type) {
     StatementList *tmp = memCalloc(1, sizeof(StatementList));
     tmp->condition = condition;
     tmp->var = var;
     tmp->code = code;
+    tmp->type = type;
     tmp->next = NULL;
     return tmp;
 }

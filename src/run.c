@@ -26,6 +26,18 @@ Result runStatement(INTER_FUNCTIONSIG) {
         case call_function:
             result = callFunction(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
+        case if_branch:
+            result = ifBranch(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
+        case while_branch:
+            result = whileBranch(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
+        case break_cycle:
+            result = breakCycle(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
+        case continue_cycle:
+            result = continueCycle(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         default:
             setResult(&result, true, inter);
             break;
@@ -72,4 +84,46 @@ Result globalIterStatement(Inter *inter) {
     if (result.type != error_return || result.type != function_return)
         setResult(&result, true, inter);
     return result;
+}
+
+// 若需要中断执行, 则返回true
+bool operationSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
+    if (result->type == not_return || result->type == operation_return)
+        return false;
+    return true;
+}
+
+bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
+    if (result->type == not_return || result->type == operation_return){
+        return false;
+    }
+    return true;
+}
+
+bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
+    if (result->type == not_return || result->type == operation_return){
+        return false;
+    }
+    if (result->type == break_return || result->type == continue_return){
+        result->times--;
+        if (result->times < 0)
+            return false;
+    }
+    return true;
+}
+
+bool functionSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
+    if (result->type == error_return){
+        return true;
+    }
+    else if (result->type == function_return){
+        result->type = operation_return;
+        return false;
+    }
+    result->type = not_return;
+    return false;
 }

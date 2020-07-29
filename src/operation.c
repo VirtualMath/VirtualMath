@@ -3,7 +3,9 @@
  * operation.c中是用于数学计算的函数
  */
 
-#define getresult(base, var, inter) safeIterStatement(var, CALL_INTER_FUNCTIONSIG(st->u.operation. base, var_list))
+#define getresult(base, var, inter) do{ \
+if (operationSafeInterStatement(&var, CALL_INTER_FUNCTIONSIG(st->u.operation. base, var_list))){ return var; } \
+}while(0)
 #define viewtype_core(a, b, valuetype_a, valuetype_a_b) a .value->value->type == valuetype_a && b.value->value->type == valuetype_a_b
 #define viewtype(a, b, valuetype) viewtype_core(a, b, valuetype, valuetype)
 #define operationValue(a, b, type, symbol) a.value->value->data.type symbol b.value->value->data.type
@@ -131,26 +133,24 @@ Result assOperation(INTER_FUNCTIONSIG) {
 }
 
 Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
-    Result times;
+    Result result, times;
+    setResult(&result, true, inter);
     int int_times;
     if (name->type == base_var){
         if (name->u.base_var.times == NULL){
             int_times = 0;
-            setResult(&times, true, inter);
             goto not_times;
         }
 
-        safeIterStatement(times, CALL_INTER_FUNCTIONSIG(name->u.base_var.times, var_list));
+        if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(name->u.base_var.times, var_list))){
+            return times;
+        }
 
-        times = iterStatement(CALL_INTER_FUNCTIONSIG(name->u.base_var.times, var_list));
         int_times = (int)times.value->value->data.num.num;
         not_times:
         addFromVarList(name->u.base_var.name, var_list, int_times, value);
     }
-    else{
-        setResult(&times, true, inter);
-    }
-    return times;
+    return result;
 }
 
 Result getBaseVar(INTER_FUNCTIONSIG) {
@@ -162,7 +162,9 @@ Result getBaseVar(INTER_FUNCTIONSIG) {
         int_times = 0;
         goto not_times;
     }
-    safeIterStatement(times, CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list));
+    if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list))){
+        return times;
+    }
     int_times = (int)times.value->value->data.num.num;
 
     not_times:

@@ -15,6 +15,8 @@ typedef struct Statement{
         for_branch,
         try_branch,
         with_branch,
+        break_cycle,
+        continue_cycle,
     } type;
     union StatementU{
         struct base_value{
@@ -71,11 +73,26 @@ typedef struct Statement{
             struct Statement *else_list;  // else分支(无condition)
             struct Statement *finally;
         } try_branch;
+        struct {
+            struct StatementList *with_list;  // for循环体
+            struct Statement *else_list;  // else分支(无condition)
+            struct Statement *finally;
+        } with_branch;
+        struct {
+            struct Statement *times;
+        } break_cycle;
+        struct {
+            struct Statement *times;
+        } continue_cycle;
     }u;
     struct Statement *next;
 } Statement;
 
 typedef struct StatementList{
+    enum {
+        if_b,
+        do_b,
+    } type;
     struct Statement *condition;
     struct Statement *var;  // TODO-szh if等分支计算结果允许赋值
     struct Statement *code;
@@ -88,13 +105,17 @@ struct Token *setOperationFromToken(Statement *st, struct Token *left, struct To
 
 Statement *makeFunctionStatement(Statement *name, Statement *function);
 Statement *makeCallStatement(Statement *function);
+Statement *makeIfStatement();
+Statement *makeWhileStatement();
+Statement *makeBreakStatement(Statement *times);
+Statement *makeContinueStatement(Statement *times);
 
 void connectStatement(Statement *base, Statement *new);
 void freeStatement(Statement *st);
 
 StatementList *connectStatementList(StatementList *base, StatementList *new);
-StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code);
+StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);
 void freeStatementList(StatementList *base);
-#define makeConnectStatementList(base, condition, var, code) connectStatementList(base, makeStatementList(condition, var, code))
+#define makeConnectStatementList(base, condition, var, code, type) connectStatementList(base, makeStatementList(condition, var, code, type))
 
 #endif //VIRTUALMATH_STATEMENT_H

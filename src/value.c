@@ -42,7 +42,7 @@ Value *makeFunctionValue(Statement *st, VarList *var_list, Inter *inter) {
     tmp = makeValue(inter);
     tmp->type = function;
     tmp->data.function.function = st;
-    tmp->data.function.var = copyVarList(var_list, true, inter);
+    tmp->data.function.var = copyVarList(var_list, false, inter);
     return tmp;
 }
 

@@ -28,13 +28,6 @@ goto return_; \
 #define runContinue(result) (result.type == not_return || result.type == operation_return)
 #define is_error(result) (result.type == error_return)
 
-#define safeIterStatement(new_result, sig) do{ \
-new_result = iterStatement(sig); \
-if (is_error(new_result)){ \
-return new_result; \
-} \
-} while(0)
-
 #define checkResult(check_result) do{ \
 if (is_error(check_result)){ \
 return check_result; \
