@@ -17,67 +17,11 @@ writeLog(pm->paser_debug, pasers_level, "\n"message, __VA_ARGS__); \
 #define writeLog_(...) PASS
 #endif
 
-// TODO-szh 优化token操作, 减少内存操作
-#define popAheadToken(token_var, pm) do{ \
-doubleLog(pm, GRAMMAR_DEBUG, DEBUG, "token operation number : %d\n", pm->count); \
-pm->count ++; \
-safeGetToken(pm->tm, pm->paser_debug); \
-/* 执行popheanToken之前执行readBackToken因此不必再检查status */ \
-token_var = popToken(pm->tm->ts, pm->paser_debug); \
-} while(0) /*弹出预读的token*/
-
-#define addStatementToken(type, st, pm) do{\
-Token *tmp_new_token; \
-tmp_new_token = makeStatementToken(type, st); \
-addToken(pm->tm->ts, tmp_new_token, pm->paser_debug); \
-backToken(pm->tm->ts, pm->paser_debug); \
-} while(0)
-
-#define backToken_(pm, token) do{ \
-addToken(pm->tm->ts, (token), pm->paser_debug); \
-backToken(pm->tm->ts, pm->paser_debug); \
-}while(0)
-
+#define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st), pm->paser_debug)
+#define delToken(pm) freeToken(popAheadToken(pm), true, false)
+#define backToken_(pm, token) addBackToken(pm->tm->ts, (token), pm->paser_debug)
 #define addToken_ backToken_
-
 #define call_success(pm) (pm->status == success)
-
-#define delToken(pm) do{ \
-Token *tmp_token; \
-popAheadToken(tmp_token, pm); \
-freeToken(tmp_token, true, false); \
-}while(0)
-
-#define checkToken(pm, type, error_) do{ \
-int token = readBackToken(pm); \
-if (token != type){ \
-goto error_; \
-} \
-delToken(pm); \
-}while(0)
-
-// pasersCommand专属macro
-#define commandCallBack(pm, st, call, type, return_) do{ \
-writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: call "#call"\n", NULL); \
-Token *tmp_token = NULL; \
-call(CALLPASERSSIGNATURE); \
-if (!call_success(pm) || readBackToken(pm) != type) \
-goto return_; \
-popAheadToken(tmp_token, pm); \
-st = tmp_token->data.st; \
-freeToken(tmp_token, true, false); \
-} while(0)
-
-#define commandCallControl(pm, st, call, type, return_) do{ \
-writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: call pasers"#call"\n", NULL); \
-Token *tmp_token = NULL; \
-parserControl(CALLPASERSSIGNATURE, call, type); \
-if (!call_success(pm) || readBackToken(pm) != type) \
-goto return_; \
-popAheadToken(tmp_token, pm); \
-st = tmp_token->data.st; \
-freeToken(tmp_token, true, false); \
-} while(0)
 
 void parserCommand(PASERSSIGNATURE);
 void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type);
@@ -94,7 +38,17 @@ void parserAssignment(PASERSSIGNATURE);
 void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*getSymbol)(PASERSSIGNATURE, int symbol, Statement **st), int, int, char *, char *);
 void tailOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*tailFunction)(PASERSSIGNATURE, Token *left_token,  Statement **st), int , int , char *, char *);
 
-void syntaxError(ParserMessage *pm, char *message, int status);
+void syntaxError(ParserMessage *pm, int status, int num, ...);
 int readBackToken(ParserMessage *pm);
+Token *popAheadToken(ParserMessage *pm);
+bool checkToken_(ParserMessage *pm, int type);
+bool commandCallControl_(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type, Statement **st, char *message);
+bool commandCallBack_(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int type, Statement **st, char *message);
+bool callParserCode(PASERSSIGNATURE, Statement **st,char *message);
+bool callParserAs(PASERSSIGNATURE, Statement **st,char *message);
+bool callChildStatement(PASERSSIGNATURE, void (*call)(PASERSSIGNATURE), int type, Statement **st, char *message);
+
+bool callChildToken(ParserMessage *pm, Inter *inter, void (*call)(ParserMessage *, Inter *), int type, Token **tmp,
+                    char *message, int error_type);
 
 #endif //VIRTUALMATH___GRAMMAR_H

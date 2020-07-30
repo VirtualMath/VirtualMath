@@ -102,7 +102,7 @@ typedef struct StatementList{
         do_b,
     } type;
     struct Statement *condition;
-    struct Statement *var;  // TODO-szh if等分支计算结果允许赋值
+    struct Statement *var;
     struct Statement *code;
     struct StatementList *next;
 } StatementList;

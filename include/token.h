@@ -111,13 +111,13 @@ typedef struct Token{
         char *second_str;  // 针对123.4j这种形式设定的，其中second_str存储j
         struct Statement *st;
     } data;
+    struct Token *last;
+    struct Token *next;
 } Token;
 
 typedef struct TokenStream{
-    Token **token_list;  // 存储token的列表
-    Token **token_ahead;  // 提前存储token的列表
+    Token *token_list;  // 提前存储token的列表
     int size;
-    int ahead;
 } TokenStream;
 
 typedef struct TokenMessage{
@@ -135,11 +135,8 @@ void freeToken(Token *tk, bool self, bool error);
 extern Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug);
 
 
-int safeGetToken(TokenMessage *tm, FILE *debug);
-Token *forwardToken(TokenStream *ts, FILE *debug);
-Token *backToken(TokenStream *ts, FILE *debug);
-void addToken(TokenStream *ts, Token *new_tk, FILE *debug);
-Token *popToken(TokenStream *ts, FILE *debug);
+void addBackToken(TokenStream *ts, Token *new_tk, FILE *debug);
+Token *popNewToken(TokenMessage *tm, FILE *debug);
 
 TokenMessage *makeTokenMessage(char *file_dir, char *debug);
 void freeTokenMessage(TokenMessage *tm, bool self);

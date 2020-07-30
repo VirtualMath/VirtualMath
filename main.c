@@ -1,5 +1,4 @@
 #include "__virtualmath.h"
-#include <getopt.h>
 
 static const struct option long_option[]={
         {"input",required_argument,NULL,'i'},
@@ -117,3 +116,11 @@ void freeArgs(){
     memFree(args.file);
     memFree(args.file);
 }
+
+/*
+ *  TODO-szh try...except 分支
+ *  TODO-szh 抛出异常
+ *  TODO-szh restart语句
+ *  TODO-szh 函数参数
+ *  TODO-szh 列表、字典
+ */

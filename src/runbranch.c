@@ -13,6 +13,7 @@ bool checkBool(Value *value){
     }
 }
 
+// TODO-szh 检查rego对else的支持
 Result ifBranch(INTER_FUNCTIONSIG) {
     Result result, else_tmp, finally_tmp;
     StatementList *if_list = st->u.if_branch.if_list;

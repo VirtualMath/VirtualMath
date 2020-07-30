@@ -6,6 +6,8 @@ Token *makeToken(){
     tmp->data.str = NULL;
     tmp->data.st = NULL;
     tmp->data.second_str = NULL;
+    tmp->next = NULL;
+    tmp->last = NULL;
     return tmp;
 }
 
@@ -41,22 +43,18 @@ void freeToken(Token *tk, bool self, bool error) {
 TokenStream *makeTokenStream(){
     TokenStream *tmp = memCalloc(1, sizeof(TokenStream));
     tmp->size = 0;
-    tmp->ahead = 0;
     tmp->token_list = NULL;
-    tmp->token_ahead = NULL;
     return tmp;
 }
 
 void freeToekStream(TokenStream *ts, bool self) {
     freeBase(ts, return_);
-    for (int i=0; i < ts->size; i++){
-        freeToken(ts->token_list[i], true, false);
+    Token *tmp = ts->token_list;
+    while (tmp != NULL){
+        Token *tmp_next = tmp->next;
+        freeToken(tmp, true, false);
+        tmp = tmp_next;
     }
-    for (int i=0; i < ts->ahead; i++){
-        freeToken(ts->token_ahead[i], true, false);
-    }
-    memFree(ts->token_list);
-    memFree(ts->token_ahead);
     if (self){
         memFree(ts);
     }
@@ -98,116 +96,55 @@ void freeTokenMessage(TokenMessage *tm, bool self) {
 }
 
 /**
- * 添加一个token到token_list，token_ahend保持
+ * 添加一个token到token_ahend，token_list保持
  * @param ts
  * @param new_tk
  */
-void addToken(TokenStream *ts, Token *new_tk, FILE *debug) {
+void addBackToken(TokenStream *ts, Token *new_tk, FILE *debug) {
     printTokenEnter(new_tk, debug, DEBUG, "add Token: ");
-    Token **new_list = memCalloc(ts->size + 1, sizeof(Token *));
-    for (int i=0; i < ts->size; i++){
-        new_list[i] = ts->token_list[i];
-    }
-    new_list[ts->size] = new_tk;
+    Token *tmp = ts->token_list;
+
+    ts->token_list = new_tk;
+    new_tk->next = tmp;
+    new_tk->last = NULL;
+    if (tmp != NULL)
+        tmp->last = new_tk;
     ts->size ++;
-    memFree(ts->token_list);
-    ts->token_list = new_list;
     MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
 }
 
 /**
- * 从token_list弹出一个token，保持token_ahend
+ * 从token_ahead弹出一个token，保持token_list
  * @param ts
  * @return
  */
 Token *popToken(TokenStream *ts, FILE *debug) {
-    Token **new_list = memCalloc(ts->size - 1, sizeof(Token *));
-    for (int i=0; i < ts->size - 1; i++){
-        new_list[i] = ts->token_list[i];
-    }
-    Token *tmp = ts->token_list[ts->size - 1];
-    memFree(ts->token_list);
-    ts->token_list = new_list;
+    Token *tmp = ts->token_list;
+    ts->token_list = tmp->next;
+    tmp->next = NULL;
+    tmp->last = NULL;
+    if (ts->token_list != NULL)
+        ts->token_list->last = NULL;
     ts->size --;
     printTokenEnter(tmp, debug, DEBUG, "pop Token: ");
     MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
     return tmp;
 }
 
-/**
- * 把token_list的一个token退回到token_ahend
- * @param ts
- * @return
- */
-Token *backToken(TokenStream *ts, FILE *debug) {
-    Token **new_list = memCalloc(ts->size - 1, sizeof(Token *));
-    Token **new_ahead = memCalloc(ts->ahead + 1, sizeof(Token *));
-    for (int i=0; i < ts->size - 1; i++){
-        new_list[i] = ts->token_list[i];
-    }
-    for (int i=0; i < ts->ahead; i++){
-        new_ahead[i] = ts->token_ahead[i];
-    }
-    new_ahead[ts->ahead] = ts->token_list[ts->size - 1];
-    memFree(ts->token_list);
-    memFree(ts->token_ahead);
-    ts->token_ahead = new_ahead;
-    ts->token_list = new_list;
-    ts->size --;
-    ts->ahead ++;
-    printTokenEnter(new_ahead[ts->ahead - 1], debug, DEBUG, "back Token: ");
-    MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
-    return new_ahead[ts->ahead - 1];
-}
-
-/**
- * backToken的逆向操作
- * @param ts
- * @return
- */
-Token *forwardToken(TokenStream *ts, FILE *debug) {
-    Token **new_list = memCalloc(ts->size + 1, sizeof(Token *));
-    Token **new_ahead = memCalloc(ts->ahead - 1, sizeof(Token *));
-    for (int i=0; i < ts->size; i++){
-        new_list[i] = ts->token_list[i];
-    }
-    for (int i=0; i < ts->ahead - 1; i++){
-        new_ahead[i] = ts->token_ahead[i];
-    }
-    new_list[ts->size] = ts->token_ahead[ts->ahead - 1];
-    memFree(ts->token_list);
-    memFree(ts->token_ahead);
-    ts->token_ahead = new_ahead;
-    ts->token_list = new_list;
-    ts->size ++;
-    ts->ahead --;
-    printTokenEnter(new_list[ts->size - 1], debug, DEBUG, "forward Token: ");
-    MACRO_printTokenStream(ts, debug, DEEP_DEBUG);
-    return new_list[ts->size - 1];
-}
-
-/**
- * 获取token, 并且放入token_list中
- * 自动处理backToken
- * @param tm
- * @return 返回获取token的token_type
- */
-int safeGetToken(TokenMessage *tm, FILE *debug) {
-    writeLog_(debug, DEBUG, "safe get token : ", NULL);
+Token *popNewToken(TokenMessage *tm, FILE *debug) {
     Token *tmp;
-    if (tm->ts->ahead == 0){
-        writeLog_(debug, DEBUG, "get token: %d\n", tm->file->count);
+    writeLog_(debug, DEBUG, "pop new token : ", NULL);
+    if (tm->ts->size == 0){
         tmp = getToken(tm->file, tm->mathers, tm->debug);
-        addToken(tm->ts, tmp, debug);
-        MACRO_printTokenStream(tm->ts, debug, DEBUG);
     }
     else{
-        // forwardToken 会有详细的日志输出
-        tmp = forwardToken(tm->ts, debug);
+        tmp = popToken(tm->ts, debug);
     }
-    return tmp->token_type;
+    writeLog_(debug, DEBUG, "get token: %d\nnew token: ", tm->file->count);
+    printToken(tmp, debug, DEBUG);
+    writeLog_(debug, DEBUG, "\n", NULL);
+    return tmp;
 }
-
 
 void printToken(Token *tk, FILE *debug, int type) {
     if (tk->token_type >= 0) {
@@ -231,17 +168,14 @@ void printToken(Token *tk, FILE *debug, int type) {
 
 void printTokenStream(TokenStream *ts, FILE *debug, int type) {
     writeLog_(debug, type, "token_list: ", NULL);
-    for (int i=0; i < ts->size; i ++){
+    Token *tmp = ts->token_list;
+    int i = 0;
+    while (tmp != NULL){
         if (i > 0)
             writeLog_(debug, type, "-", NULL);
-        printToken(ts->token_list[i], debug, type);
-    }
-    writeLog_(debug, type, "\n", NULL);
-    writeLog_(debug, type, "token_ahead: ", NULL);
-    for (int i=0; i < ts->ahead; i ++){
-        if (i > 0)
-            writeLog_(debug, type, "-", NULL);
-        printToken(ts->token_ahead[i], debug, type);
+        printToken(tmp, debug, type);
+        tmp = tmp->next;
+        i++;
     }
     writeLog_(debug, type, "\n", NULL);
 }
