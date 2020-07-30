@@ -169,10 +169,10 @@ void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int typ
 
 void parserIf(PASERSSIGNATURE){
     Token *if_token = NULL, *code_token = NULL;
-    struct Statement *st = NULL, *else_st = NULL, *finally_st = NULL;
+    struct Statement *st = NULL, *var_st = NULL, *else_st = NULL, *finally_st = NULL;
     StatementList *sl = NULL;
     bool have_if = false;
-
+    // TODO-szh 设置重复警告 (添加PASS语句)
     again:
     switch (readBackToken(pm)) {
         case MATHER_IF:
@@ -190,6 +190,22 @@ void parserIf(PASERSSIGNATURE){
                 goto return_;
             }
             popAheadToken(if_token, pm);
+
+            if (readBackToken(pm) == MATHER_AS){
+                delToken(pm);
+                Token *var_token = NULL;
+                parserOperation(CALLPASERSSIGNATURE);
+                if (!call_success(pm))
+                    goto return_;
+                if (readBackToken(pm) != OPERATION){
+                    syntaxError(pm, "Don't get a if var", syntax_error);
+                    goto return_;
+                }
+                popAheadToken(var_token, pm);
+                var_st = var_token->data.st;
+                freeToken(var_token, true, false);
+            }
+
             parserCode(CALLPASERSSIGNATURE);
             if (!call_success(pm) && readBackToken(pm) != CODE){
                 error_:
@@ -198,9 +214,10 @@ void parserIf(PASERSSIGNATURE){
                 goto return_;
             }
             popAheadToken(code_token, pm);
-            sl = makeConnectStatementList(sl, if_token->data.st, NULL, code_token->data.st, if_b);
+            sl = makeConnectStatementList(sl, if_token->data.st, var_st, code_token->data.st, if_b);
             freeToken(if_token, true, false);
             freeToken(code_token, true, false);
+            var_st = NULL;
             goto again;
         case MATHER_DO:
             delToken(pm);
@@ -255,7 +272,7 @@ void parserIf(PASERSSIGNATURE){
 
 void parserWhile(PASERSSIGNATURE){
     Token *while_token = NULL, *code_token = NULL;
-    struct Statement *st = NULL, *else_st = NULL, *finally_st = NULL,*do_st = NULL;
+    struct Statement *st = NULL, *var_st = NULL, *else_st = NULL, *finally_st = NULL,*do_st = NULL;
     StatementList *sl = NULL;
     bool have_while = false;
 
@@ -276,6 +293,22 @@ void parserWhile(PASERSSIGNATURE){
                 goto return_;
             }
             popAheadToken(while_token, pm);
+
+            if (readBackToken(pm) == MATHER_AS){
+                delToken(pm);
+                Token *var_token = NULL;
+                parserOperation(CALLPASERSSIGNATURE);
+                if (!call_success(pm))
+                    goto return_;
+                if (readBackToken(pm) != OPERATION){
+                    syntaxError(pm, "Don't get a while var", syntax_error);
+                    goto return_;
+                }
+                popAheadToken(var_token, pm);
+                var_st = var_token->data.st;
+                freeToken(var_token, true, false);
+            }
+
             parserCode(CALLPASERSSIGNATURE);
             if (!call_success(pm) && readBackToken(pm) != CODE){
                 error_:
@@ -286,9 +319,10 @@ void parserWhile(PASERSSIGNATURE){
             popAheadToken(code_token, pm);
             if (sl != NULL)
                 freeStatementList(sl);
-            sl = makeStatementList(while_token->data.st, NULL, code_token->data.st, if_b);
+            sl = makeStatementList(while_token->data.st, var_st, code_token->data.st, if_b);
             freeToken(while_token, true, false);
             freeToken(code_token, true, false);
+            var_st = NULL;
             goto again;
         case MATHER_DO:
             delToken(pm);

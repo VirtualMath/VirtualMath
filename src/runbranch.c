@@ -22,11 +22,13 @@ Result ifBranch(INTER_FUNCTIONSIG) {
     while (if_list != NULL){
         if (if_list->type == if_b){
             Result tmp;
-            if (!is_rego && operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(if_list->condition, var_list))){
+            if (operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(if_list->condition, var_list))){
                 result = tmp;
                 set_result = false;
                 goto not_else;
             }
+            if (if_list->var != NULL)
+                assCore(if_list->var, tmp.value, inter, var_list);
             if (is_rego || checkBool(tmp.value->value)){
                 Result code_tmp;
                 is_rego = false;
@@ -83,6 +85,8 @@ Result whileBranch(INTER_FUNCTIONSIG) {
             set_result = false;
             goto not_else;
         }
+        if (while_list->var != NULL)
+            assCore(while_list->var, tmp.value, inter, var_list);
         if (checkBool(tmp.value->value)){
             Result code_tmp;
             if (cycleBranchSafeInterStatement(&code_tmp, CALL_INTER_FUNCTIONSIG(while_list->code, var_list))){
@@ -98,7 +102,9 @@ Result whileBranch(INTER_FUNCTIONSIG) {
         else{
             break;
         }
-        if (st->u.while_branch.after != NULL && cycleBranchSafeInterStatement(&do_tmp, CALL_INTER_FUNCTIONSIG(st->u.while_branch.after, var_list))){
+        if (st->u.while_branch.after == NULL)
+            goto not_after_do;
+        if (cycleBranchSafeInterStatement(&do_tmp, CALL_INTER_FUNCTIONSIG(st->u.while_branch.after, var_list))){
             result = do_tmp;
             set_result = false;
             goto not_else;
@@ -107,6 +113,7 @@ Result whileBranch(INTER_FUNCTIONSIG) {
             goto not_else;  // 直接跳转到not_else
         if (do_tmp.type == continue_return)
             PASS;
+        not_after_do: PASS;
     }
     if (!is_break && st->u.while_branch.else_list != NULL && cycleBranchSafeInterStatement(&else_tmp, CALL_INTER_FUNCTIONSIG(st->u.while_branch.else_list, var_list))){
         set_result = false;
