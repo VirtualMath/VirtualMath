@@ -20,7 +20,7 @@ typedef struct ParserMessage{
 } ParserMessage;
 
 ParserMessage *makeParserMessage(char *file_dir, char *debug);
-void freePasersMessage(ParserMessage *pm, bool self);
-void pasersCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st);
+void freeParserMessage(ParserMessage *pm, bool self);
+void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st);
 
 #endif //VIRTUALMATH_GRAMMAR_H

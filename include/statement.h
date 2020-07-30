@@ -17,6 +17,8 @@ typedef struct Statement{
         with_branch,
         break_cycle,
         continue_cycle,
+        rego_if,
+        return_code,
     } type;
     union StatementU{
         struct base_value{
@@ -84,6 +86,12 @@ typedef struct Statement{
         struct {
             struct Statement *times;
         } continue_cycle;
+        struct {
+            struct Statement *times;
+        } rego_if;
+        struct {
+            struct Statement *value;
+        } return_code;
     }u;
     struct Statement *next;
 } Statement;
@@ -109,6 +117,8 @@ Statement *makeIfStatement();
 Statement *makeWhileStatement();
 Statement *makeBreakStatement(Statement *times);
 Statement *makeContinueStatement(Statement *times);
+Statement *makeRegoStatement(Statement *times);
+Statement *makeReturnStatement(Statement *value);
 
 void connectStatement(Statement *base, Statement *new);
 void freeStatement(Statement *st);

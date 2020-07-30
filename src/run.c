@@ -38,6 +38,12 @@ Result runStatement(INTER_FUNCTIONSIG) {
         case continue_cycle:
             result = continueCycle(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
+        case rego_if:
+            result = regoIf(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
+        case return_code:
+            result = returnCode(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         default:
             setResult(&result, true, inter);
             break;
@@ -81,7 +87,7 @@ Result globalIterStatement(Inter *inter) {
             break;
         base_st = base_st->next;
     }
-    if (result.type != error_return || result.type != function_return)
+    if (result.type != error_return && result.type != function_return)
         setResult(&result, true, inter);
     return result;
 }
@@ -98,6 +104,11 @@ bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
     if (result->type == not_return || result->type == operation_return){
         return false;
+    }
+    if (result->type == rego_return){
+        result->times--;
+        if (result->times < 0)
+            return false;
     }
     return true;
 }
@@ -122,7 +133,7 @@ bool functionSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
     }
     else if (result->type == function_return){
         result->type = operation_return;
-        return false;
+        return true;
     }
     result->type = not_return;
     return false;

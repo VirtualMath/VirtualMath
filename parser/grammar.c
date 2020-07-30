@@ -25,7 +25,7 @@ ParserMessage *makeParserMessage(char *file_dir, char *debug){
     return tmp;
 }
 
-void freePasersMessage(ParserMessage *pm, bool self) {
+void freeParserMessage(ParserMessage *pm, bool self) {
     freeTokenMessage(pm->tm, true);
 #if OUT_LOG
     if (pm->paser_debug != NULL)
@@ -41,12 +41,12 @@ void freePasersMessage(ParserMessage *pm, bool self) {
 
 /**
  * 命令表匹配
- * pasersCommandList :
+ * parserCommandList :
  * | MATHER_EOF
  * | parserCommand MATHER_ENTER
  * | parserCommand MATHER_EOF
  */
-void pasersCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st) {
+void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st) {
     int token_type, stop;
     struct Statement *base_st = st;
     while (true){
@@ -132,6 +132,12 @@ void parserCommand(PASERSSIGNATURE){
             break;
         case MATHER_CONTINUE :
             commandCallControl(pm, st, makeContinueStatement, CONTINUE, return_);
+            break;
+        case MATHER_REGO :
+            commandCallControl(pm, st, makeRegoStatement, REGO, return_);
+            break;
+        case MATHER_RETURN :
+            commandCallControl(pm, st, makeReturnStatement, RETURN, return_);
             break;
         default :
             commandCallBack(pm, st, parserOperation, OPERATION, return_);
@@ -385,8 +391,8 @@ void parserCode(PASERSSIGNATURE){
         break;  // 若匹配到{则跳出循环
         again_: checkToken(pm, MATHER_ENTER, return_);  // 若不是\n则跳到return_
     }
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call pasersCommandList\n", NULL);
-    pasersCommandList(CALLPASERSSIGNATURE, false, st);
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList\n", NULL);
+    parserCommandList(CALLPASERSSIGNATURE, false, st);
     if (!call_success(pm)){
         goto return_;
     }
@@ -395,7 +401,7 @@ void parserCode(PASERSSIGNATURE){
         goto return_;
     }
     popAheadToken(code_token, pm);
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call pasersCommandList success\n", NULL);
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList success\n", NULL);
     checkToken(pm, MATHER_RC, error_);
 
     return_:
@@ -406,7 +412,6 @@ void parserCode(PASERSSIGNATURE){
     error_:
     syntaxError(pm, "Don't get the }", syntax_error);
     freeToken(code_token, true, true);
-    return;
 }
 
 /**

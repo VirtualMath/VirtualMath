@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     ParserMessage *pm = makeParserMessage(args.file, args.log_file);
 
     printf("[start to lexical]\n");
-    pasersCommandList(pm, global_iter, true, global_iter->statement);
+    parserCommandList(pm, global_iter, true, global_iter->statement);
     if (pm->status != success){
         writeLog(pm->paser_debug, ERROR, "Syntax Error: %s\n", pm->status_message);
         writeLog(stderr, ERROR, "Syntax Error: %s\n", pm->status_message);
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     }
 
     return_:
-    freePasersMessage(pm, true);
+    freeParserMessage(pm, true);
     freeInter(global_iter, true);
     freeArgs();
     printf("[exit Virtual [0]]\n");

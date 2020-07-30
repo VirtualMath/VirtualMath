@@ -79,6 +79,20 @@ Statement *makeContinueStatement(Statement *times){
     return tmp;
 }
 
+Statement *makeRegoStatement(Statement *times){
+    Statement *tmp = makeStatement();
+    tmp->type = rego_if;
+    tmp->u.rego_if.times = times;
+    return tmp;
+}
+
+Statement *makeReturnStatement(Statement *value){
+    Statement *tmp = makeStatement();
+    tmp->type = return_code;
+    tmp->u.rego_if.times = value;
+    return tmp;
+}
+
 void connectStatement(Statement *base, Statement *new){
     while (base->next != NULL){
         base = base->next;
@@ -142,6 +156,12 @@ void freeStatement(Statement *st){
                 break;
             case continue_cycle:
                 freeStatement(st->u.continue_cycle.times);
+                break;
+            case rego_if:
+                freeStatement(st->u.rego_if.times);
+                break;
+            case return_code:
+                freeStatement(st->u.return_code.value);
                 break;
             default:
                 break;
