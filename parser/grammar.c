@@ -411,23 +411,84 @@ void parserTry(PASERSSIGNATURE){
     return;
 }
 
+bool parserParameter(PASERSSIGNATURE, Parameter **pt){
+    Parameter *new_pt = NULL;
+    Token *tmp;
+    enum {
+        s_1,  // only_value模式
+        s_2,  // name_value模式
+    } status = s_1;
+    bool last_pt = false;
+    while (!last_pt){
+        tmp = NULL;
+        parserPolynomial(CALLPASERSSIGNATURE);
+        if (!call_success(pm))
+            goto error_;
+        if (readBackToken(pm) != POLYNOMIAL)
+            break;
+        tmp = popAheadToken(pm);
+
+        int pt_type;
+        if (status == s_1){
+            pt_type = only_value;
+            if (!checkToken_(pm, MATHER_COMMA)){
+                if (!checkToken_(pm, MATHER_ASSIGNMENT))
+                    last_pt = true;
+                else {
+                    pt_type = name_value;
+                    status = s_2;
+                }
+            }
+        }
+        else{
+            pt_type = name_value;
+            if (!checkToken_(pm, MATHER_ASSIGNMENT))
+                goto error_;
+        }
+
+        if (pt_type == only_value)
+            new_pt = connectOnlyValueParameter(tmp->data.st, new_pt);
+        else if (pt_type == name_value){
+            Statement *tmp_value;
+            if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &tmp_value, "Don't get a parameter value"))
+                goto error_;
+            new_pt = connectNameValueParameter(tmp_value, tmp->data.st, new_pt);
+            if (!checkToken_(pm, MATHER_COMMA))
+                last_pt = true;
+        }
+        freeToken(tmp, true, false);
+    }
+    *pt = new_pt;
+    return true;
+
+    error_:
+    freeToken(tmp, true, true);
+    freeParameter(new_pt);
+    *pt = NULL;
+    return false;
+}
+
 void parserDef(PASERSSIGNATURE){
     struct Statement *st = NULL, *name_tmp = NULL, *code_tmp = NULL;
+    Parameter *pt = NULL;
     delToken(pm);
 
     if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &name_tmp, "Don't get a function name"))
         goto error_;
 
-    if (!checkToken_(pm, MATHER_LP) || !checkToken_(pm, MATHER_RP)){
+    if (!checkToken_(pm, MATHER_LP))
         goto error_;
-    }
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt))
+        goto error_;
+    if (!checkToken_(pm, MATHER_RP))
+        goto error_;
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserDef: get function title success\n", NULL);
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserDef: call parserCode\n", NULL);
 
     if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a function code"))
         goto error_;
 
-    st = makeFunctionStatement(name_tmp, code_tmp);
+    st = makeFunctionStatement(name_tmp, code_tmp, pt);
     addEnter(pm);
     addStatementToken(FUNCTION, st, pm);
     return;
@@ -566,15 +627,19 @@ void parserFactor(PASERSSIGNATURE){
 }
 
 int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
-    if (readBackToken(pm) != MATHER_LP){
+    struct Parameter *pt = NULL;
+    if (readBackToken(pm) != MATHER_LP)
         return -1;
-    }
     delToken(pm);
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt)) {
+        syntaxError(pm, syntax_error, 1, "Don't get call parameter");
+        return 0;
+    }
     if (!checkToken_(pm, MATHER_RP)){
         syntaxError(pm, syntax_error, 1, "Don't get ) from call back");
         return 0;
     }
-    *st = makeCallStatement(left_token->data.st);
+    *st = makeCallStatement(left_token->data.st, pt);
     return 1;
 }
 void parserCallBack(PASERSSIGNATURE){

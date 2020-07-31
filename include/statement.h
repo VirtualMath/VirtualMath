@@ -44,9 +44,11 @@ typedef struct Statement{
         struct {
             struct Statement *name;
             struct Statement *function;
+            struct Parameter *parameter;
         } set_function;
         struct {
             struct Statement *function;
+            struct Parameter *parameter;
         } call_function;
         struct {
             struct StatementList *if_list;  // if elif
@@ -121,8 +123,8 @@ Statement *makeStatement();
 Statement *makeOperationStatement(int type);
 struct Token *setOperationFromToken(Statement *st, struct Token *left, struct Token *right, int type);
 
-Statement *makeFunctionStatement(Statement *name, Statement *function);
-Statement *makeCallStatement(Statement *function);
+Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
+Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeIfStatement();
 Statement *makeWhileStatement();
 Statement *makeTryStatement();

@@ -19,6 +19,7 @@ typedef struct VirtualMathValue{
         struct {
             struct Statement *function;
             struct VirtualMathVarList *var;
+            struct Parameter *pt;
         } function;
     }data;
     struct VirtualMathValue *next;
@@ -47,13 +48,14 @@ typedef struct VirtualMathResult{
     int times;
 } Result;
 
+
 Value *makeValue(Inter *inter);
 void freeValue(Value *value, Inter *inter);
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
 void freeLinkValue(LinkValue *value, Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
-Value *makeFunctionValue(Statement *st, struct VirtualMathVarList *var_list, Inter *inter);
+Value *makeFunctionValue(Statement *st, struct Parameter *pt, struct VirtualMathVarList *var_list, Inter *inter);
 
 void setResult(Result *ru, bool link, Inter *inter);
 void setResultError(Result *ru, Inter *inter);

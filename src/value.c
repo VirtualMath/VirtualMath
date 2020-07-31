@@ -37,11 +37,12 @@ Value *makeStringValue(char *str, Inter *inter) {
     return tmp;
 }
 
-Value *makeFunctionValue(Statement *st, VarList *var_list, Inter *inter) {
+Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
     Value *tmp;
     tmp = makeValue(inter);
     tmp->type = function;
     tmp->data.function.function = st;
+    tmp->data.function.pt = pt;
     tmp->data.function.var = copyVarList(var_list, false, inter);
     return tmp;
 }
@@ -63,6 +64,7 @@ void freeValue(Value *value, Inter *inter){
             break;
         case function: {
             VarList *tmp = value->data.function.var;
+            freeParameter(value->data.function.pt);
             while (tmp != NULL)
                 tmp = freeVarList(tmp, true);
             break;

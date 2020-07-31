@@ -13,6 +13,7 @@
 #include "value.h"
 #include "inter.h"
 #include "log.h"
+#include "parameter.h"
 
 struct Args{
     char *file;

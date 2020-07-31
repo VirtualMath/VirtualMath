@@ -67,7 +67,7 @@ Result ifBranch(INTER_FUNCTIONSIG) {
         result = finally_tmp;
     }
 
-    var_list = popVarList(var_list, inter);
+    var_list = popVarList(var_list);
     if (set_result)
         setResult(&result, true, inter);
     return result;
@@ -127,7 +127,7 @@ Result whileBranch(INTER_FUNCTIONSIG) {
         result = finally_tmp;
     }
 
-    var_list = popVarList(var_list, inter);
+    var_list = popVarList(var_list);
     if (set_result)
         setResult(&result, true, inter);
     return result;
@@ -167,7 +167,7 @@ Result tryBranch(INTER_FUNCTIONSIG) {
         result = finally_tmp;
     }
 
-    var_list = popVarList(var_list, inter);
+    var_list = popVarList(var_list);
     if (set_result)
         setResult(&result, true, inter);
     return result;

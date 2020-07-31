@@ -171,7 +171,7 @@ VarList *pushVarList(VarList *base, Inter *inter){
     return new;
 }
 
-VarList *popVarList(VarList *base, Inter *inter){
+VarList *popVarList(VarList *base) {
     if (base->next == NULL)
         return base;
     return freeVarList(base, true);

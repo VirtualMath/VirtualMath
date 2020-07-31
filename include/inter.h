@@ -5,7 +5,7 @@ typedef struct globalInterpreter{
     struct VirtualMathValue *base;
     struct VirtualMathLinkValue *link_base;
     struct VirtualMathHashTable *hash_base;
-    Statement *statement;
+    struct Statement *statement;
     struct VirtualMathVarList *var_list;
     char *log_dir;  // 记录log文件夹的位置
     FILE *debug;

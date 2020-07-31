@@ -29,18 +29,20 @@ Token *setOperationFromToken(Statement *st, Token *left, Token *right, int type)
     return new_token;
 }
 
-Statement *makeFunctionStatement(Statement *name, Statement *function){
+Statement *makeFunctionStatement(Statement *name, Statement *function, Parameter *pt) {
     Statement *tmp = makeStatement();
     tmp->type = set_function;
     tmp->u.set_function.name = name;
     tmp->u.set_function.function = function;
+    tmp->u.set_function.parameter = pt;
     return tmp;
 }
 
-Statement *makeCallStatement(Statement *function){
+Statement *makeCallStatement(Statement *function, Parameter *pt) {
     Statement *tmp = makeStatement();
     tmp->type = call_function;
     tmp->u.call_function.function = function;
+    tmp->u.call_function.parameter = pt;
     return tmp;
 }
 
@@ -141,9 +143,11 @@ void freeStatement(Statement *st){
             case set_function:
                 freeStatement(st->u.set_function.name);
                 freeStatement(st->u.set_function.function);
+                // Parameter 在 value 的地方free掉
                 break;
             case call_function:
                 freeStatement(st->u.call_function.function);
+                freeParameter(st->u.call_function.parameter);
                 break;
             case if_branch:
                 freeStatementList(st->u.if_branch.if_list);
