@@ -41,6 +41,9 @@ Result runStatement(INTER_FUNCTIONSIG) {
         case rego_if:
             result = regoIf(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
+        case restart:
+            result = restartCode(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         case return_code:
             result = returnCode(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
@@ -60,13 +63,21 @@ Result runStatement(INTER_FUNCTIONSIG) {
  */
 Result iterStatement(INTER_FUNCTIONSIG) {
     Result result;
-    Statement *base_st = st;
-    while(base_st != NULL){
-        result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
-        if (!runContinue(result))
+    Statement *base_st = NULL;
+
+    while (true) {
+        base_st = st;
+        while (base_st != NULL) {
+            result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
+            if (!runContinue(result))
+                break;
+            base_st = base_st->next;
+        }
+
+        if (result.type != restart_return || result.times > 0)
             break;
-        base_st = base_st->next;
     }
+
     if (result.type == not_return)
         setResult(&result, true, inter);
     return result;
@@ -79,14 +90,22 @@ Result iterStatement(INTER_FUNCTIONSIG) {
  */
 Result globalIterStatement(Inter *inter) {
     Result result;
-    Statement *base_st = inter->statement;
-    VarList *var_list = inter->var_list;
-    while(base_st != NULL){
-        result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
-        if (!runContinue(result))
+    Statement *base_st = NULL;
+    VarList *var_list = NULL;
+
+    while (true) {
+        base_st = inter->statement;
+        var_list = inter->var_list;
+        while (base_st != NULL) {
+            result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
+            if (!runContinue(result))
+                break;
+            base_st = base_st->next;
+        }
+        if (result.type != restart_return || result.times > 0)
             break;
-        base_st = base_st->next;
     }
+
     if (result.type != error_return && result.type != function_return)
         setResult(&result, true, inter);
     return result;
@@ -110,6 +129,8 @@ bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
         if (result->times < 0)
             return false;
     }
+    if (result->type == restart_return)
+        result->times--;
     return true;
 }
 
@@ -123,6 +144,8 @@ bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
         if (result->times < 0)
             return false;
     }
+    if (result->type == restart_return)
+        result->times--;
     return true;
 }
 

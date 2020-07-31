@@ -128,6 +128,9 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_CONTINUE :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeContinueStatement, CONTINUE, &st, "Command: call continue\n");
             break;
+        case MATHER_RESTART :
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRestartStatement, RESTART, &st, "Command: call restart\n");
+            break;
         case MATHER_REGO :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeRegoStatement, REGO, &st, "Command: call rego\n");
             break;

@@ -41,6 +41,7 @@ typedef struct VirtualMathResult{
         break_return,
         continue_return,
         rego_return,
+        restart_return,
     } type;
     struct VirtualMathLinkValue *value;
     int times;

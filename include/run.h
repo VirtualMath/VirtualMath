@@ -21,5 +21,6 @@ Result whileBranch(INTER_FUNCTIONSIG);
 Result breakCycle(INTER_FUNCTIONSIG);
 Result continueCycle(INTER_FUNCTIONSIG);
 Result regoIf(INTER_FUNCTIONSIG);
+Result restartCode(INTER_FUNCTIONSIG);
 Result returnCode(INTER_FUNCTIONSIG);
 #endif //VIRTUALMATH_RUN_H

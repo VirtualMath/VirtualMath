@@ -18,6 +18,7 @@ typedef struct Statement{
         break_cycle,
         continue_cycle,
         rego_if,
+        restart,
         return_code,
     } type;
     union StatementU{
@@ -90,6 +91,9 @@ typedef struct Statement{
             struct Statement *times;
         } rego_if;
         struct {
+            struct Statement *times;
+        } restart;
+        struct {
             struct Statement *value;
         } return_code;
     }u;
@@ -118,6 +122,7 @@ Statement *makeWhileStatement();
 Statement *makeBreakStatement(Statement *times);
 Statement *makeContinueStatement(Statement *times);
 Statement *makeRegoStatement(Statement *times);
+Statement *makeRestartStatement(Statement *times);
 Statement *makeReturnStatement(Statement *value);
 
 void connectStatement(Statement *base, Statement *new);

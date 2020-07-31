@@ -86,6 +86,13 @@ Statement *makeRegoStatement(Statement *times){
     return tmp;
 }
 
+Statement *makeRestartStatement(Statement *times){
+    Statement *tmp = makeStatement();
+    tmp->type = restart;
+    tmp->u.restart.times = times;
+    return tmp;
+}
+
 Statement *makeReturnStatement(Statement *value){
     Statement *tmp = makeStatement();
     tmp->type = return_code;
@@ -159,6 +166,9 @@ void freeStatement(Statement *st){
                 break;
             case rego_if:
                 freeStatement(st->u.rego_if.times);
+                break;
+            case restart:
+                freeStatement(st->u.restart.times);
                 break;
             case return_code:
                 freeStatement(st->u.return_code.value);

@@ -185,6 +185,23 @@ Result regoIf(INTER_FUNCTIONSIG){
     return result;
 }
 
+Result restartCode(INTER_FUNCTIONSIG){
+    Result result, times;
+    int times_int = 0;
+    if (st->u.restart.times == NULL)
+        goto not_times;
+    if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.restart.times, var_list)))
+        return times;
+    times_int = (int)times.value->value->data.num.num;
+    not_times:
+    setResult(&result, true, inter);
+    if (times_int >= 0) {
+        result.type = restart_return;
+        result.times = times_int;
+    }
+    return result;
+}
+
 Result returnCode(INTER_FUNCTIONSIG){
     Result result;
     if (st->u.return_code.value == NULL) {
