@@ -20,6 +20,7 @@ typedef struct Statement{
         rego_if,
         restart,
         return_code,
+        raise_code,
     } type;
     union StatementU{
         struct base_value{
@@ -96,6 +97,9 @@ typedef struct Statement{
         struct {
             struct Statement *value;
         } return_code;
+        struct {
+            struct Statement *value;
+        } raise_code;
     }u;
     struct Statement *next;
 } Statement;
@@ -104,6 +108,8 @@ typedef struct StatementList{
     enum {
         if_b,
         do_b,
+        while_b,
+        except_b,
     } type;
     struct Statement *condition;
     struct Statement *var;
@@ -119,11 +125,13 @@ Statement *makeFunctionStatement(Statement *name, Statement *function);
 Statement *makeCallStatement(Statement *function);
 Statement *makeIfStatement();
 Statement *makeWhileStatement();
+Statement *makeTryStatement();
 Statement *makeBreakStatement(Statement *times);
 Statement *makeContinueStatement(Statement *times);
 Statement *makeRegoStatement(Statement *times);
 Statement *makeRestartStatement(Statement *times);
 Statement *makeReturnStatement(Statement *value);
+Statement *makeRaiseStatement(Statement *value);
 
 void connectStatement(Statement *base, Statement *new);
 void freeStatement(Statement *st);

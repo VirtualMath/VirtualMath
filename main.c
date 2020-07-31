@@ -118,9 +118,7 @@ void freeArgs(){
 }
 
 /*
- *  TODO-szh try...except 分支
  *  TODO-szh 抛出异常
- *  TODO-szh restart语句
  *  TODO-szh 函数参数
  *  TODO-szh 列表、字典
  */

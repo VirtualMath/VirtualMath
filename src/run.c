@@ -32,6 +32,9 @@ Result runStatement(INTER_FUNCTIONSIG) {
         case while_branch:
             result = whileBranch(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
+        case try_branch:
+            result = tryBranch(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         case break_cycle:
             result = breakCycle(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
@@ -46,6 +49,9 @@ Result runStatement(INTER_FUNCTIONSIG) {
             break;
         case return_code:
             result = returnCode(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
+        case raise_code:
+            result = raiseCode(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         default:
             setResult(&result, true, inter);
@@ -143,6 +149,16 @@ bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
         result->times--;
         if (result->times < 0)
             return false;
+    }
+    if (result->type == restart_return)
+        result->times--;
+    return true;
+}
+
+bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
+    if (result->type == not_return || result->type == operation_return){
+        return false;
     }
     if (result->type == restart_return)
         result->times--;

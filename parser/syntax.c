@@ -279,7 +279,8 @@ int getMatherStatus(LexFile *file, LexMathers *mathers, FILE *debug) {
         charMatherMacro(MATHER_COLON, ':');
         charMatherMacro(MATHER_SEMICOLON, ';');
 
-        strMatherMacro(MATHER_Link, "->");
+        strMatherMacro(MATHER_LINK, "->");
+        strMatherMacro(MATHER_RAISE, "raise");
 
         status = checkoutMather(mathers, MATHER_MAX, debug);
         writeLog_(debug, LEXICAL_DEBUG, "get status: %d\n", status);

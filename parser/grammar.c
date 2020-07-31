@@ -117,10 +117,13 @@ void parserCommand(PASERSSIGNATURE){
             status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Command: call def\n");
             break;
         case MATHER_IF :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call def\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call if\n");
             break;
         case MATHER_WHILE :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Command: call def\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Command: call while\n");
+            break;
+        case MATHER_TRY :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st, "Command: call try\n");
             break;
         case MATHER_BREAK :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st, "Command: call break\n");
@@ -137,8 +140,11 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_RETURN :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN,  &st, "Command: call return\n");
             break;
+        case MATHER_RAISE :
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE,  &st, "Command: call raise\n");
+            break;
         default :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st, "Command: call def\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st, "Command: call operation\n");
             break;
     }
     if (!status)
@@ -280,7 +286,7 @@ void parserWhile(PASERSSIGNATURE){
             }
             if (sl != NULL)
                 freeStatementList(sl);
-            sl = makeStatementList(condition_tmp, var_tmp, code_tmp, if_b);
+            sl = makeStatementList(condition_tmp, var_tmp, code_tmp, while_b);
             goto again;
         }
         case MATHER_DO:
@@ -328,6 +334,79 @@ void parserWhile(PASERSSIGNATURE){
     freeStatement(else_st);
     freeStatement(finally_st);
     freeStatement(do_st);
+    freeStatementList(sl);
+    return;
+}
+
+void parserTry(PASERSSIGNATURE){
+    struct Statement *st = NULL, *try_st = NULL, *else_st = NULL, *finally_st = NULL;
+    StatementList *sl = NULL;
+
+    again:
+    switch (readBackToken(pm)) {
+        case MATHER_TRY:{
+            if (try_st != NULL)
+                goto default_;
+            delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &try_st, "Don't get a try code"))
+                goto error_;
+            goto again;
+        }
+        case MATHER_EXCEPT: {
+            Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
+            delToken(pm);
+            callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, NULL);
+
+            if (!callParserAs(CALLPASERSSIGNATURE, &var_tmp, "Don't get a except var")){
+                freeStatement(condition_tmp);
+                goto error_;
+            }
+            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a except code")) {
+                freeStatement(condition_tmp);
+                freeStatement(var_tmp);
+                goto error_;
+            }
+            sl = makeConnectStatementList(sl, condition_tmp, var_tmp, code_tmp, except_b);
+            goto again;
+        }
+        case MATHER_ELSE:
+            if (else_st != NULL) {
+                syntaxError(pm, syntax_error, 1, "get else after else\n");
+                goto error_;
+            }
+            delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a try...else code"))
+                goto error_;
+            goto again;
+        case MATHER_FINALLY:
+            delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a try...finally code"))
+                goto error_;
+            break;
+        case MATHER_ENTER:
+            delToken(pm);
+            goto again;
+        case MATHER_SEMICOLON:
+            break;
+        default: {
+            default_:
+            addEnter(pm);
+            break;
+        }
+    }
+
+    st = makeTryStatement();
+    st->u.try_branch.try = try_st;
+    st->u.try_branch.except_list = sl;
+    st->u.try_branch.else_list = else_st;
+    st->u.try_branch.finally = finally_st;
+    addStatementToken(TRY_BRANCH, st, pm);
+    return;
+
+    error_:
+    freeStatement(try_st);
+    freeStatement(else_st);
+    freeStatement(finally_st);
     freeStatementList(sl);
     return;
 }
@@ -382,8 +461,10 @@ void parserCode(PASERSSIGNATURE){
     }
     code_token = popAheadToken(pm);
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList success\n", NULL);
-    if (!checkToken_(pm, MATHER_RC))
+    if (!checkToken_(pm, MATHER_RC)) {
+        syntaxError(pm, syntax_error, 1, "Don't get the }");
         goto error_;
+    }
 
     return_:
     addStatementToken(CODE, st, pm);
@@ -391,9 +472,7 @@ void parserCode(PASERSSIGNATURE){
     return;
 
     error_:
-    syntaxError(pm, syntax_error, 1, "Don't get the }");
     freeToken(code_token, true, true);
-    freeStatement(st);
 }
 
 /**

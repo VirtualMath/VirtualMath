@@ -29,6 +29,7 @@ void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int typ
 void parserDef(PASERSSIGNATURE);
 void parserIf(PASERSSIGNATURE);
 void parserWhile(PASERSSIGNATURE);
+void parserTry(PASERSSIGNATURE);
 void parserCode(PASERSSIGNATURE);
 void parserOperation(PASERSSIGNATURE);
 void parserPolynomial(PASERSSIGNATURE);

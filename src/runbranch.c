@@ -133,6 +133,46 @@ Result whileBranch(INTER_FUNCTIONSIG) {
     return result;
 }
 
+Result tryBranch(INTER_FUNCTIONSIG) {
+    Result result, try_result, except_result, else_tmp, finally_tmp;
+    StatementList *except_list = st->u.try_branch.except_list;
+    bool set_result = true;
+
+    var_list = pushVarList(var_list, inter);
+    if (!tryBranchSafeInterStatement(&try_result, CALL_INTER_FUNCTIONSIG(st->u.try_branch.try, var_list))){
+        goto not_except;
+    }
+    if (except_list == NULL) {
+        result = try_result;
+        set_result = false;
+        goto not_else;
+    }
+    if (except_list->var != NULL)
+        assCore(except_list->var, try_result.value, inter, var_list);
+    if (tryBranchSafeInterStatement(&except_result, CALL_INTER_FUNCTIONSIG(except_list->code, var_list))){
+        result = except_result;
+        set_result = false;
+    }
+    goto not_else;
+
+    not_except:
+    if (st->u.try_branch.else_list != NULL && tryBranchSafeInterStatement(&else_tmp, CALL_INTER_FUNCTIONSIG(st->u.try_branch.else_list, var_list))){
+        set_result = false;
+        result = else_tmp;
+    }
+
+    not_else:
+    if (st->u.try_branch.finally != NULL && tryBranchSafeInterStatement(&finally_tmp, CALL_INTER_FUNCTIONSIG(st->u.try_branch.finally, var_list))){
+        set_result = false;
+        result = finally_tmp;
+    }
+
+    var_list = popVarList(var_list, inter);
+    if (set_result)
+        setResult(&result, true, inter);
+    return result;
+}
+
 Result breakCycle(INTER_FUNCTIONSIG){
     Result result, times;
     int times_int = 0;
@@ -213,5 +253,19 @@ Result returnCode(INTER_FUNCTIONSIG){
 
     set_result:
     result.type = function_return;
+    return result;
+}
+
+Result raiseCode(INTER_FUNCTIONSIG){
+    Result result;
+    if (st->u.raise_code.value == NULL) {
+        setResult(&result, true, inter);
+        goto set_result;
+    }
+    if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list)))
+        return result;
+
+    set_result:
+    result.type = error_return;
     return result;
 }

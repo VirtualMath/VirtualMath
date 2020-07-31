@@ -11,16 +11,18 @@ bool operationSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
 bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
 bool functionSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
 bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
+bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
 Result setFunction(INTER_FUNCTIONSIG);
 Result callFunction(INTER_FUNCTIONSIG);
 Result getBaseVar(INTER_FUNCTIONSIG);
 Result getBaseValue(INTER_FUNCTIONSIG);
 Result ifBranch(INTER_FUNCTIONSIG);
 Result whileBranch(INTER_FUNCTIONSIG);
-
+Result tryBranch(INTER_FUNCTIONSIG);
 Result breakCycle(INTER_FUNCTIONSIG);
 Result continueCycle(INTER_FUNCTIONSIG);
 Result regoIf(INTER_FUNCTIONSIG);
 Result restartCode(INTER_FUNCTIONSIG);
 Result returnCode(INTER_FUNCTIONSIG);
+Result raiseCode(INTER_FUNCTIONSIG);
 #endif //VIRTUALMATH_RUN_H

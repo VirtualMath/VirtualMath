@@ -82,9 +82,10 @@
 #define MATHER_COMMA 70
 #define MATHER_COLON 71
 #define MATHER_SEMICOLON 72
-#define MATHER_Link 73
+#define MATHER_LINK 73
+#define MATHER_RAISE 74
 
-#define MATHER_MAX 74
+#define MATHER_MAX 75
 
 // 从-5开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMANDLIST -5
@@ -104,6 +105,8 @@
 #define REGO -19
 #define RETURN -20
 #define RESTART -20
+#define TRY_BRANCH -21
+#define RAISE -20
 
 typedef struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配

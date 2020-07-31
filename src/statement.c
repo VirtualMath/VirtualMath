@@ -65,6 +65,16 @@ Statement *makeWhileStatement(){
     return tmp;
 }
 
+Statement *makeTryStatement(){
+    Statement *tmp = makeStatement();
+    tmp->type = try_branch;
+    tmp->u.try_branch.except_list = NULL;
+    tmp->u.try_branch.else_list = NULL;
+    tmp->u.try_branch.finally = NULL;
+    tmp->u.try_branch.try = NULL;
+    return tmp;
+}
+
 Statement *makeBreakStatement(Statement *times){
     Statement *tmp = makeStatement();
     tmp->type = break_cycle;
@@ -96,7 +106,14 @@ Statement *makeRestartStatement(Statement *times){
 Statement *makeReturnStatement(Statement *value){
     Statement *tmp = makeStatement();
     tmp->type = return_code;
-    tmp->u.rego_if.times = value;
+    tmp->u.return_code.value = value;
+    return tmp;
+}
+
+Statement *makeRaiseStatement(Statement *value){
+    Statement *tmp = makeStatement();
+    tmp->type = raise_code;
+    tmp->u.raise_code.value = value;
     return tmp;
 }
 
@@ -172,6 +189,9 @@ void freeStatement(Statement *st){
                 break;
             case return_code:
                 freeStatement(st->u.return_code.value);
+                break;
+            case raise_code:
+                freeStatement(st->u.raise_code.value);
                 break;
             default:
                 break;
