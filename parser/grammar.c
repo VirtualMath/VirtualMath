@@ -80,6 +80,7 @@ void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *
             else{
                 if (global) {
                     syntaxError(pm, command_list_error, 1, "ERROR from parserCommand list(get stop)");
+                    printf("stop = %d\n", stop);
                     freeToken(command_token, true, true);
                 }
                 else{
@@ -140,7 +141,6 @@ void parserCommand(PASERSSIGNATURE){
     if (!status)
         goto return_;
     addStatementToken(COMMAND, st, pm);
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: get  command success\n", NULL);
     return_:
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: get return\n", NULL);
 }
@@ -176,6 +176,10 @@ void parserIf(PASERSSIGNATURE){
             else
                 have_if = true;
         case MATHER_ELIF: {
+            if (else_st != NULL) {
+                syntaxError(pm, syntax_error, 1, "get elif after else\n");
+                goto error_;
+            }
             Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
             delToken(pm);
             if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, "Don't get a if condition"))
@@ -195,6 +199,8 @@ void parserIf(PASERSSIGNATURE){
             goto again;
         }
         case MATHER_DO: {
+            if (else_st != NULL)
+                goto default_;
             Statement *code_tmp = NULL;
             delToken(pm);
             if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if...do code"))
@@ -203,6 +209,10 @@ void parserIf(PASERSSIGNATURE){
             goto again;
         }
         case MATHER_ELSE:
+            if (else_st != NULL){
+                syntaxError(pm, syntax_error, 1, "get else after else\n");
+                goto error_;
+            }
             delToken(pm);
             if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a if...else code"))
                 goto error_;
@@ -211,12 +221,17 @@ void parserIf(PASERSSIGNATURE){
             delToken(pm);
             if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a if...else code"))
                 goto error_;
-            goto again;
+            break;
         case MATHER_ENTER:
             delToken(pm);
             goto again;
-        default:
-            default_: break;
+        case MATHER_SEMICOLON:
+            break;
+        default:{
+            default_:
+            addEnter(pm);
+            break;
+        }
     }
 
     st = makeIfStatement();
@@ -266,11 +281,17 @@ void parserWhile(PASERSSIGNATURE){
             goto again;
         }
         case MATHER_DO:
+            if (do_st != NULL || else_st != NULL)
+                goto default_;
             delToken(pm);
             if (!callParserCode(CALLPASERSSIGNATURE, &do_st, "Don't get a while...do code"))
                 goto error_;
             goto again;
         case MATHER_ELSE:
+            if (else_st != NULL) {
+                syntaxError(pm, syntax_error, 1, "get else after else\n");
+                goto error_;
+            }
             delToken(pm);
             if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a while...else code"))
                 goto error_;
@@ -279,12 +300,17 @@ void parserWhile(PASERSSIGNATURE){
             delToken(pm);
             if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a while...finally code"))
                 goto error_;
-            goto again;
+            break;
         case MATHER_ENTER:
             delToken(pm);
             goto again;
-        default:
-            default_: break;
+        case MATHER_SEMICOLON:
+            break;
+        default: {
+            default_:
+            addEnter(pm);
+            break;
+        }
     }
 
     st = makeWhileStatement();
@@ -320,6 +346,7 @@ void parserDef(PASERSSIGNATURE){
         goto error_;
 
     st = makeFunctionStatement(name_tmp, code_tmp);
+    addEnter(pm);
     addStatementToken(FUNCTION, st, pm);
     return;
 

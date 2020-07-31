@@ -20,6 +20,7 @@ writeLog(pm->paser_debug, pasers_level, "\n"message, __VA_ARGS__); \
 #define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st), pm->paser_debug)
 #define delToken(pm) freeToken(popAheadToken(pm), true, false)
 #define backToken_(pm, token) addBackToken(pm->tm->ts, (token), pm->paser_debug)
+#define addEnter(pm) backToken_(pm, makeLexToken(MATHER_ENTER, NULL, NULL))
 #define addToken_ backToken_
 #define call_success(pm) (pm->status == success)
 

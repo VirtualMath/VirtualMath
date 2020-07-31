@@ -302,9 +302,8 @@ Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug) {
     }
     Token *tmp;
     if (status == -2){
-        status = MATHER_ERROR_;
-        writeLog_(debug, LEXICAL_DEBUG, "lexical ERROR\n", NULL);
-        tmp = makeLexToken(status, NULL, NULL);
+        writeLog_(debug, ERROR, "lexical ERROR\n", NULL);
+        tmp = makeLexToken(MATHER_ERROR_, NULL, NULL);
         goto return_;
     }
     tmp = makeLexToken(status, mathers->mathers[status]->str, mathers->mathers[status]->second_str);
