@@ -6,6 +6,7 @@ typedef struct Statement{
     enum StatementType{
         start = 1,
         base_value,
+        base_list,
         base_var,
         operation,
         set_function,
@@ -30,6 +31,13 @@ typedef struct Statement{
             char *name;
             struct Statement *times;
         } base_var;
+        struct {
+            enum{
+                list_,
+                tuple_,
+            } type;
+            struct Parameter *list;
+        } base_list;
         struct operation{
             enum OperationType{
                 ADD = 1,
@@ -123,6 +131,7 @@ Statement *makeStatement();
 Statement *makeOperationStatement(int type);
 struct Token *setOperationFromToken(Statement *st, struct Token *left, struct Token *right, int type);
 
+Statement *makeTupleStatement(struct Parameter *pt, int type);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeIfStatement();

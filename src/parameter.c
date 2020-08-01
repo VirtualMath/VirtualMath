@@ -23,13 +23,21 @@ Parameter *makeNameValueParameter(Statement *value, Statement *name){
     return tmp;
 }
 
+Parameter *makeOnlyArgsParameter(Statement *st){
+    Parameter *tmp = makeParameter();
+    tmp->type = only_args;
+    tmp->data.value = st;
+    return tmp;
+}
+
 Parameter *connectParameter(Parameter *new, Parameter *base){
     if (base == NULL)
         return new;
+    Parameter *tmp = base;
     while (base->next != NULL)
         base = base->next;
     base->next = new;
-    return base;
+    return tmp;
 }
 
 Parameter *connectOnlyValueParameter(Statement *st, Parameter *base){
@@ -39,6 +47,11 @@ Parameter *connectOnlyValueParameter(Statement *st, Parameter *base){
 
 Parameter *connectNameValueParameter(Statement *value, Statement *name, Parameter *base){
     Parameter *new = makeNameValueParameter(value, name);
+    return connectParameter(new, base);
+}
+
+Parameter *connectOnlyArgsParameter(Statement *st, Parameter *base){
+    Parameter *new = makeOnlyArgsParameter(st);
     return connectParameter(new, base);
 }
 
@@ -133,7 +146,7 @@ Result nameParameter(Parameter **call_ad, VarList *function_var, INTER_FUNCTIONS
 Result valueParameter(Parameter **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE){
     Parameter *call = *call_ad, *function = *function_ad;
     Result result;
-    while (call != NULL && function != NULL && call->type != name_value){
+    while (call != NULL && function != NULL && call->type != name_value && function->type != only_args){
         Result tmp, tmp_ass;
         Statement *name = function->type == only_value ? function->data.value : function->data.name;
 
@@ -160,7 +173,7 @@ Result valueParameter(Parameter **call_ad, Parameter **function_ad, VarList *fun
 }
 
 #define returnResult(result) do{ \
-if (result.type == error_return) { \
+if (!run_continue(result)) { \
 return result; \
 } \
 }while(0)
@@ -172,6 +185,10 @@ return result; \
  * [1] -实参完成, 形参空缺-> [2]
  * [3] 实际参数直接赋值, 形式默认值补充
  * [1] -实参出现name_value类型-> [3]
+ * [4] 把剩余的only_name实参转化为list
+ * [1] -形参遇到only_args->[4]
+ * [4] -实参完成-> [2]
+ * [4] -实参未完成-> [3]
  * @param call
  * @param function
  * @param function_var
@@ -184,11 +201,11 @@ Result setParameter(Parameter *call, Parameter *function, VarList *function_var,
         p_1 = 1,
         p_2 = 2,
         p_3 = 3,
+        p_4 = 4,
         error = -1,
         finished = 0
     } status = p_1;
     Result result;
-
     while (true){
         switch (status) {
             case p_1: {
@@ -198,6 +215,8 @@ Result setParameter(Parameter *call, Parameter *function, VarList *function_var,
                     status = p_3;
                 else if (call == NULL && function != NULL && function->type == name_value)
                     status = p_2;
+                else if (call != NULL && function != NULL && function->type == only_args && call->type == only_value)
+                    status = p_4;
                 else if (call != NULL || function != NULL)
                     status = error;
                 else
@@ -224,6 +243,24 @@ Result setParameter(Parameter *call, Parameter *function, VarList *function_var,
                     break;
                 }
                 status = finished;
+                break;
+            }
+            case p_4: {
+                Result tmp_result;
+                Value *value = makeListValue(&call, &tmp_result, CALL_INTER_FUNCTIONSIG_CORE(var_list), value_tuple);
+                returnResult(tmp_result);
+                LinkValue *tmp = makeLinkValue(value, NULL, inter);
+                tmp_result = assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_CORE(function_var));
+                returnResult(tmp_result);
+                function = function->next;
+                if (call != NULL && function != NULL && call->type == name_value)
+                    status = p_3;
+                else if (call == NULL && function != NULL && function->type == name_value)
+                    status = p_2;
+                else if (call != NULL || function != NULL)
+                    status = error;
+                else
+                    status = finished;
                 break;
             }
             case error:

@@ -16,6 +16,7 @@ Result setFunction(INTER_FUNCTIONSIG);
 Result callFunction(INTER_FUNCTIONSIG);
 Result getBaseVar(INTER_FUNCTIONSIG);
 Result getBaseValue(INTER_FUNCTIONSIG);
+Result getList(INTER_FUNCTIONSIG);
 Result ifBranch(INTER_FUNCTIONSIG);
 Result whileBranch(INTER_FUNCTIONSIG);
 Result tryBranch(INTER_FUNCTIONSIG);

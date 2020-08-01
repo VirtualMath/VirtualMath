@@ -1,7 +1,6 @@
 #ifndef VIRTUALMATH_VAR_H
 #define VIRTUALMATH_VAR_H
 #include "inter.h"
-#include "value.h"
 
 #define MAX_SIZE (1024)
 

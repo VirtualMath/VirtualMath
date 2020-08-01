@@ -7,15 +7,6 @@ Statement *makeStatement(){
     return tmp;
 }
 
-Statement *makeOperationStatement(int type){
-    Statement *tmp = makeStatement();
-    tmp->type = operation;
-    tmp->u.operation.OperationType = type;
-    tmp->u.operation.left = NULL;
-    tmp->u.operation.right = NULL;
-    return tmp;
-}
-
 Token *setOperationFromToken(Statement *st, Token *left, Token *right, int type) {
     Token *new_token = NULL;
     st->u.operation.left = left->data.st;
@@ -27,6 +18,23 @@ Token *setOperationFromToken(Statement *st, Token *left, Token *right, int type)
     freeToken(left, true, false);
     freeToken(right, true, false);
     return new_token;
+}
+
+Statement *makeOperationStatement(int type){
+    Statement *tmp = makeStatement();
+    tmp->type = operation;
+    tmp->u.operation.OperationType = type;
+    tmp->u.operation.left = NULL;
+    tmp->u.operation.right = NULL;
+    return tmp;
+}
+
+Statement *makeTupleStatement(Parameter *pt, int type) {
+    Statement *tmp = makeStatement();
+    tmp->type = base_list;
+    tmp->u.base_list.type = type;
+    tmp->u.base_list.list = pt;
+    return tmp;
 }
 
 Statement *makeFunctionStatement(Statement *name, Statement *function, Parameter *pt) {
@@ -148,6 +156,9 @@ void freeStatement(Statement *st){
             case call_function:
                 freeStatement(st->u.call_function.function);
                 freeParameter(st->u.call_function.parameter);
+                break;
+            case base_list:
+                freeParameter(st->u.base_list.list);
                 break;
             case if_branch:
                 freeStatementList(st->u.if_branch.if_list);

@@ -16,9 +16,12 @@ Result runStatement(INTER_FUNCTIONSIG) {
         case base_var:
             result = getBaseVar(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
+        case base_list:
+            result = getList(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         case operation:
             result = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-            printResult(result, "operation result = ", "", inter->debug);
+            printLinkValue(result.value, "operation result = ", "\n", inter->debug);
             break;
         case set_function:
             result = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list));
@@ -75,7 +78,7 @@ Result iterStatement(INTER_FUNCTIONSIG) {
         base_st = st;
         while (base_st != NULL) {
             result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
-            if (!runContinue(result))
+            if (!run_continue(result))
                 break;
             base_st = base_st->next;
         }
@@ -104,7 +107,7 @@ Result globalIterStatement(Inter *inter) {
         var_list = inter->var_list;
         while (base_st != NULL) {
             result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
-            if (!runContinue(result))
+            if (!run_continue(result))
                 break;
             base_st = base_st->next;
         }
@@ -120,14 +123,14 @@ Result globalIterStatement(Inter *inter) {
 // 若需要中断执行, 则返回true
 bool operationSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (result->type == not_return || result->type == operation_return)
+    if (run_continue_(result))
         return false;
     return true;
 }
 
 bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (result->type == not_return || result->type == operation_return){
+    if (run_continue_(result)){
         return false;
     }
     if (result->type == rego_return){
@@ -142,7 +145,7 @@ bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
 
 bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (result->type == not_return || result->type == operation_return){
+    if (run_continue_(result)){
         return false;
     }
     if (result->type == break_return || result->type == continue_return){
@@ -157,7 +160,7 @@ bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
 
 bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (result->type == not_return || result->type == operation_return){
+    if (run_continue_(result)){
         return false;
     }
     if (result->type == restart_return)

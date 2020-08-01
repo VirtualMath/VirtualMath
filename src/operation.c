@@ -183,3 +183,15 @@ Result getBaseValue(INTER_FUNCTIONSIG) {
     result.type = operation_return;
     return result;
 }
+
+Result getList(INTER_FUNCTIONSIG) {
+    Result tmp, result;
+    Parameter *tmp_pt = st->u.base_list.list;  // 避免直接传入st->u.base_list.list的指针导致其值发生改变
+    int type = st->u.base_list.type == tuple_ ? value_tuple : value_list;
+    Value *value = makeListValue(&tmp_pt, &tmp, CALL_INTER_FUNCTIONSIG_CORE(var_list), type);
+    if (!run_continue(tmp))
+        return tmp;
+    setResultOperation(&result ,inter);
+    result.value->value = value;
+    return result;
+}

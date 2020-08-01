@@ -8,6 +8,7 @@ typedef struct VirtualMathValue{
         number=1,
         string,
         function,
+        list,
     } type;
     union data{
         struct Number{
@@ -21,6 +22,14 @@ typedef struct VirtualMathValue{
             struct VirtualMathVarList *var;
             struct Parameter *pt;
         } function;
+        struct {
+            enum {
+                value_tuple,
+                value_list,
+            } type;
+            struct VirtualMathLinkValue **list;
+            long int size;
+        } list;
     }data;
     struct VirtualMathValue *next;
     struct VirtualMathValue *last;
@@ -56,9 +65,14 @@ void freeLinkValue(LinkValue *value, Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(Statement *st, struct Parameter *pt, struct VirtualMathVarList *var_list, Inter *inter);
+Value *makeListValue(struct Parameter **pt_ad, Result *result_tmp, struct globalInterpreter *inter, struct VirtualMathVarList *var_list,
+                     int type);
 
 void setResult(Result *ru, bool link, Inter *inter);
 void setResultError(Result *ru, Inter *inter);
 void setResultOperation(Result *ru, Inter *inter);
+
+void printValue(Value *value, FILE *debug);
+void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug);
 
 #endif //VIRTUALMATH_VALUE_H

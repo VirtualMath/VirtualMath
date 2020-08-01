@@ -47,6 +47,32 @@ Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter 
     return tmp;
 }
 
+Value *makeListValue(Parameter **pt_ad, Result *result_tmp, struct globalInterpreter *inter, struct VirtualMathVarList *var_list,
+                     int type) {
+    Value *tmp;
+    Parameter *pt = *pt_ad;
+    tmp = makeValue(inter);
+    tmp->type = list;
+    tmp->data.list.type = type;
+    tmp->data.list.list = NULL;
+    tmp->data.list.size = 0;
+    while (pt != NULL && pt->type == only_value){  // TODO-szh 支持only_args
+        Result element;
+        if(operationSafeInterStatement(&element, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list))) {
+            *result_tmp = element;
+            goto return_;
+        }
+        tmp->data.list.size++;
+        tmp->data.list.list = memRealloc(tmp->data.list.list, tmp->data.list.size * sizeof(LinkValue *));
+        tmp->data.list.list[tmp->data.list.size - 1] = element.value;
+        pt = pt->next;
+    }
+    setResult(result_tmp, true, inter);
+    return_:
+    *pt_ad = pt;
+    return tmp;
+}
+
 void freeValue(Value *value, Inter *inter){
     freeBase(value, return_);
     if (value->last == NULL){
@@ -69,6 +95,9 @@ void freeValue(Value *value, Inter *inter){
                 tmp = freeVarList(tmp, true);
             break;
         }
+        case list:
+            memFree(value->data.list.list);
+            break;
         default:
             break;
     }
@@ -131,3 +160,41 @@ void setResultOperation(Result *ru, Inter *inter) {
     ru->type = operation_return;
     ru->value = makeLinkValue(inter->base, NULL, inter);
 }
+
+void printValue(Value *value, FILE *debug){
+    switch (value->type){
+        case number:
+            writeLog(debug, INFO, "<%ld>", value->data.num.num);
+            break;
+        case string:
+            writeLog(debug, INFO, "<'%s'>", value->data.str.str);
+            break;
+        case function:
+            writeLog(debug, INFO, "function on <%lx>", (unsigned long )value);
+            break;
+        case list:
+            writeLog(debug, INFO, "list on %lx, size = %d, [", (unsigned long )value, (int)value->data.list.size);
+            for (int i=0;i < value->data.list.size;i++){
+                printLinkValue(value->data.list.list[i], "", "", debug);
+            }
+            writeLog(debug, INFO, "]", NULL);
+            break;
+        case none:
+            writeLog(debug, INFO, "<None>", NULL);
+            break;
+        default:
+            writeLog(debug, INFO, "default on <%lx>", (unsigned long )value);
+            break;
+    }
+}
+
+void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
+    writeLog(debug, INFO, "%s", first);
+    if (value->father != NULL) {
+        printLinkValue(value->father, "", "", debug);
+        writeLog(debug, INFO, " . ", NULL);
+    }
+    printValue(value->value, debug);
+    writeLog(debug, INFO, "%s", last);
+}
+

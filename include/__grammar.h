@@ -20,7 +20,7 @@ writeLog(pm->paser_debug, pasers_level, "\n"message, __VA_ARGS__); \
 #define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st), pm->paser_debug)
 #define delToken(pm) freeToken(popAheadToken(pm), true, false)
 #define backToken_(pm, token) addBackToken(pm->tm->ts, (token), pm->paser_debug)
-#define addEnter(pm) backToken_(pm, makeLexToken(MATHER_ENTER, NULL, NULL))
+#define addLexToken(pm, type) backToken_(pm, makeLexToken(type, NULL, NULL))
 #define addToken_ backToken_
 #define call_success(pm) (pm->status == success)
 
@@ -37,6 +37,7 @@ void parserBaseValue(PASERSSIGNATURE);
 void parserCallBack(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
+void parserTuple(PASERSSIGNATURE);
 void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*getSymbol)(PASERSSIGNATURE, int symbol, Statement **st), int, int, char *, char *);
 void tailOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*tailFunction)(PASERSSIGNATURE, Token *left_token,  Statement **st), int , int , char *, char *);
 

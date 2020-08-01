@@ -6,6 +6,7 @@ typedef struct Parameter{
     enum {
         only_value,
         name_value,
+        only_args,
     } type;
     struct {
         struct Statement *value;
@@ -16,10 +17,12 @@ typedef struct Parameter{
 
 Parameter *makeParameter();
 Parameter *makeOnlyValueParameter(struct Statement *st);
-Parameter *makeNameValueParameter(Statement *value, Statement *name);
+Parameter *makeNameValueParameter(struct Statement *value, struct Statement *name);
+Parameter *makeOnlyArgsParameter(Statement *st);
 Parameter *connectParameter(Parameter *new, Parameter *base);
 Parameter *connectOnlyValueParameter(struct Statement *st, Parameter *base);
-Parameter *connectNameValueParameter(Statement *value, Statement *name, Parameter *base);
+Parameter *connectNameValueParameter(struct Statement *value, struct Statement *name, Parameter *base);
+Parameter *connectOnlyArgsParameter(Statement *st, Parameter *base);
 void freeParameter(Parameter *pt);
-Result setParameter(Parameter *call, Parameter *function, VarList *function_var, INTER_FUNCTIONSIG_CORE);
+struct VirtualMathResult setParameter(Parameter *call, Parameter *function, struct VirtualMathVarList *function_var, INTER_FUNCTIONSIG_CORE);
 #endif //VIRTUALMATH_PARAMETER_H

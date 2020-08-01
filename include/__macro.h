@@ -26,7 +26,8 @@ goto return_; \
 } \
 }while(0) \
 
-#define runContinue(result) (result.type == not_return || result.type == operation_return)
+#define run_continue(result) (result.type == not_return || result.type == operation_return)
+#define run_continue_(result) (result->type == not_return || result->type == operation_return)
 #define is_error(result) (result.type == error_return)
 
 #define checkResult(check_result) do{ \
