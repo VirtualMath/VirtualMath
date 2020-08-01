@@ -4,22 +4,22 @@
 
 #define MAX_SIZE (1024)
 
-typedef struct VirtualMathVar{
+typedef struct Var{
     char *name;
-    struct VirtualMathLinkValue *value;
-    struct VirtualMathVar *next;
+    struct LinkValue *value;
+    struct Var *next;
 } Var;
 
-typedef struct VirtualMathHashTable{
-    struct VirtualMathVar **hashtable;
+typedef struct HashTable{
+    struct Var **hashtable;
     int count;
-    struct VirtualMathHashTable *next;
-    struct VirtualMathHashTable *last;
+    struct HashTable *next;
+    struct HashTable *last;
 } HashTable;
 
-typedef struct VirtualMathVarList{
-    struct VirtualMathHashTable *hashtable;
-    struct VirtualMathVarList *next;
+typedef struct VarList{
+    struct HashTable *hashtable;
+    struct VarList *next;
 } VarList;
 
 VarList *makeVarList(Inter *inter);

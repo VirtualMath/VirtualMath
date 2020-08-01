@@ -179,19 +179,23 @@ Result getBaseVar(INTER_FUNCTIONSIG) {
 Result getBaseValue(INTER_FUNCTIONSIG) {
     Result result;
     setResult(&result, true, inter);
-    result.value->value = st->u.base_value.value;
+    result.value = st->u.base_value.value;
     result.type = operation_return;
     return result;
 }
 
 Result getList(INTER_FUNCTIONSIG) {
-    Result tmp, result;
-    Parameter *tmp_pt = st->u.base_list.list;  // 避免直接传入st->u.base_list.list的指针导致其值发生改变
+    Result result;
+    Argument *at = getArgument(st->u.base_list.list, &result, CALL_INTER_FUNCTIONSIG_CORE(var_list)), *at_tmp = at;
+    if (!run_continue(result)){
+        freeArgument(at_tmp, true);
+        return result;
+    }
+
     int type = st->u.base_list.type == tuple_ ? value_tuple : value_list;
-    Value *value = makeListValue(&tmp_pt, &tmp, CALL_INTER_FUNCTIONSIG_CORE(var_list), type);
-    if (!run_continue(tmp))
-        return tmp;
+    Value *value = makeListValue(&at, inter, type);
     setResultOperation(&result ,inter);
     result.value->value = value;
+    freeArgument(at_tmp, true);
     return result;
 }

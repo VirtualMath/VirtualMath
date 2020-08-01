@@ -1,8 +1,7 @@
 #ifndef VIRTUALMATH_VALUE_H
 #define VIRTUALMATH_VALUE_H
-#include "inter.h"
 
-typedef struct VirtualMathValue{
+typedef struct Value{
     enum ValueType{
         none=0,
         number=1,
@@ -19,7 +18,7 @@ typedef struct VirtualMathValue{
         } str;
         struct {
             struct Statement *function;
-            struct VirtualMathVarList *var;
+            struct VarList *var;
             struct Parameter *pt;
         } function;
         struct {
@@ -27,22 +26,22 @@ typedef struct VirtualMathValue{
                 value_tuple,
                 value_list,
             } type;
-            struct VirtualMathLinkValue **list;
+            struct LinkValue **list;
             long int size;
         } list;
     }data;
-    struct VirtualMathValue *next;
-    struct VirtualMathValue *last;
+    struct Value *next;
+    struct Value *last;
 } Value;
 
-typedef struct VirtualMathLinkValue{
-    struct VirtualMathValue *value;
-    struct VirtualMathLinkValue *father;
-    struct VirtualMathLinkValue *next;
-    struct VirtualMathLinkValue *last;
+typedef struct LinkValue{
+    struct Value *value;
+    struct LinkValue *father;
+    struct LinkValue *next;
+    struct LinkValue *last;
 } LinkValue;
 
-typedef struct VirtualMathResult{
+typedef struct Result{
     enum ResultType{
         not_return = 1,  // 无返回值
         function_return,  // 函数返回值
@@ -53,10 +52,12 @@ typedef struct VirtualMathResult{
         rego_return,
         restart_return,
     } type;
-    struct VirtualMathLinkValue *value;
+    struct LinkValue *value;
     int times;
 } Result;
 
+struct VarList;
+struct Argument;
 
 Value *makeValue(Inter *inter);
 void freeValue(Value *value, Inter *inter);
@@ -64,9 +65,8 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
 void freeLinkValue(LinkValue *value, Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
-Value *makeFunctionValue(Statement *st, struct Parameter *pt, struct VirtualMathVarList *var_list, Inter *inter);
-Value *makeListValue(struct Parameter **pt_ad, Result *result_tmp, struct globalInterpreter *inter, struct VirtualMathVarList *var_list,
-                     int type);
+Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
+Value *makeListValue(struct Argument **ad_ad, Inter *inter, int type);
 
 void setResult(Result *ru, bool link, Inter *inter);
 void setResultError(Result *ru, Inter *inter);

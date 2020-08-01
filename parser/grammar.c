@@ -438,7 +438,7 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
     bool last_pt = false;
     while (!last_pt){
         tmp = NULL;
-        if (!is_dict && status != s_2 && checkToken_(pm, MATHER_MUL))  // // is_formal关闭对*args的支持
+        if (!is_dict && status != s_2 && checkToken_(pm, MATHER_MUL))  // is_formal关闭对*args的支持
             status = s_3;
         parserPolynomial(CALLPASERSSIGNATURE);
         if (!call_success(pm))
@@ -455,7 +455,7 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
         int pt_type = only_value;
         if (status == s_1){
             if (!checkToken_(pm, sep)){
-                if (is_list || !checkToken_(pm, is_formal))  // // is_list关闭对name_value的支持
+                if (is_list || !checkToken_(pm, ass))  // // is_list关闭对name_value的支持
                     last_pt = true;
                 else {
                     pt_type = name_value;
@@ -465,7 +465,7 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
         }
         else if (status == s_2){
             pt_type = name_value;
-            if (!checkToken_(pm, is_formal))
+            if (!checkToken_(pm, ass))
                 goto error_;
         }
         else if (status == s_3){
@@ -498,7 +498,7 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
 
     error_:
     freeToken(tmp, true, true);
-    freeParameter(new_pt);
+    freeParameter(new_pt, true);
     *pt = NULL;
     return false;
 }
@@ -632,7 +632,7 @@ void parserTuple(PASERSSIGNATURE){
     Token *tmp = NULL;
     if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, NULL, syntax_error))
         goto return_;
-    if (!checkToken_(pm, MATHER_COMMA)){  // TODO-szh 需要弹出token才可以检查
+    if (!checkToken_(pm, MATHER_COMMA)){
         tmp->token_type = TUPLE;
         addToken_(pm ,tmp);
         goto return_;
@@ -750,14 +750,14 @@ void parserBaseValue(PASERSSIGNATURE){
         char *stop;
         st = makeStatement();
         st->type = base_value;
-        st->u.base_value.value = makeNumberValue(strtol(value_token->data.str, &stop, 10), inter);
+        st->u.base_value.value = makeLinkValue(makeNumberValue(strtol(value_token->data.str, &stop, 10), inter), NULL, inter);
     }
     else if(MATHER_STRING == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string\n", NULL);
         value_token= popAheadToken(pm);
         st = makeStatement();
         st->type = base_value;
-        st->u.base_value.value = makeStringValue(value_token->data.str, inter);
+        st->u.base_value.value = makeLinkValue(makeStringValue(value_token->data.str, inter), NULL, inter);
     }
     else if(MATHER_VAR == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var\n", NULL);

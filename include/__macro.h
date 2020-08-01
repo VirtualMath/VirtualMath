@@ -15,7 +15,7 @@
 
 #define NUMBER_TYPE long int
 #define HASH_INDEX unsigned int
-#define INTER_FUNCTIONSIG_CORE struct globalInterpreter *inter, struct VirtualMathVarList *var_list
+#define INTER_FUNCTIONSIG_CORE struct Inter *inter, struct VarList *var_list
 #define INTER_FUNCTIONSIG Statement *st, INTER_FUNCTIONSIG_CORE
 #define CALL_INTER_FUNCTIONSIG_CORE(var_list) inter, var_list
 #define CALL_INTER_FUNCTIONSIG(st, var_list) st, CALL_INTER_FUNCTIONSIG_CORE(var_list)

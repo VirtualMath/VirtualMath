@@ -14,7 +14,6 @@ struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struc
         st->u.operation.left = left_st->u.operation.right;
         left_st->u.operation.right = st;
         st->u.operation.right = right->data.st;
-
         st = left_st;  // left_st是主中心
     }
     else{
@@ -166,10 +165,10 @@ void freeStatement(Statement *st){
                 break;
             case call_function:
                 freeStatement(st->u.call_function.function);
-                freeParameter(st->u.call_function.parameter);
+                freeParameter(st->u.call_function.parameter, true);
                 break;
             case base_list:
-                freeParameter(st->u.base_list.list);
+                freeParameter(st->u.base_list.list, true);
                 break;
             case if_branch:
                 freeStatementList(st->u.if_branch.if_list);

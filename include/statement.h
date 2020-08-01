@@ -25,7 +25,7 @@ typedef struct Statement{
     } type;
     union StatementU{
         struct base_value{
-            struct VirtualMathValue *value;
+            struct LinkValue *value;
         } base_value;
         struct base_var{
             char *name;

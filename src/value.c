@@ -47,29 +47,21 @@ Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter 
     return tmp;
 }
 
-Value *makeListValue(Parameter **pt_ad, Result *result_tmp, struct globalInterpreter *inter, struct VirtualMathVarList *var_list,
-                     int type) {
+Value *makeListValue(Argument **ad_ad, Inter *inter, int type) {
     Value *tmp;
-    Parameter *pt = *pt_ad;
+    Argument *at = *ad_ad;
     tmp = makeValue(inter);
     tmp->type = list;
     tmp->data.list.type = type;
     tmp->data.list.list = NULL;
     tmp->data.list.size = 0;
-    while (pt != NULL && pt->type == only_value){  // TODO-szh 支持only_args
-        Result element;
-        if(operationSafeInterStatement(&element, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list))) {
-            *result_tmp = element;
-            goto return_;
-        }
+    while (at != NULL && at->type == value_arg){
         tmp->data.list.size++;
         tmp->data.list.list = memRealloc(tmp->data.list.list, tmp->data.list.size * sizeof(LinkValue *));
-        tmp->data.list.list[tmp->data.list.size - 1] = element.value;
-        pt = pt->next;
+        tmp->data.list.list[tmp->data.list.size - 1] = at->data.value;
+        at = at->next;
     }
-    setResult(result_tmp, true, inter);
-    return_:
-    *pt_ad = pt;
+    *ad_ad = at;
     return tmp;
 }
 
@@ -90,7 +82,7 @@ void freeValue(Value *value, Inter *inter){
             break;
         case function: {
             VarList *tmp = value->data.function.var;
-            freeParameter(value->data.function.pt);
+            freeParameter(value->data.function.pt, true);
             while (tmp != NULL)
                 tmp = freeVarList(tmp, true);
             break;
