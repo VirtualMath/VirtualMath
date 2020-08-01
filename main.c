@@ -119,5 +119,4 @@ void freeArgs(){
 
 /*
  *  TODO-szh 列表、字典
- *  TODO-szh 赋值语句从右执行到左边
  */

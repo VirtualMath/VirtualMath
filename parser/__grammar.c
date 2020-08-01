@@ -1,6 +1,9 @@
 #include "__grammar.h"
 
-inline void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*getSymbol)(PASERSSIGNATURE, int , Statement **), int type, int self_type, char *call_name, char *self_name){
+inline void twoOperation(ParserMessage *pm, Inter *inter, void (*callBack)(ParserMessage *, Inter *),
+                         int (*getSymbol)(ParserMessage *, Inter *, int, Statement **), int type, int self_type,
+                         char *call_name, char *self_name, bool is_right) {
+    bool is_right_ = false;
     while(true){
         Token *left_token = NULL, *right_token = NULL;
         struct Statement *st = NULL;
@@ -41,9 +44,10 @@ inline void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int
             goto return_;
         }
 
-        right_token= popAheadToken(pm);
-        addToken_(pm, setOperationFromToken(st, left_token, right_token, self_type));
+        right_token = popAheadToken(pm);
+        addToken_(pm, setOperationFromToken(&st, left_token, right_token, self_type, is_right_));
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: get base value(right) success[push polynomial]\n", NULL);
+        is_right_ = is_right;  // 第一次is_right不生效
     }
     return_:
     return;

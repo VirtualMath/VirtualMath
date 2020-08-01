@@ -129,7 +129,7 @@ typedef struct StatementList{
 
 Statement *makeStatement();
 Statement *makeOperationStatement(int type);
-struct Token *setOperationFromToken(Statement *st, struct Token *left, struct Token *right, int type);
+struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right);
 
 Statement *makeTupleStatement(struct Parameter *pt, int type);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);

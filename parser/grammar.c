@@ -615,7 +615,7 @@ bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
 }
 void parserAssignment(PASERSSIGNATURE){
     return twoOperation(CALLPASERSSIGNATURE, parserTuple, switchAssignment, TUPLE, ASSIGNMENT,
-                        "polynomial", "assignment");
+                        "polynomial", "assignment", true);
 }
 
 /**
@@ -672,7 +672,7 @@ bool switchPolynomial(PASERSSIGNATURE, int symbol, Statement **st){
 }
 void parserPolynomial(PASERSSIGNATURE){
     return twoOperation(CALLPASERSSIGNATURE, parserFactor, switchPolynomial, FACTOR, POLYNOMIAL,
-            "factor", "polynomial");
+                        "factor", "polynomial", false);
 }
 
 /**
@@ -697,7 +697,7 @@ bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
 }
 void parserFactor(PASERSSIGNATURE){
     return twoOperation(CALLPASERSSIGNATURE, parserCallBack, switchFactor, CALLBACK, FACTOR,
-                        "call back", "factor");
+                        "call back", "factor", false);
 }
 
 int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){

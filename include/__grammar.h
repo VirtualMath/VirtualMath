@@ -38,7 +38,9 @@ void parserCallBack(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
 void parserTuple(PASERSSIGNATURE);
-void twoOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*getSymbol)(PASERSSIGNATURE, int symbol, Statement **st), int, int, char *, char *);
+void twoOperation(ParserMessage *pm, Inter *inter, void (*callBack)(ParserMessage *, Inter *),
+                  int (*getSymbol)(ParserMessage *, Inter *, int, Statement **), int type, int self_type,
+                  char *call_name, char *self_name, bool is_right);
 void tailOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*tailFunction)(PASERSSIGNATURE, Token *left_token,  Statement **st), int , int , char *, char *);
 
 void syntaxError(ParserMessage *pm, int status, int num, ...);

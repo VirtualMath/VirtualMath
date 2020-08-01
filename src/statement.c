@@ -7,16 +7,27 @@ Statement *makeStatement(){
     return tmp;
 }
 
-Token *setOperationFromToken(Statement *st, Token *left, Token *right, int type) {
+struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right) {
     Token *new_token = NULL;
-    st->u.operation.left = left->data.st;
-    st->u.operation.right = right->data.st;
+    Statement *st = *st_ad, *left_st = left->data.st;
+    if (is_right && left->data.st->type == operation && left_st->u.operation.OperationType == st->u.operation.OperationType){
+        st->u.operation.left = left_st->u.operation.right;
+        left_st->u.operation.right = st;
+        st->u.operation.right = right->data.st;
+
+        st = left_st;  // left_st是主中心
+    }
+    else{
+        st->u.operation.left = left_st;
+        st->u.operation.right = right->data.st;
+    }
     new_token = makeToken();
     new_token->token_type = type;
     new_token->data.st = st;
 
     freeToken(left, true, false);
     freeToken(right, true, false);
+    *st_ad = st;
     return new_token;
 }
 
