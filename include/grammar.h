@@ -10,7 +10,7 @@ typedef struct ParserMessage{
     FILE *paser_debug;
     FILE *grammar_debug;
     int count;
-    enum {
+    enum ParserMessageStatus{
         success = 1,
         syntax_error,
         command_list_error,

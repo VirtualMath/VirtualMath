@@ -3,12 +3,12 @@
 #include "__macro.h"
 
 typedef struct Parameter{
-    enum {
-        only_value,
-        name_value,
-        only_args,
+    enum ParameterType{
+        value_par,
+        name_par,
+        args_par,
     } type;
-    struct {
+    struct ParameterData{
         struct Statement *value;
         struct Statement *name;  // 仅在name-value模式生效
     } data;
@@ -16,11 +16,11 @@ typedef struct Parameter{
 } Parameter;
 
 typedef struct Argument{
-    enum {
+    enum ArgumentType{
         value_arg,
         name_arg,
     } type;
-    struct {
+    struct ArgumentData{
         struct LinkValue *value;
         struct Statement *name;  // 仅在name-value模式生效
     } data;

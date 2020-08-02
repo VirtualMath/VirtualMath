@@ -22,7 +22,8 @@ Var *freeVar(Var *var, bool self){
 }
 
 HashTable *makeHashTable(Inter *inter) {
-    HashTable *tmp, *list_tmp = inter->hash_base;
+    HashTable *list_tmp = inter->hash_base;
+    HashTable *tmp;
     tmp = memCalloc(1, sizeof(Value));
     tmp->hashtable = (Var **)calloc(MAX_SIZE, sizeof(Var *));
     tmp->next = NULL;
@@ -184,7 +185,8 @@ VarList *copyVarListCore(VarList *base, Inter *inter){
 }
 
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter){
-    VarList *new, *tmp;
+    VarList *new;
+    VarList *tmp;
     new = tmp = copyVarListCore(base, inter);
     while (base->next != NULL){
         tmp->next = copyVarListCore(base->next, inter);

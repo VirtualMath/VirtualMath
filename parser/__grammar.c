@@ -1,11 +1,11 @@
 #include "__grammar.h"
 
-inline void twoOperation(ParserMessage *pm, Inter *inter, void (*callBack)(ParserMessage *, Inter *),
-                         int (*getSymbol)(ParserMessage *, Inter *, int, Statement **), int type, int self_type,
-                         char *call_name, char *self_name, bool is_right) {
+inline void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBack, GetSymbolFunction getSymbol,
+                         int type, int self_type, char *call_name, char *self_name, bool is_right) {
     bool is_right_ = false;
     while(true){
-        Token *left_token = NULL, *right_token = NULL;
+        Token *left_token = NULL;
+        Token *right_token = NULL;
         struct Statement *st = NULL;
 
         readBackToken(pm);
@@ -18,7 +18,7 @@ inline void twoOperation(ParserMessage *pm, Inter *inter, void (*callBack)(Parse
                       "%s: get %s(left) success[push %s]\n", self_name, call_name, self_name);
             continue;
         }
-        left_token= popAheadToken(pm);
+        left_token = popAheadToken(pm);
 
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call symbol\n", self_name);
         if (getSymbol(CALLPASERSSIGNATURE, readBackToken(pm), &st)){
@@ -46,14 +46,16 @@ inline void twoOperation(ParserMessage *pm, Inter *inter, void (*callBack)(Parse
 
         right_token = popAheadToken(pm);
         addToken_(pm, setOperationFromToken(&st, left_token, right_token, self_type, is_right_));
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Polynomial: get base value(right) success[push polynomial]\n", NULL);
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
+                  "Polynomial: get base value(right) success[push polynomial]\n", NULL);
         is_right_ = is_right;  // 第一次is_right不生效
     }
     return_:
     return;
 }
 
-inline void tailOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*tailFunction)(PASERSSIGNATURE, Token *,  Statement **), int type, int self_type, char *call_name, char *self_name){
+inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int type, int self_type,
+                          char *call_name, char *self_name){
     while(true){
         Token *left_token = NULL;
         struct Statement *st = NULL;
@@ -67,7 +69,7 @@ inline void tailOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), in
                       "%s: get %s(left) success[push %s]\n", self_name, call_name, self_name);
             continue;
         }
-        left_token= popAheadToken(pm);
+        left_token = popAheadToken(pm);
 
         int tail_status = tailFunction(CALLPASERSSIGNATURE, left_token, &st);
         if (tail_status == -1){
@@ -139,14 +141,13 @@ Token *popAheadToken(ParserMessage *pm){
 }
 
 bool checkToken_(ParserMessage *pm, int type){
-    if (readBackToken(pm) != type){
+    if (readBackToken(pm) != type)
         return false;
-    }
     delToken(pm);
     return true;
 }
 
-bool commandCallControl_(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type, Statement **st, char *message){
+bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, char *message){
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, message, NULL);
     Token *tmp_token = NULL;
     parserControl(CALLPASERSSIGNATURE, callBack, type);
@@ -158,7 +159,7 @@ bool commandCallControl_(PASERSSIGNATURE, Statement *(*callBack)(Statement *), i
     return true;
 }
 
-inline bool commandCallBack_(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int type, Statement **st, char *message){
+inline bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message){
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, message, NULL);
     return callChildStatement(CALLPASERSSIGNATURE, callBack, type, st, NULL);
 }
@@ -184,9 +185,9 @@ bool callParserAs(PASERSSIGNATURE, Statement **st,char *message){
     return true;
 }
 
-bool callChildToken(ParserMessage *pm, Inter *inter, void (*call)(ParserMessage *, Inter *), int type, Token **tmp,
-                    char *message, int error_type) {
-    call(CALLPASERSSIGNATURE);
+bool callChildToken(ParserMessage *pm, Inter *inter, PasersFunction callBack, int type, Token **tmp, char *message,
+                    int error_type) {
+    callBack(CALLPASERSSIGNATURE);
     if (!call_success(pm)) {
         *tmp = NULL;
         return false;
@@ -201,9 +202,9 @@ bool callChildToken(ParserMessage *pm, Inter *inter, void (*call)(ParserMessage 
     return true;
 }
 
-bool callChildStatement(PASERSSIGNATURE, void (*call)(PASERSSIGNATURE), int type, Statement **st, char *message){
+bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message){
     Token *tmp = NULL;
-    bool status = callChildToken(CALLPASERSSIGNATURE, call, type, &tmp, message, syntax_error);
+    bool status = callChildToken(CALLPASERSSIGNATURE, callBack, type, &tmp, message, syntax_error);
     if (!status){
         *st = NULL;
         return false;

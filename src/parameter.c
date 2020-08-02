@@ -60,7 +60,7 @@ void freeArgument(Argument *pt, bool free_st) {
 
 Parameter *makeParameter(){
     Parameter *tmp = memCalloc(1, sizeof(Parameter));
-    tmp->type = only_value;
+    tmp->type = value_par;
     tmp->data.value = NULL;
     tmp->data.name = NULL;
     tmp->next = NULL;
@@ -91,7 +91,7 @@ Parameter *makeOnlyValueParameter(Statement *st){
 
 Parameter *makeNameValueParameter(Statement *value, Statement *name){
     Parameter *tmp = makeParameter();
-    tmp->type = name_value;
+    tmp->type = name_par;
     tmp->data.value = value;
     tmp->data.name = name;
     return tmp;
@@ -99,7 +99,7 @@ Parameter *makeNameValueParameter(Statement *value, Statement *name){
 
 Parameter *makeOnlyArgsParameter(Statement *st){
     Parameter *tmp = makeParameter();
-    tmp->type = only_args;
+    tmp->type = args_par;
     tmp->data.value = st;
     return tmp;
 }
@@ -161,7 +161,7 @@ Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE){
 Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list, int *num) {
     Parameter *function = *function_ad;
     Result result;
-    while (function != NULL && function->type == name_value){
+    while (function != NULL && function->type == name_par){
         Result tmp, tmp_ass;
         if(operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(function->data.value, var_list))) {
             *function_ad = function;
@@ -225,10 +225,10 @@ Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FU
     while (function != NULL){
         Result tmp, tmp_ass;
         get = true;
-        Statement *name = function->type == only_value ? function->data.value : function->data.name;
+        Statement *name = function->type == value_par ? function->data.value : function->data.name;
         if(operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(name, var_list))) {
             get = false;
-            if (function->type == name_value && !operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(function->data.value, var_list)))
+            if (function->type == name_par && !operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(function->data.value, var_list)))
                 goto not_return;
             *function_ad = function;
             return tmp;
@@ -262,9 +262,9 @@ Result argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList 
     Argument *call = *call_ad;
     Parameter *function = *function_ad;
     Result result;
-    while (call != NULL && function != NULL && (call->type == value_arg) && function->type != only_args){
+    while (call != NULL && function != NULL && (call->type == value_arg) && function->type != args_par){
         Result tmp_ass;
-        Statement *name = function->type == only_value ? function->data.value : function->data.name;
+        Statement *name = function->type == value_par ? function->data.value : function->data.name;
         tmp_ass = assCore(name, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(function_var));
         if (tmp_ass.type == error_return) {
             *call_ad = call;
@@ -296,11 +296,11 @@ Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE
         if(operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(call->data.value, var_list)))
             return tmp;
 
-        if (call->type == only_value)
+        if (call->type == value_par)
             base = connectOnlyValueArgument(tmp.value, base);
-        else if (call->type == name_value)
+        else if (call->type == name_par)
             base = connectNameValueArgument(tmp.value, call->data.name, base);
-        else if (call->type == only_args){
+        else if (call->type == args_par){
             Argument *tmp_at = listToArgument(tmp.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
             base = connectArgument(tmp_at, base);
         }
@@ -351,11 +351,11 @@ Result setParameter(Parameter *call_base, Parameter *function_base, VarList *fun
     while (true){
         if (call == NULL && function == NULL)
             status = finished;
-        else if ((call != NULL && function == NULL) || (call == NULL && function != NULL && function->type == only_value))
+        else if ((call != NULL && function == NULL) || (call == NULL && function != NULL && function->type == value_par))
             status = error;
-        else if (call == NULL && function->type == name_value)  // 根据前面的条件, 已经决定function不会为NULL
+        else if (call == NULL && function->type == name_par)  // 根据前面的条件, 已经决定function不会为NULL
             status = default_status;
-        else if (function->type == only_args)
+        else if (function->type == args_par)
             status = mul_par;
         else if (call->type == value_arg)
             status = match_status;

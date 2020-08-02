@@ -7,10 +7,12 @@ Statement *makeStatement(){
     return tmp;
 }
 
-struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right) {
+Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right) {
     Token *new_token = NULL;
     Statement *st = *st_ad, *left_st = left->data.st;
-    if (is_right && left->data.st->type == operation && left_st->u.operation.OperationType == st->u.operation.OperationType){
+    if (is_right && left->data.st->type == operation &&
+        left_st->u.operation.OperationType == st->u.operation.OperationType){
+
         st->u.operation.left = left_st->u.operation.right;
         left_st->u.operation.right = st;
         st->u.operation.right = right->data.st;

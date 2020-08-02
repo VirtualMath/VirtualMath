@@ -58,7 +58,9 @@ Result operationStatement(INTER_FUNCTIONSIG) {
 }
 
 Result addOperation(INTER_FUNCTIONSIG) {
-    Result left, right, result;
+    Result left;
+    Result right;
+    Result result;
     setResultOperation(&result, inter);
     getresult(left, left, inter);
     getresult(right, right, inter);
@@ -75,7 +77,9 @@ Result addOperation(INTER_FUNCTIONSIG) {
 }
 
 Result subOperation(INTER_FUNCTIONSIG) {
-    Result left, right, result;
+    Result left;
+    Result right;
+    Result result;
     setResultOperation(&result, inter);
     getresult(left, left, inter);
     getresult(right, right, inter);
@@ -87,7 +91,9 @@ Result subOperation(INTER_FUNCTIONSIG) {
 }
 
 Result mulOperation(INTER_FUNCTIONSIG) {
-    Result left, right, result;
+    Result left;
+    Result right;
+    Result result;
     setResultOperation(&result, inter);
     getresult(left, left, inter);
     getresult(right, right, inter);
@@ -113,7 +119,9 @@ Result mulOperation(INTER_FUNCTIONSIG) {
 }
 
 Result divOperation(INTER_FUNCTIONSIG) {
-    Result left, right, result;
+    Result left;
+    Result right;
+    Result result;
     setResultOperation(&result, inter);
     getresult(left, left, inter);
     getresult(right, right, inter);
@@ -125,7 +133,8 @@ Result divOperation(INTER_FUNCTIONSIG) {
 }
 
 Result assOperation(INTER_FUNCTIONSIG) {
-    Result result, times;
+    Result result;
+    Result times;
     getresult(right, result, inter);
     times = assCore(st->u.operation.left, result.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     checkResult(times);
@@ -133,7 +142,8 @@ Result assOperation(INTER_FUNCTIONSIG) {
 }
 
 Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
-    Result result, times;
+    Result result;
+    Result times;
     setResult(&result, true, inter);
     int int_times;
     if (name->type == base_var){
@@ -154,7 +164,8 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
 }
 
 Result getBaseVar(INTER_FUNCTIONSIG) {
-    Result times, result;
+    Result result;
+    Result times;
     int int_times;
     setResultOperation(&result, inter);
 

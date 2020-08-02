@@ -5,19 +5,19 @@
 
 typedef struct LexFile{
     FILE *file;
-    struct {
+    struct LexFileBack{
         bool is_back;
-        char p;
+        signed char p;
     } back;
     int count;
 } LexFile;
 
 typedef struct LexMather{
     int len;
-    int string_type;
+    signed char string_type;
     char *str;
     char *second_str;
-    enum {
+    enum LexMatherStatus{
         LEXMATHER_START=1,
         LEXMATHER_ING,
         LEXMATHER_INGPOINT,
@@ -34,7 +34,7 @@ typedef struct LexMathers{
     struct LexMather **mathers;
 } LexMathers;
 
-char readChar(LexFile *file);
+signed char readChar(LexFile *file);
 void backChar(LexFile *file);
 
 LexFile *makeLexFile(char *dir);

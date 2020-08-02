@@ -12,7 +12,7 @@ Token *makeToken(){
 }
 
 Token *makeLexToken(int type, char *str, char *second_str) {
-    struct Token *tmp = makeToken();
+    Token *tmp = makeToken();
     tmp->token_type = type;
     tmp->data.str = memStrcpy(str, 0, false, false);
     tmp->data.second_str = memStrcpy(second_str, 0, false, false);
@@ -20,7 +20,7 @@ Token *makeLexToken(int type, char *str, char *second_str) {
 }
 
 Token *makeStatementToken(int type, struct Statement *st){
-    struct Token *tmp = makeToken();
+    Token *tmp = makeToken();
     tmp->token_type = type;
     tmp->data.st = st;
     return tmp;

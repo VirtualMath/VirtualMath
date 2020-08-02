@@ -12,7 +12,7 @@
  * @param p
  * @param mather
  */
-void numberMather(char p, LexMather *mather){
+void numberMather(signed char p, LexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT){
         if ('0'<= p && '9' >= p || '.' == p && mather->status == LEXMATHER_ING){
             mather->str = memStrcpy(mather->str, 1, true, true, p);
@@ -57,7 +57,7 @@ void numberMather(char p, LexMather *mather){
  * @param p
  * @param mather
  */
-void varMather(char p, LexMather *mather){
+void varMather(signed char p, LexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
         if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
             '0'<= p && '9' >= p && mather->status == LEXMATHER_ING){
@@ -85,7 +85,7 @@ void varMather(char p, LexMather *mather){
  * @param p
  * @param mather
  */
-void stringMather(char p, LexMather *mather){
+void stringMather(signed char p, LexMather *mather){
     if (mather->status == LEXMATHER_START){
         if ('\"' == p || '\'' == p){
             mather->status = LEXMATHER_ING;
@@ -137,7 +137,7 @@ void stringMather(char p, LexMather *mather){
  * @param mather
  * @param dest_p
  */
-void strMather(char p, LexMather *mather, const char *dest_p){
+void strMather(signed char p, LexMather *mather, const char *dest_p){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
         if (p == dest_p[mather->len]){
             mather->str = memStrcpy(mather->str, 1, true, true, p);
@@ -162,8 +162,8 @@ void strMather(char p, LexMather *mather, const char *dest_p){
  * @param mather
  * @param dest_p
  */
-void charMather(char p, LexMather *mather, char dest_p){
-    int tmp_p = (int)p, tmp_dest = (int)dest_p;
+void charMather(signed char p, LexMather *mather, signed char dest_p){
+    int tmp_p = (int)p, tmp_dest = (int)dest_p;  // TODO-szh 去除设定
     if (tmp_p == tmp_dest && mather->status == LEXMATHER_START){
         mather->str = memStrcpy(mather->str, 1, true, true, p);
         mather->len ++;
@@ -187,7 +187,7 @@ int getMatherStatus(LexFile *file, LexMathers *mathers, FILE *debug) {
     setupMathers(mathers);
     int status = -1;
     while (status == -1){
-        char p = readChar(file);
+        signed char p = readChar(file);
         if (p == EOF)
             writeLog_(debug, LEXICAL_DEBUG, "get char: (EOF)\n", NULL);
         else if (p == '\n')

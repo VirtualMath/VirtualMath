@@ -2,6 +2,11 @@
 #define VIRTUALMATH___GRAMMAR_H
 #include "__virtualmath.h"
 
+typedef void (*PasersFunction)(PASERSSIGNATURE);
+typedef int (*GetSymbolFunction)(PASERSSIGNATURE, int, Statement **);
+typedef Statement *(*MakeControlFunction)(Statement *);
+typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
+
 #if OUT_LOG && OUT_PASERS_LOG
 #define doubleLog(pm, grammar_level, pasers_level, message, ...) do{ \
 writeLog(pm->grammar_debug, grammar_level, message, __VA_ARGS__); \
@@ -38,22 +43,20 @@ void parserCallBack(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
 void parserTuple(PASERSSIGNATURE);
-void twoOperation(ParserMessage *pm, Inter *inter, void (*callBack)(ParserMessage *, Inter *),
-                  int (*getSymbol)(ParserMessage *, Inter *, int, Statement **), int type, int self_type,
-                  char *call_name, char *self_name, bool is_right);
-void tailOperation(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int (*tailFunction)(PASERSSIGNATURE, Token *left_token,  Statement **st), int , int , char *, char *);
-
+void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBack, GetSymbolFunction getSymbol,
+                  int type, int self_type, char *call_name, char *self_name, bool is_right);
+void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int type, int self_type,
+                   char *call_name, char *self_name);
 void syntaxError(ParserMessage *pm, int status, int num, ...);
 int readBackToken(ParserMessage *pm);
 Token *popAheadToken(ParserMessage *pm);
 bool checkToken_(ParserMessage *pm, int type);
-bool commandCallControl_(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type, Statement **st, char *message);
-bool commandCallBack_(PASERSSIGNATURE, void (*callBack)(PASERSSIGNATURE), int type, Statement **st, char *message);
+bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, char *message);
+bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message);
 bool callParserCode(PASERSSIGNATURE, Statement **st,char *message);
 bool callParserAs(PASERSSIGNATURE, Statement **st,char *message);
-bool callChildStatement(PASERSSIGNATURE, void (*call)(PASERSSIGNATURE), int type, Statement **st, char *message);
-
-bool callChildToken(ParserMessage *pm, Inter *inter, void (*call)(ParserMessage *, Inter *), int type, Token **tmp,
-                    char *message, int error_type);
+bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message);
+bool callChildToken(ParserMessage *pm, Inter *inter, PasersFunction callBack, int type, Token **tmp, char *message,
+                    int error_type);
 
 #endif //VIRTUALMATH___GRAMMAR_H

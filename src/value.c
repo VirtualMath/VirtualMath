@@ -47,9 +47,9 @@ Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter 
     return tmp;
 }
 
-Value *makeListValue(Argument **ad_ad, Inter *inter, int type) {
+Value *makeListValue(Argument **arg_ad, Inter *inter, int type) {
     Value *tmp;
-    Argument *at = *ad_ad;
+    Argument *at = *arg_ad;
     tmp = makeValue(inter);
     tmp->type = list;
     tmp->data.list.type = type;
@@ -61,7 +61,7 @@ Value *makeListValue(Argument **ad_ad, Inter *inter, int type) {
         tmp->data.list.list[tmp->data.list.size - 1] = at->data.value;
         at = at->next;
     }
-    *ad_ad = at;
+    *arg_ad = at;
     return tmp;
 }
 
@@ -99,7 +99,8 @@ void freeValue(Value *value, Inter *inter){
 }
 
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
-    LinkValue *tmp, *list_tmp = inter->link_base;
+    LinkValue *tmp;
+    LinkValue *list_tmp = inter->link_base;
     tmp = memCalloc(1, sizeof(Value));
     tmp->father = linkValue;
     tmp->value = value;

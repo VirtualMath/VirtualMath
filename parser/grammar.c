@@ -47,8 +47,9 @@ void freeParserMessage(ParserMessage *pm, bool self) {
  * | parserCommand MATHER_EOF
  */
 void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st) {
-    int token_type, stop;
-    struct Statement *base_st = st;
+    int token_type;
+    int stop;
+    Statement *base_st = st;
     while (true){
         token_type = readBackToken(pm);
         if (token_type == MATHER_EOF){
@@ -74,10 +75,7 @@ void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *
             if (stop == MATHER_ENTER || stop == MATHER_SEMICOLON){
                 delToken(pm);
             }
-            else if(stop == MATHER_EOF){
-                PASS;
-            }
-            else{
+            else  if(stop != MATHER_EOF){
                 if (global) {
                     syntaxError(pm, command_list_error, 1, "ERROR from parserCommand list(get stop)");
                     printf("stop = %d\n", stop);
@@ -92,7 +90,6 @@ void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *
                 }
                 goto return_;
             }
-            /*...do something for commandList...*/
             connectStatement(base_st, command_token->data.st);
             freeToken(command_token, true, false);
             writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: get command success\n", NULL);
@@ -114,37 +111,48 @@ void parserCommand(PASERSSIGNATURE){
     token_type = readBackToken(pm);
     switch (token_type) {
         case MATHER_DEF :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Command: call def\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st,
+                                      "Command: call def\n");
             break;
         case MATHER_IF :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call if\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st,
+                                      "Command: call if\n");
             break;
         case MATHER_WHILE :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Command: call while\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st,
+                                      "Command: call while\n");
             break;
         case MATHER_TRY :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st, "Command: call try\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st,
+                                      "Command: call try\n");
             break;
         case MATHER_BREAK :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st, "Command: call break\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st,
+                                         "Command: call break\n");
             break;
         case MATHER_CONTINUE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeContinueStatement, CONTINUE, &st, "Command: call continue\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeContinueStatement, CONTINUE, &st,
+                                         "Command: call continue\n");
             break;
         case MATHER_RESTART :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRestartStatement, RESTART, &st, "Command: call restart\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRestartStatement, RESTART, &st,
+                                         "Command: call restart\n");
             break;
         case MATHER_REGO :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRegoStatement, REGO, &st, "Command: call rego\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRegoStatement, REGO, &st,
+                                         "Command: call rego\n");
             break;
         case MATHER_RETURN :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN,  &st, "Command: call return\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN,  &st,
+                                         "Command: call return\n");
             break;
         case MATHER_RAISE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE,  &st, "Command: call raise\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE,  &st,
+                                         "Command: call raise\n");
             break;
         default :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st, "Command: call operation\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st,
+                                      "Command: call operation\n");
             break;
     }
     if (!status)
@@ -155,7 +163,8 @@ void parserCommand(PASERSSIGNATURE){
 }
 
 void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type){
-    Statement *times = NULL, *st = NULL;
+    Statement *times = NULL;
+    Statement *st = NULL;
     delToken(pm);
     parserOperation(CALLPASERSSIGNATURE);
     if (!call_success(pm))
@@ -173,10 +182,11 @@ void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int typ
 }
 
 void parserIf(PASERSSIGNATURE){
-    struct Statement *st = NULL, *else_st = NULL, *finally_st = NULL;
+    Statement *st = NULL;
+    Statement *else_st = NULL;
+    Statement *finally_st = NULL;
     StatementList *sl = NULL;
     bool have_if = false;
-    // TODO-szh 设置重复警告 (添加PASS语句)
     again:
     switch (readBackToken(pm)) {
         case MATHER_IF:
@@ -258,7 +268,10 @@ void parserIf(PASERSSIGNATURE){
 }
 
 void parserWhile(PASERSSIGNATURE){
-    struct Statement *st = NULL, *else_st = NULL, *finally_st = NULL,*do_st = NULL;
+    Statement *st = NULL;
+    Statement *else_st = NULL;
+    Statement *finally_st = NULL;
+    Statement *do_st = NULL;
     StatementList *sl = NULL;
     bool have_while = false;
 
@@ -339,7 +352,10 @@ void parserWhile(PASERSSIGNATURE){
 }
 
 void parserTry(PASERSSIGNATURE){
-    struct Statement *st = NULL, *try_st = NULL, *else_st = NULL, *finally_st = NULL;
+    Statement *st = NULL;
+    Statement *try_st = NULL;
+    Statement *else_st = NULL;
+    Statement *finally_st = NULL;
     StatementList *sl = NULL;
 
     again:
@@ -426,16 +442,18 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
                 int ass) {
     Parameter *new_pt = NULL;
     Token *tmp;
+    bool last_pt = false;
     enum {
         s_1,  // only_value模式
         s_2,  // name_value模式
         s_3,  // only_args模式
     } status;
+
     if (is_dict)
         status = s_2;  // is_formal关闭对only_value的支持
     else
         status = s_1;
-    bool last_pt = false;
+
     while (!last_pt){
         tmp = NULL;
         if (!is_dict && status != s_2 && checkToken_(pm, MATHER_MUL))  // is_formal关闭对*args的支持
@@ -452,31 +470,31 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
         }
         tmp = popAheadToken(pm);
 
-        int pt_type = only_value;
+        int pt_type = value_par;
         if (status == s_1){
             if (!checkToken_(pm, sep)){
                 if (is_list || !checkToken_(pm, ass))  // // is_list关闭对name_value的支持
                     last_pt = true;
                 else {
-                    pt_type = name_value;
+                    pt_type = name_par;
                     status = s_2;
                 }
             }
         }
         else if (status == s_2){
-            pt_type = name_value;
+            pt_type = name_par;
             if (!checkToken_(pm, ass))
                 goto error_;
         }
         else if (status == s_3){
-            pt_type = only_args;
+            pt_type = args_par;
             if (!checkToken_(pm, sep))
                 last_pt = true;
         }
 
-        if (pt_type == only_value)
+        if (pt_type == value_par)
             new_pt = connectOnlyValueParameter(tmp->data.st, new_pt);
-        else if (pt_type == name_value){
+        else if (pt_type == name_par){
             Statement *tmp_value;
             if (!callChildStatement(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
                 goto error_;
@@ -484,7 +502,7 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
             if (!checkToken_(pm, sep))
                 last_pt = true;
         }
-        else if (pt_type == only_args){
+        else if (pt_type == args_par){
             new_pt = connectOnlyArgsParameter(tmp->data.st, new_pt);
             if (is_formal)
                 status = s_2;  // 是否规定*args只出现一次
@@ -504,11 +522,14 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
 }
 
 void parserDef(PASERSSIGNATURE){
-    struct Statement *st = NULL, *name_tmp = NULL, *code_tmp = NULL;
+    Statement *st = NULL;
+    Statement *name_tmp = NULL;
+    Statement *code_tmp = NULL;
     Parameter *pt = NULL;
     delToken(pm);
 
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &name_tmp, "Don't get a function name"))
+    if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &name_tmp,
+                            "Don't get a function name"))
         goto error_;
 
     if (!checkToken_(pm, MATHER_LP)) {
@@ -543,7 +564,8 @@ void parserDef(PASERSSIGNATURE){
 }
 
 void parserCode(PASERSSIGNATURE){
-    Token *code_token = NULL, *tk = NULL;
+    Token *code_token = NULL;
+    Token *tk = NULL;
     Statement *st = makeStatement();
     while (true){
         if (!checkToken_(pm, MATHER_LC))
@@ -576,6 +598,7 @@ void parserCode(PASERSSIGNATURE){
 
     error_:
     freeToken(code_token, true, true);
+    return;
 }
 
 /**
@@ -627,8 +650,8 @@ void parserAssignment(PASERSSIGNATURE){
  * @param inter
  */
 void parserTuple(PASERSSIGNATURE){
-    struct Parameter *pt = NULL;
-    struct Statement *st = NULL;
+    Parameter *pt = NULL;
+    Statement *st = NULL;
     Token *tmp = NULL;
     if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, NULL, syntax_error))
         goto return_;
@@ -701,7 +724,7 @@ void parserFactor(PASERSSIGNATURE){
 }
 
 int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
-    struct Parameter *pt = NULL;
+    Parameter *pt = NULL;
     if (readBackToken(pm) != MATHER_LP)
         return -1;
     delToken(pm);
@@ -742,7 +765,7 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
 void parserBaseValue(PASERSSIGNATURE){
     int token_type;
     Token *value_token = NULL;
-    struct Statement *st = NULL;
+    Statement *st = NULL;
     token_type = readBackToken(pm);
     if(MATHER_NUMBER == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number\n", NULL);

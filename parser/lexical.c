@@ -6,7 +6,7 @@
  * @param file
  * @return 返回一个字符，若为EOF则返回-1
  */
-char readChar(LexFile *file){
+signed char readChar(LexFile *file){
     if (file->back.is_back){
         file->back.is_back = false;
     }
@@ -139,19 +139,15 @@ int checkoutMather(LexMathers *mathers, int max, FILE *debug) {
         }
         writeLog_(debug, LEXICAL_CHECKOUT_DEBUG,"mathers->mathers[%d]->status == %d\n", i, mathers->mathers[i]->status);
     }
-    if (return_1) {
+    if (return_1)
         goto return_;
-    }
 
-    if (mistake_count == max){
+    if (mistake_count == max)
         return -2;
-    }
-    else if(end_count == 1){
+    else if(end_count == 1)
         return end_index;
-    }
-    else if(end_second_count == 1){
+    else if(end_second_count == 1)
         return end_second_index;
-    }
 
     return_:
     return -1;

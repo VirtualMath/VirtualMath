@@ -15,9 +15,12 @@ bool checkBool(Value *value){
 
 // TODO-szh 检查rego对else的支持
 Result ifBranch(INTER_FUNCTIONSIG) {
-    Result result, else_tmp, finally_tmp;
+    Result result;
+    Result else_tmp;
+    Result finally_tmp;
     StatementList *if_list = st->u.if_branch.if_list;
-    bool set_result = true, is_rego = false;
+    bool set_result = true;
+    bool is_rego = false;
 
     var_list = pushVarList(var_list, inter);
     while (if_list != NULL){
@@ -74,9 +77,12 @@ Result ifBranch(INTER_FUNCTIONSIG) {
 }
 
 Result whileBranch(INTER_FUNCTIONSIG) {
-    Result result, else_tmp, finally_tmp;
+    Result result;
+    Result else_tmp;
+    Result finally_tmp;
     StatementList *while_list = st->u.while_branch.while_list;
-    bool set_result = true, is_break = false;
+    bool set_result = true;
+    bool is_break = false;
 
     var_list = pushVarList(var_list, inter);
     while (!is_break){
@@ -134,7 +140,11 @@ Result whileBranch(INTER_FUNCTIONSIG) {
 }
 
 Result tryBranch(INTER_FUNCTIONSIG) {
-    Result result, try_result, except_result, else_tmp, finally_tmp;
+    Result result;
+    Result try_result;
+    Result except_result;
+    Result else_tmp;
+    Result finally_tmp;
     StatementList *except_list = st->u.try_branch.except_list;
     bool set_result = true;
 
@@ -174,7 +184,8 @@ Result tryBranch(INTER_FUNCTIONSIG) {
 }
 
 Result breakCycle(INTER_FUNCTIONSIG){
-    Result result, times;
+    Result result;
+    Result times;
     int times_int = 0;
     if (st->u.break_cycle.times == NULL)
         goto not_times;
@@ -192,7 +203,8 @@ Result breakCycle(INTER_FUNCTIONSIG){
 }
 
 Result continueCycle(INTER_FUNCTIONSIG){
-    Result result, times;
+    Result result;
+    Result times;
     int times_int = 0;
     if (st->u.continue_cycle.times == NULL)
         goto not_times;
@@ -209,7 +221,8 @@ Result continueCycle(INTER_FUNCTIONSIG){
 }
 
 Result regoIf(INTER_FUNCTIONSIG){
-    Result result, times;
+    Result result;
+    Result times;
     int times_int = 0;
     if (st->u.rego_if.times == NULL)
         goto not_times;
@@ -226,7 +239,8 @@ Result regoIf(INTER_FUNCTIONSIG){
 }
 
 Result restartCode(INTER_FUNCTIONSIG){
-    Result result, times;
+    Result result;
+    Result times;
     int times_int = 0;
     if (st->u.restart.times == NULL)
         goto not_times;

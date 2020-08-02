@@ -1,7 +1,8 @@
 #include "__run.h"
 
 Result setFunction(INTER_FUNCTIONSIG) {
-    Result result, tmp;
+    Result result;
+    Result tmp;
     setResultOperation(&tmp, inter);
 
     tmp.value->value = makeFunctionValue(st->u.set_function.function, st->u.set_function.parameter, var_list, inter);
@@ -10,7 +11,8 @@ Result setFunction(INTER_FUNCTIONSIG) {
 }
 
 Result callFunction(INTER_FUNCTIONSIG) {
-    Result call_function, result;
+    Result result;
+    Result call_function;
 
     if (operationSafeInterStatement(&call_function, CALL_INTER_FUNCTIONSIG(st->u.call_function.function, var_list)))
         return call_function;
