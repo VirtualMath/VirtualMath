@@ -221,23 +221,40 @@ Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *va
 Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE, int *num){
     Parameter *function = *function_ad;
     Result result;
+    setResultOperation(&result, inter);
     bool get;
     while (function != NULL){
-        Result tmp, tmp_ass;
-        get = true;
+        Result tmp;
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
-        if(operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(name, var_list))) {
+        char *str_name = NULL;
+        int int_times;
+        LinkValue *value = NULL;
+        get = true;
+
+        tmp = getBaseVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list));
+        if (!run_continue(tmp)) {
+            memFree(str_name);
+            return tmp;
+        }
+        value = findFromVarList(str_name, var_list, int_times, true);
+        memFree(str_name);
+
+        if(value == NULL) {
             get = false;
-            if (function->type == name_par && !operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(function->data.value, var_list)))
+            if (function->type == name_par && !operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(function->data.value, var_list))) {
+                value = tmp.value;
                 goto not_return;
+            }
+            setResultError(&tmp, inter);
             *function_ad = function;
             return tmp;
         }
         not_return:
-        tmp_ass = assCore(name, tmp.value, CALL_INTER_FUNCTIONSIG_CORE(function_var));
-        if (tmp_ass.type == error_return) {
+
+        tmp = assCore(name, value, CALL_INTER_FUNCTIONSIG_CORE(function_var));
+        if (tmp.type == error_return) {
             *function_ad = function;
-            return tmp_ass;
+            return tmp;
         }
         if (get)
             (*num)++;

@@ -125,31 +125,39 @@ void addVar(char *name, LinkValue *value, VarList *var_list){
     return;
 }
 
-LinkValue *findVar(char *name, VarList *var_list){
+LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
     LinkValue *tmp = NULL;
     HASH_INDEX index = time33(name);
     Var *base = var_list->hashtable->hashtable[index];
+    Var *last = NULL;
     if (base == NULL){
         goto return_;
     }
     while (base != NULL){
         if (eqString(base->name, name)){
             tmp = base->value;
+            if (del_var){
+                if (last == NULL)
+                    var_list->hashtable->hashtable[index] = freeVar(base, true);
+                else
+                    last->next = freeVar(base, true);
+            }
             goto return_;
         }
+        last = base;
         base = base->next;
     }
     return_:
     return tmp;
 }
 
-LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times){
+LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, bool del_var) {
     LinkValue *tmp = NULL;
     for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++){
         var_list = var_list->next;
     }
     while (var_list != NULL){
-        tmp = findVar(name, var_list);
+        tmp = findVar(name, var_list, del_var);
         if (tmp != NULL){
             goto return_;
         }

@@ -143,24 +143,9 @@ Result assOperation(INTER_FUNCTIONSIG) {
 
 Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
     Result result;
-    Result times;
-    setResult(&result, true, inter);
+    setResultOperation(&result, inter);
     int int_times;
-    if (name->type == base_var){
-        if (name->u.base_var.times == NULL){
-            int_times = 0;
-            goto not_times;
-        }
-
-        if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(name->u.base_var.times, var_list))){
-            return times;
-        }
-
-        int_times = (int)times.value->value->data.num.num;
-        not_times:
-        addFromVarList(name->u.base_var.name, var_list, int_times, value);
-    }
-    else if (name->type == base_list){
+    if (name->type == base_list){
         Result tmp_result;
         Statement *tmp_st = makeStatement();
         tmp_st->type = base_value;
@@ -182,26 +167,35 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
         freeArgument(call, false);
         freeParameter(pt, true);
     }
+    else{
+        Result tmp;
+        char *str_name = NULL;
+
+        tmp = getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list));
+        if (!run_continue(tmp)) {
+            memFree(str_name);
+            return tmp;
+        }
+        addFromVarList(str_name, var_list, int_times, value);
+        memFree(str_name);
+        result.value = value;
+    }
     return result;
 }
 
 Result getBaseVar(INTER_FUNCTIONSIG) {
     Result result;
-    Result times;
+    Result tmp;
+    char *name = NULL;
     int int_times;
     setResultOperation(&result, inter);
-
-    if (st->u.base_var.times == NULL){
-        int_times = 0;
-        goto not_times;
+    tmp = getBaseVarInfo(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list));
+    if (!run_continue(tmp)) {
+        memFree(name);
+        return tmp;
     }
-    if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list))){
-        return times;
-    }
-    int_times = (int)times.value->value->data.num.num;
-
-    not_times:
-    result.value = findFromVarList(st->u.base_var.name, var_list, int_times);
+    result.value = findFromVarList(name, var_list, int_times, false);
+    memFree(name);
     if (result.value == NULL){
         writeLog_(inter->debug, WARNING, "var not found[%s]\n", st->u.base_var.name);
         setResultError(&result, inter);

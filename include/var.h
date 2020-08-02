@@ -22,9 +22,11 @@ typedef struct VarList{
     struct VarList *next;
 } VarList;
 
+#define VARSTR_PREFIX "str_"
+
 VarList *makeVarList(Inter *inter);
 VarList *freeVarList(VarList *vl, bool self);
-LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times);
+LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, bool del_var);
 void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value);
 void freeHashTable(HashTable *ht, Inter *inter);
 

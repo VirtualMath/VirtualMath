@@ -26,4 +26,9 @@ Result regoIf(INTER_FUNCTIONSIG);
 Result restartCode(INTER_FUNCTIONSIG);
 Result returnCode(INTER_FUNCTIONSIG);
 Result raiseCode(INTER_FUNCTIONSIG);
+
+char *setVarName(char *old, bool free_old);
+Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
+Result getVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
+
 #endif //VIRTUALMATH_RUN_H
