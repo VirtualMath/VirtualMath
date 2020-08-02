@@ -66,7 +66,7 @@ void freeLinkValue(LinkValue *value, Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
-Value *makeListValue(struct Argument **arg_ad, Inter *inter, int type);
+Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
 
 void setResult(Result *ru, bool link, Inter *inter);
 void setResultError(Result *ru, Inter *inter);

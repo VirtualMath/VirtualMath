@@ -46,6 +46,7 @@ Parameter *connectNameValueParameter(struct Statement *value, struct Statement *
 Parameter *connectOnlyArgsParameter(struct Statement *st, Parameter *base);
 void freeParameter(Parameter *pt, bool free_st);
 
+Result setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_CORE);
 Result setParameter(Parameter *call, Parameter *function, VarList *function_var, INTER_FUNCTIONSIG_CORE);
 Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE);
 Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE);

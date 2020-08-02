@@ -160,6 +160,28 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
         not_times:
         addFromVarList(name->u.base_var.name, var_list, int_times, value);
     }
+    else if (name->type == base_list){
+        Result tmp_result;
+        Statement *tmp_st = makeStatement();
+        tmp_st->type = base_value;
+        tmp_st->u.base_value.value = value;
+        Parameter *pt = makeOnlyArgsParameter(tmp_st);
+        Argument *call = getArgument(pt, &tmp_result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        if (!run_continue(tmp_result)) {
+            freeArgument(call, false);
+            freeParameter(pt, true);
+            return tmp_result;
+        }
+        tmp_result = setParameterCore(call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        if (run_continue(tmp_result)) {
+            Argument *tmp = call;
+            result.value->value = makeListValue(&tmp, inter, value_tuple);
+        }
+        else
+            result = tmp_result;
+        freeArgument(call, false);
+        freeParameter(pt, true);
+    }
     return result;
 }
 
@@ -197,7 +219,8 @@ Result getBaseValue(INTER_FUNCTIONSIG) {
 
 Result getList(INTER_FUNCTIONSIG) {
     Result result;
-    Argument *at = getArgument(st->u.base_list.list, &result, CALL_INTER_FUNCTIONSIG_CORE(var_list)), *at_tmp = at;
+    Argument *at = getArgument(st->u.base_list.list, &result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    Argument *at_tmp = at;
     if (!run_continue(result)){
         freeArgument(at_tmp, true);
         return result;

@@ -47,7 +47,7 @@ Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter 
     return tmp;
 }
 
-Value *makeListValue(Argument **arg_ad, Inter *inter, int type) {
+Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     Value *tmp;
     Argument *at = *arg_ad;
     tmp = makeValue(inter);

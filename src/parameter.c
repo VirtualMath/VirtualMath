@@ -1,7 +1,7 @@
 #include "__virtualmath.h"
 #define returnResult(result) do{ \
 if (!run_continue(result)) { \
-return result; \
+goto return_; \
 } \
 }while(0)
 
@@ -293,8 +293,10 @@ Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE
     Argument *base = *base_ad;
     while (call != NULL){
         Result tmp;
-        if(operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(call->data.value, var_list)))
+        if(operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(call->data.value, var_list))) {
+            *base_ad = base;
             return tmp;
+        }
 
         if (call->type == value_par)
             base = connectOnlyValueArgument(tmp.value, base);
@@ -333,13 +335,22 @@ Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE){
  * @param var_list
  * @return
  */
-Result setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_CORE){
+Result setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_CORE) {
     Result result;
-    Argument *call, *tmp_call;
-    Parameter *function = copyParameter(function_base), *tmp_function = function;  // 释放使用
-    tmp_call = call = getArgument(call_base, &result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    returnResult(result);
+    Argument *call;
+    call = getArgument(call_base, &result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (!run_continue(result)) {
+        freeArgument(call, false);
+        return result;
+    }
+    result = setParameterCore(call, function_base, function_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    freeArgument(call, false);
+    return result;
+}
 
+Result setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_CORE){
+    Result result;
+    Parameter *function = copyParameter(function_base), *tmp_function = function;  // 释放使用
     enum {
         match_status = 1,
         default_status = 2,
@@ -405,7 +416,6 @@ Result setParameter(Parameter *call_base, Parameter *function_base, VarList *fun
         }
     }
     return_:
-    freeArgument(tmp_call, false);
     freeParameter(tmp_function, false);
     return result;
 }

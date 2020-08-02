@@ -163,8 +163,7 @@ void strMather(signed char p, LexMather *mather, const char *dest_p){
  * @param dest_p
  */
 void charMather(signed char p, LexMather *mather, signed char dest_p){
-    int tmp_p = (int)p, tmp_dest = (int)dest_p;  // TODO-szh 去除设定
-    if (tmp_p == tmp_dest && mather->status == LEXMATHER_START){
+    if (p == dest_p && mather->status == LEXMATHER_START){
         mather->str = memStrcpy(mather->str, 1, true, true, p);
         mather->len ++;
         mather->status = LEXMATHER_ING;
