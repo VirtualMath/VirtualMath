@@ -2,7 +2,7 @@
 #define VIRTUALMATH_STATEMENT_H
 #include "__macro.h"
 
-typedef struct Statement{
+struct Statement{
     enum StatementType{
         start = 1,
         base_value,
@@ -112,9 +112,9 @@ typedef struct Statement{
         } raise_code;
     }u;
     struct Statement *next;
-} Statement;
+};
 
-typedef struct StatementList{
+struct StatementList{
     enum {
         if_b,
         do_b,
@@ -125,7 +125,10 @@ typedef struct StatementList{
     struct Statement *var;
     struct Statement *code;
     struct StatementList *next;
-} StatementList;
+};
+
+typedef struct Statement Statement;
+typedef struct StatementList StatementList;
 
 Statement *makeStatement();
 Statement *makeOperationStatement(int type);

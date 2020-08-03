@@ -1,18 +1,17 @@
 #ifndef VIRTUALMATH_LEXICAL_H
 #define VIRTUALMATH_LEXICAL_H
 #include "__macro.h"
-#include "stdio.h"
 
-typedef struct LexFile{
+struct LexFile{
     FILE *file;
     struct LexFileBack{
         bool is_back;
         signed char p;
     } back;
     int count;
-} LexFile;
+};
 
-typedef struct LexMather{
+struct LexMather{
     int len;
     signed char string_type;
     char *str;
@@ -27,12 +26,16 @@ typedef struct LexMather{
         LEXMATHER_END_SECOND,
         LEXMATHER_MISTAKE,
     } status;
-} LexMather;
+};
 
-typedef struct LexMathers{
+struct LexMathers{
     int size;
     struct LexMather **mathers;
-} LexMathers;
+};
+
+typedef struct LexFile LexFile;
+typedef struct LexMather LexMather;
+typedef struct LexMathers LexMathers;
 
 signed char readChar(LexFile *file);
 void backChar(LexFile *file);

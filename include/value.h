@@ -1,7 +1,10 @@
 #ifndef VIRTUALMATH_VALUE_H
 #define VIRTUALMATH_VALUE_H
 
-typedef struct Value{
+struct VarList;
+struct Argument;
+
+struct Value{
     enum ValueType{
         none=0,
         number=1,
@@ -32,16 +35,16 @@ typedef struct Value{
     }data;
     struct Value *next;
     struct Value *last;
-} Value;
+};
 
-typedef struct LinkValue{
+struct LinkValue{
     struct Value *value;
     struct LinkValue *father;
     struct LinkValue *next;
     struct LinkValue *last;
-} LinkValue;
+};
 
-typedef struct Result{
+struct Result{
     enum ResultType{
         not_return = 1,  // 无返回值
         function_return,  // 函数返回值
@@ -54,10 +57,11 @@ typedef struct Result{
     } type;
     struct LinkValue *value;
     int times;
-} Result;
+};
 
-struct VarList;
-struct Argument;
+typedef struct Value Value;
+typedef struct LinkValue LinkValue;
+typedef struct Result Result;
 
 Value *makeValue(Inter *inter);
 void freeValue(Value *value, Inter *inter);

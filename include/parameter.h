@@ -2,7 +2,7 @@
 #define VIRTUALMATH_PARAMETER_H
 #include "__macro.h"
 
-typedef struct Parameter{
+struct Parameter{
     enum ParameterType{
         value_par,
         name_par,
@@ -13,9 +13,9 @@ typedef struct Parameter{
         struct Statement *name;  // 仅在name-value模式生效
     } data;
     struct Parameter *next;
-} Parameter;
+};
 
-typedef struct Argument{
+struct Argument{
     enum ArgumentType{
         value_arg,
         name_arg,
@@ -25,7 +25,10 @@ typedef struct Argument{
         struct Statement *name;  // 仅在name-value模式生效
     } data;
     struct Argument *next;
-} Argument;
+};
+
+typedef struct Parameter Parameter;
+typedef struct Argument Argument;
 
 Argument *makeArgument();
 Argument *makeOnlyValueArgument(LinkValue *value);

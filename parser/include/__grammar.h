@@ -2,10 +2,8 @@
 #define VIRTUALMATH___GRAMMAR_H
 #include "__virtualmath.h"
 
-typedef void (*PasersFunction)(PASERSSIGNATURE);
-typedef int (*GetSymbolFunction)(PASERSSIGNATURE, int, Statement **);
-typedef Statement *(*MakeControlFunction)(Statement *);
-typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
+#define PASERSSIGNATURE ParserMessage *pm, Inter *inter /*pasers函数的统一签名*/
+#define CALLPASERSSIGNATURE pm, inter /*pasers函数调用的统一实参*/
 
 #if OUT_LOG && OUT_PASERS_LOG
 #define doubleLog(pm, grammar_level, pasers_level, message, ...) do{ \
@@ -28,6 +26,11 @@ writeLog(pm->paser_debug, pasers_level, "\n"message, __VA_ARGS__); \
 #define addLexToken(pm, type) backToken_(pm, makeLexToken(type, NULL, NULL))
 #define addToken_ backToken_
 #define call_success(pm) (pm->status == success)
+
+typedef void (*PasersFunction)(PASERSSIGNATURE);
+typedef int (*GetSymbolFunction)(PASERSSIGNATURE, int, Statement **);
+typedef Statement *(*MakeControlFunction)(Statement *);
+typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 
 void parserCommand(PASERSSIGNATURE);
 void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type);

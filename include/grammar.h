@@ -2,10 +2,7 @@
 #define VIRTUALMATH_GRAMMAR_H
 #include "__macro.h"
 
-#define PASERSSIGNATURE ParserMessage *pm, Inter *inter /*pasers函数的统一签名*/
-#define CALLPASERSSIGNATURE pm, inter /*pasers函数调用的统一实参*/
-
-typedef struct ParserMessage{
+struct ParserMessage{
     struct TokenMessage *tm;
     FILE *paser_debug;
     FILE *grammar_debug;
@@ -17,7 +14,9 @@ typedef struct ParserMessage{
         lexical_error,
     } status;
     char *status_message;
-} ParserMessage;
+};
+
+typedef struct ParserMessage ParserMessage;
 
 ParserMessage *makeParserMessage(char *file_dir, char *debug);
 void freeParserMessage(ParserMessage *pm, bool self);

@@ -1,9 +1,6 @@
 #ifndef VIRTUALMATH_SYNTAX_H
 #define VIRTUALMATH_SYNTAX_H
 
-#include "lexical.h"
-#include "token.h"
-
 void numberMather(signed char p, LexMather *mather);
 void varMather(signed char p, LexMather *mather);
 void stringMather(signed char p, LexMather *mather);

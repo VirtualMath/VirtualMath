@@ -9,9 +9,9 @@
 #include "parameter.h"
 #include "statement.h"
 #include "run.h"
-#include "syntax.h"
-#include "token.h"
 #include "lexical.h"
+#include "token.h"
+#include "syntax.h"
 #include "grammar.h"
 #include "log.h"
 
@@ -21,5 +21,7 @@ struct Args{
     int level;
     bool stdout_inter;
 } args;
+
+typedef struct Args Args;
 
 #endif //VIRTUALMATH___VIRTUALMATH_H

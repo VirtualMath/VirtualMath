@@ -1,28 +1,30 @@
 #ifndef VIRTUALMATH_VAR_H
 #define VIRTUALMATH_VAR_H
-#include "inter.h"
 
 #define MAX_SIZE (1024)
+#define VARSTR_PREFIX "str_"
 
-typedef struct Var{
+struct Var{
     char *name;
     struct LinkValue *value;
     struct Var *next;
-} Var;
+};
 
-typedef struct HashTable{
+struct HashTable{
     struct Var **hashtable;
     int count;
     struct HashTable *next;
     struct HashTable *last;
-} HashTable;
+};
 
-typedef struct VarList{
+struct VarList{
     struct HashTable *hashtable;
     struct VarList *next;
-} VarList;
+};
 
-#define VARSTR_PREFIX "str_"
+typedef struct Var Var;
+typedef struct HashTable HashTable;
+typedef struct VarList VarList;
 
 VarList *makeVarList(Inter *inter);
 VarList *freeVarList(VarList *vl, bool self);
