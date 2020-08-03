@@ -8,6 +8,7 @@ struct Statement{
         base_value,
         base_list,
         base_var,
+        base_svar,
         operation,
         set_function,
         call_function,
@@ -31,11 +32,12 @@ struct Statement{
             char *name;
             struct Statement *times;
         } base_var;
+        struct base_svar{
+            struct Statement *name;
+            struct Statement *times;
+        } base_svar;
         struct {
-            enum BaseListType{
-                list_,
-                tuple_,
-            } type;
+            enum ListType type;
             struct Parameter *list;
         } base_list;
         struct operation{
@@ -137,7 +139,8 @@ void connectStatement(Statement *base, Statement *new);
 Statement *makeOperationStatement(int type);
 Statement *makeBaseValueStatement(LinkValue *value);
 Statement *makeBaseVarStatement(char *name, Statement *times);
-Statement *makeTupleStatement(struct Parameter *pt, enum BaseListType type);
+Statement *makeBaseSVarStatement(Statement *name, Statement *times);
+Statement *makeTupleStatement(struct Parameter *pt, enum ListType type);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeIfStatement();

@@ -138,10 +138,8 @@ void freeLinkValue(LinkValue *value, Inter *inter){
 
 void setResult(Result *ru, bool link, Inter *inter) {
     ru->type = not_return;
-    if (link){
-        // inter->base即None值
+    if (link)
         ru->value = makeLinkValue(inter->base, NULL, inter);
-    }
 }
 
 void setResultError(Result *ru, Inter *inter) {
@@ -157,7 +155,7 @@ void setResultOperation(Result *ru, Inter *inter) {
 void printValue(Value *value, FILE *debug){
     switch (value->type){
         case number:
-            writeLog(debug, INFO, "<%ld>", value->data.num.num);
+            writeLog(debug, INFO, "<%"NUMBER_FORMAT">", value->data.num.num);
             break;
         case string:
             writeLog(debug, INFO, "<'%s'>", value->data.str.str);

@@ -16,6 +16,7 @@
 #define PASS do{}while(0)
 
 #define NUMBER_TYPE long int
+#define NUMBER_FORMAT "ld"
 #define HASH_INDEX unsigned int
 
 #define INTER_FUNCTIONSIG_CORE struct Inter *inter, struct VarList *var_list

@@ -145,7 +145,7 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
     Result result;
     setResultOperation(&result, inter);
     int int_times;
-    if (name->type == base_list){
+    if (name->type == base_list && name->u.base_list.type == value_tuple){
         Result tmp_result;
         Statement *tmp_st = makeStatement();
         tmp_st->type = base_value;
@@ -158,12 +158,12 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
             return tmp_result;
         }
         tmp_result = setParameterCore(call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (run_continue(tmp_result)) {
+        if (run_continue(tmp_result))
+            result = tmp_result;
+        else{
             Argument *tmp = call;
             result.value->value = makeListValue(&tmp, inter, value_tuple);
         }
-        else
-            result = tmp_result;
         freeArgument(call, false);
         freeParameter(pt, true);
     }
@@ -183,13 +183,13 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
     return result;
 }
 
-Result getBaseVar(INTER_FUNCTIONSIG) {
+Result getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     Result result;
     Result tmp;
     char *name = NULL;
     int int_times;
     setResultOperation(&result, inter);
-    tmp = getBaseVarInfo(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list));
+    tmp = var_info(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list));
     if (!run_continue(tmp)) {
         memFree(name);
         return tmp;
@@ -220,7 +220,7 @@ Result getList(INTER_FUNCTIONSIG) {
         return result;
     }
 
-    int type = st->u.base_list.type == tuple_ ? value_tuple : value_list;
+    int type = st->u.base_list.type == value_tuple ? value_tuple : value_list;
     Value *value = makeListValue(&at, inter, type);
     setResultOperation(&result ,inter);
     result.value->value = value;

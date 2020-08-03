@@ -2,6 +2,8 @@
 #define VIRTUALMATH_RUN_H
 #include "__macro.h"
 
+typedef Result (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
+
 Result globalIterStatement(Inter *inter);
 bool operationSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
 bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
@@ -12,7 +14,7 @@ bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG);
 Result operationStatement(INTER_FUNCTIONSIG);
 Result setFunction(INTER_FUNCTIONSIG);
 Result callFunction(INTER_FUNCTIONSIG);
-Result getBaseVar(INTER_FUNCTIONSIG);
+Result getVar(INTER_FUNCTIONSIG, VarInfo var_info);
 Result getBaseValue(INTER_FUNCTIONSIG);
 Result getList(INTER_FUNCTIONSIG);
 Result ifBranch(INTER_FUNCTIONSIG);
@@ -27,8 +29,11 @@ Result raiseCode(INTER_FUNCTIONSIG);
 
 Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE);
 
-char *setVarName(char *old, bool free_old);
+char *setStrVarName(char *old, bool free_old);
+char *setNumVarName(NUMBER_TYPE num);
+char *getNameFromValue(Value *value);
 Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
+Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 Result getVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 
 #endif //VIRTUALMATH_RUN_H

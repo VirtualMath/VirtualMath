@@ -666,7 +666,7 @@ void parserTuple(PASERSSIGNATURE){
         syntaxError(pm, syntax_error, 1, "Don't get tuple element");
         goto return_;
     }
-    st = makeTupleStatement(pt, tuple_);
+    st = makeTupleStatement(pt, value_tuple);
     addStatementToken(TUPLE, st, pm);
 
     return_:
@@ -755,7 +755,6 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     delToken(pm);
     return 1;
 }
-
 /**
  * 字面量匹配
  * parserBaseValue：
@@ -769,19 +768,30 @@ void parserBaseValue(PASERSSIGNATURE){
     token_type = readBackToken(pm);
     if(MATHER_NUMBER == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number\n", NULL);
-        value_token= popAheadToken(pm);
+        value_token = popAheadToken(pm);
         char *stop;
         st = makeBaseValueStatement(makeLinkValue(makeNumberValue(strtol(value_token->data.str, &stop, 10), inter), NULL, inter));
     }
     else if(MATHER_STRING == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string\n", NULL);
-        value_token= popAheadToken(pm);
+        value_token = popAheadToken(pm);
         st = makeBaseValueStatement(makeLinkValue(makeStringValue(value_token->data.str, inter), NULL, inter));
     }
     else if(MATHER_VAR == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var\n", NULL);
         value_token= popAheadToken(pm);
         st = makeBaseVarStatement(value_token->data.str, NULL);
+    }
+    else if(MATHER_SVAR == token_type){
+        Statement *svar_st;
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get super var\n", NULL);
+        value_token = popAheadToken(pm);
+        if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)){
+            freeToken(value_token, true, true);
+            syntaxError(pm, syntax_error, 1, "Don't get super var after $");
+            goto return_;
+        }
+        st = makeBaseSVarStatement(svar_st, NULL);
     }
     else if(MATHER_LB == token_type){
         int tmp;
@@ -807,17 +817,17 @@ void parserBaseValue(PASERSSIGNATURE){
             freeToken(var_token, true, false);
         }
         else{
-            if (tmp_st->type == base_list && tmp_st->u.base_list.type == tuple_){
-                tmp_st->u.base_list.type = list_;
+            if (tmp_st->type == base_list && tmp_st->u.base_list.type == value_tuple){
+                tmp_st->u.base_list.type = value_list;
                 st = tmp_st;
             }
             else
-                st = makeTupleStatement(makeOnlyValueParameter(tmp_st), list_);
+                st = makeTupleStatement(makeOnlyValueParameter(tmp_st), value_list);
         }
     }
     else if(MATHER_LP == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation\n", NULL);
-        value_token= popAheadToken(pm);
+        value_token = popAheadToken(pm);
         int tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
         if (tmp == 0){
             freeToken(value_token, true, true);

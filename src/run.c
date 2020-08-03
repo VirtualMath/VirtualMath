@@ -14,7 +14,10 @@ Result runStatement(INTER_FUNCTIONSIG) {
             result = getBaseValue(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         case base_var:
-            result = getBaseVar(CALL_INTER_FUNCTIONSIG(st, var_list));
+            result = getVar(CALL_INTER_FUNCTIONSIG(st, var_list), getBaseVarInfo);
+            break;
+        case base_svar:
+            result = getVar(CALL_INTER_FUNCTIONSIG(st, var_list), getBaseSVarInfo);
             break;
         case base_list:
             result = getList(CALL_INTER_FUNCTIONSIG(st, var_list));
@@ -72,6 +75,10 @@ Result runStatement(INTER_FUNCTIONSIG) {
  */
 Result iterStatement(INTER_FUNCTIONSIG) {
     Result result;
+    if (st == NULL){
+        setResult(&result, true, inter);
+        return result;
+    }
     Statement *base_st = NULL;
 
     while (true) {

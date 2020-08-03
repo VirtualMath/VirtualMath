@@ -47,6 +47,14 @@ Statement *makeBaseVarStatement(char *name, Statement *times){
     return tmp;
 }
 
+Statement *makeBaseSVarStatement(Statement *name, Statement *times){
+    Statement *tmp = makeStatement();
+    tmp->type = base_svar;
+    tmp->u.base_svar.name = name;
+    tmp->u.base_svar.times = times;
+    return tmp;
+}
+
 Statement *makeOperationStatement(int type){
     Statement *tmp = makeStatement();
     tmp->type = operation;
@@ -56,7 +64,7 @@ Statement *makeOperationStatement(int type){
     return tmp;
 }
 
-Statement *makeTupleStatement(Parameter *pt, enum BaseListType type) {
+Statement *makeTupleStatement(Parameter *pt, enum ListType type) {
     Statement *tmp = makeStatement();
     tmp->type = base_list;
     tmp->u.base_list.type = type;
@@ -174,6 +182,10 @@ void freeStatement(Statement *st){
             case base_var:
                 memFree(st->u.base_var.name);
                 freeStatement(st->u.base_var.times);
+                break;
+            case base_svar:
+                freeStatement(st->u.base_svar.name);
+                freeStatement(st->u.base_svar.times);
                 break;
             case set_function:
                 freeStatement(st->u.set_function.name);
