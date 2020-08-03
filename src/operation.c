@@ -158,7 +158,7 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
             return tmp_result;
         }
         tmp_result = setParameterCore(call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (run_continue(tmp_result))
+        if (!run_continue(tmp_result))
             result = tmp_result;
         else{
             Argument *tmp = call;
@@ -237,7 +237,7 @@ Result getDict(INTER_FUNCTIONSIG) {
         return result;
     }
 
-    Value *value = makeDictValue(&at, inter);
+    Value *value = makeDictValue(&at, true, inter);
     setResultOperation(&result ,inter);
     result.value->value = value;
     freeArgument(at_tmp, false);

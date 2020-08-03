@@ -66,7 +66,7 @@ char *setStrVarName(char *old, bool free_old){
 char *setNumVarName(NUMBER_TYPE num){
     char name[50];
     snprintf(name, 50, "%"NUMBER_FORMAT, num);
-    return memStrcpy(name, 0, false, false);
+    return memStrcat(VARNUM_PREFIX, name);
 }
 
 char *getNameFromValue(Value *value){

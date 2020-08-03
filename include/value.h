@@ -76,7 +76,7 @@ Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
-Value *makeDictValue(struct Argument **arg_ad, Inter *inter);
+Value *makeDictValue(struct Argument **arg_ad, bool new_hash, Inter *inter);
 
 void setResult(Result *ru, bool link, Inter *inter);
 void setResultError(Result *ru, Inter *inter);

@@ -11,6 +11,8 @@ Argument *makeArgument(){
     tmp->type = value_arg;
     tmp->data.value = NULL;
     tmp->data.name = NULL;
+    tmp->data.name_ = NULL;
+    tmp->name_type = name_st;
     tmp->next = NULL;
     return tmp;
 }
@@ -26,6 +28,15 @@ Argument *makeNameValueArgument(LinkValue *value, Statement *name){
     tmp->type = name_arg;
     tmp->data.value = value;
     tmp->data.name = name;
+    return tmp;
+}
+
+Argument *makeCharNameArgument(LinkValue *value, char *name){
+    Argument *tmp = makeArgument();
+    tmp->type = name_arg;
+    tmp->name_type = name_char;
+    tmp->data.value = value;
+    tmp->data.name_ = memStrcpy(name, 0, false, false);
     return tmp;
 }
 
@@ -49,13 +60,19 @@ Argument *connectNameValueArgument(LinkValue *value, Statement *name, Argument *
     return connectArgument(new, base);
 }
 
-void freeArgument(Argument *pt, bool free_st) {
-    while (pt != NULL){
+Argument *connectCharNameArgument(LinkValue *value, char *name, Argument *base){
+    Argument *new = makeCharNameArgument(value, name);
+    return connectArgument(new, base);
+}
+
+void freeArgument(Argument *at, bool free_st) {
+    while (at != NULL){
         if (free_st)
-            freeStatement(pt->data.name);
-        Argument *tmp = pt->next;
-        memFree(pt);
-        pt = tmp;
+            freeStatement(at->data.name);
+        memFree(at->data.name_);
+        Argument *tmp = at->next;
+        memFree(at);
+        at = tmp;
     }
 }
 
@@ -105,6 +122,13 @@ Parameter *makeOnlyArgsParameter(Statement *st){
     return tmp;
 }
 
+Parameter *makeNameArgsParameter(Statement *st){
+    Parameter *tmp = makeParameter();
+    tmp->type = kwargs_par;
+    tmp->data.value = st;
+    return tmp;
+}
+
 Parameter *connectParameter(Parameter *new, Parameter *base){
     if (base == NULL)
         return new;
@@ -130,6 +154,11 @@ Parameter *connectOnlyArgsParameter(Statement *st, Parameter *base){
     return connectParameter(new, base);
 }
 
+Parameter *connectNameArgsParameter(Statement *st, Parameter *base){
+    Parameter *new = makeNameArgsParameter(st);
+    return connectParameter(new, base);
+}
+
 void freeParameter(Parameter *pt, bool free_st) {
     while (pt != NULL){
         if (free_st) {
@@ -150,6 +179,18 @@ Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE){
     return at;
 }
 
+Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE){
+    Argument *at = NULL;
+    for (int i = 0; i < MAX_SIZE; i++) {
+        Var *tmp = dict_value->value->data.dict.dict->hashtable[i];
+        while (tmp != NULL) {
+            at = connectCharNameArgument(tmp->value, tmp->name, at);
+            tmp = tmp->next;
+        }
+    }
+    return at;
+}
+
 /**
  * 设置形式参数的默认值
  * 仅支持name_value
@@ -162,6 +203,7 @@ Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE){
 Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list, int *num) {
     Parameter *function = *function_ad;
     Result result;
+    *num = 0;
     while (function != NULL && function->type == name_par){
         Result tmp, tmp_ass;
         if(operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(function->data.value, var_list))) {
@@ -194,13 +236,20 @@ Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list
 Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *var_list, NUMBER_TYPE *num) {
     Argument *call = *call_ad;
     Result result;
+    *num = 0;
     while (call != NULL && call->type == name_arg){
         Result tmp_ass;
+        if (call->name_type == name_char){
+            addFromVarList(call->data.name_, var_list, 0, call->data.value);
+            goto next;
+        }
         tmp_ass = assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (!run_continue(tmp_ass)) {
             *call_ad = call;
             return tmp_ass;
         }
+
+        next:
         (*num)++;
         call = call->next;
     }
@@ -219,18 +268,29 @@ Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *va
  * @param num
  * @return
  */
-Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE, NUMBER_TYPE *num){
+Result parameterFromVar(Parameter **function_ad, VarList *function_var, struct Inter *inter, struct VarList *var_list,
+                        NUMBER_TYPE *num, NUMBER_TYPE max, bool *status) {
     Parameter *function = *function_ad;
     Result result;
     setResultOperation(&result, inter);
     bool get;
+    *num = 0;
+    *status = false;
     while (function != NULL){
         Result tmp;
-        Statement *name = function->type == value_par ? function->data.value : function->data.name;
+        Statement *name = function->type == name_par ? function->data.name : function->data.value;
         char *str_name = NULL;
         int int_times;
         LinkValue *value = NULL;
         get = true;
+
+        if (function->type == kwargs_par){
+            value = makeLinkValue(makeDictValue(NULL, false, inter), NULL, inter);
+            value->value->data.dict.dict = var_list->hashtable;
+            value->value->data.dict.size = max - *num;
+            *status = true;
+            goto not_return;
+        }
 
         tmp = getBaseVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list));
         if (!run_continue(tmp)) {
@@ -250,8 +310,8 @@ Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FU
             *function_ad = function;
             return tmp;
         }
-        not_return:
 
+        not_return:
         tmp = assCore(name, value, CALL_INTER_FUNCTIONSIG_CORE(function_var));
         if (!run_continue(tmp)) {
             *function_ad = function;
@@ -324,6 +384,10 @@ Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE
             Argument *tmp_at = listToArgument(tmp.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
             base = connectArgument(tmp_at, base);
         }
+        else if (call->type == kwargs_par){
+            Argument *tmp_at = dictToArgument(tmp.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            base = connectArgument(tmp_at, base);
+        }
         call = call->next;
     }
     setResult(&result, true, inter);
@@ -341,11 +405,11 @@ Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE){
  * 参数表:
  |实参 \ 形参| name | value | arg | kwarg | null |
  ----------------------------------------
- |name     | p_3  |  p_3  | p_4 |  p_5! | error |
+ |name     | p_3  |  p_3  | p_4 |  p_3! | error |
  |value    | p_1  |  p_1  | p_4 | error | error |
  |null     | p_2  | error | p_4 |  p_5  | okay  |
  ----------------------------------------
- * 注解: @p_1 match_status; @p_2 default_status; @p_3 self_ass; @p_4 mul_par; @p_5 pow_par
+ * 注解: @p_1 match_status; @p_2 default_status; @p_3 self_ass; @p_4 mul_par; @p_5 pow_par; @p_3! 通过p_3处理**kwargs
  * @param call
  * @param function
  * @param function_var
@@ -374,17 +438,21 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
         default_status = 2,
         self_ass = 3,
         mul_par = 4,
+        space_kwargs = 5,
         error = -1,
-        finished = 0
+        finished = 0,
     } status = match_status;
     while (true){
         if (call == NULL && function == NULL)
             status = finished;
-        else if ((call != NULL && function == NULL) || (call == NULL && function != NULL && function->type == value_par))
+        else if ((call != NULL && (function == NULL || call->type == value_par && function->type == kwargs_par)) ||
+                 (call == NULL && function != NULL && function->type == value_par))
             status = error;
         else if (call == NULL && function->type == name_par)  // 根据前面的条件, 已经决定function不会为NULL
             status = default_status;
-        else if (function->type == args_par)
+        else if (call == NULL && function->type == kwargs_par)
+            status = space_kwargs;
+        else if (function->type == args_par)  // 根据前面的条件, 已经决定call不会为NULL
             status = mul_par;
         else if (call->type == value_arg)
             status = match_status;
@@ -406,26 +474,43 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
             case self_ass: {
                 VarList *tmp = makeVarList(inter);
                 NUMBER_TYPE set_num = 0, get_num = 0;
+                bool dict_status = false;
                 result = argumentToVar(&call, CALL_INTER_FUNCTIONSIG_CORE(tmp), &set_num);
                 returnResult(result);
-                result = parameterFromVar(&function, function_var, CALL_INTER_FUNCTIONSIG_CORE(tmp), &get_num);
-                returnResult(result);
+                if (!run_continue(result)) {
+                    freeVarList(tmp, true);
+                    goto return_;
+                }
+                result = parameterFromVar(&function, function_var, CALL_INTER_FUNCTIONSIG_CORE(tmp), &get_num, set_num,
+                                          &dict_status);
+                if (!run_continue(result)) {
+                    freeVarList(tmp, true);
+                    goto return_;
+                }
                 freeVarList(tmp, true);
 
-                if (set_num > get_num)
-                    status = error;
+                if (!dict_status && set_num > get_num) {
+                    goto error_;
+                }
                 break;
             }
             case mul_par: {
-                Value *value = makeListValue(&call, inter, value_tuple);
-                LinkValue *tmp = makeLinkValue(value, NULL, inter);
+                LinkValue *tmp = makeLinkValue(makeListValue(&call, inter, value_tuple), NULL, inter);
+                result = assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_CORE(function_var));
+                returnResult(result);
+                function = function->next;
+                break;
+            }
+            case space_kwargs:{
+                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, inter), NULL, inter);
                 result = assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_CORE(function_var));
                 returnResult(result);
                 function = function->next;
                 break;
             }
             case error:
-                writeLog(inter->debug, ERROR, "setParameter error", NULL);
+            error_:
+                writeLog(inter->debug, ERROR, "setParameter error\n", NULL);
                 setResultError(&result, inter);
                 goto return_;
             default:

@@ -447,6 +447,7 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
         s_1,  // only_value模式
         s_2,  // name_value模式
         s_3,  // only_args模式
+        s_4,  // name_args模式
     } status;
 
     if (is_dict)
@@ -458,6 +459,9 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
         tmp = NULL;
         if (!is_dict && status != s_2 && checkToken_(pm, MATHER_MUL))  // is_formal关闭对*args的支持
             status = s_3;
+        else if (!is_list && checkToken_(pm, MATHER_POW))  // is_formal关闭对*args的支持
+            status = s_4;
+
         parserPolynomial(CALLPASERSSIGNATURE);
         if (!call_success(pm))
             goto error_;
@@ -491,6 +495,11 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
             if (!checkToken_(pm, sep))
                 last_pt = true;
         }
+        else if (status == s_4){
+            pt_type = kwargs_par;
+            if (!checkToken_(pm, sep))
+                last_pt = true;
+        }
 
         if (pt_type == value_par)
             new_pt = connectOnlyValueParameter(tmp->data.st, new_pt);
@@ -508,6 +517,13 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
                 status = s_2;  // 是否规定*args只出现一次
             else
                 status = s_1;
+        }
+        else if (pt_type == kwargs_par){
+            new_pt = connectNameArgsParameter(tmp->data.st, new_pt);
+            if (is_formal)
+                last_pt = true; // 是否规定**kwargs只出现一次
+            else
+                status = s_2;
         }
         freeToken(tmp, true, false);
     }
@@ -653,15 +669,19 @@ void parserTuple(PASERSSIGNATURE){
     Parameter *pt = NULL;
     Statement *st = NULL;
     Token *tmp = NULL;
+    if (readBackToken(pm) == MATHER_MUL)
+        goto parserPt;
+
     if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, NULL, syntax_error))
         goto return_;
-    if (!checkToken_(pm, MATHER_COMMA)){
+    if (readBackToken(pm) != MATHER_COMMA){
         tmp->token_type = TUPLE;
         addToken_(pm ,tmp);
         goto return_;
     }
-    addLexToken(pm, MATHER_COMMA);
     addToken_(pm ,tmp);
+
+    parserPt:
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, true, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
         syntaxError(pm, syntax_error, 1, "Don't get tuple element");
         goto return_;
@@ -746,19 +766,18 @@ void parserCallBack(PASERSSIGNATURE){
 
 int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     *st = NULL;
-    if (readBackToken(pm) == right_type)  // TODO-szh checkToken_
+    if (checkToken_(pm, right_type))
         goto return_;
 
     if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, st, NULL))
         return 0;
 
-    if (readBackToken(pm) != right_type){  // TODO-szh checkToken_
+    if (!checkToken_(pm, right_type)){
         freeStatement(*st);
         return -1;
     }
 
     return_:
-    delToken(pm);
     return 1;
 }
 /**

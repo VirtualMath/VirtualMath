@@ -65,15 +65,19 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     return tmp;
 }
 
-Value *makeDictValue(Argument **arg_ad, Inter *inter){
+Value *makeDictValue(Argument **arg_ad, bool new_hash, Inter *inter) {
     Value *tmp;
-    VarList *hash = makeVarList(inter);
     tmp = makeValue(inter);
     tmp->data.dict.size = 0;
     tmp->type = dict;
-    tmp->data.dict.dict = hash->hashtable;
-    argumentToVar(arg_ad, inter, hash, &tmp->data.dict.size);
-    freeVarList(hash, true);
+    if (new_hash) {
+        VarList *hash = makeVarList(inter);
+        tmp->data.dict.dict = hash->hashtable;
+        argumentToVar(arg_ad, inter, hash, &tmp->data.dict.size);
+        freeVarList(hash, true);
+    }
+    else
+        tmp->data.dict.dict = NULL;
     return tmp;
 }
 
@@ -100,9 +104,6 @@ void freeValue(Value *value, Inter *inter){
         }
         case list:
             memFree(value->data.list.list);
-            break;
-        case dict:
-            freeHashTable(value->data.dict.dict, inter, true);
             break;
         default:
             break;

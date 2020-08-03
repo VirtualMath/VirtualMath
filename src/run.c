@@ -98,7 +98,7 @@ Result iterStatement(INTER_FUNCTIONSIG) {
     }
 
     if (result.type == not_return)
-        setResult(&result, true, inter);
+        setResultOperation(&result, inter);
     return result;
 }
 
@@ -126,7 +126,7 @@ Result globalIterStatement(Inter *inter) {
     }
 
     if (result.type != error_return && result.type != function_return)
-        setResult(&result, true, inter);
+        setResultOperation(&result, inter);
     return result;
 }
 

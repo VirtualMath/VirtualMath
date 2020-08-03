@@ -3,6 +3,7 @@
 
 #define MAX_SIZE (1024)
 #define VARSTR_PREFIX "str_"
+#define VARNUM_PREFIX "num_"
 #define VARDEFAULT_PREFIX "default_var"
 
 struct Var{
