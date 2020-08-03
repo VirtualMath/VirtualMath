@@ -21,45 +21,50 @@ Var *freeVar(Var *var, bool self){
     return var;
 }
 
-HashTable *makeHashTable(Inter *inter) {
+HashTable *makeHashTable(Inter *inter, bool supervision) {
     HashTable *list_tmp = inter->hash_base;
     HashTable *tmp;
     tmp = memCalloc(1, sizeof(Value));
     tmp->hashtable = (Var **)calloc(MAX_SIZE, sizeof(Var *));
     tmp->next = NULL;
+    tmp->last = NULL;
+    if (!supervision)
+        goto return_;
+
     if (list_tmp == NULL){
         inter->hash_base = tmp;
         tmp->last = NULL;
         goto return_;
     }
 
-    while (list_tmp->next !=  NULL){
+    while (list_tmp->next !=  NULL)
         list_tmp = list_tmp->next;
-    }
     list_tmp->next = tmp;
-    tmp->last = list_tmp->next;
+    tmp->last = list_tmp;
 
     return_:
     return tmp;
 }
 
-void freeHashTable(HashTable *ht, Inter *inter){
+void freeHashTable(HashTable *ht, Inter *inter, bool supervision) {
     freeBase(ht, return_);
-    if (ht->last == NULL){
+    if (!supervision)
+        goto not_supervision;
+    if (ht->last == NULL)
         inter->hash_base = ht->next;
-    }
-    else{
+    else
         ht->last->next = ht->next;
-    }
-    if (ht->next != NULL){
-        ht->next->last = ht->last;
+
+    if (ht->next != NULL) {
+        HashTable *tmp = ht->last;
+        ht->next->last = tmp;
     }
 
+    not_supervision:
     for (int i=0; i < MAX_SIZE; i++){
         Var *tmp = ht->hashtable[i];
-        while (tmp != NULL){
+        while (tmp != NULL)
             tmp = freeVar(tmp, true);
-        }
     }
     memFree(ht->hashtable);
     memFree(ht);
@@ -70,7 +75,7 @@ void freeHashTable(HashTable *ht, Inter *inter){
 VarList *makeVarList(Inter *inter) {
     VarList *tmp = calloc(1, sizeof(VarList));
     tmp->next = NULL;
-    tmp->hashtable = makeHashTable(inter);
+    tmp->hashtable = makeHashTable(inter, true);
     return tmp;
 }
 

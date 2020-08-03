@@ -53,4 +53,9 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
 Result setParameter(Parameter *call, Parameter *function, VarList *function_var, INTER_FUNCTIONSIG_CORE);
 Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE);
 Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE);
+
+Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list, int *num);
+Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *var_list, NUMBER_TYPE *num);
+Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE, NUMBER_TYPE *num);
+Result argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE);
 #endif //VIRTUALMATH_PARAMETER_H

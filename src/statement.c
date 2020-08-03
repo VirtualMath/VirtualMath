@@ -55,6 +55,13 @@ Statement *makeBaseSVarStatement(Statement *name, Statement *times){
     return tmp;
 }
 
+Statement *makeBaseDictStatement(Parameter *pt){
+    Statement *tmp = makeStatement();
+    tmp->type = base_dict;
+    tmp->u.base_dict.dict = pt;
+    return tmp;
+}
+
 Statement *makeOperationStatement(int type){
     Statement *tmp = makeStatement();
     tmp->type = operation;
@@ -198,6 +205,9 @@ void freeStatement(Statement *st){
                 break;
             case base_list:
                 freeParameter(st->u.base_list.list, true);
+                break;
+            case base_dict:
+                freeParameter(st->u.base_dict.dict, true);
                 break;
             case if_branch:
                 freeStatementList(st->u.if_branch.if_list);

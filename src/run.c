@@ -22,6 +22,9 @@ Result runStatement(INTER_FUNCTIONSIG) {
         case base_list:
             result = getList(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
+        case base_dict:
+            result = getDict(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         case operation:
             result = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
             printLinkValue(result.value, "operation result = ", "\n", inter->debug);

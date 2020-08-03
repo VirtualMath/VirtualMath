@@ -11,6 +11,7 @@ struct Value{
         string,
         function,
         list,
+        dict,
     } type;
     union data{
         struct Number{
@@ -19,12 +20,12 @@ struct Value{
         struct String{
             char *str;
         } str;
-        struct {
+        struct Function{
             struct Statement *function;
             struct VarList *var;
             struct Parameter *pt;
         } function;
-        struct {
+        struct List{
             enum ListType{
                 value_tuple,
                 value_list,
@@ -32,6 +33,10 @@ struct Value{
             struct LinkValue **list;
             long int size;
         } list;
+        struct Dict{
+            struct HashTable *dict;
+            NUMBER_TYPE size;
+        } dict;
     }data;
     struct Value *next;
     struct Value *last;
@@ -71,6 +76,7 @@ Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
+Value *makeDictValue(struct Argument **arg_ad, Inter *inter);
 
 void setResult(Result *ru, bool link, Inter *inter);
 void setResultError(Result *ru, Inter *inter);

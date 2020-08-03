@@ -8,7 +8,7 @@ inline void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBac
         Token *right_token = NULL;
         struct Statement *st = NULL;
 
-        readBackToken(pm);
+
         if (readBackToken(pm) != self_type){
             writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call %s(left)\n", self_name, call_name);
             if (!callChildStatement(CALLPASERSSIGNATURE, callBack, type, &st, NULL))
@@ -51,7 +51,7 @@ inline void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBac
         is_right_ = is_right;  // 第一次is_right不生效
     }
     return_:
-    return;
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: return\n", self_name);
 }
 
 inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int type, int self_type,
@@ -89,7 +89,7 @@ inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction
         goto return_;
     }
     return_:
-    return;
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: return\n", self_name);
 }
 
 /**

@@ -15,7 +15,7 @@ Value *makeValue(Inter *inter) {
         list_tmp = list_tmp->next;
     }
     list_tmp->next = tmp;
-    tmp->last = list_tmp->next;
+    tmp->last = list_tmp;
 
     return_:
     return tmp;
@@ -65,17 +65,28 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     return tmp;
 }
 
+Value *makeDictValue(Argument **arg_ad, Inter *inter){
+    Value *tmp;
+    VarList *hash = makeVarList(inter);
+    tmp = makeValue(inter);
+    tmp->data.dict.size = 0;
+    tmp->type = dict;
+    tmp->data.dict.dict = hash->hashtable;
+    argumentToVar(arg_ad, inter, hash, &tmp->data.dict.size);
+    freeVarList(hash, true);
+    return tmp;
+}
+
 void freeValue(Value *value, Inter *inter){
     freeBase(value, return_);
-    if (value->last == NULL){
+    if (value->last == NULL)
         inter->base = value->next;
-    }
-    else{
+    else
         value->last->next = value->next;
-    }
-    if (value->next != NULL){
+
+    if (value->next != NULL)
         value->next->last = value->last;
-    }
+
     switch (value->type) {
         case string:
             memFree(value->data.str.str);
@@ -89,6 +100,9 @@ void freeValue(Value *value, Inter *inter){
         }
         case list:
             memFree(value->data.list.list);
+            break;
+        case dict:
+            freeHashTable(value->data.dict.dict, inter, true);
             break;
         default:
             break;
@@ -110,11 +124,11 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
         goto return_;
     }
 
-    while (list_tmp->next !=  NULL){
+    while (list_tmp->next !=  NULL)
         list_tmp = list_tmp->next;
-    }
+
     list_tmp->next = tmp;
-    tmp->last = list_tmp->next;
+    tmp->last = list_tmp;
 
     return_:
     return tmp;
@@ -122,15 +136,14 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
 
 void freeLinkValue(LinkValue *value, Inter *inter){
     freeBase(value, return_);
-    if (value->last == NULL){
+    if (value->last == NULL)
         inter->link_base = value->next;
-    }
-    else{
+    else
         value->last->next = value->next;
-    }
-    if (value->next != NULL){
+
+    if (value->next != NULL)
         value->next->last = value->last;
-    }
+
     memFree(value);
     return_:
     return;
@@ -155,21 +168,43 @@ void setResultOperation(Result *ru, Inter *inter) {
 void printValue(Value *value, FILE *debug){
     switch (value->type){
         case number:
-            writeLog(debug, INFO, "<%"NUMBER_FORMAT">", value->data.num.num);
+            writeLog(debug, INFO, "%"NUMBER_FORMAT"", value->data.num.num);
             break;
         case string:
-            writeLog(debug, INFO, "<'%s'>", value->data.str.str);
+            writeLog(debug, INFO, "'%s'", value->data.str.str);
             break;
         case function:
             writeLog(debug, INFO, "function on <%lx>", (unsigned long )value);
             break;
         case list:
-            writeLog(debug, INFO, "list on %lx, size = %d, [", (unsigned long )value, (int)value->data.list.size);
+            writeLog(debug, INFO, "list on <%lx> size = %d [", (unsigned long )value, (int)value->data.list.size);
             for (int i=0;i < value->data.list.size;i++){
+                if (i > 0)
+                    writeLog(debug, INFO, ", ", NULL);
+
                 printLinkValue(value->data.list.list[i], "", "", debug);
             }
             writeLog(debug, INFO, "]", NULL);
             break;
+        case dict: {
+            bool print_comma = false;
+            writeLog(debug, INFO, "dict on <%lx> size = %d {", (unsigned long) value, (int) value->data.dict.size);
+            for (int i = 0; i < MAX_SIZE; i++) {
+                Var *tmp = value->data.dict.dict->hashtable[i];
+                while (tmp != NULL) {
+                    if (print_comma)
+                        writeLog(debug, INFO, ", ", NULL);
+                    else
+                        print_comma = true;
+
+                    writeLog(debug, INFO, "'%s' : ", tmp->name);
+                    printLinkValue(tmp->value, "", "", debug);
+                    tmp = tmp->next;
+                }
+            }
+            writeLog(debug, INFO, "}", NULL);
+            break;
+        }
         case none:
             writeLog(debug, INFO, "<None>", NULL);
             break;

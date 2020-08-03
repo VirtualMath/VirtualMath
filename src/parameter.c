@@ -170,7 +170,7 @@ Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list
         }
 
         tmp_ass = assCore(function->data.name, tmp.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (tmp_ass.type == error_return) {
+        if (!run_continue(tmp_ass)) {
             *function_ad = function;
             return tmp_ass;
         }
@@ -191,13 +191,13 @@ Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list
  * @param num
  * @return
  */
-Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *var_list, int *num) {
+Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *var_list, NUMBER_TYPE *num) {
     Argument *call = *call_ad;
     Result result;
     while (call != NULL && call->type == name_arg){
         Result tmp_ass;
         tmp_ass = assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (tmp_ass.type == error_return) {
+        if (!run_continue(tmp_ass)) {
             *call_ad = call;
             return tmp_ass;
         }
@@ -219,7 +219,7 @@ Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *va
  * @param num
  * @return
  */
-Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE, int *num){
+Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE, NUMBER_TYPE *num){
     Parameter *function = *function_ad;
     Result result;
     setResultOperation(&result, inter);
@@ -253,7 +253,7 @@ Result parameterFromVar(Parameter **function_ad, VarList *function_var, INTER_FU
         not_return:
 
         tmp = assCore(name, value, CALL_INTER_FUNCTIONSIG_CORE(function_var));
-        if (tmp.type == error_return) {
+        if (!run_continue(tmp)) {
             *function_ad = function;
             return tmp;
         }
@@ -284,7 +284,7 @@ Result argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList 
         Result tmp_ass;
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
         tmp_ass = assCore(name, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(function_var));
-        if (tmp_ass.type == error_return) {
+        if (!run_continue(tmp_ass)) {
             *call_ad = call;
             *function_ad = function;
             return tmp_ass;
@@ -339,13 +339,13 @@ Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE){
 
 /**
  * 参数表:
- |实参 \ 形参| name | value | arg | null |
+ |实参 \ 形参| name | value | arg | kwarg | null |
  ----------------------------------------
- |name     | p_3  |  p_3  | p_4 | error |
- |value    | p_1  |  p_1  | p_4 | error |
- |null     | p_2  | error | p_4 | okay  |
+ |name     | p_3  |  p_3  | p_4 |  p_5! | error |
+ |value    | p_1  |  p_1  | p_4 | error | error |
+ |null     | p_2  | error | p_4 |  p_5  | okay  |
  ----------------------------------------
- * 注解: @p_1 match_status; @p_2 default_status; @p_3 self_ass; @p_4 mul_par
+ * 注解: @p_1 match_status; @p_2 default_status; @p_3 self_ass; @p_4 mul_par; @p_5 pow_par
  * @param call
  * @param function
  * @param function_var
@@ -405,7 +405,7 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
             }
             case self_ass: {
                 VarList *tmp = makeVarList(inter);
-                int set_num = 0, get_num = 0;
+                NUMBER_TYPE set_num = 0, get_num = 0;
                 result = argumentToVar(&call, CALL_INTER_FUNCTIONSIG_CORE(tmp), &set_num);
                 returnResult(result);
                 result = parameterFromVar(&function, function_var, CALL_INTER_FUNCTIONSIG_CORE(tmp), &get_num);

@@ -117,9 +117,9 @@ void freeArgs(){
     memFree(args.file);
 }
 
-/*
+/**
+ *  TODO-szh 函数形式参数复制
  *  TODO-szh 字典
- *  TODO-szh SuperVar
  *  TODO-szh 运行错误的内存释放检查
  *  TODO-szh syntax错误的内存释放检查
  */

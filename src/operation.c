@@ -224,6 +224,22 @@ Result getList(INTER_FUNCTIONSIG) {
     Value *value = makeListValue(&at, inter, type);
     setResultOperation(&result ,inter);
     result.value->value = value;
-    freeArgument(at_tmp, true);
+    freeArgument(at_tmp, false);
+    return result;
+}
+
+Result getDict(INTER_FUNCTIONSIG) {
+    Result result;
+    Argument *at = getArgument(st->u.base_dict.dict, &result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    Argument *at_tmp = at;
+    if (!run_continue(result)){
+        freeArgument(at_tmp, true);
+        return result;
+    }
+
+    Value *value = makeDictValue(&at, inter);
+    setResultOperation(&result ,inter);
+    result.value->value = value;
+    freeArgument(at_tmp, false);
     return result;
 }

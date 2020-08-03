@@ -20,15 +20,15 @@ Inter *makeInter(char *debug){
 
 void freeInter(Inter *inter, bool self){
     freeBase(inter, return_);
-    while (inter->base != NULL){
+    while (inter->base != NULL)
         freeValue(inter->base, inter);
-    }
-    while (inter->link_base != NULL){
+
+    while (inter->link_base != NULL)
         freeLinkValue(inter->link_base, inter);
-    }
-    while (inter->hash_base != NULL){
-        freeHashTable(inter->hash_base, inter);
-    }
+
+    while (inter->hash_base != NULL)
+        freeHashTable(inter->hash_base, inter, true);
+
     freeStatement(inter->statement);
     freeVarList(inter->var_list, true);
     memFree(inter->log_dir);

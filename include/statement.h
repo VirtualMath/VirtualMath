@@ -7,6 +7,7 @@ struct Statement{
         start = 1,
         base_value,
         base_list,
+        base_dict,
         base_var,
         base_svar,
         operation,
@@ -40,6 +41,9 @@ struct Statement{
             enum ListType type;
             struct Parameter *list;
         } base_list;
+        struct {
+            struct Parameter *dict;
+        } base_dict;
         struct operation{
             enum OperationType{
                 ADD = 1,
@@ -140,6 +144,7 @@ Statement *makeOperationStatement(int type);
 Statement *makeBaseValueStatement(LinkValue *value);
 Statement *makeBaseVarStatement(char *name, Statement *times);
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
+Statement *makeBaseDictStatement(Parameter *pt);
 Statement *makeTupleStatement(struct Parameter *pt, enum ListType type);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);

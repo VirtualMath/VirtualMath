@@ -17,6 +17,7 @@ Result callFunction(INTER_FUNCTIONSIG);
 Result getVar(INTER_FUNCTIONSIG, VarInfo var_info);
 Result getBaseValue(INTER_FUNCTIONSIG);
 Result getList(INTER_FUNCTIONSIG);
+Result getDict(INTER_FUNCTIONSIG);
 Result ifBranch(INTER_FUNCTIONSIG);
 Result whileBranch(INTER_FUNCTIONSIG);
 Result tryBranch(INTER_FUNCTIONSIG);
