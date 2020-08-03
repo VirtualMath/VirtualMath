@@ -32,7 +32,7 @@ struct Statement{
             struct Statement *times;
         } base_var;
         struct {
-            enum{
+            enum BaseListType{
                 list_,
                 tuple_,
             } type;
@@ -131,10 +131,13 @@ typedef struct Statement Statement;
 typedef struct StatementList StatementList;
 
 Statement *makeStatement();
-Statement *makeOperationStatement(int type);
-struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right);
+void freeStatement(Statement *st);
+void connectStatement(Statement *base, Statement *new);
 
-Statement *makeTupleStatement(struct Parameter *pt, int type);
+Statement *makeOperationStatement(int type);
+Statement *makeBaseValueStatement(LinkValue *value);
+Statement *makeBaseVarStatement(char *name, Statement *times);
+Statement *makeTupleStatement(struct Parameter *pt, enum BaseListType type);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeIfStatement();
@@ -146,12 +149,10 @@ Statement *makeRegoStatement(Statement *times);
 Statement *makeRestartStatement(Statement *times);
 Statement *makeReturnStatement(Statement *value);
 Statement *makeRaiseStatement(Statement *value);
+struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right);
 
-void connectStatement(Statement *base, Statement *new);
-void freeStatement(Statement *st);
-
-StatementList *connectStatementList(StatementList *base, StatementList *new);
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);
+StatementList *connectStatementList(StatementList *base, StatementList *new);
 void freeStatementList(StatementList *base);
 #define makeConnectStatementList(base, condition, var, code, type) connectStatementList(base, makeStatementList(condition, var, code, type))
 

@@ -32,6 +32,21 @@ Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token
     return new_token;
 }
 
+Statement *makeBaseValueStatement(LinkValue *value){
+    Statement *tmp = makeStatement();
+    tmp->type = base_value;
+    tmp->u.base_value.value = value;
+    return tmp;
+}
+
+Statement *makeBaseVarStatement(char *name, Statement *times){
+    Statement *tmp = makeStatement();
+    tmp->type = base_var;
+    tmp->u.base_var.name = memStrcpy(name, 0, false, false);
+    tmp->u.base_var.times = times;
+    return tmp;
+}
+
 Statement *makeOperationStatement(int type){
     Statement *tmp = makeStatement();
     tmp->type = operation;
@@ -41,7 +56,7 @@ Statement *makeOperationStatement(int type){
     return tmp;
 }
 
-Statement *makeTupleStatement(Parameter *pt, int type) {
+Statement *makeTupleStatement(Parameter *pt, enum BaseListType type) {
     Statement *tmp = makeStatement();
     tmp->type = base_list;
     tmp->u.base_list.type = type;

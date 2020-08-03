@@ -109,6 +109,12 @@
 #define RAISE -23
 #define TUPLE -24
 
+#define printTokenEnter(tk, debug, type, message) do{ \
+writeLog(debug, type, message, NULL); \
+printToken(tk, debug, type); \
+writeLog(debug, type, "\n", NULL); \
+} while(0)
+
 struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配
     struct TokenData{
@@ -136,28 +142,20 @@ typedef struct Token Token;
 typedef struct TokenStream TokenStream;
 typedef struct TokenMessage TokenMessage;
 
-Token *makeToken();
-Token *makeLexToken(int type, char *str, char *second_str);
-Token *makeStatementToken(int type, struct Statement *st);
-void freeToken(Token *tk, bool self, bool error);
-
-extern Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug);
-
-
-void addBackToken(TokenStream *ts, Token *new_tk, FILE *debug);
-Token *popNewToken(TokenMessage *tm, FILE *debug);
-
 TokenMessage *makeTokenMessage(char *file_dir, char *debug);
 void freeTokenMessage(TokenMessage *tm, bool self);
+
+Token *makeToken();
+void freeToken(Token *tk, bool self, bool error);
+Token *makeLexToken(int type, char *str, char *second_str);
+Token *makeStatementToken(int type, struct Statement *st);
+
+extern Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug);
+void addBackToken(TokenStream *ts, Token *new_tk, FILE *debug);
+Token *popNewToken(TokenMessage *tm, FILE *debug);
 
 // token 可视化函数
 void printTokenStream(TokenStream *ts, FILE *debug, int type);
 void printToken(Token *tk, FILE *debug, int type);
-
-#define printTokenEnter(tk, debug, type, message) do{ \
-writeLog(debug, type, message, NULL); \
-printToken(tk, debug, type); \
-writeLog(debug, type, "\n", NULL); \
-} while(0)
 
 #endif //VIRTUALMATH_TOKEN_H

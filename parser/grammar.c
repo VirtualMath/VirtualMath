@@ -771,30 +771,23 @@ void parserBaseValue(PASERSSIGNATURE){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number\n", NULL);
         value_token= popAheadToken(pm);
         char *stop;
-        st = makeStatement();
-        st->type = base_value;
-        st->u.base_value.value = makeLinkValue(makeNumberValue(strtol(value_token->data.str, &stop, 10), inter), NULL, inter);
+        st = makeBaseValueStatement(makeLinkValue(makeNumberValue(strtol(value_token->data.str, &stop, 10), inter), NULL, inter));
     }
     else if(MATHER_STRING == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string\n", NULL);
         value_token= popAheadToken(pm);
-        st = makeStatement();
-        st->type = base_value;
-        st->u.base_value.value = makeLinkValue(makeStringValue(value_token->data.str, inter), NULL, inter);
+        st = makeBaseValueStatement(makeLinkValue(makeStringValue(value_token->data.str, inter), NULL, inter));
     }
     else if(MATHER_VAR == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var\n", NULL);
         value_token= popAheadToken(pm);
-        st = makeStatement();
-        st->type = base_var;
-        st->u.base_var.name = memStrcpy(value_token->data.str, 0, false, false);
-        st->u.base_var.times = NULL;
+        st = makeBaseVarStatement(value_token->data.str, NULL);
     }
     else if(MATHER_LB == token_type){
         int tmp;
         Statement *tmp_st = NULL;
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation\n", NULL);
-        value_token= popAheadToken(pm);
+        value_token = popAheadToken(pm);
 
         tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
         if (tmp == 0){
@@ -809,14 +802,18 @@ void parserBaseValue(PASERSSIGNATURE){
         }
         if (MATHER_VAR == readBackToken(pm)){
             Token *var_token;
-            var_token= popAheadToken(pm);
-            st = makeStatement();
-            st->type = base_var;
-            st->u.base_var.name = memStrcpy(var_token->data.str, 0, false, false);
-            st->u.base_var.times = tmp_st;
+            var_token = popAheadToken(pm);
+            st = makeBaseVarStatement(var_token->data.str, tmp_st);
             freeToken(var_token, true, false);
         }
-        // TODO-szh list处理
+        else{
+            if (tmp_st->type == base_list && tmp_st->u.base_list.type == tuple_){
+                tmp_st->u.base_list.type = list_;
+                st = tmp_st;
+            }
+            else
+                st = makeTupleStatement(makeOnlyValueParameter(tmp_st), list_);
+        }
     }
     else if(MATHER_LP == token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation\n", NULL);

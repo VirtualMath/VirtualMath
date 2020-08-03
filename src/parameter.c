@@ -1,4 +1,5 @@
 #include "__virtualmath.h"
+
 #define returnResult(result) do{ \
 if (!run_continue(result)) { \
 goto return_; \
@@ -416,11 +417,10 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
                 break;
             }
             case mul_par: {
-                Result tmp_result;
                 Value *value = makeListValue(&call, inter, value_tuple);
                 LinkValue *tmp = makeLinkValue(value, NULL, inter);
-                tmp_result = assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_CORE(function_var));
-                returnResult(tmp_result);
+                result = assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_CORE(function_var));
+                returnResult(result);
                 function = function->next;
                 break;
             }
@@ -429,9 +429,12 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
                 setResultError(&result, inter);
                 goto return_;
             default:
-                goto return_;
+                goto break_;
         }
     }
+    break_:
+    setResult(&result, true ,inter);
+
     return_:
     freeParameter(tmp_function, false);
     return result;
