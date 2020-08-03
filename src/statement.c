@@ -197,7 +197,7 @@ void freeStatement(Statement *st){
             case set_function:
                 freeStatement(st->u.set_function.name);
                 freeStatement(st->u.set_function.function);
-                // Parameter 在 value 的地方free掉
+                freeParameter(st->u.set_function.parameter, true);
                 break;
             case call_function:
                 freeStatement(st->u.call_function.function);
