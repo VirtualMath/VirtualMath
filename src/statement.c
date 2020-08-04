@@ -169,6 +169,13 @@ Statement *makeRaiseStatement(Statement *value){
     return tmp;
 }
 
+Statement *makeIncludeStatement(Statement *file){
+    Statement *tmp = makeStatement();
+    tmp->type = include_file;
+    tmp->u.include_file.file = file;
+    return tmp;
+}
+
 void connectStatement(Statement *base, Statement *new){
     while (base->next != NULL){
         base = base->next;
@@ -181,7 +188,6 @@ void freeStatement(Statement *st){
     Statement *next_tmp;
     while (st != NULL){
         switch (st->type) {
-            // base-value 不需要释放
             case operation:
                 freeStatement(st->u.operation.right);
                 freeStatement(st->u.operation.left);
@@ -257,6 +263,9 @@ void freeStatement(Statement *st){
             case raise_code:
                 freeStatement(st->u.raise_code.value);
                 break;
+            case include_file:
+                freeStatement(st->u.include_file.file);
+                break;
             default:
                 break;
         }
@@ -266,6 +275,116 @@ void freeStatement(Statement *st){
     }
     return_:
     return;
+}
+
+Statement *copyStatement(Statement *st){
+    if (st == NULL)
+        return NULL;
+
+    Statement *tmp = copyStatementCore(st);
+    Statement *base_tmp = tmp;
+
+    while (st->next != NULL){
+        tmp->next = copyStatementCore(st->next);
+        tmp = tmp->next;
+        st = st->next;
+    }
+    return base_tmp;
+}
+
+Statement *copyStatementCore(Statement *st){
+    Statement *new = makeStatement();
+    new->type = st->type;
+    new->next = NULL;
+    switch (st->type) {
+        case base_value:
+            new->u.base_value.value = st->u.base_value.value;
+            break;
+        case operation:
+            new->u.operation.OperationType = st->u.operation.OperationType;
+            new->u.operation.right = copyStatement(st->u.operation.right);
+            new->u.operation.left = copyStatement(st->u.operation.left);
+            break;
+        case base_var:
+            new->u.base_var.name = memStrcpy(st->u.base_var.name, 0, false, false);
+            new->u.base_var.times = copyStatement(st->u.base_var.times);
+            break;
+        case base_svar:
+            new->u.base_svar.name = copyStatement(st->u.base_svar.name);
+            new->u.base_svar.times = copyStatement(st->u.base_svar.times);
+            break;
+        case set_function:
+            new->u.set_function.name = copyStatement(st->u.set_function.name);
+            new->u.set_function.function = copyStatement(st->u.set_function.function);
+            new->u.set_function.parameter = copyParameter(st->u.set_function.parameter);
+            break;
+        case call_function:
+            new->u.call_function.function = copyStatement(st->u.call_function.function);
+            new->u.call_function.parameter = copyParameter(st->u.call_function.parameter);
+            break;
+        case base_list:
+            new->u.base_list.type = st->u.base_list.type;
+            new->u.base_list.list = copyParameter(st->u.base_list.list);
+            break;
+        case base_dict:
+            new->u.base_dict.dict = copyParameter(st->u.base_dict.dict);
+            break;
+        case if_branch:
+            new->u.if_branch.if_list = copyStatementList(st->u.if_branch.if_list);
+            new->u.if_branch.finally = copyStatement(st->u.if_branch.finally);
+            new->u.if_branch.else_list = copyStatement(st->u.if_branch.else_list);
+            break;
+        case while_branch:
+            new->u.while_branch.type = st->u.while_branch.type;
+            new->u.while_branch.while_list = copyStatementList(st->u.while_branch.while_list);
+            new->u.while_branch.first = copyStatement(st->u.while_branch.first);
+            new->u.while_branch.after = copyStatement(st->u.while_branch.after);
+            new->u.while_branch.else_list = copyStatement(st->u.while_branch.else_list);
+            new->u.while_branch.finally = copyStatement(st->u.while_branch.finally);
+            break;
+        case for_branch:
+            new->u.for_branch.for_list = copyStatementList(st->u.for_branch.for_list);
+            new->u.for_branch.var = copyStatement(st->u.for_branch.var);
+            new->u.for_branch.iter = copyStatement(st->u.for_branch.iter);
+            new->u.for_branch.else_list = copyStatement(st->u.for_branch.else_list);
+            new->u.for_branch.finally = copyStatement(st->u.for_branch.finally);
+            break;
+        case try_branch:
+            new->u.try_branch.except_list = copyStatementList(st->u.try_branch.except_list);
+            new->u.try_branch.try = copyStatement(st->u.try_branch.try);
+            new->u.try_branch.else_list = copyStatement(st->u.try_branch.else_list);
+            new->u.try_branch.finally = copyStatement(st->u.try_branch.finally);
+            break;
+        case with_branch:
+            new->u.with_branch.with_list = copyStatementList(st->u.with_branch.with_list);
+            new->u.with_branch.else_list = copyStatement(st->u.with_branch.else_list);
+            new->u.with_branch.finally = copyStatement(st->u.with_branch.finally);
+            break;
+        case break_cycle:
+            new->u.break_cycle.times = copyStatement(st->u.break_cycle.times);
+            break;
+        case continue_cycle:
+            new->u.continue_cycle.times = copyStatement(st->u.continue_cycle.times);
+            break;
+        case rego_if:
+            new->u.rego_if.times = copyStatement(st->u.rego_if.times);
+            break;
+        case restart:
+            new->u.restart.times = copyStatement(st->u.restart.times);
+            break;
+        case return_code:
+            new->u.return_code.value = copyStatement(st->u.return_code.value);
+            break;
+        case raise_code:
+            new->u.raise_code.value = copyStatement(st->u.raise_code.value);
+            break;
+        case include_file:
+            new->u.include_file.file = copyStatement(st->u.include_file.file);
+            break;
+        default:
+            break;
+    }
+    return new;
 }
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type) {
@@ -298,4 +417,21 @@ void freeStatementList(StatementList *base){
         base = base->next;
         memFree(tmp);
     }
+}
+
+StatementList *copyStatementList(StatementList *sl){
+    if (sl == NULL)
+        return NULL;
+
+    StatementList *tmp = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var),
+                                           copyStatement(sl->code), sl->type);
+    StatementList *base_tmp = tmp;
+
+    while (sl->next != NULL){
+        tmp->next = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var),
+                                      copyStatement(sl->code), sl->type);
+        tmp = tmp->next;
+        sl = sl->next;
+    }
+    return base_tmp;
 }

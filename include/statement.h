@@ -24,6 +24,7 @@ struct Statement{
         restart,
         return_code,
         raise_code,
+        include_file,
     } type;
     union StatementU{
         struct base_value{
@@ -116,6 +117,9 @@ struct Statement{
         struct {
             struct Statement *value;
         } raise_code;
+        struct {
+            struct Statement *file;
+        } include_file;
     }u;
     struct Statement *next;
 };
@@ -138,6 +142,8 @@ typedef struct StatementList StatementList;
 
 Statement *makeStatement();
 void freeStatement(Statement *st);
+Statement *copyStatement(Statement *st);
+Statement *copyStatementCore(Statement *st);
 void connectStatement(Statement *base, Statement *new);
 
 Statement *makeOperationStatement(int type);
@@ -157,11 +163,13 @@ Statement *makeRegoStatement(Statement *times);
 Statement *makeRestartStatement(Statement *times);
 Statement *makeReturnStatement(Statement *value);
 Statement *makeRaiseStatement(Statement *value);
+Statement *makeIncludeStatement(Statement *file);
 struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);
 StatementList *connectStatementList(StatementList *base, StatementList *new);
 void freeStatementList(StatementList *base);
+StatementList *copyStatementList(StatementList *sl);
 #define makeConnectStatementList(base, condition, var, code, type) connectStatementList(base, makeStatementList(condition, var, code, type))
 
 #endif //VIRTUALMATH_STATEMENT_H

@@ -33,7 +33,8 @@ typedef Statement *(*MakeControlFunction)(Statement *);
 typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 
 void parserCommand(PASERSSIGNATURE);
-void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type);
+void parserControl(ParserMessage *pm, Inter *inter, MakeControlFunction callBack, int type, bool must_operation,
+                   char *message);
 void parserDef(PASERSSIGNATURE);
 void parserIf(PASERSSIGNATURE);
 void parserWhile(PASERSSIGNATURE);
@@ -53,7 +54,8 @@ int readBackToken(ParserMessage *pm);
 Token *popAheadToken(ParserMessage *pm);
 bool checkToken_(ParserMessage *pm, int type);
 
-bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, char *message);
+bool commandCallControl_(ParserMessage *pm, Inter *inter, MakeControlFunction callBack, int type, Statement **st,
+                         char *log_message, bool must_operation, char *error_message);
 bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message);
 
 bool callParserCode(PASERSSIGNATURE, Statement **st,char *message);

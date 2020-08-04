@@ -1,6 +1,7 @@
 #ifndef VIRTUALMATH_MACRO_H
 #define VIRTUALMATH_MACRO_H
 
+#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

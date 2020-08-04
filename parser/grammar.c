@@ -28,6 +28,7 @@ ParserMessage *makeParserMessage(char *file_dir, char *debug){
 }
 
 void freeParserMessage(ParserMessage *pm, bool self) {
+    freeBase(pm, return_);
     freeTokenMessage(pm->tm, true, true);
 #if OUT_LOG
     if (pm->paser_debug != NULL)
@@ -39,6 +40,8 @@ void freeParserMessage(ParserMessage *pm, bool self) {
     if (self){
         memFree(pm);
     }
+    return_:
+    return;
 }
 
 /**
@@ -138,28 +141,34 @@ void parserCommand(PASERSSIGNATURE){
             break;
         case MATHER_BREAK :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st,
-                                         "Command: call break\n");
+                                         "Command: call break\n", false, NULL);
             break;
         case MATHER_CONTINUE :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeContinueStatement, CONTINUE, &st,
-                                         "Command: call continue\n");
+                                         "Command: call continue\n", false, NULL);
             break;
         case MATHER_RESTART :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeRestartStatement, RESTART, &st,
-                                         "Command: call restart\n");
+                                         "Command: call restart\n", false, NULL);
             break;
         case MATHER_REGO :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeRegoStatement, REGO, &st,
-                                         "Command: call rego\n");
+                                         "Command: call rego\n", false, NULL);
             break;
         case MATHER_RETURN :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN,  &st,
-                                         "Command: call return\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN, &st,
+                                         "Command: call return\n", false, NULL);
             break;
         case MATHER_RAISE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE,  &st,
-                                         "Command: call raise\n");
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE, &st,
+                                         "Command: call raise\n", false, NULL);
             break;
+        case MATHER_INCLUDE :
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeIncludeStatement, INCLUDE, &st,
+                                         "Command: call include\n", true,
+                                         "parserInclude: Don't get file after include");
+            break;
+        // TODO-szh 对不支持的符号做error处理, 如：except、}、)
         default :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st,
                                       "Command: call operation\n");
@@ -180,8 +189,10 @@ void parserCommand(PASERSSIGNATURE){
  *
  * @param callBack statement生成函数
  * @param type 输出token的类型
+ * @param must_operation 必须匹配 operation
  */
-void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type){
+void parserControl(ParserMessage *pm, Inter *inter, MakeControlFunction callBack, int type, bool must_operation,
+                   char *message) {
     Statement *times = NULL;
     Statement *st = NULL;
     delToken(pm);
@@ -193,6 +204,10 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type){
         tmp = popAheadToken(pm);
         times = tmp->data.st;
         freeToken(tmp, true, false);
+    }
+    else if (must_operation){
+        syntaxError(pm, syntax_error, 1, message);
+        goto return_;
     }
     st = callBack(times);
     addStatementToken(type, st, pm);

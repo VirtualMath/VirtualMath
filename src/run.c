@@ -62,6 +62,9 @@ Result runStatement(INTER_FUNCTIONSIG) {
         case raise_code:
             result = raiseCode(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
+        case include_file:
+            result = includeFile(CALL_INTER_FUNCTIONSIG(st, var_list));
+            break;
         default:
             setResult(&result, true, inter);
             break;

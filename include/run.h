@@ -28,6 +28,8 @@ Result restartCode(INTER_FUNCTIONSIG);
 Result returnCode(INTER_FUNCTIONSIG);
 Result raiseCode(INTER_FUNCTIONSIG);
 
+Result includeFile(INTER_FUNCTIONSIG);
+
 Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE);
 
 char *setStrVarName(char *old, bool free_old, INTER_FUNCTIONSIG_CORE);

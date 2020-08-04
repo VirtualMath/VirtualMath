@@ -89,13 +89,15 @@ Parameter *copyParameter(Parameter *base){
     if (base == NULL)
         return NULL;
     Parameter *tmp = makeParameter(), *base_tmp = tmp;
-    tmp->data = base->data;
+    tmp->data.value = copyStatement(base->data.value);
+    tmp->data.name = copyStatement(base->data.name);
     tmp->type = base->type;
     while (base->next != NULL){
         tmp->next = makeParameter();
         tmp = tmp->next;
         base = base->next;
-        tmp->data = base->data;
+        tmp->data.value = copyStatement(base->data.value);
+        tmp->data.name = copyStatement(base->data.name);
         tmp->type = base->type;
     }
     return base_tmp;
@@ -521,6 +523,6 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
     setResult(&result, true ,inter);
 
     return_:
-    freeParameter(tmp_function, false);
+    freeParameter(tmp_function, true);
     return result;
 }

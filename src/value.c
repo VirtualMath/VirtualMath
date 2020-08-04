@@ -41,7 +41,7 @@ Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter 
     Value *tmp;
     tmp = makeValue(inter);
     tmp->type = function;
-    tmp->data.function.function = st;
+    tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
     tmp->data.function.var = copyVarList(var_list, false, inter);
     return tmp;
@@ -97,7 +97,8 @@ void freeValue(Value *value, Inter *inter){
             break;
         case function: {
             VarList *tmp = value->data.function.var;
-            freeParameter(value->data.function.pt, false);
+            freeParameter(value->data.function.pt, true);
+            freeStatement(value->data.function.function);
             while (tmp != NULL)
                 tmp = freeVarList(tmp, true);
             break;

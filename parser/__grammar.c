@@ -168,11 +168,12 @@ bool checkToken_(ParserMessage *pm, int type){
     return true;
 }
 
-bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, char *message){
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, message, NULL);
+bool commandCallControl_(ParserMessage *pm, Inter *inter, MakeControlFunction callBack, int type, Statement **st,
+                         char *log_message, bool must_operation, char *error_message) {
+    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, log_message, NULL);
     Token *tmp_token = NULL;
     *st = NULL;
-    parserControl(CALLPASERSSIGNATURE, callBack, type);
+    parserControl(CALLPASERSSIGNATURE, callBack, type, must_operation, error_message);
     if (!call_success(pm) || readBackToken(pm) != type)
         return false;
     tmp_token = popAheadToken(pm);

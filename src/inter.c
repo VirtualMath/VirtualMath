@@ -28,6 +28,10 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
         goto return_;
     }
 
+    struct Statement *tmp = copyStatement(global_inter->statement);
+    freeStatement(global_inter->statement);
+    global_inter->statement = tmp;
+
     *global_result = globalIterStatement(global_inter);
     if (global_result->type == error_return){
         writeLog(global_inter->data.debug, ERROR, "Run Error\n", NULL);

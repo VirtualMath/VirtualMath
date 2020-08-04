@@ -107,6 +107,7 @@
 #define TRY_BRANCH -22
 #define RAISE -23
 #define TUPLE -24
+#define INCLUDE -25
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \
