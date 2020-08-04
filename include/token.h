@@ -143,7 +143,7 @@ typedef struct TokenStream TokenStream;
 typedef struct TokenMessage TokenMessage;
 
 TokenMessage *makeTokenMessage(char *file_dir, char *debug);
-void freeTokenMessage(TokenMessage *tm, bool self);
+void freeTokenMessage(TokenMessage *tm, bool self, bool free_st);
 
 Token *makeToken();
 void freeToken(Token *tk, bool self, bool error);

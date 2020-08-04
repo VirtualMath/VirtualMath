@@ -33,7 +33,7 @@ typedef Statement *(*MakeControlFunction)(Statement *);
 typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 
 void parserCommand(PASERSSIGNATURE);
-void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type);
+void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type);
 void parserDef(PASERSSIGNATURE);
 void parserIf(PASERSSIGNATURE);
 void parserWhile(PASERSSIGNATURE);
@@ -46,20 +46,27 @@ void parserCallBack(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
 void parserTuple(PASERSSIGNATURE);
-void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBack, GetSymbolFunction getSymbol,
-                  int type, int self_type, char *call_name, char *self_name, bool is_right);
-void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int type, int self_type,
-                   char *call_name, char *self_name);
+
 void syntaxError(ParserMessage *pm, int status, int num, ...);
+
 int readBackToken(ParserMessage *pm);
 Token *popAheadToken(ParserMessage *pm);
 bool checkToken_(ParserMessage *pm, int type);
+
 bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, char *message);
 bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message);
+
 bool callParserCode(PASERSSIGNATURE, Statement **st,char *message);
 bool callParserAs(PASERSSIGNATURE, Statement **st,char *message);
 bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message);
 bool callChildToken(ParserMessage *pm, Inter *inter, PasersFunction callBack, int type, Token **tmp, char *message,
                     int error_type);
+bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_formal, bool is_list, bool is_dict,
+                     int sep,int ass);
+
+void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBack, GetSymbolFunction getSymbol,
+                  int call_type, int self_type, char *call_name, char *self_name, bool is_right);
+void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type, int self_type,
+                   char *call_name, char *self_name);
 
 #endif //VIRTUALMATH___GRAMMAR_H

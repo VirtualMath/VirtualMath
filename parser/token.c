@@ -47,12 +47,12 @@ TokenStream *makeTokenStream(){
     return tmp;
 }
 
-void freeToekStream(TokenStream *ts, bool self) {
+void freeToekStream(TokenStream *ts, bool self, bool free_st) {
     freeBase(ts, return_);
     Token *tmp = ts->token_list;
     while (tmp != NULL){
         Token *tmp_next = tmp->next;
-        freeToken(tmp, true, false);
+        freeToken(tmp, true, free_st);
         tmp = tmp_next;
     }
     if (self){
@@ -82,9 +82,9 @@ TokenMessage *makeTokenMessage(char *file_dir, char *debug) {
     return tm;
 }
 
-void freeTokenMessage(TokenMessage *tm, bool self) {
+void freeTokenMessage(TokenMessage *tm, bool self, bool free_st) {
     freeLexFile(tm->file, true);
-    freeToekStream(tm->ts, true);
+    freeToekStream(tm->ts, true, free_st);
     freeMathers(tm->mathers, true);
 #if OUT_LOG
     if (tm->debug != NULL)

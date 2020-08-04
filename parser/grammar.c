@@ -26,7 +26,7 @@ ParserMessage *makeParserMessage(char *file_dir, char *debug){
 }
 
 void freeParserMessage(ParserMessage *pm, bool self) {
-    freeTokenMessage(pm->tm, true);
+    freeTokenMessage(pm->tm, true, true);
 #if OUT_LOG
     if (pm->paser_debug != NULL)
         fclose(pm->paser_debug);
@@ -43,13 +43,16 @@ void freeParserMessage(ParserMessage *pm, bool self) {
  * 命令表匹配
  * parserCommandList :
  * | MATHER_EOF
+ * | MATHER_ENTER
+ * | MATHER_SEMICOLON
  * | parserCommand MATHER_ENTER
+ * | parserCommand MATHER_SEMICOLON
  * | parserCommand MATHER_EOF
  */
 void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st) {
     int token_type;
-    int stop;
-    Statement *base_st = st;
+    char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
+
     while (true){
         token_type = readBackToken(pm);
         if (token_type == MATHER_EOF){
@@ -57,52 +60,57 @@ void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *
             delToken(pm);
             goto return_;
         }
-        else if (token_type == MATHER_ENTER){
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: <ENTER>\n", NULL);
+        else if (token_type == MATHER_ENTER || token_type == MATHER_SEMICOLON){
+            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: <ENTER>/<SEMICOLON>\n", NULL);
             delToken(pm);
             continue;
         }
         else{
+            Token *command_token = NULL;
+            int stop;
             writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: call command\n", NULL);
-            Token *command_token;
-            if (!callChildToken(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command_token,
-                               (global ? "ERROR from command list(get parserCommand)" : NULL),
-                               command_list_error)){
+            if (!callChildToken(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command_token, command_message, command_list_error))
                 goto return_;
-            }
 
             stop = readBackToken(pm);
-            if (stop == MATHER_ENTER || stop == MATHER_SEMICOLON){
+            if (stop == MATHER_ENTER || stop == MATHER_SEMICOLON)
                 delToken(pm);
-            }
             else  if(stop != MATHER_EOF){
                 if (global) {
-                    syntaxError(pm, command_list_error, 1, "ERROR from parserCommand list(get stop)");
-                    printf("stop = %d\n", stop);
                     freeToken(command_token, true, true);
+                    printf("stop = %d\n", stop);
+                    syntaxError(pm, command_list_error, 1, "ERROR from parserCommand list(get stop)");
                 }
                 else{
-                    // 若非global模式, 即可以匹配大括号, token保留在ahead中
-                    connectStatement(base_st, command_token->data.st);
+                    connectStatement(st, command_token->data.st);
                     freeToken(command_token, true, false);
                     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
                             "Command List: get command success[at !global end]\n", NULL);
                 }
                 goto return_;
             }
-            connectStatement(base_st, command_token->data.st);
+            connectStatement(st, command_token->data.st);
             freeToken(command_token, true, false);
             writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: get command success\n", NULL);
         }
     }
     return_:
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: return\n", NULL);
-    addStatementToken(COMMANDLIST, base_st, pm);
 }
 
 /**
  * 命令匹配
  * parserCommand：
+ * | MATHER_DEF parserDef
+ * | MATHER_IF parserIf
+ * | MATHER_WHILE parserWhile
+ * | MATHER_TRY parserTry
+ * | MATHER_BREAK parserControl
+ * | MATHER_CONTINUE parserControl
+ * | MATHER_RESTART parserControl
+ * | MATHER_REGO parserControl
+ * | MATHER_RETURN parserControl
+ * | MATHER_RAISE parserControl
  * | parserOperation
  */
 void parserCommand(PASERSSIGNATURE){
@@ -162,7 +170,16 @@ void parserCommand(PASERSSIGNATURE){
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: get return\n", NULL);
 }
 
-void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int type){
+/**
+ * 控制语句匹配
+ * parserControl
+ * | (control token) NULL
+ * | (control token) parserOperation
+ *
+ * @param callBack statement生成函数
+ * @param type 输出token的类型
+ */
+void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type){
     Statement *times = NULL;
     Statement *st = NULL;
     delToken(pm);
@@ -171,7 +188,7 @@ void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int typ
         goto return_;
     if (readBackToken(pm) == OPERATION){
         Token *tmp;
-        tmp= popAheadToken(pm);
+        tmp = popAheadToken(pm);
         times = tmp->data.st;
         freeToken(tmp, true, false);
     }
@@ -181,6 +198,21 @@ void parserControl(PASERSSIGNATURE, Statement *(*callBack)(Statement *), int typ
     return;
 }
 
+/**
+ * 条件分支匹配
+ * parserIf:
+ * | MATHER_IF parserOperation (MATHER_AS parserOperation) callParserCode
+ * | parserIf MATHER_ELIF  parserOperation (MATHER_AS parserOperation) callParserCode
+ * | parserIf MATHER_DO callParserCode [不允许两次连用]
+ * | parserIf MATHER_ELSE callParserCode [不允许再出现if和elif以及do] [只出现一次] [4]
+ * | parserIf MATHER_FINALLY callParserCode [结尾]
+ * 注释：会自动过滤 <ENTER> , 可以使用 <SEMICOLON> 作为结束表示
+ * 注释：自动添加 <ENTER> 结尾符号
+ * 注释：(MATHER_AS parserOperation) 表示允许出现或者不出现, 若出现则 MATHER_AS parserOperation 必须一起出现
+ * 特别注意：自进入模式[4]后，匹配顺序自上而下不可逆
+ * @param pm
+ * @param inter
+ */
 void parserIf(PASERSSIGNATURE){
     Statement *st = NULL;
     Statement *else_st = NULL;
@@ -267,6 +299,18 @@ void parserIf(PASERSSIGNATURE){
     return;
 }
 
+/**
+ * 条件循环匹配
+ * parserWhile:
+ * | MATHER_WHILE parserOperation (MATHER_AS parserOperation) callParserCode
+ * | parserWhile MATHER_DO callParserCode [只出现一次]
+ * | parserWhile MATHER_ELSE callParserCode [只出现一次]
+ * | parserWhile MATHER_FINALLY callParserCode [结尾]
+ * 注释：同 ``parserIf``
+ * 特别注意：匹配顺序自上而下不可逆
+ * @param pm
+ * @param inter
+ */
 void parserWhile(PASERSSIGNATURE){
     Statement *st = NULL;
     Statement *else_st = NULL;
@@ -351,6 +395,18 @@ void parserWhile(PASERSSIGNATURE){
     return;
 }
 
+/**
+ * 异常捕获分支匹配
+ * parserTry:
+ * | MATHER_TRY callParserCode
+ * | parserTry MATHER_EXCEPT (MATHER_AS parserOperation) callParserCode
+ * | parserTry MATHER_ELSE callParserCode [只出现一次]
+ * | parserTry MATHER_FINALLY callParserCode [结尾]
+ * 注释：同 ``parserIf``
+ * 特别注意：匹配顺序自上而下不可逆
+ * @param pm
+ * @param inter
+ */
 void parserTry(PASERSSIGNATURE){
     Statement *st = NULL;
     Statement *try_st = NULL;
@@ -369,6 +425,10 @@ void parserTry(PASERSSIGNATURE){
             goto again;
         }
         case MATHER_EXCEPT: {
+            if (else_st != NULL) {
+                syntaxError(pm, syntax_error, 1, "get except after else\n");
+                goto error_;
+            }
             Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
             delToken(pm);
             callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, NULL);
@@ -428,115 +488,13 @@ void parserTry(PASERSSIGNATURE){
 }
 
 /**
+ * 函数定义匹配
+ * parserDef:
+ * | parserBaseValue MATHER_LP parserParameter(is_formal) MATHER_RP callParserCode
+ * 注释：自动添加 <ENTER> 结尾符号
  * @param pm
  * @param inter
- * @param pt
- * @param is_formal 是否为形式参数, 若为true，则限定*args为only_value的结尾, **kwargs为name_value结尾
- * @param is_list 若为true则关闭对name_value和**kwargs的支持
- * @param is_dict 若为true则关闭对only_value和*args的支持
- * @param sep 设定分割符号
- * @param ass 设定赋值符号
- * @return
  */
-bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_formal, bool is_list, bool is_dict, int sep,
-                int ass) {
-    Parameter *new_pt = NULL;
-    Token *tmp;
-    bool last_pt = false;
-    enum {
-        s_1,  // only_value模式
-        s_2,  // name_value模式
-        s_3,  // only_args模式
-        s_4,  // name_args模式
-    } status;
-
-    if (is_dict)
-        status = s_2;  // is_formal关闭对only_value的支持
-    else
-        status = s_1;
-
-    while (!last_pt){
-        tmp = NULL;
-        if (!is_dict && status != s_2 && checkToken_(pm, MATHER_MUL))  // is_formal关闭对*args的支持
-            status = s_3;
-        else if (!is_list && checkToken_(pm, MATHER_POW))  // is_formal关闭对*args的支持
-            status = s_4;
-
-        parserPolynomial(CALLPASERSSIGNATURE);
-        if (!call_success(pm))
-            goto error_;
-        if (readBackToken(pm) != POLYNOMIAL) {
-            if (status == s_3) {
-                syntaxError(pm, syntax_error, 1, "Don't get a parameter after *");
-                goto error_;
-            }
-            break;
-        }
-        tmp = popAheadToken(pm);
-
-        int pt_type = value_par;
-        if (status == s_1){
-            if (!checkToken_(pm, sep)){
-                if (is_list || !checkToken_(pm, ass))  // // is_list关闭对name_value的支持
-                    last_pt = true;
-                else {
-                    pt_type = name_par;
-                    status = s_2;
-                }
-            }
-        }
-        else if (status == s_2){
-            pt_type = name_par;
-            if (!checkToken_(pm, ass))
-                goto error_;
-        }
-        else if (status == s_3){
-            pt_type = args_par;
-            if (!checkToken_(pm, sep))
-                last_pt = true;
-        }
-        else if (status == s_4){
-            pt_type = kwargs_par;
-            if (!checkToken_(pm, sep))
-                last_pt = true;
-        }
-
-        if (pt_type == value_par)
-            new_pt = connectOnlyValueParameter(tmp->data.st, new_pt);
-        else if (pt_type == name_par){
-            Statement *tmp_value;
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
-                goto error_;
-            new_pt = connectNameValueParameter(tmp_value, tmp->data.st, new_pt);
-            if (!checkToken_(pm, sep))
-                last_pt = true;
-        }
-        else if (pt_type == args_par){
-            new_pt = connectOnlyArgsParameter(tmp->data.st, new_pt);
-            if (is_formal)
-                status = s_2;  // 是否规定*args只出现一次
-            else
-                status = s_1;
-        }
-        else if (pt_type == kwargs_par){
-            new_pt = connectNameArgsParameter(tmp->data.st, new_pt);
-            if (is_formal)
-                last_pt = true; // 是否规定**kwargs只出现一次
-            else
-                status = s_2;
-        }
-        freeToken(tmp, true, false);
-    }
-    *pt = new_pt;
-    return true;
-
-    error_:
-    freeToken(tmp, true, true);
-    freeParameter(new_pt, true);
-    *pt = NULL;
-    return false;
-}
-
 void parserDef(PASERSSIGNATURE){
     Statement *st = NULL;
     Statement *name_tmp = NULL;
@@ -576,12 +534,19 @@ void parserDef(PASERSSIGNATURE){
     error_:
     freeStatement(name_tmp);
     freeStatement(code_tmp);
+    freeParameter(pt, true);
     return;
 }
 
+/**
+ * 函数定义匹配
+ * parserCode:
+ * | MATHER_LC parserCommandList MATHER_RC
+ * 注释：自动忽略MATHER_LC前的空格
+ * @param pm
+ * @param inter
+ */
 void parserCode(PASERSSIGNATURE){
-    Token *code_token = NULL;
-    Token *tk = NULL;
     Statement *st = makeStatement();
     while (true){
         if (!checkToken_(pm, MATHER_LC))
@@ -593,14 +558,9 @@ void parserCode(PASERSSIGNATURE){
     }
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList\n", NULL);
     parserCommandList(CALLPASERSSIGNATURE, false, st);
-    if (!call_success(pm)){
+    if (!call_success(pm))
         goto error_;
-    }
-    if (readBackToken(pm) != COMMANDLIST){
-        syntaxError(pm, syntax_error, 1, "Not CommandList\n");
-        goto error_;
-    }
-    code_token = popAheadToken(pm);
+
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList success\n", NULL);
     if (!checkToken_(pm, MATHER_RC)) {
         syntaxError(pm, syntax_error, 1, "Don't get the }");
@@ -609,11 +569,10 @@ void parserCode(PASERSSIGNATURE){
 
     return_:
     addStatementToken(CODE, st, pm);
-    freeToken(code_token, true, false);
     return;
 
     error_:
-    freeToken(code_token, true, true);
+    freeStatement(st);
     return;
 }
 
@@ -639,8 +598,9 @@ void parserOperation(PASERSSIGNATURE){
 /**
  * 赋值表达式匹配
  * parserAssignment:
- * | parserPolynomial
- * | parserAssignment ASSIGNMENT parserPolynomial
+ * | parserTuple
+ * | parserAssignment ASSIGNMENT parserTuple [2]
+ * 注意：在链接statement的时候, 模式[2]相当于 parserTuple ASSIGNMENT parserAssignment
  */
 bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
@@ -659,9 +619,9 @@ void parserAssignment(PASERSSIGNATURE){
 
 /**
  * 元组匹配
- * parserTuple
- * | switchPolynomial
- * | parserTuple COMMA switchPolynomial
+ * parserTuple:
+ * | parserPolynomial
+ * | parserTuple COMMA parserPolynomial
  * @param pm
  * @param inter
  */
@@ -695,7 +655,7 @@ void parserTuple(PASERSSIGNATURE){
 
 /**
  * 多项式匹配
- * parserPolynomial：
+ * parserPolynomial:
  * | parserBaseValue
  * | parserPolynomial ADD parserFactor
  * | parserPolynomial SUB parserFactor
@@ -720,10 +680,10 @@ void parserPolynomial(PASERSSIGNATURE){
 
 /**
  * 因式匹配
- * parserFactor：
- * | parserBaseValue [1]
- * | switchFactor ADD parserBaseValue
- * | switchFactor SUB parserBaseValue
+ * parserFactor:
+ * | parserCallBack
+ * | switchFactor ADD parserCallBack
+ * | switchFactor SUB parserCallBack
  */
 bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
@@ -743,19 +703,32 @@ void parserFactor(PASERSSIGNATURE){
                         "call back", "factor", false);
 }
 
+/**
+ * 函数回调匹配
+ * parserCallBack：
+ * | parserBaseValue
+ * | parserCallBack MATHER_LP parserParameter MATHER_RP
+ */
 int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
     Parameter *pt = NULL;
     if (readBackToken(pm) != MATHER_LP)
         return -1;
     delToken(pm);
+
+    if (checkToken_(pm, MATHER_RP))
+        goto not_pt;
+
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
         syntaxError(pm, syntax_error, 1, "Don't get call parameter");
         return 0;
     }
     if (!checkToken_(pm, MATHER_RP)){
+        freeParameter(pt, true);
         syntaxError(pm, syntax_error, 1, "Don't get ) from call back");
         return 0;
     }
+
+    not_pt:
     *st = makeCallStatement(left_token->data.st, pt);
     return 1;
 }
@@ -764,6 +737,12 @@ void parserCallBack(PASERSSIGNATURE){
             "Base Value", "Call Back");
 }
 
+/**
+ * 字面量匹配
+ * parserBaseValue：
+ * | MATHER_NUMBER
+ * | MATHER_STRING
+ */
 int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     *st = NULL;
     if (checkToken_(pm, right_type))
@@ -780,33 +759,26 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     return_:
     return 1;
 }
-/**
- * 字面量匹配
- * parserBaseValue：
- * | MATHER_NUMBER
- * | MATHER_STRING
- */
 void parserBaseValue(PASERSSIGNATURE){
-    int token_type;
-    Token *value_token = NULL;
+    Token *value_token = popAheadToken(pm);
     Statement *st = NULL;
-    token_type = readBackToken(pm);
-    value_token = popAheadToken(pm);
-    if (MATHER_NUMBER == token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number\n", NULL);
+    if (MATHER_NUMBER == value_token->token_type){
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number [%s]\n", value_token->data.str);
         char *stop;
-        st = makeBaseValueStatement(makeLinkValue(makeNumberValue(strtol(value_token->data.str, &stop, 10), inter), NULL, inter));
+        Value *tmp_value = makeNumberValue(strtol(value_token->data.str, &stop, 10), inter);
+        st = makeBaseValueStatement(makeLinkValue(tmp_value, NULL, inter));
     }
-    else if (MATHER_STRING == token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string\n", NULL);
-        st = makeBaseValueStatement(makeLinkValue(makeStringValue(value_token->data.str, inter), NULL, inter));
+    else if (MATHER_STRING == value_token->token_type){
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string [%s]\n", value_token->data.str);
+        Value *tmp_value = makeStringValue(value_token->data.str, inter);
+        st = makeBaseValueStatement(makeLinkValue(tmp_value, NULL, inter));
     }
-    else if (MATHER_VAR == token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var\n", NULL);
+    else if (MATHER_VAR == value_token->token_type){
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var [%s]\n", value_token->data.str);
         st = makeBaseVarStatement(value_token->data.str, NULL);
     }
-    else if (MATHER_SVAR == token_type){
-        Statement *svar_st;
+    else if (MATHER_SVAR == value_token->token_type){
+        Statement *svar_st = NULL;
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get super var\n", NULL);
         if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)){
             freeToken(value_token, true, true);
@@ -815,13 +787,12 @@ void parserBaseValue(PASERSSIGNATURE){
         }
         st = makeBaseSVarStatement(svar_st, NULL);
     }
-    else if (MATHER_LB == token_type){
+    else if (MATHER_LB == value_token->token_type){
         int tmp;
         Statement *tmp_st = NULL;
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation\n", NULL);
 
         tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation success\n", NULL);
         if (tmp == 0){
             freeToken(value_token, true, true);
             syntaxError(pm, syntax_error, 1, "Don't get operation from Base Value");
@@ -832,6 +803,7 @@ void parserBaseValue(PASERSSIGNATURE){
             syntaxError(pm, syntax_error, 1, "Don't get ] from list/var");
             goto return_;
         }
+        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation success\n", NULL);
 
         if (MATHER_VAR == readBackToken(pm)){
             Token *var_token;
@@ -850,7 +822,7 @@ void parserBaseValue(PASERSSIGNATURE){
                 st = makeTupleStatement(makeOnlyValueParameter(tmp_st), value_list);
         }
     }
-    else if (MATHER_LP == token_type){
+    else if (MATHER_LP == value_token->token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation\n", NULL);
         int tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
         if (tmp == 0){
@@ -864,9 +836,9 @@ void parserBaseValue(PASERSSIGNATURE){
             goto return_;
         }
     }
-    else if (MATHER_LC == token_type){
+    else if (MATHER_LC == value_token->token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get dict\n", NULL);
-        Parameter *pt;
+        Parameter *pt = NULL;
         if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, MATHER_COMMA, MATHER_COLON)) {
             freeToken(value_token, true, true);
             syntaxError(pm, syntax_error, 1, "Don't get a dict parameter");
