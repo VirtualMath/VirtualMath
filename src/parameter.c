@@ -17,13 +17,13 @@ Argument *makeArgument(){
     return tmp;
 }
 
-Argument *makeOnlyValueArgument(LinkValue *value){
+Argument *makeValueArgument(LinkValue *value){
     Argument *tmp = makeArgument();
     tmp->data.value = value;
     return tmp;
 }
 
-Argument *makeNameValueArgument(LinkValue *value, Statement *name){
+Argument *makeStatementNameArgument(LinkValue *value, Statement *name){
     Argument *tmp = makeArgument();
     tmp->type = name_arg;
     tmp->data.value = value;
@@ -31,7 +31,7 @@ Argument *makeNameValueArgument(LinkValue *value, Statement *name){
     return tmp;
 }
 
-Argument *makeCharNameArgument(LinkValue *value, char *name){
+Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *name) {
     Argument *tmp = makeArgument();
     tmp->type = name_arg;
     tmp->name_type = name_char;
@@ -50,18 +50,18 @@ Argument *connectArgument(Argument *new, Argument *base){
     return tmp;
 }
 
-Argument *connectOnlyValueArgument(LinkValue *value, Argument *base){
-    Argument *new = makeOnlyValueArgument(value);
+Argument *connectValueArgument(LinkValue *value, Argument *base){
+    Argument *new = makeValueArgument(value);
     return connectArgument(new, base);
 }
 
-Argument *connectNameValueArgument(LinkValue *value, Statement *name, Argument *base){
-    Argument *new = makeNameValueArgument(value, name);
+Argument *connectStatementNameArgument(LinkValue *value, Statement *name, Argument *base){
+    Argument *new = makeStatementNameArgument(value, name);
     return connectArgument(new, base);
 }
 
-Argument *connectCharNameArgument(LinkValue *value, char *name, Argument *base){
-    Argument *new = makeCharNameArgument(value, name);
+Argument *connectCharNameArgument(LinkValue *value, LinkValue *name_value, char *name, Argument *base) {
+    Argument *new = makeCharNameArgument(value, name_value, name);
     return connectArgument(new, base);
 }
 
@@ -101,13 +101,13 @@ Parameter *copyParameter(Parameter *base){
     return base_tmp;
 }
 
-Parameter *makeOnlyValueParameter(Statement *st){
+Parameter *makeValueParameter(Statement *st){
     Parameter *tmp = makeParameter();
     tmp->data.value = st;
     return tmp;
 }
 
-Parameter *makeNameValueParameter(Statement *value, Statement *name){
+Parameter *makeNameParameter(Statement *value, Statement *name){
     Parameter *tmp = makeParameter();
     tmp->type = name_par;
     tmp->data.value = value;
@@ -115,14 +115,14 @@ Parameter *makeNameValueParameter(Statement *value, Statement *name){
     return tmp;
 }
 
-Parameter *makeOnlyArgsParameter(Statement *st){
+Parameter *makeArgsParameter(Statement *st){
     Parameter *tmp = makeParameter();
     tmp->type = args_par;
     tmp->data.value = st;
     return tmp;
 }
 
-Parameter *makeNameArgsParameter(Statement *st){
+Parameter *makeKwrgsParameter(Statement *st){
     Parameter *tmp = makeParameter();
     tmp->type = kwargs_par;
     tmp->data.value = st;
@@ -139,23 +139,23 @@ Parameter *connectParameter(Parameter *new, Parameter *base){
     return tmp;
 }
 
-Parameter *connectOnlyValueParameter(Statement *st, Parameter *base){
-    Parameter *new = makeOnlyValueParameter(st);
+Parameter *connectValueParameter(Statement *st, Parameter *base){
+    Parameter *new = makeValueParameter(st);
     return connectParameter(new, base);
 }
 
-Parameter *connectNameValueParameter(Statement *value, Statement *name, Parameter *base){
-    Parameter *new = makeNameValueParameter(value, name);
+Parameter *connectNameParameter(Statement *value, Statement *name, Parameter *base){
+    Parameter *new = makeNameParameter(value, name);
     return connectParameter(new, base);
 }
 
-Parameter *connectOnlyArgsParameter(Statement *st, Parameter *base){
-    Parameter *new = makeOnlyArgsParameter(st);
+Parameter *connectArgsParameter(Statement *st, Parameter *base){
+    Parameter *new = makeArgsParameter(st);
     return connectParameter(new, base);
 }
 
-Parameter *connectNameArgsParameter(Statement *st, Parameter *base){
-    Parameter *new = makeNameArgsParameter(st);
+Parameter *connectKwargsParameter(Statement *st, Parameter *base){
+    Parameter *new = makeKwrgsParameter(st);
     return connectParameter(new, base);
 }
 
@@ -174,7 +174,7 @@ void freeParameter(Parameter *pt, bool free_st) {
 Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE){
     Argument *at = NULL;
     for (int i=0;i<list_value->value->data.list.size;i++){
-        at = connectOnlyValueArgument(list_value->value->data.list.list[i], at);
+        at = connectValueArgument(list_value->value->data.list.list[i], at);
     }
     return at;
 }
@@ -184,7 +184,7 @@ Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE){
     for (int i = 0; i < MAX_SIZE; i++) {
         Var *tmp = dict_value->value->data.dict.dict->hashtable[i];
         while (tmp != NULL) {
-            at = connectCharNameArgument(tmp->value, tmp->name, at);
+            at = connectCharNameArgument(tmp->value, tmp->name_, tmp->name, at);
             tmp = tmp->next;
         }
     }
@@ -240,7 +240,7 @@ Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *va
     while (call != NULL && call->type == name_arg){
         Result tmp_ass;
         if (call->name_type == name_char){
-            addFromVarList(call->data.name_, var_list, 0, call->data.value);
+            addFromVarList(call->data.name_, var_list, 0, call->data.value, call->data.name_value);
             goto next;
         }
         tmp_ass = assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
@@ -292,7 +292,7 @@ Result parameterFromVar(Parameter **function_ad, VarList *function_var, struct I
             goto not_return;
         }
 
-        tmp = getBaseVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list));
+        tmp = getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list));
         if (!run_continue(tmp)) {
             memFree(str_name);
             return tmp;
@@ -377,9 +377,9 @@ Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE
         }
 
         if (call->type == value_par)
-            base = connectOnlyValueArgument(tmp.value, base);
+            base = connectValueArgument(tmp.value, base);
         else if (call->type == name_par)
-            base = connectNameValueArgument(tmp.value, call->data.name, base);
+            base = connectStatementNameArgument(tmp.value, call->data.name, base);
         else if (call->type == args_par){
             Argument *tmp_at = listToArgument(tmp.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
             base = connectArgument(tmp_at, base);

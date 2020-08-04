@@ -29,6 +29,7 @@ struct Argument{
         struct LinkValue *value;
         struct Statement *name;  // 仅在name-value模式生效
         char *name_;
+        struct LinkValue *name_value;
     } data;
     struct Argument *next;
 };
@@ -37,26 +38,26 @@ typedef struct Parameter Parameter;
 typedef struct Argument Argument;
 
 Argument *makeArgument();
-Argument *makeOnlyValueArgument(LinkValue *value);
-Argument *makeNameValueArgument(LinkValue *value, struct Statement *name);
-Argument *makeCharNameArgument(LinkValue *value, char *name);
+Argument *makeValueArgument(LinkValue *value);
+Argument *makeStatementNameArgument(LinkValue *value, struct Statement *name);
+Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *name);
 Argument *connectArgument(Argument *new, Argument *base);
-Argument *connectOnlyValueArgument(LinkValue *value, Argument *base);
-Argument *connectNameValueArgument(LinkValue *value, struct Statement *name, Argument *base);
-Argument *connectCharNameArgument(LinkValue *value, char *name, Argument *base);
+Argument *connectValueArgument(LinkValue *value, Argument *base);
+Argument *connectStatementNameArgument(LinkValue *value, struct Statement *name, Argument *base);
+Argument *connectCharNameArgument(LinkValue *value, LinkValue *name_value, char *name, Argument *base);
 void freeArgument(Argument *at, bool free_st);
 
 Parameter *makeParameter();
 Parameter *copyParameter(Parameter *base);
-Parameter *makeOnlyValueParameter(struct Statement *st);
-Parameter *makeNameValueParameter(struct Statement *value, struct Statement *name);
-Parameter *makeOnlyArgsParameter(struct Statement *st);
-Parameter *makeNameArgsParameter(struct Statement *st);
+Parameter *makeValueParameter(struct Statement *st);
+Parameter *makeNameParameter(struct Statement *value, struct Statement *name);
+Parameter *makeArgsParameter(struct Statement *st);
+Parameter *makeKwrgsParameter(struct Statement *st);
 Parameter *connectParameter(Parameter *new, Parameter *base);
-Parameter *connectOnlyValueParameter(struct Statement *st, Parameter *base);
-Parameter *connectNameValueParameter(struct Statement *value, struct Statement *name, Parameter *base);
-Parameter *connectOnlyArgsParameter(struct Statement *st, Parameter *base);
-Parameter *connectNameArgsParameter(struct Statement *st, Parameter *base);
+Parameter *connectValueParameter(struct Statement *st, Parameter *base);
+Parameter *connectNameParameter(struct Statement *value, struct Statement *name, Parameter *base);
+Parameter *connectArgsParameter(struct Statement *st, Parameter *base);
+Parameter *connectKwargsParameter(struct Statement *st, Parameter *base);
 void freeParameter(Parameter *pt, bool free_st);
 Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE);
 Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE);

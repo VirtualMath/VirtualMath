@@ -821,7 +821,7 @@ void parserBaseValue(PASERSSIGNATURE){
                 st = tmp_st;
             }
             else
-                st = makeTupleStatement(makeOnlyValueParameter(tmp_st), value_list);
+                st = makeTupleStatement(makeValueParameter(tmp_st), value_list);
         }
     }
     else if (MATHER_LP == value_token->token_type){

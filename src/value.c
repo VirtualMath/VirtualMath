@@ -178,18 +178,18 @@ void printValue(Value *value, FILE *debug){
             writeLog(debug, INFO, "function on <%p>", value);
             break;
         case list:
-            writeLog(debug, INFO, "list on <%p> size : %d [", value, (int)value->data.list.size);
+            writeLog(debug, INFO, "list on <%p> size : %d  [ ", value, (int)value->data.list.size);
             for (int i=0;i < value->data.list.size;i++){
                 if (i > 0)
                     writeLog(debug, INFO, ", ", NULL);
 
                 printLinkValue(value->data.list.list[i], "", "", debug);
             }
-            writeLog(debug, INFO, "]", NULL);
+            writeLog(debug, INFO, " ]", NULL);
             break;
         case dict: {
             bool print_comma = false;
-            writeLog(debug, INFO, "dict on <%p> size : %d {", value, (int) value->data.dict.size);
+            writeLog(debug, INFO, "dict on <%p> size : %d  { ", value, (int) value->data.dict.size);
             for (int i = 0; i < MAX_SIZE; i++) {
                 Var *tmp = value->data.dict.dict->hashtable[i];
                 while (tmp != NULL) {
@@ -197,13 +197,13 @@ void printValue(Value *value, FILE *debug){
                         writeLog(debug, INFO, ", ", NULL);
                     else
                         print_comma = true;
-
-                    writeLog(debug, INFO, "'%s' : ", tmp->name);
+                    printLinkValue(tmp->name_, "", "", debug);
+                    writeLog(debug, INFO, " ['%s'] : ", tmp->name);
                     printLinkValue(tmp->value, "", "", debug);
                     tmp = tmp->next;
                 }
             }
-            writeLog(debug, INFO, "}", NULL);
+            writeLog(debug, INFO, " }", NULL);
             break;
         }
         case none:

@@ -150,7 +150,7 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
         Statement *tmp_st = makeStatement();
         tmp_st->type = base_value;
         tmp_st->u.base_value.value = value;
-        Parameter *pt = makeOnlyArgsParameter(tmp_st);
+        Parameter *pt = makeArgsParameter(tmp_st);
         Argument *call = getArgument(pt, &tmp_result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (!run_continue(tmp_result)) {
             freeArgument(call, false);
@@ -176,7 +176,7 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
             memFree(str_name);
             return tmp;
         }
-        addFromVarList(str_name, var_list, int_times, value);
+        addFromVarList(str_name, var_list, int_times, value, tmp.value);
         memFree(str_name);
         result.value = value;
     }

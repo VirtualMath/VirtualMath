@@ -324,24 +324,24 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
         }
 
         if (pt_type == value_par)
-            new_pt = connectOnlyValueParameter(tmp->data.st, new_pt);
+            new_pt = connectValueParameter(tmp->data.st, new_pt);
         else if (pt_type == name_par){
             Statement *tmp_value;
             if (!callChildStatement(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
                 goto error_;
-            new_pt = connectNameValueParameter(tmp_value, tmp->data.st, new_pt);
+            new_pt = connectNameParameter(tmp_value, tmp->data.st, new_pt);
             if (!checkToken_(pm, sep))
                 last_pt = true;
         }
         else if (pt_type == args_par){
-            new_pt = connectOnlyArgsParameter(tmp->data.st, new_pt);
+            new_pt = connectArgsParameter(tmp->data.st, new_pt);
             if (is_formal)
                 status = s_2;  // 是否规定*args只出现一次
             else
                 status = s_1;
         }
         else {
-            new_pt = connectNameArgsParameter(tmp->data.st, new_pt);
+            new_pt = connectKwargsParameter(tmp->data.st, new_pt);
             if (is_formal)
                 last_pt = true; // 是否规定**kwargs只出现一次
             else

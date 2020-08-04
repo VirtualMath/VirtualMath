@@ -5,7 +5,7 @@ Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     Result times_tmp;
 
     *name = setStrVarName(st->u.base_var.name, false, inter, var_list);
-
+    *times = 0;
     if (st->u.base_var.times == NULL){
         *times = 0;
         goto not_times;
@@ -15,18 +15,18 @@ Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     *times = (int)times_tmp.value->value->data.num.num; // TODO-szh 类型检查
 
     not_times:
-    setResult(&result, true, inter);
+    setResultOperation(&result, inter);
+    result.value->value = makeStringValue(st->u.base_var.name, inter);
     return result;
 }
 
 Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     Result result;
-    Result value;
     Result times_tmp;
 
-    if (operationSafeInterStatement(&value, CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list)))
-        return value;
-    *name = getNameFromValue(value.value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list)))
+        return result;
+    *name = getNameFromValue(result.value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 
     if (st->u.base_svar.times == NULL){
         *times = 0;
@@ -37,7 +37,7 @@ Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     *times = (int)times_tmp.value->value->data.num.num; // TODO-szh 类型检查
 
     not_times:
-    setResult(&result, true, inter);
+    result.type = operation_return;
     return result;
 }
 

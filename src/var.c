@@ -1,10 +1,11 @@
 #include "__virtualmath.h"
 
-Var *makeVar(char *name, LinkValue *value){
+Var *makeVar(char *name, LinkValue *value, LinkValue *name_) {
     Var *tmp;
     tmp = memCalloc(1, sizeof(Var));
     tmp->name = memStrcpy(name, 0, false, false);
     tmp->value = value;
+    tmp->name_ = name_;
     tmp->next = NULL;
     return tmp;
 }
@@ -104,11 +105,11 @@ HASH_INDEX time33(char *key){ // hash function
 }
 
 
-void addVar(char *name, LinkValue *value, VarList *var_list){
+void addVar(char *name, LinkValue *value, LinkValue *name_, VarList *var_list) {
     HASH_INDEX index = time33(name);
     Var *base = var_list->hashtable->hashtable[index];
     if (base == NULL){
-        var_list->hashtable->hashtable[index] = makeVar(name, value);
+        var_list->hashtable->hashtable[index] = makeVar(name, value, name_);
         goto return_;
     }
     while (true){
@@ -119,7 +120,7 @@ void addVar(char *name, LinkValue *value, VarList *var_list){
         base = base->next;
     }
     new_one:
-    base->next = makeVar(name, value);
+    base->next = makeVar(name, value, name_);
     goto return_;
 
     change:
@@ -172,11 +173,11 @@ LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, boo
     return tmp;
 }
 
-void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value){
+void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value, LinkValue *name_) {
     for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++){
         var_list = var_list->next;
     }
-    addVar(name, value, var_list);
+    addVar(name, value, name_, var_list);
 }
 
 VarList *pushVarList(VarList *base, Inter *inter){

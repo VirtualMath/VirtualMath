@@ -6,6 +6,7 @@
 struct Var{
     char *name;
     struct LinkValue *value;
+    struct LinkValue *name_;
     struct Var *next;
 };
 
@@ -25,7 +26,7 @@ typedef struct Var Var;
 typedef struct HashTable HashTable;
 typedef struct VarList VarList;
 
-Var *makeVar(char *name, LinkValue *value);
+Var *makeVar(char *name, LinkValue *value, LinkValue *name_);
 Var *freeVar(Var *var, bool self);
 
 HashTable *makeHashTable(Inter *inter, bool supervision);
@@ -37,8 +38,8 @@ VarList *freeVarList(VarList *vl, bool self);
 HASH_INDEX time33(char *key);
 LinkValue *findVar(char *name, VarList *var_list, bool del_var);
 LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, bool del_var);
-void addVar(char *name, LinkValue *value, VarList *var_list);
-void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value);
+void addVar(char *name, LinkValue *value, LinkValue *name_, VarList *var_list);
+void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value, LinkValue *name_);
 
 VarList *pushVarList(VarList *base, Inter *inter);
 VarList *popVarList(VarList *base);
