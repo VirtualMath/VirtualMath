@@ -175,10 +175,10 @@ void printValue(Value *value, FILE *debug){
             writeLog(debug, INFO, "'%s'", value->data.str.str);
             break;
         case function:
-            writeLog(debug, INFO, "function on <%lx>", (unsigned long )value);
+            writeLog(debug, INFO, "function on <%p>", value);
             break;
         case list:
-            writeLog(debug, INFO, "list on <%lx> size = %d [", (unsigned long )value, (int)value->data.list.size);
+            writeLog(debug, INFO, "list on <%p> size : %d [", value, (int)value->data.list.size);
             for (int i=0;i < value->data.list.size;i++){
                 if (i > 0)
                     writeLog(debug, INFO, ", ", NULL);
@@ -189,7 +189,7 @@ void printValue(Value *value, FILE *debug){
             break;
         case dict: {
             bool print_comma = false;
-            writeLog(debug, INFO, "dict on <%lx> size = %d {", (unsigned long) value, (int) value->data.dict.size);
+            writeLog(debug, INFO, "dict on <%p> size : %d {", value, (int) value->data.dict.size);
             for (int i = 0; i < MAX_SIZE; i++) {
                 Var *tmp = value->data.dict.dict->hashtable[i];
                 while (tmp != NULL) {
@@ -210,7 +210,7 @@ void printValue(Value *value, FILE *debug){
             writeLog(debug, INFO, "<None>", NULL);
             break;
         default:
-            writeLog(debug, INFO, "default on <%lx>", (unsigned long )value);
+            writeLog(debug, INFO, "default on <%p>", value);
             break;
     }
 }
