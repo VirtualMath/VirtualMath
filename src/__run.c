@@ -4,7 +4,7 @@ Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     Result result;
     Result times_tmp;
 
-    *name = setStrVarName(st->u.base_var.name, false);
+    *name = setStrVarName(st->u.base_var.name, false, inter, var_list);
 
     if (st->u.base_var.times == NULL){
         *times = 0;
@@ -26,7 +26,7 @@ Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
 
     if (operationSafeInterStatement(&value, CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list)))
         return value;
-    *name = getNameFromValue(value.value->value);
+    *name = getNameFromValue(value.value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 
     if (st->u.base_svar.times == NULL){
         *times = 0;
@@ -50,32 +50,32 @@ Result getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     else{
         if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st, var_list)))
             return result;
-        *name = getNameFromValue(result.value->value);
+        *name = getNameFromValue(result.value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         *times = 0;
     }
     return result;
 }
 
-char *setStrVarName(char *old, bool free_old){
-    char *name = memStrcat(VARSTR_PREFIX, old);
+char *setStrVarName(char *old, bool free_old, INTER_FUNCTIONSIG_CORE) {
+    char *name = memStrcat(inter->data.var_str_prefix, old);
     if (free_old)
         memFree(old);
     return name;
 }
 
-char *setNumVarName(NUMBER_TYPE num){
+char *setNumVarName(NUMBER_TYPE num, INTER_FUNCTIONSIG_CORE) {
     char name[50];
     snprintf(name, 50, "%"NUMBER_FORMAT, num);
-    return memStrcat(VARNUM_PREFIX, name);
+    return memStrcat(inter->data.var_num_prefix, name);
 }
 
-char *getNameFromValue(Value *value){
+char *getNameFromValue(Value *value, INTER_FUNCTIONSIG_CORE) {
     switch (value->type){
         case string:
-            return setStrVarName(value->data.str.str, false);
+            return setStrVarName(value->data.str.str, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         case number:
-            return setNumVarName(value->data.num.num);
+            return setNumVarName(value->data.num.num, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         default:
-            return memStrcpy(VARDEFAULT_PREFIX, 0, false, false);
+            return memStrcpy(inter->data.var_defualt, 0, false, false);
     }
 }

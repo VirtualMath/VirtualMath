@@ -510,7 +510,7 @@ Result setParameterCore(Argument *call, Parameter *function_base, VarList *funct
             }
             case error:
             error_:
-                writeLog(inter->debug, ERROR, "setParameter error\n", NULL);
+                writeLog(inter->data.debug, ERROR, "setParameter error\n", NULL);
                 setResultError(&result, inter);
                 goto return_;
             default:

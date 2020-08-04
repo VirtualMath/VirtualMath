@@ -7,13 +7,19 @@ struct Inter{
     struct HashTable *hash_base;
     struct Statement *statement;
     struct VarList *var_list;
-    char *log_dir;  // 记录log文件夹的位置
-    FILE *debug;
+    struct InterData{
+        FILE *debug;
+        char *log_dir;  // 记录log文件夹的位置
+        char *var_str_prefix;
+        char *var_num_prefix;
+        char *var_defualt;
+    } data;
 };
 
 typedef struct Inter Inter;
 
 Inter *makeInter(char *debug);
 void freeInter(Inter *inter, bool self);
+void setBaseInterData(struct Inter *inter);
 
 #endif //VIRTUALMATH_INTER_H

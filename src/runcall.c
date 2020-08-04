@@ -18,7 +18,7 @@ Result callFunction(INTER_FUNCTIONSIG) {
         return call_function;
 
     if (call_function.value->value->type != function){
-        writeLog_(inter->debug, WARNING, "call not function[%d]\n", call_function.type);
+        writeLog_(inter->data.debug, WARNING, "call not function[%d]\n", call_function.type);
         setResultError(&result, inter);
         result.type = error_return;
         goto return_;

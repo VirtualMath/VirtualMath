@@ -87,8 +87,7 @@
 
 #define MATHER_MAX 75
 
-// 从-5开始是为了避开status的特殊值，尽管这并没有什么影响
-#define COMMANDLIST -5
+// 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMAND -6
 #define OPERATION -7
 #define POLYNOMIAL -8

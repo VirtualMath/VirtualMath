@@ -25,40 +25,34 @@ int getArgs(int argc, char *argv[]);
 void freeArgs();
 
 int main(int argc, char *argv[]) {
-    printf("[start VirtualMath]\n");
-    if (getArgs(argc, argv)){
+    if (getArgs(argc, argv))
         goto args_error_;
-    }
 
-    Inter *global_iter = makeInter(args.log_file);
+    Inter *global_inter = makeInter(args.log_file);
     ParserMessage *pm = makeParserMessage(args.file, args.log_file);
 
-    printf("[start to lexical]\n");
-    parserCommandList(pm, global_iter, true, global_iter->statement);
+    parserCommandList(pm, global_inter, true, global_inter->statement);
     if (pm->status != success){
         writeLog(pm->paser_debug, ERROR, "Syntax Error: %s\n", pm->status_message);
         writeLog(stderr, ERROR, "Syntax Error: %s\n", pm->status_message);
         goto return_;
     }
 
-    printf("[start to run]\n");
     Result tmp;
-    tmp = globalIterStatement(global_iter);
+    tmp = globalIterStatement(global_inter);
     if (tmp.type == error_return){
-        writeLog(global_iter->debug, ERROR, "Run Error\n", NULL);
+        writeLog(global_inter->data.debug, ERROR, "Run Error\n", NULL);
         writeLog(stderr, ERROR, "Run Error\n", NULL);
     }
 
     return_:
     freeParserMessage(pm, true);
-    freeInter(global_iter, true);
+    freeInter(global_inter, true);
     freeArgs();
-    printf("[exit Virtual [0]]\n");
     return 0;
 
     args_error_:
     freeArgs();
-    printf("[exit Virtual [1]]\n");
     return 1;
 }
 
@@ -118,7 +112,8 @@ void freeArgs(){
 }
 
 /**
- *  TODO-szh 函数形式参数复制
- *  TODO-szh 运行错误的内存释放检查
- *  TODO-szh syntax错误的内存释放检查
+ * TODO-szh 使用inter的Data成员
+ * TODO-szh 面向对象
+ * TODO-szh import和include语句
+ * TODO-szh 检查文件是否存在
  */

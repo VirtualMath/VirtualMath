@@ -27,7 +27,7 @@ Result runStatement(INTER_FUNCTIONSIG) {
             break;
         case operation:
             result = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-            printLinkValue(result.value, "operation result = ", "\n", inter->debug);
+            printLinkValue(result.value, "operation result = ", "\n", inter->data.debug);
             break;
         case set_function:
             result = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list));

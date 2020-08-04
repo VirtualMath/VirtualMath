@@ -197,7 +197,7 @@ Result getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     result.value = findFromVarList(name, var_list, int_times, false);
     memFree(name);
     if (result.value == NULL){
-        writeLog_(inter->debug, WARNING, "var not found[%s]\n", st->u.base_var.name);
+        writeLog_(inter->data.debug, WARNING, "var not found[%s]\n", st->u.base_var.name);
         setResultError(&result, inter);
     }
     return result;

@@ -30,9 +30,9 @@ Result raiseCode(INTER_FUNCTIONSIG);
 
 Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE);
 
-char *setStrVarName(char *old, bool free_old);
-char *setNumVarName(NUMBER_TYPE num);
-char *getNameFromValue(Value *value);
+char *setStrVarName(char *old, bool free_old, INTER_FUNCTIONSIG_CORE);
+char *setNumVarName(NUMBER_TYPE num, INTER_FUNCTIONSIG_CORE);
+char *getNameFromValue(Value *value, INTER_FUNCTIONSIG_CORE);
 Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 Result getVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
