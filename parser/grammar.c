@@ -9,8 +9,10 @@ ParserMessage *makeParserMessage(char *file_dir, char *debug){
 #if OUT_LOG
     if (debug != NULL){
         char *debug_dir = memStrcat(debug, PASERS_LOG), *grammar_dir = memStrcat(debug, GRAMMAR_LOG);
-        tmp->paser_debug = fopen(debug_dir, "w");
-        tmp->grammar_debug = fopen(grammar_dir, "w");
+        if (access(debug_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
+            tmp->paser_debug = fopen(debug_dir, "w");
+        if (access(grammar_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
+            tmp->grammar_debug = fopen(grammar_dir, "w");
         memFree(debug_dir);
         memFree(grammar_dir);
     }

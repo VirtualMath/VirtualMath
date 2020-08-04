@@ -1,13 +1,25 @@
 #include "__virtualmath.h"
 
-Inter *runBaseInter(char *code_file, char *debug_dir) {
+Inter *runBaseInter(char *code_file, char *debug_dir, int *status) {
     Result global_result;
-    return newInter(code_file, debug_dir, &global_result);
+    return newInter(code_file, debug_dir, &global_result, status);
 }
 
-Inter *newInter(char *code_file, char *debug_dir, Result *global_result) {
-    Inter *global_inter = makeInter(debug_dir);
-    ParserMessage *pm = makeParserMessage(code_file, debug_dir);
+Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *status) {
+    Inter *global_inter = NULL;
+    ParserMessage *pm = NULL;
+    *status = 0;
+
+    if (access(code_file, R_OK) != 0){
+        *status = 1;
+        return NULL;
+    }
+
+    if (access(debug_dir, R_OK) != 0)
+        debug_dir = NULL;
+
+    global_inter = makeInter(debug_dir);
+    pm = makeParserMessage(code_file, debug_dir);
 
     parserCommandList(pm, global_inter, true, global_inter->statement);
     if (pm->status != success){

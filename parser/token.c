@@ -70,7 +70,8 @@ TokenMessage *makeTokenMessage(char *file_dir, char *debug) {
 #if OUT_LOG
     if (debug != NULL){
         char *debug_dir = memStrcat(debug, LEXICAL_LOG);
-        tm->debug = fopen(debug_dir, "w");
+        if (access(debug_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
+            tm->debug = fopen(debug_dir, "w");
         memFree(debug_dir);
     }
     else{

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <getopt.h>
+#include <unistd.h>
 
 // 布尔逻辑的定义
 #define bool int

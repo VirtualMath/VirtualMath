@@ -23,6 +23,6 @@ typedef struct Inter Inter;
 Inter *makeInter(char *debug);
 void freeInter(Inter *inter, bool self);
 void setBaseInterData(struct Inter *inter);
-Inter *newInter(char *code_file, char *debug_dir, struct Result *global_result);
-Inter *runBaseInter(char *code_file, char *debug_dir);
+Inter *newInter(char *code_file, char *debug_dir,struct Result *global_result, int *status);
+Inter *runBaseInter(char *code_file, char *debug_dir, int *status);
 #endif //VIRTUALMATH_INTER_H
