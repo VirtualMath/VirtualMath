@@ -1,6 +1,8 @@
 #ifndef VIRTUALMATH_INTER_H
 #define VIRTUALMATH_INTER_H
 
+struct Result;
+
 struct Inter{
     struct Value *base;
     struct LinkValue *link_base;
@@ -21,5 +23,6 @@ typedef struct Inter Inter;
 Inter *makeInter(char *debug);
 void freeInter(Inter *inter, bool self);
 void setBaseInterData(struct Inter *inter);
-
+Inter *newInter(char *code_file, char *debug_dir, struct Result *global_result);
+Inter *runBaseInter(char *code_file, char *debug_dir);
 #endif //VIRTUALMATH_INTER_H

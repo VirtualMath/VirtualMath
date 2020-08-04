@@ -1,5 +1,6 @@
 #ifndef VIRTUALMATH_VALUE_H
 #define VIRTUALMATH_VALUE_H
+#include "__macro.h"
 
 struct VarList;
 struct Argument;

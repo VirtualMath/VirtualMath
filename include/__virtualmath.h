@@ -14,14 +14,6 @@
 #include "syntax.h"
 #include "grammar.h"
 #include "log.h"
-
-struct Args{
-    char *file;
-    char *log_file;
-    int level;
-    bool stdout_inter;
-} args;
-
-typedef struct Args Args;
+#include "arguement.h"
 
 #endif //VIRTUALMATH___VIRTUALMATH_H

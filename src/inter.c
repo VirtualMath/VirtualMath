@@ -1,5 +1,32 @@
 #include "__virtualmath.h"
 
+Inter *runBaseInter(char *code_file, char *debug_dir) {
+    Result global_result;
+    return newInter(code_file, debug_dir, &global_result);
+}
+
+Inter *newInter(char *code_file, char *debug_dir, Result *global_result) {
+    Inter *global_inter = makeInter(debug_dir);
+    ParserMessage *pm = makeParserMessage(code_file, debug_dir);
+
+    parserCommandList(pm, global_inter, true, global_inter->statement);
+    if (pm->status != success){
+        writeLog(pm->paser_debug, ERROR, "Syntax Error: %s\n", pm->status_message);
+        writeLog(stderr, ERROR, "Syntax Error: %s\n", pm->status_message);
+        goto return_;
+    }
+
+    *global_result = globalIterStatement(global_inter);
+    if (global_result->type == error_return){
+        writeLog(global_inter->data.debug, ERROR, "Run Error\n", NULL);
+        writeLog(stderr, ERROR, "Run Error\n", NULL);
+    }
+
+    return_:
+    freeParserMessage(pm, true);
+    return global_inter;
+}
+
 Inter *makeInter(char *debug){
     Inter *tmp = memCalloc(1, sizeof(Inter));
     setBaseInterData(tmp);
