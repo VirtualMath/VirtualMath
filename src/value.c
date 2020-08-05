@@ -284,3 +284,7 @@ void printError(Error *error, Inter *inter, bool free) {
     if (free)
         freeError(base);
 }
+
+inline bool isType(Value *value, enum ValueType type){
+    return value->type == type;
+}

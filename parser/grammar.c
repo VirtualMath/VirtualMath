@@ -55,7 +55,7 @@ void freeParserMessage(ParserMessage *pm, bool self) {
  * | parserCommand MATHER_SEMICOLON
  * | parserCommand MATHER_EOF
  */
-void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st) {
+void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
     int token_type;
     char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
 
@@ -192,7 +192,7 @@ void parserCommand(PASERSSIGNATURE){
  * @param type 输出token的类型
  * @param must_operation 必须匹配 operation
  */
-void parserControl(ParserMessage *pm, Inter *inter, MakeControlFunction callBack, int type, bool must_operation,
+void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool must_operation,
                    char *message) {
     Statement *times = NULL;
     Statement *st = NULL;
@@ -250,9 +250,9 @@ void parserIf(PASERSSIGNATURE){
             goto not_del;
         case MATHER_ELIF: {
             Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
-            long int tmo_line = delToken(pm);
+            long int tmp_line = delToken(pm);
             if (else_st != NULL) {
-                syntaxError(pm, syntax_error, tmo_line, 1, "get elif after else");
+                syntaxError(pm, syntax_error, tmp_line, 1, "get elif after else");
                 goto error_;
             }
 
@@ -266,7 +266,7 @@ void parserIf(PASERSSIGNATURE){
                 goto error_;
             }
 
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if code")) {
+            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if code", tmp_line)) {
                 freeStatement(condition_tmp);
                 freeStatement(var_tmp);
                 goto error_;
@@ -278,8 +278,8 @@ void parserIf(PASERSSIGNATURE){
             if (else_st != NULL)
                 goto default_;
             Statement *code_tmp = NULL;
-            delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if...do code"))
+            long int tmp_line = delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if...do code", tmp_line))
                 goto error_;
             sl = makeConnectStatementList(sl, NULL, NULL, code_tmp, do_b);
             goto again;
@@ -290,15 +290,16 @@ void parserIf(PASERSSIGNATURE){
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else");
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a if...else code"))
+            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a if...else code", tmp_line))
                 goto error_;
             goto again;
         }
-        case MATHER_FINALLY:
-            delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a if...else code"))
+        case MATHER_FINALLY: {
+            long int tmp_line = delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a if...else code", tmp_line))
                 goto error_;
             break;
+        }
         case MATHER_ENTER:
             delToken(pm);
             goto again;
@@ -362,7 +363,7 @@ void parserWhile(PASERSSIGNATURE){
                 freeStatement(condition_tmp);
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a while code")) {
+            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a while code", line)) {
                 freeStatement(condition_tmp);
                 freeStatement(var_tmp);
                 goto error_;
@@ -372,28 +373,30 @@ void parserWhile(PASERSSIGNATURE){
             sl = makeStatementList(condition_tmp, var_tmp, code_tmp, while_b);
             goto again;
         }
-        case MATHER_DO:
+        case MATHER_DO: {
             if (do_st != NULL || else_st != NULL)
                 goto default_;
-            delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &do_st, "Don't get a while...do code"))
+            long int tmp_line = delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &do_st, "Don't get a while...do code", tmp_line))
                 goto error_;
             goto again;
+        }
         case MATHER_ELSE: {
             long int tmp_line = delToken(pm);
             if (else_st != NULL) {
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else\n");
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a while...else code"))
+            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a while...else code", tmp_line))
                 goto error_;
             goto again;
         }
-        case MATHER_FINALLY:
-            delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a while...finally code"))
+        case MATHER_FINALLY: {
+            long int tmp_line = delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a while...finally code", tmp_line))
                 goto error_;
             break;
+        }
         case MATHER_ENTER:
             delToken(pm);
             goto again;
@@ -447,7 +450,7 @@ void parserTry(PASERSSIGNATURE){
             if (try_st != NULL)
                 goto default_;
             line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &try_st, "Don't get a try code"))
+            if (!callParserCode(CALLPASERSSIGNATURE, &try_st, "Don't get a try code", line))
                 goto error_;
             goto again;
         }
@@ -465,7 +468,7 @@ void parserTry(PASERSSIGNATURE){
                 freeStatement(condition_tmp);
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a except code")) {
+            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a except code", tmp_line)) {
                 freeStatement(condition_tmp);
                 freeStatement(var_tmp);
                 goto error_;
@@ -479,15 +482,16 @@ void parserTry(PASERSSIGNATURE){
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else");
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a try...else code"))
+            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a try...else code", tmp_line))
                 goto error_;
             goto again;
         }
-        case MATHER_FINALLY:
-            delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a try...finally code"))
+        case MATHER_FINALLY: {
+            long int tmp_line = delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a try...finally code", tmp_line))
                 goto error_;
             break;
+        }
         case MATHER_ENTER:
             delToken(pm);
             goto again;
@@ -550,7 +554,7 @@ void parserDef(PASERSSIGNATURE){
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserDef: get function title success\n", NULL);
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserDef: call parserCode\n", NULL);
 
-    if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a function code")) {
+    if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a function code", line)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get a function code");
         goto error_;
     }
@@ -575,9 +579,9 @@ void parserDef(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserCode(PASERSSIGNATURE){
-    Statement *st = makeStatement(0, NULL);  // TODO-szh 设置Line
+void parserCode(PASERSSIGNATURE) {
     long int line = 0;
+    Statement *st = NULL;
     while (true){
         if (readBackToken(pm) == MATHER_LC){
             line = delToken(pm);
@@ -588,6 +592,7 @@ void parserCode(PASERSSIGNATURE){
         if (!checkToken_(pm, MATHER_ENTER))
             goto return_;
     }
+    st = makeStatement(line, pm->file);
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList\n", NULL);
     parserCommandList(CALLPASERSSIGNATURE, false, st);
     if (!call_success(pm))
@@ -637,7 +642,7 @@ void parserOperation(PASERSSIGNATURE){
 bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_ASSIGNMENT:
-            *st = makeOperationStatement(ASS, 0, pm->file);
+            *st = makeOperationStatement(OPT_ASS, 0, pm->file);
             break;
         default:
             return false;
@@ -693,16 +698,16 @@ void parserTuple(PASERSSIGNATURE){
  * 多项式匹配
  * parserPolynomial:
  * | parserBaseValue
- * | parserPolynomial ADD parserFactor
- * | parserPolynomial SUB parserFactor
+ * | parserPolynomial OPT_ADD parserFactor
+ * | parserPolynomial OPT_SUB parserFactor
  */
 bool switchPolynomial(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_ADD:
-            *st = makeOperationStatement(ADD, 0, pm->file);
+            *st = makeOperationStatement(OPT_ADD, 0, pm->file);
             break;
         case MATHER_SUB:
-            *st = makeOperationStatement(SUB, 0, pm->file);
+            *st = makeOperationStatement(OPT_SUB, 0, pm->file);
             break;
         default:
             return false;
@@ -718,16 +723,16 @@ void parserPolynomial(PASERSSIGNATURE){
  * 因式匹配
  * parserFactor:
  * | parserCallBack
- * | switchFactor ADD parserCallBack
- * | switchFactor SUB parserCallBack
+ * | switchFactor OPT_ADD parserCallBack
+ * | switchFactor OPT_SUB parserCallBack
  */
 bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_MUL:
-            *st = makeOperationStatement(MUL, 0, pm->file);
+            *st = makeOperationStatement(OPT_MUL, 0, pm->file);
             break;
         case MATHER_DIV:
-            *st = makeOperationStatement(DIV, 0, pm->file);
+            *st = makeOperationStatement(OPT_DIV, 0, pm->file);
             break;
         default:
             return false;

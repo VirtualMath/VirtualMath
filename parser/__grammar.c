@@ -13,7 +13,7 @@
  * @param self_name 输出值名称(log)
  * @param is_right 表达式是否从右运算到左
  */
-inline void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBack, GetSymbolFunction getSymbol,
+inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol,
                          int call_type, int self_type, char *call_name, char *self_name, bool is_right) {
     bool is_right_ = false;
     while(true){
@@ -171,7 +171,7 @@ bool checkToken_(ParserMessage *pm, int type){
     return true;
 }
 
-bool commandCallControl_(ParserMessage *pm, Inter *inter, MakeControlFunction callBack, int type, Statement **st,
+bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st,
                          char *log_message, bool must_operation, char *error_message) {
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, log_message, NULL);
     Token *tmp_token = NULL;
@@ -190,14 +190,20 @@ inline bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type,
     return callChildStatement(CALLPASERSSIGNATURE, callBack, type, st, NULL);
 }
 
-bool callParserCode(PASERSSIGNATURE, Statement **st,char *message){
-    Statement *new_st = NULL;
+bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int line) {
+    Token *tmp;
     *st = NULL;
-    if(!callChildStatement(CALLPASERSSIGNATURE, parserCode, CODE, &new_st, message))
+    parserCode(CALLPASERSSIGNATURE);
+    if (!call_success(pm))
         return false;
-    if (*st != NULL)
-        freeStatement(*st);
-    *st = new_st;
+    if (readBackToken(pm) != CODE) {
+        if (message != NULL)
+            syntaxError(pm, syntax_error, line, 1, message);
+        return false;
+    }
+    tmp = popAheadToken(pm);
+    *st = tmp->data.st;
+    freeToken(tmp, true, false);
     return true;
 }
 
@@ -210,7 +216,7 @@ bool callParserAs(PASERSSIGNATURE, Statement **st,char *message){
     return true;
 }
 
-bool callChildToken(ParserMessage *pm, Inter *inter, PasersFunction callBack, int type, Token **tmp, char *message,
+bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **tmp, char *message,
                     int error_type) {
     *tmp = NULL;
     callBack(CALLPASERSSIGNATURE);
@@ -264,7 +270,7 @@ bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Stat
  * @param ass 设定赋值符号
  * @return
  */
-bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_formal, bool is_list, bool is_dict, int sep,
+bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_list, bool is_dict, int sep,
                      int ass) {
     Parameter *new_pt = NULL;
     Token *tmp;

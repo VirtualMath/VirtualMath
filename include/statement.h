@@ -47,11 +47,11 @@ struct Statement{
         } base_dict;
         struct operation{
             enum OperationType{
-                ADD = 1,
-                SUB,
-                MUL,
-                DIV,
-                ASS,
+                OPT_ADD = 1,
+                OPT_SUB,
+                OPT_MUL,
+                OPT_DIV,
+                OPT_ASS,
             } OperationType;
             struct Statement *left;
             struct Statement *right;

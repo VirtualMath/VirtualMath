@@ -147,7 +147,7 @@ TokenMessage *makeTokenMessage(char *file_dir, char *debug);
 void freeTokenMessage(TokenMessage *tm, bool self, bool free_st);
 
 Token *makeToken(long int line);
-long freeToken(Token *tk, bool self, bool error);
+long freeToken(Token *tk, bool self, bool free_st);
 Token *makeLexToken(int type, char *str, char *second_str, long int line);
 Token *makeStatementToken(int type, struct Statement *st);
 

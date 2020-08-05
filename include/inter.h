@@ -21,7 +21,7 @@ struct Inter{
 
 typedef struct Inter Inter;
 
-Inter *makeInter(char *debug);
+Inter *makeInter(char *code_file, char *debug);
 void freeInter(Inter *inter, bool self);
 void setBaseInterData(struct Inter *inter);
 Inter *newInter(char *code_file, char *debug_dir,struct Result *global_result, int *status);

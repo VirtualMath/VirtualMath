@@ -27,18 +27,16 @@ Token *makeStatementToken(int type, struct Statement *st){
     return tmp;
 }
 
-long freeToken(Token *tk, bool self, bool error) {
+long freeToken(Token *tk, bool self, bool free_st) {
     long int line = 0;
     freeBase(tk, return_);
     line = tk->line;
     memFree(tk->data.str);
     memFree(tk->data.second_str);
-    if (error){
+    if (free_st)
         freeStatement(tk->data.st);
-    }
-    if (self){
+    if (self)
         memFree(tk);
-    }
     return_:
     return line;
 }

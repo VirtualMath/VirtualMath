@@ -35,19 +35,19 @@ Result assOperation(INTER_FUNCTIONSIG);
 Result operationStatement(INTER_FUNCTIONSIG) {
     Result result;
     switch (st->u.operation.OperationType) {
-        case ADD:
+        case OPT_ADD:
             result = addOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
-        case SUB:
+        case OPT_SUB:
             result = subOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
-        case MUL:
+        case OPT_MUL:
             result = mulOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
-        case DIV:
+        case OPT_DIV:
             result = divOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
-        case ASS:
+        case OPT_ASS:
             result = assOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         default:

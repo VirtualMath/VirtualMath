@@ -18,7 +18,7 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
     if (access(debug_dir, R_OK) != 0)
         debug_dir = NULL;
 
-    global_inter = makeInter(debug_dir);
+    global_inter = makeInter(code_file, debug_dir);
     pm = makeParserMessage(code_file, debug_dir);
 
     parserCommandList(pm, global_inter, true, global_inter->statement);
@@ -41,12 +41,12 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
     return global_inter;
 }
 
-Inter *makeInter(char *debug){
+Inter *makeInter(char *code_file, char *debug) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
     setBaseInterData(tmp);
     tmp->base = NULL;
     tmp->link_base = NULL;
-    tmp->statement = makeStatement(0, NULL);  // TODO-szh 设置文件
+    tmp->statement = makeStatement(0, code_file);
     tmp->var_list = makeVarList(tmp);
     tmp->data.log_dir = memStrcpy(debug, 0, false, false);
 

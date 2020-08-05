@@ -1,5 +1,11 @@
 #include "__run.h"
 
+#define checkNumber(new_result) do{ \
+if (!isType(new_result.value->value, number)){ \
+setResultError(&result, inter, "TypeException", "Don't get a number value", st, true); \
+return result; \
+}}while(0) /*该Macro只适用于控制分支*/
+
 bool checkBool(Value *value){
     switch (value->type) {
         case number:
@@ -13,7 +19,6 @@ bool checkBool(Value *value){
     }
 }
 
-// TODO-szh 检查rego对else的支持
 Result ifBranch(INTER_FUNCTIONSIG) {
     Result result;
     Result else_tmp;
@@ -198,7 +203,7 @@ Result breakCycle(INTER_FUNCTIONSIG){
         goto not_times;
     if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.break_cycle.times, var_list)))
         return times;
-    // TODO-szh 类型检查处理
+    checkNumber(times);
     times_int = (int)times.value->value->data.num.num;
     not_times:
     setResult(&result, inter);
@@ -217,6 +222,7 @@ Result continueCycle(INTER_FUNCTIONSIG){
         goto not_times;
     if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.continue_cycle.times, var_list)))
         return times;
+    checkNumber(times);
     times_int = (int)times.value->value->data.num.num;
     not_times:
     setResult(&result, inter);
@@ -235,6 +241,7 @@ Result regoIf(INTER_FUNCTIONSIG){
         goto not_times;
     if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.rego_if.times, var_list)))
         return times;
+    checkNumber(times);
     times_int = (int)times.value->value->data.num.num;
     not_times:
     setResult(&result, inter);
@@ -253,6 +260,7 @@ Result restartCode(INTER_FUNCTIONSIG){
         goto not_times;
     if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.restart.times, var_list)))
         return times;
+    checkNumber(times);
     times_int = (int)times.value->value->data.num.num;
     not_times:
     setResult(&result, inter);
@@ -288,5 +296,6 @@ Result raiseCode(INTER_FUNCTIONSIG){
 
     set_result:
     result.type = error_return;
+    setResultError(&result, inter, "RaiseException", "Exception was raise by user", st, true);
     return result;
 }

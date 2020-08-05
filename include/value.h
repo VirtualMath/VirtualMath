@@ -104,4 +104,6 @@ void printError(Error *error, Inter *inter, bool free);
 void printValue(Value *value, FILE *debug);
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug);
 
+bool isType(Value *value, enum ValueType type);
+
 #endif //VIRTUALMATH_VALUE_H

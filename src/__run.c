@@ -12,12 +12,16 @@ Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     }
     if (operationSafeInterStatement(&times_tmp, CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list)))
         return times_tmp;
-    *times = (int)times_tmp.value->value->data.num.num; // TODO-szh 类型检查
+    if (!isType(times_tmp.value->value, number)){
+        setResultError(&result, inter, "TypeException", "Don't get a number value", st, true);
+        goto return_;
+    }
+    *times = (int)times_tmp.value->value->data.num.num;
 
     not_times:
     setResultOperation(&result, inter);
     result.value->value = makeStringValue(st->u.base_var.name, inter);
-    return result;
+    return_: return result;
 }
 
 Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
@@ -34,11 +38,15 @@ Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     }
     if (operationSafeInterStatement(&times_tmp, CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list)))
         return times_tmp;
-    *times = (int)times_tmp.value->value->data.num.num; // TODO-szh 类型检查
+    if (!isType(times_tmp.value->value, number)){
+        setResultError(&result, inter, "TypeException", "Don't get a number value", st, true);
+        goto return_;
+    }
+    *times = (int)times_tmp.value->value->data.num.num;
 
     not_times:
     result.type = operation_return;
-    return result;
+    return_: return result;
 }
 
 Result getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
