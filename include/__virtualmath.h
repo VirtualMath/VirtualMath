@@ -15,5 +15,6 @@
 #include "grammar.h"
 #include "log.h"
 #include "arguement.h"
+#include "file.h"
 
 #endif //VIRTUALMATH___VIRTUALMATH_H

@@ -10,12 +10,12 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
     ParserMessage *pm = NULL;
     *status = 0;
 
-    if (access(code_file, R_OK) != 0){
+    if (checkFile(code_file) != 1){
         *status = 1;
         return NULL;
     }
 
-    if (access(debug_dir, R_OK) != 0)
+    if (checkFile(debug_dir) != 1)
         debug_dir = NULL;
 
     global_inter = makeInter(code_file, debug_dir);
@@ -23,7 +23,6 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
 
     parserCommandList(pm, global_inter, true, global_inter->statement);
     if (pm->status != success){
-        writeLog(pm->paser_debug, ERROR, "Syntax Error: %s\n", pm->status_message);
         writeLog(stderr, ERROR, "Syntax Error: %s\n", pm->status_message);
         goto return_;
     }

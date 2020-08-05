@@ -16,7 +16,7 @@ Result includeFile(INTER_FUNCTIONSIG) {
     }
 
     file_dir = file.value->value->data.str.str;
-    if (access(file_dir, R_OK) != 0){
+    if (checkFile(file_dir)){
         setResultError(&result, inter, "IncludeFileException", "File is not readable", st, true);
         goto return_;
     }
