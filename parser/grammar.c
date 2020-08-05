@@ -169,10 +169,18 @@ void parserCommand(PASERSSIGNATURE){
                                          "Command: call include\n", true,
                                          "parserInclude: Don't get file after include");
             break;
-        // TODO-szh 对不支持的符号做error处理, 如：except、}、)
-        default :
+        case MATHER_STRING:
+        case MATHER_NUMBER:
+        case MATHER_VAR:
+        case MATHER_LC:
+        case MATHER_LB:
+        case MATHER_LP:
+        case MATHER_SUB:
             status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st,
                                       "Command: call operation\n");
+            break;
+        default:
+            status = false;
             break;
     }
     if (!status)
