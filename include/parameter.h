@@ -1,5 +1,6 @@
 #ifndef VIRTUALMATH_PARAMETER_H
 #define VIRTUALMATH_PARAMETER_H
+
 #include "__macro.h"
 
 struct Parameter{
@@ -62,8 +63,10 @@ void freeParameter(Parameter *pt, bool free_st);
 Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE);
 Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE);
 
-Result setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_CORE);
-Result setParameter(Parameter *call, Parameter *function, VarList *function_var, INTER_FUNCTIONSIG_CORE);
+Result setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, struct Statement *base,
+                        struct Inter *inter, struct VarList *var_list);
+Result setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, struct Statement *base,
+                    struct Inter *inter, struct VarList *var_list);
 Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE);
 Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE);
 

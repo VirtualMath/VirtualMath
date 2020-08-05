@@ -7,11 +7,13 @@
  * @return 返回一个字符，若为EOF则返回-1
  */
 signed char readChar(LexFile *file){
-    if (file->back.is_back){
+    if (file->back.is_back)
         file->back.is_back = false;
+    else {
+        file->back.p = (char) fgetc(file->file);
+        if (file->back.p == '\n')
+            file->line ++;
     }
-    else
-        file->back.p = (char)fgetc(file->file);
     return file->back.p;
 }
 
@@ -29,6 +31,7 @@ LexFile *makeLexFile(char *dir){
     tmp->back.is_back = false;
     tmp->back.p = EOF;
     tmp->count = 0;
+    tmp->line = 1;
     return tmp;
 }
 

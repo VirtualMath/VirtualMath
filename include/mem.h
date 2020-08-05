@@ -9,7 +9,7 @@ void *memRealloc(void *old, size_t size);
 char *memStrcpy(char *str, size_t nsize, int free_old, int write, ...);
 char *memString(size_t size);
 size_t memStrlen(char *p);
-char *memStrcat(char *first, char *second);
+char *memStrcat(char *first, char *second, bool free_old);
 char *memStrcpySelf(char *str, NUMBER_TYPE times);
 char *memStrrev(char *str);
 

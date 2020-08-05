@@ -121,6 +121,8 @@ struct Statement{
             struct Statement *file;
         } include_file;
     }u;
+    long int line;
+    char *code_file;
     struct Statement *next;
 };
 
@@ -140,30 +142,30 @@ struct StatementList{
 typedef struct Statement Statement;
 typedef struct StatementList StatementList;
 
-Statement *makeStatement();
+Statement *makeStatement(long int line, char *file);
 void freeStatement(Statement *st);
 Statement *copyStatement(Statement *st);
 Statement *copyStatementCore(Statement *st);
 void connectStatement(Statement *base, Statement *new);
 
-Statement *makeOperationStatement(int type);
-Statement *makeBaseValueStatement(LinkValue *value);
-Statement *makeBaseVarStatement(char *name, Statement *times);
+Statement *makeOperationStatement(int type, long int line, char *file);
+Statement *makeBaseValueStatement(LinkValue *value, long int line, char *file);
+Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file);
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
-Statement *makeBaseDictStatement(Parameter *pt);
-Statement *makeTupleStatement(struct Parameter *pt, enum ListType type);
+Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file);
+Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, char *file);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
-Statement *makeIfStatement();
-Statement *makeWhileStatement();
-Statement *makeTryStatement();
-Statement *makeBreakStatement(Statement *times);
-Statement *makeContinueStatement(Statement *times);
-Statement *makeRegoStatement(Statement *times);
-Statement *makeRestartStatement(Statement *times);
-Statement *makeReturnStatement(Statement *value);
-Statement *makeRaiseStatement(Statement *value);
-Statement *makeIncludeStatement(Statement *file);
+Statement *makeIfStatement(long int line, char *file);
+Statement *makeWhileStatement(long int line, char *file);
+Statement *makeTryStatement(long int line, char *file);
+Statement *makeBreakStatement(Statement *times, long int line, char *file);
+Statement *makeContinueStatement(Statement *times, long int line, char *file);
+Statement *makeRegoStatement(Statement *times, long int line, char *file);
+Statement *makeRestartStatement(Statement *times, long int line, char *file);
+Statement *makeReturnStatement(Statement *value, long int line, char *file);
+Statement *makeRaiseStatement(Statement *value, long int line, char *file);
+Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);
 struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);

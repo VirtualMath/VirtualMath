@@ -21,15 +21,15 @@ writeLog(pm->paser_debug, pasers_level, "\n"message, __VA_ARGS__); \
 #endif
 
 #define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st), pm->paser_debug)
-#define delToken(pm) freeToken(popAheadToken(pm), true, false)
+#define delToken(pm) (freeToken(popAheadToken(pm), true, false))
 #define backToken_(pm, token) addBackToken(pm->tm->ts, (token), pm->paser_debug)
-#define addLexToken(pm, type) backToken_(pm, makeLexToken(type, NULL, NULL))
+#define addLexToken(pm, type) backToken_(pm, makeLexToken(type, NULL, NULL, 0))
 #define addToken_ backToken_
 #define call_success(pm) (pm->status == success)
 
 typedef void (*PasersFunction)(PASERSSIGNATURE);
 typedef int (*GetSymbolFunction)(PASERSSIGNATURE, int, Statement **);
-typedef Statement *(*MakeControlFunction)(Statement *);
+typedef Statement *(*MakeControlFunction)(Statement *, long int, char *);
 typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 
 void parserCommand(PASERSSIGNATURE);
@@ -48,7 +48,7 @@ void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
 void parserTuple(PASERSSIGNATURE);
 
-void syntaxError(ParserMessage *pm, int status, int num, ...);
+void syntaxError(ParserMessage *pm, int status,long int line , int num, ...);
 
 int readBackToken(ParserMessage *pm);
 Token *popAheadToken(ParserMessage *pm);

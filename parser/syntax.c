@@ -295,7 +295,7 @@ int getMatherStatus(LexFile *file, LexMathers *mathers, FILE *debug) {
  * @return
  */
 Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug) {
-    writeLog_(debug, DEBUG, "get token: [%d]\n", file->count);
+    writeLog_(debug, DEBUG, "get token: [%ld]\n", file->count);
     int status = MATHER_SPACE;
     while (status == MATHER_SPACE){
         status = getMatherStatus(file, mathers, debug);
@@ -303,10 +303,10 @@ Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug) {
     Token *tmp;
     if (status == -2){
         writeLog_(debug, ERROR, "lexical ERROR\n", NULL);
-        tmp = makeLexToken(MATHER_ERROR_, NULL, NULL);
+        tmp = makeLexToken(MATHER_ERROR_, NULL, NULL, file->line);
         goto return_;
     }
-    tmp = makeLexToken(status, mathers->mathers[status]->str, mathers->mathers[status]->second_str);
+    tmp = makeLexToken(status, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
     printTokenEnter(tmp, debug, DEBUG, "new token: ");
     writeLog_(debug, DEBUG, "\n", NULL);
     return_:

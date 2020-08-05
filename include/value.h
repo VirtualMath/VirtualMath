@@ -1,5 +1,6 @@
 #ifndef VIRTUALMATH_VALUE_H
 #define VIRTUALMATH_VALUE_H
+
 #include "__macro.h"
 
 struct VarList;
@@ -62,12 +63,22 @@ struct Result{
         restart_return,
     } type;
     struct LinkValue *value;
+    struct Error *error;
     int times;
+};
+
+struct Error{
+    char *type;
+    char *messgae;
+    char *file;
+    long int line;
+    struct Error *next;
 };
 
 typedef struct Value Value;
 typedef struct LinkValue LinkValue;
 typedef struct Result Result;
+typedef struct Error Error;
 
 Value *makeValue(Inter *inter);
 void freeValue(Value *value, Inter *inter);
@@ -79,9 +90,16 @@ Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarL
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
 Value *makeDictValue(struct Argument **arg_ad, bool new_hash, Inter *inter);
 
-void setResult(Result *ru, bool link, Inter *inter);
-void setResultError(Result *ru, Inter *inter);
+void setResultCore(Result *ru);
+void setResult(Result *ru, Inter *inter);
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, struct Statement *st, bool new);
+void setResultErrorCore(Result *ru, Inter *inter, char *error_type, char *error_message, long line, char *file, bool new);
 void setResultOperation(Result *ru, Inter *inter);
+
+Error *makeError(char *type, char *message, long int line, char *file);
+void freeError(Error *base);
+Error *connectError(Error *new, Error *base);
+void printError(Error *error, Inter *inter, bool free);
 
 void printValue(Value *value, FILE *debug);
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug);

@@ -1,18 +1,19 @@
 #include "__token.h"
 
-Token *makeToken(){
+Token *makeToken(long int line) {
     Token *tmp = memCalloc(1, sizeof(Token));
     tmp->token_type = 0;
     tmp->data.str = NULL;
     tmp->data.st = NULL;
     tmp->data.second_str = NULL;
+    tmp->line = line;
     tmp->next = NULL;
     tmp->last = NULL;
     return tmp;
 }
 
-Token *makeLexToken(int type, char *str, char *second_str) {
-    Token *tmp = makeToken();
+Token *makeLexToken(int type, char *str, char *second_str, long int line) {
+    Token *tmp = makeToken(line);
     tmp->token_type = type;
     tmp->data.str = memStrcpy(str, 0, false, false);
     tmp->data.second_str = memStrcpy(second_str, 0, false, false);
@@ -20,14 +21,16 @@ Token *makeLexToken(int type, char *str, char *second_str) {
 }
 
 Token *makeStatementToken(int type, struct Statement *st){
-    Token *tmp = makeToken();
+    Token *tmp = makeToken(st->line);
     tmp->token_type = type;
     tmp->data.st = st;
     return tmp;
 }
 
-void freeToken(Token *tk, bool self, bool error) {
+long freeToken(Token *tk, bool self, bool error) {
+    long int line = 0;
     freeBase(tk, return_);
+    line = tk->line;
     memFree(tk->data.str);
     memFree(tk->data.second_str);
     if (error){
@@ -37,7 +40,7 @@ void freeToken(Token *tk, bool self, bool error) {
         memFree(tk);
     }
     return_:
-    return;
+    return line;
 }
 
 TokenStream *makeTokenStream(){
@@ -69,7 +72,7 @@ TokenMessage *makeTokenMessage(char *file_dir, char *debug) {
     tm->ts = makeTokenStream();
 #if OUT_LOG
     if (debug != NULL){
-        char *debug_dir = memStrcat(debug, LEXICAL_LOG);
+        char *debug_dir = memStrcat(debug, LEXICAL_LOG, false);
         if (access(debug_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
             tm->debug = fopen(debug_dir, "w");
         memFree(debug_dir);
@@ -141,7 +144,7 @@ Token *popNewToken(TokenMessage *tm, FILE *debug) {
     else{
         tmp = popToken(tm->ts, debug);
     }
-    writeLog_(debug, DEBUG, "get token: %d\nnew token: ", tm->file->count);
+    writeLog_(debug, DEBUG, "get token: %ld\nnew token: ", tm->file->count);
     printToken(tmp, debug, DEBUG);
     writeLog_(debug, DEBUG, "\n", NULL);
     return tmp;

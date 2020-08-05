@@ -66,13 +66,15 @@ Result ifBranch(INTER_FUNCTIONSIG) {
     not_else:
 
     if (st->u.if_branch.finally != NULL && ifBranchSafeInterStatement(&finally_tmp, CALL_INTER_FUNCTIONSIG(st->u.if_branch.finally, var_list))){
+        if (!set_result)
+            freeError(result.error);
         set_result = false;
         result = finally_tmp;
     }
 
     var_list = popVarList(var_list);
     if (set_result)
-        setResult(&result, true, inter);
+        setResult(&result, inter);
     return result;
 }
 
@@ -129,13 +131,15 @@ Result whileBranch(INTER_FUNCTIONSIG) {
     not_else:
 
     if (st->u.while_branch.finally != NULL && cycleBranchSafeInterStatement(&finally_tmp, CALL_INTER_FUNCTIONSIG(st->u.while_branch.finally, var_list))){
+        if (!set_result)
+            freeError(result.error);
         set_result = false;
         result = finally_tmp;
     }
 
     var_list = popVarList(var_list);
     if (set_result)
-        setResult(&result, true, inter);
+        setResult(&result, inter);
     return result;
 }
 
@@ -149,9 +153,8 @@ Result tryBranch(INTER_FUNCTIONSIG) {
     bool set_result = true;
 
     var_list = pushVarList(var_list, inter);
-    if (!tryBranchSafeInterStatement(&try_result, CALL_INTER_FUNCTIONSIG(st->u.try_branch.try, var_list))){
+    if (!tryBranchSafeInterStatement(&try_result, CALL_INTER_FUNCTIONSIG(st->u.try_branch.try, var_list)))
         goto not_except;
-    }
     if (except_list == NULL) {
         result = try_result;
         set_result = false;
@@ -159,6 +162,8 @@ Result tryBranch(INTER_FUNCTIONSIG) {
     }
     if (except_list->var != NULL)
         assCore(except_list->var, try_result.value, inter, var_list);
+    freeError(try_result.error);
+
     if (tryBranchSafeInterStatement(&except_result, CALL_INTER_FUNCTIONSIG(except_list->code, var_list))){
         result = except_result;
         set_result = false;
@@ -173,13 +178,15 @@ Result tryBranch(INTER_FUNCTIONSIG) {
 
     not_else:
     if (st->u.try_branch.finally != NULL && tryBranchSafeInterStatement(&finally_tmp, CALL_INTER_FUNCTIONSIG(st->u.try_branch.finally, var_list))){
+        if (!set_result)
+            freeError(result.error);
         set_result = false;
         result = finally_tmp;
     }
 
     var_list = popVarList(var_list);
     if (set_result)
-        setResult(&result, true, inter);
+        setResult(&result, inter);
     return result;
 }
 
@@ -194,7 +201,7 @@ Result breakCycle(INTER_FUNCTIONSIG){
     // TODO-szh 类型检查处理
     times_int = (int)times.value->value->data.num.num;
     not_times:
-    setResult(&result, true, inter);
+    setResult(&result, inter);
     if (times_int >= 0) {
         result.type = break_return;
         result.times = times_int;
@@ -212,7 +219,7 @@ Result continueCycle(INTER_FUNCTIONSIG){
         return times;
     times_int = (int)times.value->value->data.num.num;
     not_times:
-    setResult(&result, true, inter);
+    setResult(&result, inter);
     if (times_int >= 0) {
         result.type = continue_return;
         result.times = times_int;
@@ -230,7 +237,7 @@ Result regoIf(INTER_FUNCTIONSIG){
         return times;
     times_int = (int)times.value->value->data.num.num;
     not_times:
-    setResult(&result, true, inter);
+    setResult(&result, inter);
     if (times_int >= 0) {
         result.type = rego_return;
         result.times = times_int;
@@ -248,7 +255,7 @@ Result restartCode(INTER_FUNCTIONSIG){
         return times;
     times_int = (int)times.value->value->data.num.num;
     not_times:
-    setResult(&result, true, inter);
+    setResult(&result, inter);
     if (times_int >= 0) {
         result.type = restart_return;
         result.times = times_int;
@@ -259,7 +266,7 @@ Result restartCode(INTER_FUNCTIONSIG){
 Result returnCode(INTER_FUNCTIONSIG){
     Result result;
     if (st->u.return_code.value == NULL) {
-        setResult(&result, true, inter);
+        setResult(&result, inter);
         goto set_result;
     }
     if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st->u.return_code.value, var_list)))
@@ -273,7 +280,7 @@ Result returnCode(INTER_FUNCTIONSIG){
 Result raiseCode(INTER_FUNCTIONSIG){
     Result result;
     if (st->u.raise_code.value == NULL) {
-        setResult(&result, true, inter);
+        setResult(&result, inter);
         goto set_result;
     }
     if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list)))

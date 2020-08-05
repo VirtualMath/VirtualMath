@@ -27,7 +27,8 @@ Result runStatement(INTER_FUNCTIONSIG) {
             break;
         case operation:
             result = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-            printLinkValue(result.value, "operation result = ", "\n", inter->data.debug);
+            if (run_continue(result))
+                printLinkValue(result.value, "operation result = ", "\n", inter->data.debug);
             break;
         case set_function:
             result = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list));
@@ -66,7 +67,7 @@ Result runStatement(INTER_FUNCTIONSIG) {
             result = includeFile(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         default:
-            setResult(&result, true, inter);
+            setResult(&result, inter);
             break;
     }
     return result;
@@ -82,7 +83,7 @@ Result runStatement(INTER_FUNCTIONSIG) {
 Result iterStatement(INTER_FUNCTIONSIG) {
     Result result;
     if (st == NULL){
-        setResult(&result, true, inter);
+        setResult(&result, inter);
         return result;
     }
     Statement *base_st = NULL;
@@ -92,7 +93,7 @@ Result iterStatement(INTER_FUNCTIONSIG) {
         while (base_st != NULL) {
             result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
             if (!run_continue(result))
-                break;
+                goto return_;
             base_st = base_st->next;
         }
 
@@ -102,7 +103,7 @@ Result iterStatement(INTER_FUNCTIONSIG) {
 
     if (result.type == not_return)
         setResultOperation(&result, inter);
-    return result;
+    return_: return result;
 }
 
 /**
@@ -183,9 +184,8 @@ bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
 
 bool functionSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (result->type == error_return){
+    if (result->type == error_return)
         return true;
-    }
     else if (result->type == function_return){
         result->type = operation_return;
         return true;

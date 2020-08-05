@@ -20,4 +20,5 @@ int main(int argc, char *argv[]) {
  * TODO-szh import和include语句
  * TODO-szh 错误回溯
  * TODO-szh 检查文件是否为目录和目录是否为目录
+ * TODO-szh 生成语法树
  */

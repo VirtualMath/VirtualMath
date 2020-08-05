@@ -14,6 +14,7 @@ struct ParserMessage{
         lexical_error,
     } status;
     char *status_message;
+    char *file;
 };
 
 typedef struct ParserMessage ParserMessage;

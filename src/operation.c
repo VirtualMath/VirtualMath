@@ -51,7 +51,7 @@ Result operationStatement(INTER_FUNCTIONSIG) {
             result = assOperation(CALL_INTER_FUNCTIONSIG(st, var_list));
             break;
         default:
-            setResult(&result, true, inter);
+            setResult(&result, inter);
             break;
     }
     return result;
@@ -68,7 +68,7 @@ Result addOperation(INTER_FUNCTIONSIG) {
         valueToResult(result, (operationValue(left, right, num.num, +)), Number, inter);
     }
     else if(viewtype(left, right, string)){
-        char *new_string = memStrcat(left.value->value->data.str.str, right.value->value->data.str.str);
+        char *new_string = memStrcat(left.value->value->data.str.str, right.value->value->data.str.str, false);
         valueToResult(result, new_string, String, inter);
         memFree(new_string);
     }
@@ -147,7 +147,7 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
     int int_times;
     if (name->type == base_list && name->u.base_list.type == value_tuple){
         Result tmp_result;
-        Statement *tmp_st = makeStatement();
+        Statement *tmp_st = makeStatement(name->line, name->code_file);
         tmp_st->type = base_value;
         tmp_st->u.base_value.value = value;
         Parameter *pt = makeArgsParameter(tmp_st);
@@ -157,7 +157,7 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
             freeParameter(pt, true);
             return tmp_result;
         }
-        tmp_result = setParameterCore(call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        tmp_result = setParameterCore(call, name->u.base_list.list, var_list, name, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (!run_continue(tmp_result))
             result = tmp_result;
         else{
@@ -197,15 +197,16 @@ Result getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     result.value = findFromVarList(name, var_list, int_times, false);
     memFree(name);
     if (result.value == NULL){
-        writeLog_(inter->data.debug, WARNING, "var not found[%s]\n", st->u.base_var.name);
-        setResultError(&result, inter);
+        char *info = memStrcat("Name Not Found: ", st->u.base_var.name, false);
+        setResultError(&result, inter, "NameException", info, st, true);
+        memFree(info);
     }
     return result;
 }
 
 Result getBaseValue(INTER_FUNCTIONSIG) {
     Result result;
-    setResult(&result, true, inter);
+    setResult(&result, inter);
     result.value = st->u.base_value.value;
     result.type = operation_return;
     return result;

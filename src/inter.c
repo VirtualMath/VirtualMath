@@ -33,10 +33,8 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
     global_inter->statement = tmp;
 
     *global_result = globalIterStatement(global_inter);
-    if (global_result->type == error_return){
-        writeLog(global_inter->data.debug, ERROR, "Run Error\n", NULL);
-        writeLog(stderr, ERROR, "Run Error\n", NULL);
-    }
+    if (global_result->type == error_return)
+        printError(global_result->error, global_inter, true);
 
     return_:
     freeParserMessage(pm, true);
@@ -48,26 +46,30 @@ Inter *makeInter(char *debug){
     setBaseInterData(tmp);
     tmp->base = NULL;
     tmp->link_base = NULL;
-    tmp->statement = makeStatement();
+    tmp->statement = makeStatement(0, NULL);  // TODO-szh 设置文件
     tmp->var_list = makeVarList(tmp);
     tmp->data.log_dir = memStrcpy(debug, 0, false, false);
 
     if (debug != NULL && !args.stdout_inter){
-        char *debug_dir = memStrcat(debug, INTER_LOG);
+        char *debug_dir = memStrcat(debug, INTER_LOG, false), *error_dir = memStrcat(debug, INTER_ERROR, false);
         tmp->data.debug = fopen(debug_dir, "w");
+        tmp->data.error = fopen(error_dir, "w");
         memFree(debug_dir);
+        memFree(error_dir);
     }
-    else
+    else {
         tmp->data.debug = stdout;
+        tmp->data.error = stderr;
+    }
 
     makeValue(tmp);  // 注册None值
     return tmp;
 }
 
 void setBaseInterData(struct Inter *inter){
-    inter->data.var_str_prefix = "str_";
-    inter->data.var_num_prefix = "num_";
-    inter->data.var_defualt = "default_var";
+    inter->data.var_str_prefix = memStrcpy("str_", 0, false, false);
+    inter->data.var_num_prefix = memStrcpy("num_", 0, false, false);
+    inter->data.var_defualt = memStrcpy("default_var", 0, false, false);
     inter->data.debug = NULL;
     inter->data.log_dir = NULL;
 }
@@ -85,12 +87,20 @@ void freeInter(Inter *inter, bool self){
 
     freeStatement(inter->statement);
     freeVarList(inter->var_list, true);
+
+    memFree(inter->data.var_defualt);
+    memFree(inter->data.var_num_prefix);
+    memFree(inter->data.var_str_prefix);
+
     memFree(inter->data.log_dir);
-    if (inter->data.log_dir != NULL)
+
+    if (inter->data.log_dir != NULL) {
         fclose(inter->data.debug);
-    if (self){
-        memFree(inter);
+        fclose(inter->data.error);
     }
+
+    if (self)
+        memFree(inter);
     return_:
     return;
 }

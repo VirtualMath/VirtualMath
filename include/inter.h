@@ -11,6 +11,7 @@ struct Inter{
     struct VarList *var_list;
     struct InterData{
         FILE *debug;
+        FILE *error;
         char *log_dir;  // 记录log文件夹的位置
         char *var_str_prefix;
         char *var_num_prefix;

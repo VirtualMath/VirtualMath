@@ -1,9 +1,11 @@
 #include "__virtualmath.h"
 
-Statement *makeStatement(){
+Statement *makeStatement(long int line, char *file) {
     Statement *tmp = memCalloc(1, sizeof(Statement));
     tmp->type = start;
     tmp->next = NULL;
+    tmp->line = line;
+    tmp->code_file = memStrcpy(file, 0, false, false);
     return tmp;
 }
 
@@ -22,9 +24,10 @@ Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token
         st->u.operation.left = left_st;
         st->u.operation.right = right->data.st;
     }
-    new_token = makeToken();
+    new_token = makeToken(0);
     new_token->token_type = type;
     new_token->data.st = st;
+    st->line = left->line;
 
     freeToken(left, true, false);
     freeToken(right, true, false);
@@ -32,15 +35,15 @@ Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token
     return new_token;
 }
 
-Statement *makeBaseValueStatement(LinkValue *value){
-    Statement *tmp = makeStatement();
+Statement *makeBaseValueStatement(LinkValue *value, long int line, char *file) { 
+    Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
     tmp->u.base_value.value = value;
     return tmp;
 }
 
-Statement *makeBaseVarStatement(char *name, Statement *times){
-    Statement *tmp = makeStatement();
+Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
     tmp->type = base_var;
     tmp->u.base_var.name = memStrcpy(name, 0, false, false);
     tmp->u.base_var.times = times;
@@ -48,22 +51,22 @@ Statement *makeBaseVarStatement(char *name, Statement *times){
 }
 
 Statement *makeBaseSVarStatement(Statement *name, Statement *times){
-    Statement *tmp = makeStatement();
+    Statement *tmp = makeStatement(name->line, name->code_file);
     tmp->type = base_svar;
     tmp->u.base_svar.name = name;
     tmp->u.base_svar.times = times;
     return tmp;
 }
 
-Statement *makeBaseDictStatement(Parameter *pt){
-    Statement *tmp = makeStatement();
+Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
     tmp->type = base_dict;
     tmp->u.base_dict.dict = pt;
     return tmp;
 }
 
-Statement *makeOperationStatement(int type){
-    Statement *tmp = makeStatement();
+Statement *makeOperationStatement(int type, long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
     tmp->type = operation;
     tmp->u.operation.OperationType = type;
     tmp->u.operation.left = NULL;
@@ -71,8 +74,8 @@ Statement *makeOperationStatement(int type){
     return tmp;
 }
 
-Statement *makeTupleStatement(Parameter *pt, enum ListType type) {
-    Statement *tmp = makeStatement();
+Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
     tmp->type = base_list;
     tmp->u.base_list.type = type;
     tmp->u.base_list.list = pt;
@@ -80,7 +83,7 @@ Statement *makeTupleStatement(Parameter *pt, enum ListType type) {
 }
 
 Statement *makeFunctionStatement(Statement *name, Statement *function, Parameter *pt) {
-    Statement *tmp = makeStatement();
+    Statement *tmp = makeStatement(name->line, name->code_file);
     tmp->type = set_function;
     tmp->u.set_function.name = name;
     tmp->u.set_function.function = function;
@@ -89,15 +92,15 @@ Statement *makeFunctionStatement(Statement *name, Statement *function, Parameter
 }
 
 Statement *makeCallStatement(Statement *function, Parameter *pt) {
-    Statement *tmp = makeStatement();
+    Statement *tmp = makeStatement(function->line, function->code_file);
     tmp->type = call_function;
     tmp->u.call_function.function = function;
     tmp->u.call_function.parameter = pt;
     return tmp;
 }
 
-Statement *makeIfStatement(){
-    Statement *tmp = makeStatement();
+Statement *makeIfStatement(long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
     tmp->type = if_branch;
     tmp->u.if_branch.if_list = NULL;
     tmp->u.if_branch.else_list = NULL;
@@ -105,8 +108,8 @@ Statement *makeIfStatement(){
     return tmp;
 }
 
-Statement *makeWhileStatement(){
-    Statement *tmp = makeStatement();
+Statement *makeWhileStatement(long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
     tmp->type = while_branch;
     tmp->u.while_branch.type = while_;
     tmp->u.while_branch.while_list = NULL;
@@ -117,8 +120,8 @@ Statement *makeWhileStatement(){
     return tmp;
 }
 
-Statement *makeTryStatement(){
-    Statement *tmp = makeStatement();
+Statement *makeTryStatement(long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
     tmp->type = try_branch;
     tmp->u.try_branch.except_list = NULL;
     tmp->u.try_branch.else_list = NULL;
@@ -127,50 +130,50 @@ Statement *makeTryStatement(){
     return tmp;
 }
 
-Statement *makeBreakStatement(Statement *times){
-    Statement *tmp = makeStatement();
+Statement *makeBreakStatement(Statement *times, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
     tmp->type = break_cycle;
     tmp->u.break_cycle.times = times;
     return tmp;
 }
 
-Statement *makeContinueStatement(Statement *times){
-    Statement *tmp = makeStatement();
+Statement *makeContinueStatement(Statement *times, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
     tmp->type = continue_cycle;
     tmp->u.continue_cycle.times = times;
     return tmp;
 }
 
-Statement *makeRegoStatement(Statement *times){
-    Statement *tmp = makeStatement();
+Statement *makeRegoStatement(Statement *times, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
     tmp->type = rego_if;
     tmp->u.rego_if.times = times;
     return tmp;
 }
 
-Statement *makeRestartStatement(Statement *times){
-    Statement *tmp = makeStatement();
+Statement *makeRestartStatement(Statement *times, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
     tmp->type = restart;
     tmp->u.restart.times = times;
     return tmp;
 }
 
-Statement *makeReturnStatement(Statement *value){
-    Statement *tmp = makeStatement();
+Statement *makeReturnStatement(Statement *value, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
     tmp->type = return_code;
     tmp->u.return_code.value = value;
     return tmp;
 }
 
-Statement *makeRaiseStatement(Statement *value){
-    Statement *tmp = makeStatement();
+Statement *makeRaiseStatement(Statement *value, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
     tmp->type = raise_code;
     tmp->u.raise_code.value = value;
     return tmp;
 }
 
-Statement *makeIncludeStatement(Statement *file){
-    Statement *tmp = makeStatement();
+Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir){
+    Statement *tmp = makeStatement(line, file_dir);
     tmp->type = include_file;
     tmp->u.include_file.file = file;
     return tmp;
@@ -269,6 +272,7 @@ void freeStatement(Statement *st){
             default:
                 break;
         }
+        memFree(st->code_file);
         next_tmp = st->next;
         memFree(st);
         st = next_tmp;
@@ -293,7 +297,7 @@ Statement *copyStatement(Statement *st){
 }
 
 Statement *copyStatementCore(Statement *st){
-    Statement *new = makeStatement();
+    Statement *new = makeStatement(st->line, st->code_file);
     new->type = st->type;
     new->next = NULL;
     switch (st->type) {

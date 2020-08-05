@@ -1,5 +1,6 @@
 #include "__virtualmath.h"
 
+
 Value *makeValue(Inter *inter) {
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
@@ -151,18 +152,35 @@ void freeLinkValue(LinkValue *value, Inter *inter){
     return;
 }
 
-void setResult(Result *ru, bool link, Inter *inter) {
+void setResultCore(Result *ru) {
     ru->type = not_return;
-    if (link)
-        ru->value = makeLinkValue(inter->base, NULL, inter);
+    ru->times = 0;
+    ru->error = NULL;
+    ru->value = NULL;
 }
 
-void setResultError(Result *ru, Inter *inter) {
-    ru->type = error_return;
+void setResult(Result *ru, Inter *inter) {
+    setResultCore(ru);
     ru->value = makeLinkValue(inter->base, NULL, inter);
 }
 
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, bool new) {
+    if (!new && ru->type != error_return)
+        return;
+    if (new) {
+        setResultCore(ru);
+        ru->type = error_return;
+        ru->value = makeLinkValue(inter->base, NULL, inter);
+    }
+    else{
+        error_type = NULL;
+        error_message = NULL;
+    }
+    ru->error = connectError(makeError(error_type, error_message, st->line, st->code_file), ru->error);
+}
+
 void setResultOperation(Result *ru, Inter *inter) {
+    setResultCore(ru);
     ru->type = operation_return;
     ru->value = makeLinkValue(inter->base, NULL, inter);
 }
@@ -226,3 +244,43 @@ void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
     writeLog(debug, INFO, "%s", last);
 }
 
+Error *makeError(char *type, char *message, long int line, char *file) {
+    Error *tmp = memCalloc(1, sizeof(Error));
+    tmp->line = line;
+    tmp->type = memStrcpy(type, 0, false, false);
+    tmp->messgae = memStrcpy(message, 0, false, false);
+    tmp->file = memStrcpy(file, 0, false, false);
+    tmp->next = NULL;
+    return tmp;
+}
+
+Error *connectError(Error *new, Error *base){
+    new->next = base;
+    return new;
+}
+
+void freeError(Error *base){
+    while (base != NULL){
+        memFree(base->messgae);
+        memFree(base->type);
+        memFree(base->file);
+        Error *tmp = base->next;
+        memFree(base);
+        base = tmp;
+    }
+}
+
+void printError(Error *error, Inter *inter, bool free) {
+    Error *base = error;
+    while (error != NULL){
+        if (error->next != NULL){
+            writeLog(inter->data.error, ERROR, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", error->line, error->file, error);
+        }
+        else{
+            writeLog(inter->data.error, ERROR, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", error->type, error->messgae, error->line, error->file, error);
+        }
+        error = error->next;
+    }
+    if (free)
+        freeError(base);
+}

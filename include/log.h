@@ -52,10 +52,12 @@ fprintf(file, message, __VA_ARGS__); \
 #define PASERS_LOG "/pasers.log"
 #define LEXICAL_LOG "/lexical.log"
 #define INTER_LOG "/inter.log"
+#define INTER_ERROR "/error.log"
 #else
 #define GRAMMAR_LOG "\grammar.log"
 #define PASERS_LOG "\pasers.log"
 #define LEXICAL_LOG "\lexical.log"
 #define INTER_LOG "\inter.log"
+#define INTER_ERROR "\error.log"
 #endif
 #endif //VIRTUALMATH_LOG_H

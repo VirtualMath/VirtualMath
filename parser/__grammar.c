@@ -20,6 +20,7 @@ inline void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBac
         Token *left_token = NULL;
         Token *right_token = NULL;
         Statement *st = NULL;
+        long int line = 0;
 
         if (readBackToken(pm) != self_type){
             writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call %s(left)\n", self_name, call_name);
@@ -31,6 +32,7 @@ inline void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBac
             continue;
         }
         left_token = popAheadToken(pm);
+        line = left_token->line;
 
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call symbol\n", self_name);
         if (getSymbol(CALLPASERSSIGNATURE, readBackToken(pm), &st))
@@ -49,7 +51,7 @@ inline void twoOperation(ParserMessage *pm, Inter *inter, PasersFunction callBac
             goto return_;
         }
         if (readBackToken(pm) != call_type){  // 若非正确数值
-            syntaxError(pm, syntax_error, 3, "ERROR from ", self_name, "(get right)");
+            syntaxError(pm, syntax_error, line, 3, "ERROR from ", self_name, "(get right)");
             freeToken(left_token, true, true);
             freeStatement(st);
             goto return_;
@@ -118,25 +120,26 @@ inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction
  * @param message 错误信息
  * @param status 错误类型
  */
-void syntaxError(ParserMessage *pm, int status, int num, ...) {
+void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
     char *message = NULL;
 
     if (pm->status != success)
         return;
     if (status <= 0){
-        message = memStrcpy("Not message", 0, false, false);
+        message = memStrcpy("Not Message", 0, false, false);
         goto not_message;
     }
 
     va_list message_args;
     va_start(message_args, num);
-    for (int i=0; i < num; i++) {
-        char *new_message;
-        new_message = memStrcat(message, va_arg(message_args, char *));
-        memFree(message);
-        message = new_message;
-    }
+    for (int i=0; i < num; i++)
+        message = memStrcat(message, va_arg(message_args, char *), true);
     va_end(message_args);
+
+    char info[100];
+    snprintf(info, 100, "\non line %ld\nin file ", line);
+    message = memStrcat(message, info, true);
+    message = memStrcat(message, pm->file, true);
 
     not_message:
     pm->status = status;
@@ -150,7 +153,7 @@ int readBackToken(ParserMessage *pm){
     Token *tmp = popNewToken(pm->tm, pm->paser_debug);
     if (tmp->token_type == -2){
         freeToken(tmp, true, false);
-        syntaxError(pm, lexical_error, 1, "lexical make some error");
+        syntaxError(pm, lexical_error, tmp->line, 1, "lexical make some error");
     }
     addBackToken(pm->tm->ts, tmp, pm->paser_debug);
     return tmp->token_type;
@@ -215,7 +218,7 @@ bool callChildToken(ParserMessage *pm, Inter *inter, PasersFunction callBack, in
         return false;
     if (readBackToken(pm) != type) {
         if (message != NULL)
-            syntaxError(pm, error_type, 1, message);
+            syntaxError(pm, error_type, (*tmp)->line, 1, message);
         return false;
     }
     *tmp = popAheadToken(pm);
@@ -290,7 +293,8 @@ bool parserParameter(ParserMessage *pm, Inter *inter, Parameter **pt, bool is_fo
             goto error_;
         if (readBackToken(pm) != POLYNOMIAL) {
             if (status == s_3) {
-                syntaxError(pm, syntax_error, 1, "Don't get a parameter after *");
+                long int line = pm->tm->ts->token_list->line;
+                syntaxError(pm, syntax_error, line, 1, "Don't get a parameter after *");
                 goto error_;
             }
             break;

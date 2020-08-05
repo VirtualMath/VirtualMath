@@ -8,7 +8,8 @@ struct LexFile{
         bool is_back;
         signed char p;
     } back;
-    int count;
+    long int count;
+    long int line;
 };
 
 struct LexMather{
