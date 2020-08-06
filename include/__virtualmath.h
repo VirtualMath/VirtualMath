@@ -3,6 +3,7 @@
 
 #include "__macro.h"
 #include "mem.h"
+#include "gc.h"
 #include "inter.h"
 #include "value.h"
 #include "var.h"
@@ -17,4 +18,7 @@
 #include "arguement.h"
 #include "file.h"
 
+/* DEBUG */
+void printLinkValueGC(char *tag, Inter *inter);
+void showLinkValue(struct LinkValue *base);
 #endif //VIRTUALMATH___VIRTUALMATH_H

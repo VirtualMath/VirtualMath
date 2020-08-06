@@ -5,6 +5,7 @@ Value *makeValue(Inter *inter) {
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
     tmp->type = none;
+    setGC(&tmp->gc_status);
     tmp->next = NULL;
     if (list_tmp == NULL){
         inter->base = tmp;
@@ -66,24 +67,29 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     return tmp;
 }
 
-Value *makeDictValue(Argument **arg_ad, bool new_hash, Inter *inter) {
+Value *makeDictValue(Argument **arg_ad, bool new_hash, Result *result, Inter *inter, VarList *var_list) {
     Value *tmp;
     tmp = makeValue(inter);
     tmp->data.dict.size = 0;
     tmp->type = dict;
     if (new_hash) {
-        VarList *hash = makeVarList(inter);
+        VarList *hash = pushVarList(var_list, inter);
+        gcAddTmp(&tmp->gc_status);
         tmp->data.dict.dict = hash->hashtable;
-        argumentToVar(arg_ad, inter, hash, &tmp->data.dict.size);
-        freeVarList(hash, true);
+        freeResult(result);
+        *result = argumentToVar(arg_ad, inter, hash, &tmp->data.dict.size);
+        popVarList(hash);
+        gcFreeTmpLink(&tmp->gc_status);
     }
     else
         tmp->data.dict.dict = NULL;
     return tmp;
 }
 
-void freeValue(Value *value, Inter *inter){
+Value *freeValue(Value *value, Inter *inter){
+    Value *return_value = NULL;
     freeBase(value, return_);
+    return_value = value->next;
     if (value->last == NULL)
         inter->base = value->next;
     else
@@ -112,13 +118,14 @@ void freeValue(Value *value, Inter *inter){
     }
     memFree(value);
     return_:
-    return;
+    return return_value;
 }
 
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
     LinkValue *tmp;
     LinkValue *list_tmp = inter->link_base;
     tmp = memCalloc(1, sizeof(Value));
+    setGC(&tmp->gc_status);
     tmp->father = linkValue;
     tmp->value = value;
     if (list_tmp == NULL){
@@ -137,8 +144,10 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
     return tmp;
 }
 
-void freeLinkValue(LinkValue *value, Inter *inter){
+LinkValue * freeLinkValue(LinkValue *value, Inter *inter){
+    LinkValue *return_value = NULL;
     freeBase(value, return_);
+    return_value = value->next;
     if (value->last == NULL)
         inter->link_base = value->next;
     else
@@ -149,7 +158,7 @@ void freeLinkValue(LinkValue *value, Inter *inter){
 
     memFree(value);
     return_:
-    return;
+    return return_value;
 }
 
 void setResultCore(Result *ru) {
@@ -160,17 +169,22 @@ void setResultCore(Result *ru) {
 }
 
 void setResult(Result *ru, Inter *inter) {
+    freeResult(ru);
+    setResultBase(ru, inter);
+}
+
+void setResultBase(Result *ru, Inter *inter) {
     setResultCore(ru);
     ru->value = makeLinkValue(inter->base, NULL, inter);
+    gcAddTmp(&ru->value->gc_status);
 }
 
 void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, bool new) {
     if (!new && ru->type != error_return)
         return;
     if (new) {
-        setResultCore(ru);
+        setResult(ru, inter);
         ru->type = error_return;
-        ru->value = makeLinkValue(inter->base, NULL, inter);
     }
     else{
         error_type = NULL;
@@ -179,10 +193,31 @@ void setResultError(Result *ru, Inter *inter, char *error_type, char *error_mess
     ru->error = connectError(makeError(error_type, error_message, st->line, st->code_file), ru->error);
 }
 
-void setResultOperation(Result *ru, Inter *inter) {
-    setResultCore(ru);
+void setResultOperationNone(Result *ru, Inter *inter) {
+    setResult(ru, inter);
     ru->type = operation_return;
-    ru->value = makeLinkValue(inter->base, NULL, inter);
+}
+
+void setResultOperation(Result *ru, LinkValue *value, Inter *inter) {
+    freeResult(ru);
+    setResultOperationBase(ru, value, inter);
+}
+
+void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter) {
+    setResultCore(ru);
+    ru->value = value;
+    if (value != NULL)
+        gcAddTmp(&ru->value->gc_status);
+    ru->type = operation_return;
+}
+
+void freeResult(Result *ru){
+    if (ru->error != NULL)
+        freeError(ru);
+    if (ru->value != NULL) {
+        gcFreeTmpLink(&ru->value->gc_status);
+        ru->value = NULL;
+    }
 }
 
 void printValue(Value *value, FILE *debug){
@@ -235,12 +270,15 @@ void printValue(Value *value, FILE *debug){
 }
 
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
+    if (value == NULL)
+        return;
     writeLog(debug, INFO, "%s", first);
     if (value->father != NULL) {
         printLinkValue(value->father, "", "", debug);
         writeLog(debug, INFO, " . ", NULL);
     }
-    printValue(value->value, debug);
+    if (value->value != NULL)
+        printValue(value->value, debug);
     writeLog(debug, INFO, "%s", last);
 }
 
@@ -259,30 +297,32 @@ Error *connectError(Error *new, Error *base){
     return new;
 }
 
-void freeError(Error *base){
-    while (base != NULL){
-        memFree(base->messgae);
-        memFree(base->type);
-        memFree(base->file);
-        Error *tmp = base->next;
-        memFree(base);
-        base = tmp;
+void freeError(Result *base){
+    Error *error = base->error;
+    while (error != NULL){
+        Error *tmp = error->next;
+        memFree(error->messgae);
+        memFree(error->type);
+        memFree(error->file);
+        memFree(error);
+        error = tmp;
     }
+    base->error = NULL;
 }
 
-void printError(Error *error, Inter *inter, bool free) {
-    Error *base = error;
-    while (error != NULL){
-        if (error->next != NULL){
-            writeLog(inter->data.error, ERROR, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", error->line, error->file, error);
+void printError(Result *result, Inter *inter, bool free) {
+    Error *base = result->error;
+    while (base != NULL){
+        if (base->next != NULL){
+            writeLog(inter->data.error, ERROR, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", base->line, base->file, base);
         }
         else{
-            writeLog(inter->data.error, ERROR, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", error->type, error->messgae, error->line, error->file, error);
+            writeLog(inter->data.error, ERROR, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
         }
-        error = error->next;
+        base = base->next;
     }
     if (free)
-        freeError(base);
+        freeError(result);
 }
 
 inline bool isType(Value *value, enum ValueType type){

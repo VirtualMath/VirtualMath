@@ -71,7 +71,8 @@ Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE
 Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE);
 
 Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list, int *num);
-Result argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *var_list, NUMBER_TYPE *num);
+Result
+argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *var_list, NUMBER_TYPE *num);
 Result parameterFromVar(Parameter **function_ad, VarList *function_var, struct Inter *inter, struct VarList *var_list,
                         NUMBER_TYPE *num, NUMBER_TYPE max, bool *status);
 Result argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE);

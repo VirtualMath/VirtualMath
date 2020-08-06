@@ -25,10 +25,4 @@ goto return_; \
 }while(0) \
 
 
-#define checkResult(check_result) do{ \
-if (is_error(check_result)){ \
-return check_result; \
-} \
-}while(0) \
-
 #endif //VIRTUALMATH___MACRO_H

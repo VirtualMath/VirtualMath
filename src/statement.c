@@ -39,6 +39,7 @@ Statement *makeBaseValueStatement(LinkValue *value, long int line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
     tmp->u.base_value.value = value;
+    gcAddStatementLink(&value->gc_status);
     return tmp;
 }
 
@@ -195,6 +196,9 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.operation.right);
                 freeStatement(st->u.operation.left);
                 break;
+            case base_value:
+                gcFreeStatementLink(&st->u.base_value.value->gc_status);
+                break;
             case base_var:
                 memFree(st->u.base_var.name);
                 freeStatement(st->u.base_var.times);
@@ -303,6 +307,7 @@ Statement *copyStatementCore(Statement *st){
     switch (st->type) {
         case base_value:
             new->u.base_value.value = st->u.base_value.value;
+            gcAddStatementLink(&new->u.base_value.value->gc_status);
             break;
         case operation:
             new->u.operation.OperationType = st->u.operation.OperationType;

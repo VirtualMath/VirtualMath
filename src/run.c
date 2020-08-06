@@ -9,6 +9,7 @@
  */
 Result runStatement(INTER_FUNCTIONSIG) {
     Result result;
+    setResultCore(&result);
     switch (st->type) {
         case base_value:
             result = getBaseValue(CALL_INTER_FUNCTIONSIG(st, var_list));
@@ -70,6 +71,8 @@ Result runStatement(INTER_FUNCTIONSIG) {
             setResult(&result, inter);
             break;
     }
+
+    runGC(inter, 1, 0, 0, var_list);
     return result;
 }
 
@@ -82,6 +85,7 @@ Result runStatement(INTER_FUNCTIONSIG) {
  */
 Result iterStatement(INTER_FUNCTIONSIG) {
     Result result;
+    setResultCore(&result);
     if (st == NULL){
         setResult(&result, inter);
         return result;
@@ -91,6 +95,7 @@ Result iterStatement(INTER_FUNCTIONSIG) {
     while (true) {
         base_st = st;
         while (base_st != NULL) {
+            freeResult(&result);
             result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
             if (!run_continue(result))
                 goto return_;
@@ -100,9 +105,10 @@ Result iterStatement(INTER_FUNCTIONSIG) {
         if (result.type != restart_return || result.times > 0)
             break;
     }
-
     if (result.type == not_return)
-        setResultOperation(&result, inter);
+        setResultOperationNone(&result, inter);
+
+    runGC(inter, 1, 0, 0, var_list);
     return_: return result;
 }
 
@@ -112,14 +118,16 @@ Result iterStatement(INTER_FUNCTIONSIG) {
  * @return
  */
 Result globalIterStatement(Inter *inter) {
-    Result result;
     Statement *base_st = NULL;
     VarList *var_list = NULL;
+    Result result;
+    setResultCore(&result);
 
     while (true) {
         base_st = inter->statement;
         var_list = inter->var_list;
         while (base_st != NULL) {
+            freeResult(&result);
             result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
             if (!run_continue(result))
                 break;
@@ -130,12 +138,15 @@ Result globalIterStatement(Inter *inter) {
     }
 
     if (result.type != error_return && result.type != function_return)
-        setResultOperation(&result, inter);
+        setResultOperationNone(&result, inter);
+
+    runGC(inter, 1, 0, 0, var_list);
     return result;
 }
 
 // 若需要中断执行, 则返回true
 bool operationSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    freeResult(result);
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
     if (run_continue_(result))
         return false;
@@ -143,6 +154,7 @@ bool operationSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
 }
 
 bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    freeResult(result);
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
     if (run_continue_(result)){
         return false;
@@ -158,6 +170,7 @@ bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
 }
 
 bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    freeResult(result);
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
     if (run_continue_(result)){
         return false;
@@ -173,6 +186,7 @@ bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
 }
 
 bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    freeResult(result);
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
     if (run_continue_(result)){
         return false;
@@ -183,6 +197,7 @@ bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
 }
 
 bool functionSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
+    freeResult(result);
     *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
     if (result->type == error_return)
         return true;

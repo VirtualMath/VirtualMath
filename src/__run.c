@@ -3,6 +3,9 @@
 Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     Result result;
     Result times_tmp;
+    LinkValue *value;
+    setResultCore(&result);
+    setResultCore(&times_tmp);
 
     *name = setStrVarName(st->u.base_var.name, false, inter, var_list);
     *times = 0;
@@ -13,20 +16,27 @@ Result getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(&times_tmp, CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list)))
         return times_tmp;
     if (!isType(times_tmp.value->value, number)){
+        freeResult(&times_tmp);
         setResultError(&result, inter, "TypeException", "Don't get a number value", st, true);
         goto return_;
     }
     *times = (int)times_tmp.value->value->data.num.num;
+    freeResult(&times_tmp);
 
     not_times:
-    setResultOperation(&result, inter);
-    result.value->value = makeStringValue(st->u.base_var.name, inter);
-    return_: return result;
+    value = makeLinkValue(makeStringValue(st->u.base_var.name, inter), NULL, inter);
+    setResultOperation(&result, value, inter);
+
+    return_:
+    freeResult(&times_tmp);
+    return result;
 }
 
 Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     Result result;
     Result times_tmp;
+    setResultCore(&result);
+    setResultCore(&times_tmp);
 
     if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list)))
         return result;
@@ -39,18 +49,21 @@ Result getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(&times_tmp, CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list)))
         return times_tmp;
     if (!isType(times_tmp.value->value, number)){
+        freeResult(&times_tmp);
         setResultError(&result, inter, "TypeException", "Don't get a number value", st, true);
-        goto return_;
+        return result;
     }
     *times = (int)times_tmp.value->value->data.num.num;
 
     not_times:
-    result.type = operation_return;
-    return_: return result;
+    result.type = operation_return;  // 执行 operationSafeInterStatement 的时候已经初始化 result
+
+    return result;
 }
 
 Result getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     Result result;
+    setResultCore(&result);
     if (st->type == base_var)
         result = getBaseVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list));
     else if (st->type == base_svar)

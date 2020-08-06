@@ -2,6 +2,7 @@
 
 Inter *runBaseInter(char *code_file, char *debug_dir, int *status) {
     Result global_result;
+    setResultCore(&global_result);
     return newInter(code_file, debug_dir, &global_result, status);
 }
 
@@ -15,7 +16,7 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
         return NULL;
     }
 
-    if (checkFile(debug_dir) != 1)
+    if (checkFile(debug_dir) != 2)
         debug_dir = NULL;
 
     global_inter = makeInter(code_file, debug_dir);
@@ -27,13 +28,9 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
         goto return_;
     }
 
-    struct Statement *tmp = copyStatement(global_inter->statement);
-    freeStatement(global_inter->statement);
-    global_inter->statement = tmp;
-
     *global_result = globalIterStatement(global_inter);
     if (global_result->type == error_return)
-        printError(global_result->error, global_inter, true);
+        printError(global_result, global_inter, true);
 
     return_:
     freeParserMessage(pm, true);
@@ -61,7 +58,8 @@ Inter *makeInter(char *code_file, char *debug) {
         tmp->data.error = stderr;
     }
 
-    makeValue(tmp);  // 注册None值
+    Value *none_value = makeValue(tmp);  // 注册None值
+    gcAddStatementLink(&none_value->gc_status);
     return tmp;
 }
 
@@ -75,6 +73,12 @@ void setBaseInterData(struct Inter *inter){
 
 void freeInter(Inter *inter, bool self){
     freeBase(inter, return_);
+
+    printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter);
+
+    freeStatement(inter->statement);  // Statement放在Value前面释放, 因为base_value的释放需要处理gc_status
+    freeVarList(inter->var_list, true);
+
     while (inter->base != NULL)
         freeValue(inter->base, inter);
 
@@ -82,10 +86,8 @@ void freeInter(Inter *inter, bool self){
         freeLinkValue(inter->link_base, inter);
 
     while (inter->hash_base != NULL)
-        freeHashTable(inter->hash_base, inter, true);
+        freeHashTable(inter->hash_base, inter);
 
-    freeStatement(inter->statement);
-    freeVarList(inter->var_list, true);
 
     memFree(inter->data.var_defualt);
     memFree(inter->data.var_num_prefix);
@@ -102,4 +104,29 @@ void freeInter(Inter *inter, bool self){
         memFree(inter);
     return_:
     return;
+}
+
+/* ***********************DEBUG 专用函数*********************************** */
+
+void printLinkValueGC(char *tag, Inter *inter){
+    LinkValue *base = inter->link_base;
+    printf("%s\n", tag);
+    while (base != NULL) {
+        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+        printLinkValue(base, "value = ", "\n", stdout);
+        printf("-------------------------------------------\n");
+        base = base->next;
+    }
+    printf("printLinkValueGC TAG : END\n");
+}
+
+
+void showLinkValue(struct LinkValue *base){
+    printf("tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+    printf("statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+    printf("link           = %ld :: %p\n", base->gc_status.link, base);
+    printLinkValue(base, "value = ", "\n", stdout);
+    printf("--------------------------\n");
 }

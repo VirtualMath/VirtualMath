@@ -11,8 +11,8 @@ struct Var{
 };
 
 struct HashTable{
+    GCStatus gc_status;
     struct Var **hashtable;
-    int count;
     struct HashTable *next;
     struct HashTable *last;
 };
@@ -29,8 +29,8 @@ typedef struct VarList VarList;
 Var *makeVar(char *name, LinkValue *value, LinkValue *name_);
 Var *freeVar(Var *var, bool self);
 
-HashTable *makeHashTable(Inter *inter, bool supervision);
-void freeHashTable(HashTable *ht, Inter *inter, bool supervision);
+HashTable *makeHashTable(Inter *inter);
+HashTable * freeHashTable(HashTable *ht, Inter *inter);
 
 VarList *makeVarList(Inter *inter);
 VarList *freeVarList(VarList *vl, bool self);

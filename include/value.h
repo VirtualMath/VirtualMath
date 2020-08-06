@@ -7,13 +7,14 @@ struct VarList;
 struct Argument;
 
 struct Value{
+    GCStatus gc_status;
     enum ValueType{
         none=0,
         number=1,
-        string,
-        function,
-        list,
-        dict,
+        string=2,
+        function=3,
+        list=4,
+        dict=5,
     } type;
     union data{
         struct Number{
@@ -45,6 +46,7 @@ struct Value{
 };
 
 struct LinkValue{
+    GCStatus gc_status;
     struct Value *value;
     struct LinkValue *father;
     struct LinkValue *next;
@@ -81,25 +83,28 @@ typedef struct Result Result;
 typedef struct Error Error;
 
 Value *makeValue(Inter *inter);
-void freeValue(Value *value, Inter *inter);
+Value * freeValue(Value *value, Inter *inter);
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
-void freeLinkValue(LinkValue *value, Inter *inter);
+LinkValue * freeLinkValue(LinkValue *value, Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
-Value *makeDictValue(struct Argument **arg_ad, bool new_hash, Inter *inter);
+Value *makeDictValue(struct Argument **arg_ad, bool new_hash, Result *result, Inter *inter, struct VarList *var_list);
 
 void setResultCore(Result *ru);
 void setResult(Result *ru, Inter *inter);
+void setResultBase(Result *ru, Inter *inter);
 void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, struct Statement *st, bool new);
-void setResultErrorCore(Result *ru, Inter *inter, char *error_type, char *error_message, long line, char *file, bool new);
-void setResultOperation(Result *ru, Inter *inter);
+void setResultOperationNone(Result *ru, Inter *inter);
+void setResultOperation(Result *ru, LinkValue *value, Inter *inter);
+void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter);
+void freeResult(Result *ru);
 
 Error *makeError(char *type, char *message, long int line, char *file);
-void freeError(Error *base);
+void freeError(Result *base);
 Error *connectError(Error *new, Error *base);
-void printError(Error *error, Inter *inter, bool free);
+void printError(Result *result, Inter *inter, bool free);
 
 void printValue(Value *value, FILE *debug);
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug);
