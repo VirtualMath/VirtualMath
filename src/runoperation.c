@@ -196,10 +196,7 @@ Result assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_CORE){
     if (name->type == base_list && name->u.base_list.type == value_tuple){
         Parameter *pt = NULL;
         Argument *call = NULL;
-        Statement *tmp_st = makeStatement(name->line, name->code_file);
-
-        tmp_st->type = base_value;
-        tmp_st->u.base_value.value = value;
+        Statement *tmp_st = makeBaseLinkValueStatement(value, name->line, name->code_file);
 
         pt = makeArgsParameter(tmp_st);
         call = getArgument(pt, &tmp_result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
@@ -276,7 +273,15 @@ Result getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 Result getBaseValue(INTER_FUNCTIONSIG) {
     Result result;
     setResultCore(&result);
-    result.value = st->u.base_value.value;
+    if (st->u.base_value.type == link_value) {
+        result.value = st->u.base_value.value;
+    }
+    else if (st->u.base_value.type == number_str){
+        char *stop = NULL;
+        result.value = makeLinkValue(makeNumberValue(strtol(st->u.base_value.str, &stop, 10), inter), NULL, inter);
+    }
+    else
+        result.value = makeLinkValue(makeStringValue(st->u.base_value.str, inter), NULL, inter);
     result.type = operation_return;
     gcAddTmp(&result.value->gc_status);
     return result;

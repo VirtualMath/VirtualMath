@@ -28,7 +28,13 @@ struct Statement{
     } type;
     union StatementU{
         struct base_value{
+            enum BaseValueType{
+                link_value = 0,
+                string_str = 1,
+                number_str = 2,
+            } type;
             struct LinkValue *value;
+            char *str;
         } base_value;
         struct base_var{
             char *name;
@@ -149,7 +155,8 @@ Statement *copyStatementCore(Statement *st);
 void connectStatement(Statement *base, Statement *new);
 
 Statement *makeOperationStatement(int type, long int line, char *file);
-Statement *makeBaseValueStatement(LinkValue *value, long int line, char *file);
+Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *file);
+Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file);
 Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file);
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
 Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file);

@@ -808,19 +808,19 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     return_:
     return 1;
 }
+//st = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
+//st = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
 void parserBaseValue(PASERSSIGNATURE){
     Token *value_token = popAheadToken(pm);
     Statement *st = NULL;
     if (MATHER_NUMBER == value_token->token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number [%s]\n", value_token->data.str);
-        char *stop;
-        Value *tmp_value = makeNumberValue(strtol(value_token->data.str, &stop, 10), inter);
-        st = makeBaseValueStatement(makeLinkValue(tmp_value, NULL, inter), value_token->line, pm->file);
+        st = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
     }
     else if (MATHER_STRING == value_token->token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string [%s]\n", value_token->data.str);
         Value *tmp_value = makeStringValue(value_token->data.str, inter);
-        st = makeBaseValueStatement(makeLinkValue(tmp_value, NULL, inter), value_token->line, pm->file);
+        st = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
     }
     else if (MATHER_VAR == value_token->token_type){
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var [%s]\n", value_token->data.str);

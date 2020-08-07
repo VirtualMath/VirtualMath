@@ -20,6 +20,8 @@ Argument *makeArgument(){
 Argument *makeValueArgument(LinkValue *value){
     Argument *tmp = makeArgument();
     tmp->data.value = value;
+    gcAddTmp(&value->gc_status);
+
     return tmp;
 }
 
@@ -28,6 +30,7 @@ Argument *makeStatementNameArgument(LinkValue *value, Statement *name){
     tmp->type = name_arg;
     tmp->data.value = value;
     tmp->data.name = name;
+    gcAddTmp(&value->gc_status);
     return tmp;
 }
 
@@ -38,6 +41,8 @@ Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *na
     tmp->data.value = value;
     tmp->data.name_ = memStrcpy(name, 0, false, false);
     tmp->data.name_value = name_value;
+    gcAddTmp(&value->gc_status);
+    gcAddTmp(&name_value->gc_status);
     return tmp;
 }
 
@@ -71,6 +76,12 @@ void freeArgument(Argument *at, bool free_st) {
         if (free_st)
             freeStatement(at->data.name);
         memFree(at->data.name_);
+
+        if (at->data.name_value != NULL)
+            gcFreeTmpLink(&at->data.name_value->gc_status);
+        if (at->data.value != NULL)
+            gcFreeTmpLink(&at->data.value->gc_status);
+
         Argument *tmp = at->next;
         memFree(at);
         at = tmp;
@@ -181,9 +192,8 @@ void freeParameter(Parameter *pt, bool free_st) {
 
 Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE){
     Argument *at = NULL;
-    for (int i=0;i<list_value->value->data.list.size;i++){
+    for (int i=0;i<list_value->value->data.list.size;i++)
         at = connectValueArgument(list_value->value->data.list.list[i], at);
-    }
     return at;
 }
 
@@ -393,6 +403,7 @@ Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE
     while (call != NULL){
         if(operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(call->data.value, var_list)))
             goto return_;
+
         if (call->type == value_par)
             base = connectValueArgument(result.value, base);
         else if (call->type == name_par)

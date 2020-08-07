@@ -35,11 +35,22 @@ Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token
     return new_token;
 }
 
-Statement *makeBaseValueStatement(LinkValue *value, long int line, char *file) { 
+Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
+    tmp->u.base_value.type = link_value;
     tmp->u.base_value.value = value;
+    tmp->u.base_value.str = NULL;
     gcAddStatementLink(&value->gc_status);
+    return tmp;
+}
+
+Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
+    tmp->type = base_value;
+    tmp->u.base_value.type = type;
+    tmp->u.base_value.value = NULL;
+    tmp->u.base_value.str = memStrcpy(value, 0, false, false);
     return tmp;
 }
 
@@ -197,7 +208,10 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.operation.left);
                 break;
             case base_value:
-                gcFreeStatementLink(&st->u.base_value.value->gc_status);
+                if (st->u.base_value.type == link_value)
+                    gcFreeStatementLink(&st->u.base_value.value->gc_status);
+                else
+                    memFree(st->u.base_value.str);
                 break;
             case base_var:
                 memFree(st->u.base_var.name);
@@ -306,8 +320,13 @@ Statement *copyStatementCore(Statement *st){
     new->next = NULL;
     switch (st->type) {
         case base_value:
-            new->u.base_value.value = st->u.base_value.value;
-            gcAddStatementLink(&new->u.base_value.value->gc_status);
+            new->u.base_value.type = st->u.base_value.type;
+            if (new->u.base_value.type == link_value) {
+                new->u.base_value.value = st->u.base_value.value;
+                gcAddStatementLink(&new->u.base_value.value->gc_status);
+            }
+            else
+                new->u.base_value.str = memStrcpy(st->u.base_value.str, 0, false, false);
             break;
         case operation:
             new->u.operation.OperationType = st->u.operation.OperationType;

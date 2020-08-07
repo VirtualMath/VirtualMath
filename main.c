@@ -22,4 +22,5 @@ int main(int argc, char *argv[]) {
  * TODO-szh 生成语法树
  * TODO-szh 取反符号 -
  * TODO-szh 字面量后缀
+ * TODO-szh 字面量使用string处理方式
  */
