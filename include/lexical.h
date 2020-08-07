@@ -6,7 +6,7 @@ struct LexFile{
     FILE *file;
     struct LexFileBack{
         bool is_back;
-        signed char p;
+        int p;
     } back;
     long int count;
     long int line;
@@ -14,7 +14,7 @@ struct LexFile{
 
 struct LexMather{
     int len;
-    signed char string_type;
+    int string_type;
     char *str;
     char *second_str;
     enum LexMatherStatus{
@@ -38,7 +38,7 @@ typedef struct LexFile LexFile;
 typedef struct LexMather LexMather;
 typedef struct LexMathers LexMathers;
 
-signed char readChar(LexFile *file);
+int readChar(LexFile *file);
 void backChar(LexFile *file);
 
 LexFile *makeLexFile(char *dir);

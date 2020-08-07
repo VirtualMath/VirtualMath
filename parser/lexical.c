@@ -6,11 +6,11 @@
  * @param file
  * @return 返回一个字符，若为EOF则返回-1
  */
-signed char readChar(LexFile *file){
+int readChar(LexFile *file){
     if (file->back.is_back)
         file->back.is_back = false;
     else {
-        file->back.p = (char) fgetc(file->file);
+        file->back.p = fgetc(file->file);
         if (file->back.p == '\n')
             file->line ++;
     }
