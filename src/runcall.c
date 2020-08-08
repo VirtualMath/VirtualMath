@@ -31,11 +31,13 @@ Result callFunction(INTER_FUNCTIONSIG) {
     }
     VarList *function_var = pushVarList(function_value.value->value->data.function.var, inter);
     gcAddTmp(&function_var->hashtable->gc_status);
+    runFREEZE(inter, var_list, function_var, true);
 
     set_tmp = setParameter(st->u.call_function.parameter, function_value.value->value->data.function.pt, function_var,
                            st, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (set_tmp.type == error_return) {
         gcAddTmp(&function_var->hashtable->gc_status);
+        runFREEZE(inter, var_list, function_var, false);
         popVarList(function_var);
         return set_tmp;
     }
@@ -44,6 +46,7 @@ Result callFunction(INTER_FUNCTIONSIG) {
     functionSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(function_value.value->value->data.function.function, function_var));
 
     gcFreeTmpLink(&function_var->hashtable->gc_status);
+    runFREEZE(inter, var_list, function_var, false);
     popVarList(function_var);
 
     freeResult(&function_value);

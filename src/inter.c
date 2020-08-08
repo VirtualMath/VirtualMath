@@ -75,6 +75,7 @@ void freeInter(Inter *inter, bool self){
     freeBase(inter, return_);
 
     printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter);
+    printValueGC("\nprintValueGC TAG : freeInter", inter);
 
     freeStatement(inter->statement);  // Statement放在Value前面释放, 因为base_value的释放需要处理gc_status
     freeVarList(inter->var_list, true);
@@ -122,6 +123,20 @@ void printLinkValueGC(char *tag, Inter *inter){
     printf("printLinkValueGC TAG : END\n");
 }
 
+void printValueGC(char *tag, Inter *inter){
+    Value *base = inter->base;
+    printf("%s\n", tag);
+    while (base != NULL) {
+        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+        printf("value = ");
+        printValue(base, stdout);
+        printf("\n-------------------------------------------\n");
+        base = base->next;
+    }
+    printf("printValueGC TAG : END\n");
+}
 
 void showLinkValue(struct LinkValue *base){
     printf("tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);

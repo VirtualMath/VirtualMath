@@ -18,9 +18,8 @@ int main(int argc, char *argv[]) {
 /**
  * TODO-szh 面向对象
  * TODO-szh import语句
- * TODO-szh 检查文件是否为目录和目录是否为目录
  * TODO-szh 生成语法树
  * TODO-szh 取反符号 -
  * TODO-szh 字面量后缀
- * TODO-szh 字面量使用string处理方式
+ * TODO-szh 空参数使用 void
  */

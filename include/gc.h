@@ -39,6 +39,9 @@ void gc_iterHashTable(struct HashTable *ht);
 void gc_iterVar(struct Var *var);
 void gc_var_list(struct VarList *vl);
 
+void iterFreezeVarList(struct VarList *freeze, struct VarList *base, bool is_lock);
+void runFREEZE(struct Inter *inter, struct VarList *freeze, struct VarList *base, bool is_lock);
+
 void runGC(struct Inter *inter, int var_list, int link_value, int value, ...);
 
 #endif //VIRTUALMATH_GC_H
