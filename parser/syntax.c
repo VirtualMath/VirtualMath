@@ -14,7 +14,7 @@
  */
 void numberMather(int p, LexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT){
-        if ('0'<= p && '9' >= p || '.' == p && mather->status == LEXMATHER_ING){
+        if (isdigit(p) || '.' == p && mather->status == LEXMATHER_ING){
             mather->str = memStrcpy(mather->str, 1, true, true, p);
             mather->len += 1;
             if ('.' == p)
@@ -23,7 +23,7 @@ void numberMather(int p, LexMather *mather){
                 mather->status = LEXMATHER_ING;
         }
         else if(mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT){
-            if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p){
+            if (isalpha(p) ||'_' == p){
                 mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
                 mather->status = LEXMATHER_INGSECOND;
             }
@@ -36,8 +36,7 @@ void numberMather(int p, LexMather *mather){
         }
     }
     else if (mather->status == LEXMATHER_INGSECOND){
-        if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
-            '0'<= p && '9' >= p){
+        if (isalnum(p) ||'_' == p){
             mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
         }
         else{
@@ -59,8 +58,7 @@ void numberMather(int p, LexMather *mather){
  */
 void varMather(int p, LexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
-        if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
-            '0'<= p && '9' >= p && mather->status == LEXMATHER_ING){
+        if (isalpha(p) ||'_' == p || isdigit(p) && mather->status == LEXMATHER_ING){
             mather->str = memStrcpy(mather->str, 1, true, true, p);
             mather->len ++;
             mather->status = LEXMATHER_ING;
@@ -109,8 +107,7 @@ void stringMather(int p, LexMather *mather){
         }
     }
     else if (mather->status == LEXMATHER_INGSECOND){
-        if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p ||
-            '0'<= p && '9' >= p){
+        if (isalnum(p) ||'_' == p){
             mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
         }
         else{
@@ -118,7 +115,7 @@ void stringMather(int p, LexMather *mather){
         }
     }
     else if(mather->status == LEXMATHER_INGPASS){
-        if ('A'<= p && 'Z' >= p ||'a'<= p && 'z' >= p ||'_' == p){
+        if (isalpha(p) ||'_' == p){
             mather->second_str = memStrcpy(mather->second_str, 1, true, true, p);
             mather->status = LEXMATHER_INGSECOND;
         }
