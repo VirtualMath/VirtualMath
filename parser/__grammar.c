@@ -126,7 +126,7 @@ void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
     if (pm->status != success)
         return;
     if (status <= 0){
-        message = memStrcpy("Not Message", 0, false, false);
+        message = memStrcpy("Not Message");
         goto not_message;
     }
 

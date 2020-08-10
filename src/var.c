@@ -3,7 +3,7 @@
 Var *makeVar(char *name, LinkValue *value, LinkValue *name_) {
     Var *tmp;
     tmp = memCalloc(1, sizeof(Var));
-    tmp->name = memStrcpy(name, 0, false, false);
+    tmp->name = memStrcpy(name);
     tmp->value = value;
     tmp->name_ = name_;
     tmp->next = NULL;

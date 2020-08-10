@@ -35,7 +35,7 @@ Value *makeStringValue(char *str, Inter *inter) {
     Value *tmp;
     tmp = makeValue(inter);
     tmp->type = string;
-    tmp->data.str.str = memStrcpy(str, 0, false, false);
+    tmp->data.str.str = memStrcpy(str);
     return tmp;
 }
 
@@ -285,9 +285,9 @@ void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
 Error *makeError(char *type, char *message, long int line, char *file) {
     Error *tmp = memCalloc(1, sizeof(Error));
     tmp->line = line;
-    tmp->type = memStrcpy(type, 0, false, false);
-    tmp->messgae = memStrcpy(message, 0, false, false);
-    tmp->file = memStrcpy(file, 0, false, false);
+    tmp->type = memStrcpy(type);
+    tmp->messgae = memStrcpy(message);
+    tmp->file = memStrcpy(file);
     tmp->next = NULL;
     return tmp;
 }

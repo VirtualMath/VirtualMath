@@ -6,7 +6,7 @@ goto return_; \
 } \
 }while(0)
 
-Argument *makeArgument(){
+Argument *makeArgument(void){
     Argument *tmp = memCalloc(1, sizeof(Argument));
     tmp->type = value_arg;
     tmp->data.value = NULL;
@@ -39,7 +39,7 @@ Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *na
     tmp->type = name_arg;
     tmp->name_type = name_char;
     tmp->data.value = value;
-    tmp->data.name_ = memStrcpy(name, 0, false, false);
+    tmp->data.name_ = memStrcpy(name);
     tmp->data.name_value = name_value;
     gcAddTmp(&value->gc_status);
     gcAddTmp(&name_value->gc_status);
@@ -88,7 +88,7 @@ void freeArgument(Argument *at, bool free_st) {
     }
 }
 
-Parameter *makeParameter(){
+Parameter *makeParameter(void){
     Parameter *tmp = memCalloc(1, sizeof(Parameter));
     tmp->type = value_par;
     tmp->data.value = NULL;

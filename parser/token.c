@@ -15,8 +15,8 @@ Token *makeToken(long int line) {
 Token *makeLexToken(int type, char *str, char *second_str, long int line) {
     Token *tmp = makeToken(line);
     tmp->token_type = type;
-    tmp->data.str = memStrcpy(str, 0, false, false);
-    tmp->data.second_str = memStrcpy(second_str, 0, false, false);
+    tmp->data.str = memStrcpy(str);
+    tmp->data.second_str = memStrcpy(second_str);
     return tmp;
 }
 

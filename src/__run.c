@@ -97,6 +97,6 @@ char *getNameFromValue(Value *value, INTER_FUNCTIONSIG_CORE) {
         case number:
             return setNumVarName(value->data.num.num, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         default:
-            return memStrcpy(inter->data.var_defualt, 0, false, false);
+            return memStrcpy(inter->data.var_defualt);
     }
 }

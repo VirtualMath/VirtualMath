@@ -44,7 +44,7 @@ Inter *makeInter(char *code_file, char *debug) {
     tmp->link_base = NULL;
     tmp->statement = makeStatement(0, code_file);
     tmp->var_list = makeVarList(tmp);
-    tmp->data.log_dir = memStrcpy(debug, 0, false, false);
+    tmp->data.log_dir = memStrcpy(debug);
 
     if (debug != NULL && !args.stdout_inter){
         char *debug_dir = memStrcat(debug, INTER_LOG, false), *error_dir = memStrcat(debug, INTER_ERROR, false);
@@ -64,9 +64,9 @@ Inter *makeInter(char *code_file, char *debug) {
 }
 
 void setBaseInterData(struct Inter *inter){
-    inter->data.var_str_prefix = memStrcpy("str_", 0, false, false);
-    inter->data.var_num_prefix = memStrcpy("num_", 0, false, false);
-    inter->data.var_defualt = memStrcpy("default_var", 0, false, false);
+    inter->data.var_str_prefix = memStrcpy("str_");
+    inter->data.var_num_prefix = memStrcpy("num_");
+    inter->data.var_defualt = memStrcpy("default_var");
     inter->data.debug = NULL;
     inter->data.log_dir = NULL;
 }

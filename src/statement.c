@@ -5,7 +5,7 @@ Statement *makeStatement(long int line, char *file) {
     tmp->type = start;
     tmp->next = NULL;
     tmp->line = line;
-    tmp->code_file = memStrcpy(file, 0, false, false);
+    tmp->code_file = memStrcpy(file);
     return tmp;
 }
 
@@ -50,14 +50,14 @@ Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long 
     tmp->type = base_value;
     tmp->u.base_value.type = type;
     tmp->u.base_value.value = NULL;
-    tmp->u.base_value.str = memStrcpy(value, 0, false, false);
+    tmp->u.base_value.str = memStrcpy(value);
     return tmp;
 }
 
 Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_var;
-    tmp->u.base_var.name = memStrcpy(name, 0, false, false);
+    tmp->u.base_var.name = memStrcpy(name);
     tmp->u.base_var.times = times;
     return tmp;
 }
@@ -326,7 +326,7 @@ Statement *copyStatementCore(Statement *st){
                 gcAddStatementLink(&new->u.base_value.value->gc_status);
             }
             else
-                new->u.base_value.str = memStrcpy(st->u.base_value.str, 0, false, false);
+                new->u.base_value.str = memStrcpy(st->u.base_value.str);
             break;
         case operation:
             new->u.operation.OperationType = st->u.operation.OperationType;
@@ -334,7 +334,7 @@ Statement *copyStatementCore(Statement *st){
             new->u.operation.left = copyStatement(st->u.operation.left);
             break;
         case base_var:
-            new->u.base_var.name = memStrcpy(st->u.base_var.name, 0, false, false);
+            new->u.base_var.name = memStrcpy(st->u.base_var.name);
             new->u.base_var.times = copyStatement(st->u.base_var.times);
             break;
         case base_svar:

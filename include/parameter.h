@@ -38,7 +38,7 @@ struct Argument{
 typedef struct Parameter Parameter;
 typedef struct Argument Argument;
 
-Argument *makeArgument();
+Argument *makeArgument(void);
 Argument *makeValueArgument(LinkValue *value);
 Argument *makeStatementNameArgument(LinkValue *value, struct Statement *name);
 Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *name);
@@ -48,7 +48,7 @@ Argument *connectStatementNameArgument(LinkValue *value, struct Statement *name,
 Argument *connectCharNameArgument(LinkValue *value, LinkValue *name_value, char *name, Argument *base);
 void freeArgument(Argument *at, bool free_st);
 
-Parameter *makeParameter();
+Parameter *makeParameter(void);
 Parameter *copyParameter(Parameter *base);
 Parameter *makeValueParameter(struct Statement *st);
 Parameter *makeNameParameter(struct Statement *value, struct Statement *name);

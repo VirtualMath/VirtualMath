@@ -6,7 +6,8 @@
 void *memFreeCore(void *p);
 void *memCalloc(size_t num, size_t size);
 void *memRealloc(void *old, size_t size);
-char *memStrcpy(char *str, size_t nsize, int free_old, int write, ...);
+char *memStrcpy(char *str);
+char *memStrCharcpy(char *str, size_t nsize, int free_old, int write, ...);
 char *memString(size_t size);
 size_t memStrlen(char *p);
 char *memStrcat(char *first, char *second, bool free_old);

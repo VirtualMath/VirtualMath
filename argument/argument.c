@@ -43,10 +43,10 @@ int getArgs(int argc, char *argv[])
             case 0:
                 break;
             case 'i':
-                args.file = memStrcpy(optarg, 0, false, false);
+                args.file = memStrcpy(optarg);
                 break;
             case 'l':
-                args.log_file = memStrcpy(optarg, 0, false, false);
+                args.log_file = memStrcpy(optarg);
                 break;
             case 's':
                 args.stdout_inter = true;
@@ -60,7 +60,7 @@ int getArgs(int argc, char *argv[])
     }
     if (args.file == NULL){
         if (argc > optind){
-            args.file = memStrcpy(argv[optind], 0, false, false);
+            args.file = memStrcpy(argv[optind]);
         }
         else{
             return -1;
@@ -72,7 +72,7 @@ int getArgs(int argc, char *argv[])
 /**
  * 释放args的成员而不包括其本身
  */
-void freeArgs(){
+void freeArgs(void){
     memFree(args.file);
     memFree(args.file);
 }

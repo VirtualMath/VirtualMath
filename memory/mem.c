@@ -25,12 +25,10 @@ void *memRealloc(void *old, size_t size){
 }
 
 size_t memStrlen(char *p){  // 可以读取NULL的strlen
-    if (p == NULL){
+    if (p == NULL)
         return 0;
-    }
-    else{
+    else
         return strlen(p);
-    }
 }
 
 char *memString(size_t size) {  // 比memCalloc多了一个设置\0的步骤
@@ -42,7 +40,11 @@ char *memString(size_t size) {  // 比memCalloc多了一个设置\0的步骤
     return tmp;
 }
 
-char *memStrcpy(char *str, size_t nsize, bool free_old, bool write, ...) {  // 复制str到新的空间，nszie是要扩展的大小。该函数支持让str=NULL，则变为单纯的memString
+char *memStrcpy(char *str){
+    return memStrCharcpy(str, 0, false ,false);
+}
+
+char *memStrCharcpy(char *str, size_t nsize, bool free_old, bool write, ...) {  // 复制str到新的空间，nszie是要扩展的大小。该函数支持让str=NULL，则变为单纯的memString
     char *tmp = memString(memStrlen(str) + nsize + 1);
     if (str != NULL){
         strcpy(tmp, str);
@@ -70,7 +72,7 @@ char *memStrcat(char *first, char *second, bool free_old) {
         free_old = false;
     }
 
-    char *new = memStrcpy(first, memStrlen(second), false, false);
+    char *new = memStrCharcpy(first, memStrlen(second), false, false);
     if (second != NULL){
         strcat(new, second);
     }
@@ -86,7 +88,7 @@ char *memStrcpySelf(char *str, NUMBER_TYPE times){
         times = -times;
         need_free = true;
     }
-    char *new_str = memStrcpy(str, 0, false, false), *tmp;
+    char *new_str = memStrcpy(str), *tmp;
     for (NUMBER_TYPE i=0; i < times - 1; i++){
         tmp = memStrcat(new_str, str, false);
         memFree(new_str);
