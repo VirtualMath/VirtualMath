@@ -13,9 +13,9 @@ Value *makeValue(Inter *inter) {
         goto return_;
     }
 
-    while (list_tmp->next !=  NULL){
-        list_tmp = list_tmp->next;
-    }
+    for (PASS; list_tmp->next !=  NULL; list_tmp = list_tmp->next)
+        PASS;
+
     list_tmp->next = tmp;
     tmp->last = list_tmp;
 
@@ -57,11 +57,10 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     tmp->data.list.type = type;
     tmp->data.list.list = NULL;
     tmp->data.list.size = 0;
-    while (at != NULL && at->type == value_arg){
+    for (PASS; at != NULL && at->type == value_arg; at = at->next) {
         tmp->data.list.size++;
         tmp->data.list.list = memRealloc(tmp->data.list.list, tmp->data.list.size * sizeof(LinkValue *));
         tmp->data.list.list[tmp->data.list.size - 1] = at->data.value;
-        at = at->next;
     }
     *arg_ad = at;
     return tmp;
@@ -77,7 +76,7 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, Result *result, Inter *in
         gcAddTmp(&tmp->gc_status);
         tmp->data.dict.dict = hash->hashtable;
         freeResult(result);
-        *result = argumentToVar(arg_ad, inter, hash, &tmp->data.dict.size);
+        argumentToVar(arg_ad, &tmp->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result));
         popVarList(hash);
         gcFreeTmpLink(&tmp->gc_status);
     }
@@ -134,8 +133,8 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
         goto return_;
     }
 
-    while (list_tmp->next !=  NULL)
-        list_tmp = list_tmp->next;
+    for (PASS; list_tmp->next !=  NULL; list_tmp = list_tmp->next)
+        PASS;
 
     list_tmp->next = tmp;
     tmp->last = list_tmp;
@@ -212,12 +211,16 @@ void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter) {
 }
 
 void freeResult(Result *ru){
-    if (ru->error != NULL)
-        freeError(ru);
+    freeResultSave(ru);
     if (ru->value != NULL) {
         gcFreeTmpLink(&ru->value->gc_status);
         ru->value = NULL;
     }
+}
+
+void freeResultSave(Result *ru){
+    if (ru->error != NULL)
+        freeError(ru);
 }
 
 void printValue(Value *value, FILE *debug){
@@ -242,11 +245,11 @@ void printValue(Value *value, FILE *debug){
             writeLog(debug, INFO, " ]", NULL);
             break;
         case dict: {
+            Var *tmp = NULL;
             bool print_comma = false;
             writeLog(debug, INFO, "dict on <%p> size : %d  { ", value, (int) value->data.dict.size);
             for (int i = 0; i < MAX_SIZE; i++) {
-                Var *tmp = value->data.dict.dict->hashtable[i];
-                while (tmp != NULL) {
+                for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
                     if (print_comma)
                         writeLog(debug, INFO, ", ", NULL);
                     else
@@ -254,7 +257,6 @@ void printValue(Value *value, FILE *debug){
                     printLinkValue(tmp->name_, "", "", debug);
                     writeLog(debug, INFO, " ['%s'] : ", tmp->name);
                     printLinkValue(tmp->value, "", "", debug);
-                    tmp = tmp->next;
                 }
             }
             writeLog(debug, INFO, " }", NULL);
@@ -299,27 +301,24 @@ Error *connectError(Error *new, Error *base){
 
 void freeError(Result *base){
     Error *error = base->error;
-    while (error != NULL){
-        Error *tmp = error->next;
+    for (Error *next = NULL; error != NULL; error = next){
+        next = error->next;
         memFree(error->messgae);
         memFree(error->type);
         memFree(error->file);
         memFree(error);
-        error = tmp;
     }
     base->error = NULL;
 }
 
 void printError(Result *result, Inter *inter, bool free) {
-    Error *base = result->error;
-    while (base != NULL){
+    for (Error *base = result->error; base != NULL; base = base->next){
         if (base->next != NULL){
             writeLog(inter->data.error, ERROR, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", base->line, base->file, base);
         }
         else{
             writeLog(inter->data.error, ERROR, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
         }
-        base = base->next;
     }
     if (free)
         freeError(result);

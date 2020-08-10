@@ -9,6 +9,7 @@ Inter *runBaseInter(char *code_file, char *debug_dir, int *status) {
 Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *status) {
     Inter *global_inter = NULL;
     ParserMessage *pm = NULL;
+    ResultType type;
     *status = 0;
 
     if (checkFile(code_file) != 1){
@@ -28,8 +29,8 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
         goto return_;
     }
 
-    *global_result = globalIterStatement(global_inter);
-    if (global_result->type == error_return)
+    type = globalIterStatement(global_inter, global_result);
+    if (type == error_return)
         printError(global_result, global_inter, true);
 
     return_:

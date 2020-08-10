@@ -7,73 +7,73 @@
  * @param var_list
  * @return
  */
-Result runStatement(INTER_FUNCTIONSIG) {
-    Result result;
-    setResultCore(&result);
+ResultType runStatement(INTER_FUNCTIONSIG) {
+    setResultCore(result);
+    ResultType type = not_return;
     switch (st->type) {
         case base_value:
-            result = getBaseValue(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = getBaseValue(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case base_var:
-            result = getVar(CALL_INTER_FUNCTIONSIG(st, var_list), getBaseVarInfo);
+            type = getVar(CALL_INTER_FUNCTIONSIG(st, var_list, result), getBaseVarInfo);
             break;
         case base_svar:
-            result = getVar(CALL_INTER_FUNCTIONSIG(st, var_list), getBaseSVarInfo);
+            type = getVar(CALL_INTER_FUNCTIONSIG(st, var_list, result), getBaseSVarInfo);
             break;
         case base_list:
-            result = getList(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = getList(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case base_dict:
-            result = getDict(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = getDict(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case operation:
-            result = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-            if (run_continue(result))
-                printLinkValue(result.value, "operation result = ", "\n", inter->data.debug);
+            type = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result));
+            if (run_continue_type(type))
+                printLinkValue(result->value, "operation result = ", "\n", inter->data.debug);
             break;
         case set_function:
-            result = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case call_function:
-            result = callFunction(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = callFunction(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case if_branch:
-            result = ifBranch(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = ifBranch(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case while_branch:
-            result = whileBranch(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = whileBranch(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case try_branch:
-            result = tryBranch(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = tryBranch(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case break_cycle:
-            result = breakCycle(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = breakCycle(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case continue_cycle:
-            result = continueCycle(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = continueCycle(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case rego_if:
-            result = regoIf(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = regoIf(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case restart:
-            result = restartCode(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = restartCode(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case return_code:
-            result = returnCode(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = returnCode(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case raise_code:
-            result = raiseCode(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = raiseCode(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         case include_file:
-            result = includeFile(CALL_INTER_FUNCTIONSIG(st, var_list));
+            type = includeFile(CALL_INTER_FUNCTIONSIG(st, var_list, result));
             break;
         default:
-            setResult(&result, inter);
+            setResult(result, inter);
             break;
     }
 
     runGC(inter, 1, 0, 0, var_list);
-    return result;
+    return type;
 }
 
 /**
@@ -83,33 +83,30 @@ Result runStatement(INTER_FUNCTIONSIG) {
  * @param var_list
  * @return
  */
-Result iterStatement(INTER_FUNCTIONSIG) {
-    Result result;
-    setResultCore(&result);
-    if (st == NULL){
-        setResult(&result, inter);
-        return result;
-    }
+ResultType iterStatement(INTER_FUNCTIONSIG) {
     Statement *base_st = NULL;
+    ResultType type;
+    setResultCore(result);
 
-    while (true) {
-        base_st = st;
-        while (base_st != NULL) {
-            freeResult(&result);
-            result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
-            if (!run_continue(result))
-                goto return_;
-            base_st = base_st->next;
-        }
-
-        if (result.type != restart_return || result.times > 0)
-            break;
+    if (st == NULL){
+        setResult(result, inter);
+        return result->type;
     }
-    if (result.type == not_return)
-        setResultOperationNone(&result, inter);
+
+    do {
+        for (base_st = st; base_st != NULL; base_st = base_st->next) {
+            freeResult(result);
+            type = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list, result));
+            if (!run_continue_type(type))
+                break;
+        }
+    } while (type == restart_return && result->times == 0);
+
+    if (type == not_return || type == restart_return)
+        setResultOperationNone(result, inter);
 
     runGC(inter, 1, 0, 0, var_list);
-    return_: return result;
+    return result->type;
 }
 
 /**
@@ -117,91 +114,87 @@ Result iterStatement(INTER_FUNCTIONSIG) {
  * @param inter
  * @return
  */
-Result globalIterStatement(Inter *inter) {
+ResultType globalIterStatement(Inter *inter, Result *result) {
     Statement *base_st = NULL;
     VarList *var_list = NULL;
-    Result result;
-    setResultCore(&result);
+    enum ResultType type;
 
-    while (true) {
-        base_st = inter->statement;
-        var_list = inter->var_list;
-        while (base_st != NULL) {
-            freeResult(&result);
-            result = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list));
-            if (!run_continue(result))
+    do {
+        for (base_st = inter->statement, var_list = inter->var_list; base_st != NULL; base_st = base_st->next) {
+            freeResult(result);
+            type = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list, result));
+            if (!run_continue_type(type))
                 break;
-            base_st = base_st->next;
         }
-        if (result.type != restart_return || result.times > 0)
-            break;
-    }
+    } while (type == restart_return && result->times == 0);
 
-    if (result.type != error_return && result.type != function_return)
-        setResultOperationNone(&result, inter);
+    if (type != error_return && type != function_return)
+        setResultOperationNone(result, inter);
 
     runGC(inter, 1, 0, 0, var_list);
-    return result;
+    return result->type;
 }
 
 // 若需要中断执行, 则返回true
-bool operationSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
-    freeResult(result);
-    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (run_continue_(result))
+bool operationSafeInterStatement(INTER_FUNCTIONSIG){
+    ResultType type;
+    type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result));
+    if (run_continue_type(type))
         return false;
     return true;
 }
 
-bool ifBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
-    freeResult(result);
-    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (run_continue_(result)){
+bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG){
+    ResultType type;
+    type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result));
+    if (run_continue_type(type)){
         return false;
     }
-    if (result->type == rego_return){
+    if (type == rego_return){
         result->times--;
         if (result->times < 0)
             return false;
     }
-    if (result->type == restart_return)
+    if (type == restart_return) {
+        printf("TAG A\n");
         result->times--;
+    }
     return true;
 }
 
-bool cycleBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
-    freeResult(result);
-    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (run_continue_(result)){
+bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
+    ResultType type;
+    type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result));
+    if (run_continue_type(type)){
         return false;
     }
-    if (result->type == break_return || result->type == continue_return){
+    if (type == break_return || type == continue_return){
         result->times--;
         if (result->times < 0)
             return false;
     }
-    if (result->type == restart_return)
+    if (type == restart_return)
         result->times--;
     return true;
 }
 
-bool tryBranchSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
-    freeResult(result);
-    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (run_continue_(result)){
+bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
+    ResultType type;
+    type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result));
+    if (run_continue_type(type)){
         return false;
     }
-    if (result->type == restart_return)
+    if (type == restart_return)
         result->times--;
     return true;
 }
 
-bool functionSafeInterStatement(Result *result, INTER_FUNCTIONSIG){
-    freeResult(result);
-    *result = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list));
-    if (result->type == error_return)
+bool functionSafeInterStatement(INTER_FUNCTIONSIG){
+    ResultType type;
+    type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result));
+    if (type == error_return)
         return true;
-    else if (result->type == function_return){
+    else if (type == function_return){
         result->type = operation_return;
         return true;
     }

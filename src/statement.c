@@ -192,16 +192,17 @@ Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir){
 }
 
 void connectStatement(Statement *base, Statement *new){
-    while (base->next != NULL){
-        base = base->next;
-    }
+    for (PASS; base->next != NULL; base = base->next)
+        PASS;
     base->next = new;
 }
 
 void freeStatement(Statement *st){
+    Statement *next_tmp = NULL;
     freeBase(st, return_);
-    Statement *next_tmp;
-    while (st != NULL){
+
+    for (PASS; st != NULL; st = next_tmp){
+        next_tmp = st->next;
         switch (st->type) {
             case operation:
                 freeStatement(st->u.operation.right);
@@ -291,9 +292,7 @@ void freeStatement(Statement *st){
                 break;
         }
         memFree(st->code_file);
-        next_tmp = st->next;
         memFree(st);
-        st = next_tmp;
     }
     return_:
     return;
@@ -304,13 +303,10 @@ Statement *copyStatement(Statement *st){
         return NULL;
 
     Statement *tmp = copyStatementCore(st);
-    Statement *base_tmp = tmp;
+    Statement *base_tmp = NULL;
 
-    while (st->next != NULL){
+    for (base_tmp = tmp; st->next != NULL;st = st->next, tmp = tmp->next)
         tmp->next = copyStatementCore(st->next);
-        tmp = tmp->next;
-        st = st->next;
-    }
     return base_tmp;
 }
 
@@ -429,37 +425,32 @@ StatementList *connectStatementList(StatementList *base, StatementList *new){
     StatementList *tmp = base;
     if (base == NULL)
         return new;
-    while (tmp->next != NULL){
-        tmp = tmp->next;
-    }
+    for (PASS; tmp->next != NULL; tmp = tmp->next)
+        PASS;
     tmp->next = new;
     return base;
 }
 
 void freeStatementList(StatementList *base){
-    while (base != NULL){
+    StatementList *next = NULL;
+    for (PASS; base != NULL; base = next){
+        next = base->next;
         freeStatement(base->condition);
         freeStatement(base->code);
         freeStatement(base->var);
-        StatementList *tmp = base;
-        base = base->next;
-        memFree(tmp);
+        memFree(base);
     }
 }
 
 StatementList *copyStatementList(StatementList *sl){
+    StatementList *tmp = NULL;
+    StatementList *base_tmp = NULL;
+
     if (sl == NULL)
         return NULL;
 
-    StatementList *tmp = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var),
-                                           copyStatement(sl->code), sl->type);
-    StatementList *base_tmp = tmp;
-
-    while (sl->next != NULL){
-        tmp->next = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var),
-                                      copyStatement(sl->code), sl->type);
-        tmp = tmp->next;
-        sl = sl->next;
-    }
+    tmp = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var),copyStatement(sl->code), sl->type);
+    for (base_tmp = tmp; sl->next != NULL;tmp = tmp->next, sl = sl->next)
+        tmp->next = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var), copyStatement(sl->code), sl->type);
     return base_tmp;
 }

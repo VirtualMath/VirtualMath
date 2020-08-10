@@ -1,10 +1,10 @@
 #include "__run.h"
 
+// TODO-szh 重新命名
 #define checkNumber(new_result) do{ \
-if (!isType(new_result.value->value, number)){ \
-freeResult(&new_result); \
-setResultError(&result, inter, "TypeException", "Don't get a number value", st, true); \
-return result; \
+if (!isType(new_result->value->value, number)){ \
+setResultError(result, inter, "TypeException", "Don't get a number value", st, true); \
+return result->type; \
 }}while(0) /*该Macro只适用于控制分支*/
 
 bool checkBool(Value *value){
@@ -20,400 +20,339 @@ bool checkBool(Value *value){
     }
 }
 
-Result ifBranch(INTER_FUNCTIONSIG) {
+ResultType ifBranch(INTER_FUNCTIONSIG) {
     StatementList *if_list = st->u.if_branch.if_list;
+    Statement *else_st = st->u.if_branch.else_list;
+    Statement *finally = st->u.if_branch.finally;
     bool set_result = true;
     bool is_rego = false;
 
-    Result result;
-    Result else_tmp;
     Result finally_tmp;
-    setResultCore(&result);
-    setResultCore(&else_tmp);
+    setResultCore(result);
     setResultCore(&finally_tmp);
 
     var_list = pushVarList(var_list, inter);
-    while (if_list != NULL){
+    for (; if_list != NULL; if_list = if_list->next){
+        freeResult(result);
         if (if_list->type == if_b){
-            Result condition_tmp;
-            Result var_tmp;
-            setResultCore(&condition_tmp);
-            setResultCore(&var_tmp);
-
-            if (operationSafeInterStatement(&condition_tmp, CALL_INTER_FUNCTIONSIG(if_list->condition, var_list))){
-                result = condition_tmp;
+            LinkValue *condition_value = NULL;
+            if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(if_list->condition, var_list, result))){
                 set_result = false;
                 goto not_else;
             }
 
+            condition_value = result->value;
+            freeResult(result);
             if (if_list->var != NULL) {
-                freeResult(&var_tmp);
-                var_tmp = assCore(if_list->var, condition_tmp.value, inter, var_list);
-                if (!run_continue(var_tmp)){
-                    freeResult(&condition_tmp);
-                    result = var_tmp;
+                assCore(if_list->var, condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+                if (!run_continue(result)){
                     set_result = false;
                     goto not_else;
                 }
-                freeResult(&var_tmp);  // 赋值的返回值被丢弃
+                freeResult(result);
             }
 
-            bool condition = is_rego ? true : checkBool(condition_tmp.value->value);  // 若是rego则不执行checkbool的判断了
-            freeResult(&condition_tmp);
+            bool condition = is_rego ? true : checkBool(condition_value->value);  // 若是rego则不执行checkbool的判断了
             if (condition){
-                Result code_tmp;
-                setResultCore(&code_tmp);
-
                 is_rego = false;
-                if (ifBranchSafeInterStatement(&code_tmp, CALL_INTER_FUNCTIONSIG(if_list->code, var_list))){
-                    result = code_tmp;
+                if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(if_list->code, var_list, result))){
                     set_result = false;
                     goto not_else;
                 }
-                if (code_tmp.type == rego_return)
+                if (result->type == rego_return)
                     is_rego = true;
                 else {
-                    freeResult(&code_tmp);
+                    freeResult(result);
                     goto not_else;
                 }
-
-                freeResult(&code_tmp);
+                freeResult(result);
             }
         }
         else{
-            Result code_tmp;
-            setResultCore(&code_tmp);
-            if (ifBranchSafeInterStatement(&code_tmp, CALL_INTER_FUNCTIONSIG(if_list->code, var_list))){
-                result = code_tmp;
+            if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(if_list->code, var_list, result))){
                 set_result = false;
                 goto not_else;
             }
-            if (code_tmp.type == rego_return)
+            if (result->type == rego_return)
                 is_rego = true;
-            freeResult(&code_tmp);
+            freeResult(result);
         }
-        if_list = if_list->next;
     }
-    if (st->u.if_branch.else_list != NULL && ifBranchSafeInterStatement(&else_tmp, CALL_INTER_FUNCTIONSIG(st->u.if_branch.else_list, var_list))){
+    if (else_st != NULL && ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result)))
         set_result = false;
-        result = else_tmp;
-    }
     else
-        freeResult(&else_tmp);
+        freeResult(result);
 
     not_else:
-    if (st->u.if_branch.finally != NULL && ifBranchSafeInterStatement(&finally_tmp, CALL_INTER_FUNCTIONSIG(st->u.if_branch.finally, var_list))){
+    if (finally != NULL && ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(finally, var_list, &finally_tmp))){
         if (!set_result)
-            freeResult(&result);
+            freeResult(result);
         set_result = false;
-        result = finally_tmp;
+        *result = finally_tmp;
     }
     else
         freeResult(&finally_tmp);
 
     var_list = popVarList(var_list);
     if (set_result)
-        setResult(&result, inter);
-    return result;
+        setResult(result, inter);
+    return result->type;
 }
 
-Result whileBranch(INTER_FUNCTIONSIG) {
+ResultType whileBranch(INTER_FUNCTIONSIG) {
     StatementList *while_list = st->u.while_branch.while_list;
+    Statement *after = st->u.while_branch.after;
+    Statement *else_st = st->u.while_branch.else_list;
+    Statement *finally = st->u.while_branch.finally;
     bool set_result = true;
     bool is_break = false;
-    Result result;
-    Result else_tmp;
+
     Result finally_tmp;
-    setResultCore(&result);
-    setResultCore(&else_tmp);
+    setResultCore(result);
     setResultCore(&finally_tmp);
 
     var_list = pushVarList(var_list, inter);
     while (!is_break){
-        Result tmp;
-        Result var_tmp;
-        Result do_tmp;
-        setResultCore(&tmp);
-        setResultCore(&var_tmp);
-        setResultCore(&do_tmp);
+        LinkValue *condition_value = NULL;
 
-        if (operationSafeInterStatement(&tmp, CALL_INTER_FUNCTIONSIG(while_list->condition, var_list))){
-            result = tmp;
+        freeResult(result);
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_list->condition, var_list, result))){
             set_result = false;
             goto not_else;
         }
+
+        condition_value = result->value;
+        freeResult(result);
         if (while_list->var != NULL){
-            freeResult(&var_tmp);
-            var_tmp = assCore(while_list->var, tmp.value, inter, var_list);
-            if (!run_continue(var_tmp)){
-                freeResult(&tmp);
-                result = var_tmp;
+            assCore(while_list->var, condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+            if (!run_continue(result)){
                 set_result = false;
                 goto not_else;
             }
-            freeResult(&var_tmp);  // 赋值的返回值被丢弃
+            freeResult(result);  // 赋值的返回值被丢弃
         }
 
-        bool condition = checkBool(tmp.value->value);
-        freeResult(&tmp);
+        bool condition = checkBool(condition_value->value);
         if (condition){
-            Result code_tmp;
-            setResultCore(&code_tmp);
-            if (cycleBranchSafeInterStatement(&code_tmp, CALL_INTER_FUNCTIONSIG(while_list->code, var_list))){
-                result = code_tmp;
+            if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_list->code, var_list, result))){
                 set_result = false;
                 goto not_else;
             }
-            if (code_tmp.type == break_return)
+            else if (result->type == break_return)
                 is_break = true;
-            if (code_tmp.type == continue_return)
+            else if (result->type == continue_return)
                 PASS;
-            freeResult(&code_tmp);
+            freeResult(result);
         }
         else
             break;
 
-        if (st->u.while_branch.after == NULL)
-            goto not_after_do;
+        if (after == NULL)
+            continue;
 
-        if (cycleBranchSafeInterStatement(&do_tmp, CALL_INTER_FUNCTIONSIG(st->u.while_branch.after, var_list))){
-            result = do_tmp;
+        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(after, var_list, result))){
             set_result = false;
             goto not_else;
         }
-        if (do_tmp.type == break_return) {
-            freeResult(&do_tmp);
+        else if (result->type == break_return) {
+            freeResult(result);
             goto not_else;
         }
-        if (do_tmp.type == continue_return)
+        else if (result->type == continue_return)
             PASS;
 
-        freeResult(&do_tmp);
-        not_after_do: PASS;
+        freeResult(result);
     }
-    if (!is_break && st->u.while_branch.else_list != NULL && cycleBranchSafeInterStatement(&else_tmp, CALL_INTER_FUNCTIONSIG(st->u.while_branch.else_list, var_list))){
+    if (!is_break && else_st != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result)))
         set_result = false;
-        result = else_tmp;
-    }
     else
-        freeResult(&else_tmp);
+        freeResult(result);
 
     not_else:
-    if (st->u.while_branch.finally != NULL && cycleBranchSafeInterStatement(&finally_tmp, CALL_INTER_FUNCTIONSIG(st->u.while_branch.finally, var_list))){
+    if (finally != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(finally, var_list, &finally_tmp))){
         if (!set_result)
-            freeResult(&result);
+            freeResult(result);
         set_result = false;
-        result = finally_tmp;
+        *result = finally_tmp;
     }
 
     var_list = popVarList(var_list);
     if (set_result)
-        setResult(&result, inter);
-    return result;
+        setResult(result, inter);
+    return result->type;
 }
 
-Result tryBranch(INTER_FUNCTIONSIG) {
-    bool set_result = true;
+ResultType tryBranch(INTER_FUNCTIONSIG) {
     StatementList *except_list = st->u.try_branch.except_list;
-    Result result;
-    Result try_result;
-    Result var_tmp;
-    Result except_result;
-    Result else_tmp;
+    Statement *try = st->u.try_branch.try;
+    Statement *else_st = st->u.try_branch.else_list;
+    Statement *finally = st->u.try_branch.finally;
+    LinkValue *error_value = NULL;
+    bool set_result = true;
+
     Result finally_tmp;
-    setResultCore(&result);
-    setResultCore(&except_result);
-    setResultCore(&try_result);
-    setResultCore(&var_tmp);
-    setResultCore(&else_tmp);
+    setResultCore(result);
     setResultCore(&finally_tmp);
 
     var_list = pushVarList(var_list, inter);
-    if (!tryBranchSafeInterStatement(&try_result, CALL_INTER_FUNCTIONSIG(st->u.try_branch.try, var_list))){
-        freeResult(&try_result);
+    if (!tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(try, var_list, result))){
+        freeResult(result);
         goto not_except;
     }
 
     if (except_list == NULL) {
-        result = try_result;
         set_result = false;
         goto not_else;
     }
+
+    error_value = result->value;
+    freeResult(result);
     if (except_list->var != NULL){
-        freeResult(&var_tmp);
-        var_tmp = assCore(except_list->var, try_result.value, inter, var_list);
-        if (!run_continue(var_tmp)){
-            freeResult(&try_result);
-            result = var_tmp;
+        assCore(except_list->var, error_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+        if (!run_continue(result)){
             set_result = false;
             goto not_else;
         }
-        freeResult(&var_tmp);  // 赋值的返回值被丢弃
+        freeResult(result);
     }
-    if (tryBranchSafeInterStatement(&except_result, CALL_INTER_FUNCTIONSIG(except_list->code, var_list))){
-        result = except_result;
+    if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(except_list->code, var_list, result)))
         set_result = false;
-    }
     else
-        freeResult(&except_result);
-
-    freeResult(&try_result);
+        freeResult(result);
     goto not_else;
 
     not_except:
-    if (st->u.try_branch.else_list != NULL && tryBranchSafeInterStatement(&else_tmp, CALL_INTER_FUNCTIONSIG(st->u.try_branch.else_list, var_list))){
+    if (else_st != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result)))
         set_result = false;
-        result = else_tmp;
-    }
     else
-        freeResult(&else_tmp);
+        freeResult(result);
 
     not_else:
-    if (st->u.try_branch.finally != NULL && tryBranchSafeInterStatement(&finally_tmp, CALL_INTER_FUNCTIONSIG(st->u.try_branch.finally, var_list))){
+    if (finally != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(finally, var_list, &finally_tmp))){
         if (!set_result)
-            freeResult(&result);
+            freeResult(result);
         set_result = false;
-        result = finally_tmp;
+        *result = finally_tmp;
     }
 
     var_list = popVarList(var_list);
     if (set_result)
-        setResult(&result, inter);
-    return result;
+        setResult(result, inter);
+    return result->type;
 }
 
-Result breakCycle(INTER_FUNCTIONSIG){
-    Result result;
-    Result times;
-    setResultCore(&result);
-    setResultCore(&times);
-
+ResultType breakCycle(INTER_FUNCTIONSIG){
     int times_int = 0;
+    setResultCore(result);
     if (st->u.break_cycle.times == NULL)
         goto not_times;
 
-    if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.break_cycle.times, var_list)))
-        return times;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.break_cycle.times, var_list, result)))
+        return result->type;
 
-    checkNumber(times);
-    times_int = (int)times.value->value->data.num.num;
-    freeResult(&times);
+    checkNumber(result);
+    times_int = (int)result->value->value->data.num.num;
+    freeResult(result);
 
     not_times:
-    setResult(&result, inter);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result.type = break_return;
-        result.times = times_int;
+        result->type = break_return;
+        result->times = times_int;
     }
-    return result;
+    return result->type;
 }
 
-Result continueCycle(INTER_FUNCTIONSIG){
-    Result result;
-    Result times;
-    setResultCore(&result);
-    setResultCore(&times);
-
+ResultType continueCycle(INTER_FUNCTIONSIG){
     int times_int = 0;
+    setResultCore(result);
     if (st->u.continue_cycle.times == NULL)
         goto not_times;
-    if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.continue_cycle.times, var_list)))
-        return times;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.continue_cycle.times, var_list, result)))
+        return result->type;
 
-    checkNumber(times);
-    times_int = (int)times.value->value->data.num.num;
-    freeResult(&times);
+    checkNumber(result);
+    times_int = (int)result->value->value->data.num.num;
+    freeResult(result);
 
     not_times:
-    setResult(&result, inter);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result.type = continue_return;
-        result.times = times_int;
+        result->type = continue_return;
+        result->times = times_int;
     }
-    return result;
+    return result->type;
 }
 
-Result regoIf(INTER_FUNCTIONSIG){
-    Result result;
-    Result times;
-    setResultCore(&result);
-    setResultCore(&times);
-
+ResultType regoIf(INTER_FUNCTIONSIG){
     int times_int = 0;
+    setResultCore(result);
     if (st->u.rego_if.times == NULL)
         goto not_times;
-    if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.rego_if.times, var_list)))
-        return times;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.rego_if.times, var_list, result)))
+        return result->type;
 
-    checkNumber(times);
-    times_int = (int)times.value->value->data.num.num;
-    freeResult(&times);
+    checkNumber(result);
+    times_int = (int)result->value->value->data.num.num;
+    freeResult(result);
 
     not_times:
-    setResult(&result, inter);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result.type = rego_return;
-        result.times = times_int;
+        result->type = rego_return;
+        result->times = times_int;
     }
-    return result;
+    return result->type;
 }
 
-Result restartCode(INTER_FUNCTIONSIG){
-    Result result;
-    Result times;
-    setResultCore(&result);
-    setResultCore(&times);
-
+ResultType restartCode(INTER_FUNCTIONSIG){
     int times_int = 0;
+    setResultCore(result);
     if (st->u.restart.times == NULL)
         goto not_times;
-    if (operationSafeInterStatement(&times, CALL_INTER_FUNCTIONSIG(st->u.restart.times, var_list)))
-        return times;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.restart.times, var_list, result)))
+        return result->type;
 
-    checkNumber(times);
-    times_int = (int)times.value->value->data.num.num;
-    freeResult(&times);
+    checkNumber(result);
+    times_int = (int)result->value->value->data.num.num;
+    freeResult(result);
 
     not_times:
-    setResult(&result, inter);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result.type = restart_return;
-        result.times = times_int;
+        result->type = restart_return;
+        result->times = times_int;
     }
-    return result;
+    return result->type;
 }
 
-Result returnCode(INTER_FUNCTIONSIG){
-    Result result;
-    setResultCore(&result);
-
+ResultType returnCode(INTER_FUNCTIONSIG){
+    setResultCore(result);
     if (st->u.return_code.value == NULL) {
-        setResult(&result, inter);
+        setResult(result, inter);
         goto set_result;
     }
 
-    if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st->u.return_code.value, var_list)))
-        return result;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.return_code.value, var_list, result)))
+        return result->type;
 
     set_result:
-    result.type = function_return;
-    return result;
+    result->type = function_return;
+    return result->type;
 }
 
-Result raiseCode(INTER_FUNCTIONSIG){
-    Result result;
-    setResultCore(&result);
-
+ResultType raiseCode(INTER_FUNCTIONSIG){
+    setResultCore(result);
     if (st->u.raise_code.value == NULL) {
-        setResult(&result, inter);
+        setResult(result, inter);
         goto set_result;
     }
 
-    if (operationSafeInterStatement(&result, CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list)))
-        return result;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list, result)))
+        return result->type;
 
     set_result:
-    result.type = error_return;
-    setResultError(&result, inter, "RaiseException", "Exception was raise by user", st, false);
-    return result;
+    result->type = error_return;
+    result->error = connectError(makeError("RaiseException", "Exception was raise by user", st->line, st->code_file), result->error);
+    return result->type;
 }

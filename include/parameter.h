@@ -63,17 +63,14 @@ void freeParameter(Parameter *pt, bool free_st);
 Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE);
 Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE);
 
-Result setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, struct Statement *base,
-                        struct Inter *inter, struct VarList *var_list);
-Result setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, struct Statement *base,
-                    struct Inter *inter, struct VarList *var_list);
-Result iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_CORE);
+ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, struct Statement *base, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, struct Statement *base, INTER_FUNCTIONSIG_NOT_ST);
+ResultType iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_NOT_ST);
 Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE);
 
-Result defaultParameter(Parameter **function_ad, Inter *inter, VarList *var_list, int *num);
-Result
-argumentToVar(Argument **call_ad, struct Inter *inter, struct VarList *var_list, NUMBER_TYPE *num);
-Result parameterFromVar(Parameter **function_ad, VarList *function_var, struct Inter *inter, struct VarList *var_list,
-                        NUMBER_TYPE *num, NUMBER_TYPE max, bool *status);
-Result argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_CORE);
+ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG_NOT_ST);
+ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG_NOT_ST);
+ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMBER_TYPE *num, NUMBER_TYPE max, bool *status,
+                        INTER_FUNCTIONSIG_NOT_ST);
+ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH_PARAMETER_H

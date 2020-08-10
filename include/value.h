@@ -81,6 +81,7 @@ typedef struct Value Value;
 typedef struct LinkValue LinkValue;
 typedef struct Result Result;
 typedef struct Error Error;
+typedef enum ResultType ResultType;
 
 Value *makeValue(Inter *inter);
 Value * freeValue(Value *value, Inter *inter);
@@ -100,6 +101,7 @@ void setResultOperationNone(Result *ru, Inter *inter);
 void setResultOperation(Result *ru, LinkValue *value, Inter *inter);
 void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter);
 void freeResult(Result *ru);
+void freeResultSave(Result *ru);
 
 Error *makeError(char *type, char *message, long int line, char *file);
 void freeError(Result *base);

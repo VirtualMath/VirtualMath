@@ -83,9 +83,9 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
                 delToken(pm);
             else  if(stop != MATHER_EOF){
                 if (global) {
-                    freeToken(command_token, true, true);
                     printf("stop = %d\n", stop);
                     syntaxError(pm, command_list_error, command_token->line, 1, "ERROR from parserCommand list(get stop)");
+                    freeToken(command_token, true, true);
                 }
                 else{
                     connectStatement(st, command_token->data.st);
@@ -172,6 +172,7 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_STRING:
         case MATHER_NUMBER:
         case MATHER_VAR:
+        case MATHER_SVAR:
         case MATHER_LC:
         case MATHER_LB:
         case MATHER_LP:

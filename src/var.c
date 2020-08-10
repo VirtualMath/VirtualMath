@@ -37,8 +37,8 @@ HashTable *makeHashTable(Inter *inter) {
         goto return_;
     }
 
-    while (list_tmp->next !=  NULL)
-        list_tmp = list_tmp->next;
+    for (PASS; list_tmp->next !=  NULL; list_tmp = list_tmp->next)
+        PASS;
     list_tmp->next = tmp;
     tmp->last = list_tmp;
 
@@ -96,9 +96,8 @@ VarList *freeVarList(VarList *vl, bool self){
  */
 HASH_INDEX time33(char *key){ // hash function
     HASH_INDEX hash = 5381;
-    while(*key){
+    while(*key)
         hash += (hash << (HASH_INDEX)5) + (*key++);
-    }
     return (hash & (HASH_INDEX)0x7FFFFFFF) % MAX_SIZE;
 }
 
@@ -108,25 +107,17 @@ void addVar(char *name, LinkValue *value, LinkValue *name_, VarList *var_list) {
     Var *base = var_list->hashtable->hashtable[index];
     if (base == NULL){
         var_list->hashtable->hashtable[index] = makeVar(name, value, name_);
-        goto return_;
+        return;
     }
-    while (true){
-        if (base->next != NULL)
-            goto new_one;
-        if (eqString(base->name, name))
-            goto change;
-        base = base->next;
-    }
-    new_one:
-    base->next = makeVar(name, value, name_);
-    goto return_;
-
-    change:
-    base->value = value;
-    goto return_;
-
-    return_:
-    return;
+    for (PASS; true; base = base->next)
+        if (base->next != NULL) {
+            base->next = makeVar(name, value, name_);
+            break;
+        }
+        else if (eqString(base->name, name)) {
+            base->value = value;
+            break;
+        }
 }
 
 LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
@@ -134,10 +125,11 @@ LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
     HASH_INDEX index = time33(name);
     Var *base = var_list->hashtable->hashtable[index];
     Var *last = NULL;
-    if (base == NULL){
+
+    if (base == NULL)
         goto return_;
-    }
-    while (base != NULL){
+
+    for (PASS; base != NULL; last = base, base = base->next){
         if (eqString(base->name, name)){
             tmp = base->value;
             if (del_var){
@@ -148,8 +140,6 @@ LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
             }
             goto return_;
         }
-        last = base;
-        base = base->next;
     }
     return_:
     return tmp;
@@ -157,24 +147,16 @@ LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
 
 LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, bool del_var) {
     LinkValue *tmp = NULL;
-    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++){
+    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++)
         var_list = var_list->next;
-    }
-    while (var_list != NULL){
+    for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
         tmp = findVar(name, var_list, del_var);
-        if (tmp != NULL){
-            goto return_;
-        }
-        var_list = var_list->next;
-    }
-    return_:
     return tmp;
 }
 
 void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value, LinkValue *name_) {
-    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++){
+    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++)
         var_list = var_list->next;
-    }
     addVar(name, value, name_, var_list);
 }
 
@@ -197,14 +179,11 @@ VarList *copyVarListCore(VarList *base, Inter *inter){
 }
 
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter){
-    VarList *new;
-    VarList *tmp;
+    VarList *new = NULL;
+    VarList *tmp = NULL;
     new = tmp = copyVarListCore(base, inter);
-    while (base->next != NULL){
+    for (PASS; base->next != NULL; tmp = tmp->next, base = base->next)
         tmp->next = copyVarListCore(base->next, inter);
-        tmp = tmp->next;
-        base = base->next;
-    }
     if (n_new)
         new = pushVarList(new, inter);
     return new;
