@@ -3,18 +3,20 @@
 #include <string.h>
 #include <__macro.h>
 
-void *memFreeCore(void *p);
+extern jmp_buf memVirtualMath_Env;
+extern bool memVirtualMathUseJmp;
+
 void *memCalloc(size_t num, size_t size);
 void *memRealloc(void *old, size_t size);
-char *memStrcpy(char *str);
+char *memStrcpy(const char *const str);
 char *memStrCharcpy(char *str, size_t nsize, int free_old, int write, ...);
-char *memString(size_t size);
-size_t memStrlen(char *p);
 char *memStrcat(char *first, char *second, bool free_old);
 char *memStrcpySelf(char *str, NUMBER_TYPE times);
-char *memStrrev(char *str);
+char *memStrrev(const char *const str);
 
-#define memFree(p) p=memFreeCore(p)
+#define memFree(p) ((p)=((p) != NULL ? (free(p), NULL) : NULL))
 #define eqString(str1, str2) (!strcmp(str1, str2))
+#define memString(size) (char *)memCalloc(size + 1, sizeof(char))
+#define memStrlen(p) (((p) == NULL) ? 0 :strlen(p))
 
 #endif //VIRTUALMATH_MEM_H

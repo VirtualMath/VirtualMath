@@ -151,15 +151,12 @@ Token *popNewToken(TokenMessage *tm, FILE *debug) {
 void printToken(Token *tk, FILE *debug, int type) {
     if (tk->token_type >= 0) {
         char *tmp = tk->data.str, *second_tmp = tk->data.second_str;
-        if (!strcmp(tmp, "\n")) {
+        if (tmp != NULL && !strcmp(tmp, "\n"))
             tmp = "\\n";
-        }
-        if (!strcmp(second_tmp, "\n")) {
+        if (second_tmp != NULL && !strcmp(second_tmp, "\n"))
             second_tmp = "\\n";
-        }
-        if (tmp[0] == EOF) {
+        if (tmp != NULL && tmp[0] == EOF)
             tmp = "(EOF)";
-        }
         writeLog_(debug, type, "<token str = ('%s','%s'), type = %d>", tmp, second_tmp, tk->token_type);
     }
     else{

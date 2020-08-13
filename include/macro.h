@@ -9,6 +9,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <setjmp.h>
 
 // 布尔逻辑的定义
 #define bool int

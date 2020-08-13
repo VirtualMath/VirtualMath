@@ -3,6 +3,9 @@
 int main(int argc, char *argv[]) {
     Inter *global_inter = NULL;
     int status = 1;
+    memVirtualMathUseJmp = true;
+    if (setjmp(memVirtualMath_Env) == -1)  // 遇到内存错误
+        return 2;
 
     if (getArgs(argc, argv))
         goto args_error;
@@ -16,7 +19,11 @@ int main(int argc, char *argv[]) {
 
 
 /**
- * TODO-szh 面向对象
+ * TODO-szh 类->对象
+ * TODO-szh 类继承
+ * TODO-szh 类封装
+ * TODO-szh 类super语句
+ * TODO-szh const声明
  * TODO-szh import语句
  * TODO-szh 生成语法树
  * TODO-szh 取反符号 -

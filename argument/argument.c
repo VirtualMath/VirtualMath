@@ -28,7 +28,7 @@ const char *short_option = "si:";
  * @param argv
  * @return
  */
-int getArgs(int argc, char *argv[])
+int getArgs(const int argc, char **argv)
 {
     args.file = NULL;
     args.log_file = NULL;
@@ -36,7 +36,7 @@ int getArgs(int argc, char *argv[])
     args.stdout_inter = false;
     opterr = false;
     int opt;
-    while((opt=getopt_long(argc,argv,short_option ,long_option,NULL))!=-1)
+    while((opt=getopt_long(argc, argv, short_option ,long_option,NULL))!=-1)
     {
         switch(opt)
         {

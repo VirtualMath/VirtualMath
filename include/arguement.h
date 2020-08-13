@@ -10,7 +10,7 @@ struct Args{
 
 typedef struct Args Args;
 
-int getArgs(int argc, char *argv[]);
+int getArgs(const int argc, char **argv);
 void freeArgs(void);
 
 #endif //VIRTUALMATH_ARGUEMENT_H

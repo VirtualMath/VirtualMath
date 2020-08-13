@@ -1,65 +1,59 @@
 #include "__virtualmath.h"
 
-void *memFreeCore(void *p){
-    if (p != NULL)
-        free(p);
-    return NULL;
-}
+jmp_buf memVirtualMath_Env;
+bool memVirtualMathUseJmp;
 
 void *memCalloc(size_t num, size_t size){
+    void *tmp = NULL;
     if (num == 0 || size == 0)
         return NULL;
-    void *tmp = calloc(num, size);
+    tmp = calloc(num, size);
+    if (tmp == NULL) {
+        if (memVirtualMathUseJmp)
+            longjmp(memVirtualMath_Env, -1);
+        else
+            exit(2);
+    }
     return tmp;
 }
 
 void *memRealloc(void *old, size_t size){
-    if (size == 0)
+    void *tmp = NULL;
+    if (size <= 0)
         return NULL;
-    void *tmp;
-    if (old == NULL)
+    else if (old == NULL)
         tmp = memCalloc(1,size);
     else
         tmp = realloc(old, size);
-    return tmp;
-}
-
-size_t memStrlen(char *p){  // 可以读取NULL的strlen
-    if (p == NULL)
-        return 0;
-    else
-        return strlen(p);
-}
-
-char *memString(size_t size) {  // 比memCalloc多了一个设置\0的步骤
-    if (size == 0){
-        return NULL;
+    if (tmp == NULL) {
+        if (memVirtualMathUseJmp)
+            longjmp(memVirtualMath_Env, -1);
+        else
+            exit(2);
     }
-    char *tmp = (char *)memCalloc(size + 1, sizeof(char));
-    tmp[size] = '\0';
     return tmp;
 }
 
-char *memStrcpy(char *str){
-    return memStrCharcpy(str, 0, false ,false);
+char *memStrcpy(const char *const str){
+    char *tmp = memString(memStrlen(str));
+    if (str != NULL)
+        strcpy(tmp, str);
+    return tmp;
 }
 
 char *memStrCharcpy(char *str, size_t nsize, bool free_old, bool write, ...) {  // 复制str到新的空间，nszie是要扩展的大小。该函数支持让str=NULL，则变为单纯的memString
-    char *tmp = memString(memStrlen(str) + nsize + 1);
-    if (str != NULL){
+    char *tmp = memString(memStrlen(str) + nsize);
+    if (str != NULL)
         strcpy(tmp, str);
-    }
     if (write){
         va_list argp;
         va_start(argp, write);
-        for (int i = 0; i < nsize; i++){
+        for (int i = 0; i < nsize; i++)
             tmp[memStrlen(str) + i] = (char)va_arg(argp, int);
-        }
         va_end(argp);
     }
-    if (free_old){
+    if (free_old)
         memFree(str);
-    }
     return tmp;
 }
 
@@ -73,9 +67,8 @@ char *memStrcat(char *first, char *second, bool free_old) {
     }
 
     char *new = memStrCharcpy(first, memStrlen(second), false, false);
-    if (second != NULL){
+    if (second != NULL)
         strcat(new, second);
-    }
     if (free_old)
         memFree(first);
     return new;
@@ -94,17 +87,15 @@ char *memStrcpySelf(char *str, NUMBER_TYPE times){
         memFree(new_str);
         new_str = tmp;
     }
-    if (need_free){
+    if (need_free)
         memFree(str);
-    }
     return new_str;
 }
 
-char *memStrrev(char *str){
+char *memStrrev(const char *const str){
     size_t len_str = memStrlen(str);
     char *new_str = memString(len_str);
-    for (int i = 0;i < len_str;i++){
+    for (int i = 0;i < len_str;i++)
         new_str[i] = str[len_str - i - 1];
-    }
     return new_str;
 }

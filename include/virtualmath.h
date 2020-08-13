@@ -3,6 +3,8 @@
 #include "macro.h"
 #include "arguement.h"
 
+extern jmp_buf memVirtualMath_Env;
+extern bool memVirtualMathUseJmp;
 typedef struct Inter Inter;
 typedef struct Result Result;
 Inter *runBaseInter(char *code_file, char *debug_dir, int *status);
