@@ -124,6 +124,7 @@ void parserCommand(PASERSSIGNATURE){
     Statement *st = NULL;
     token_type = readBackToken(pm);
     switch (token_type) {
+        case MATHER_CLASS :
         case MATHER_DEF :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st,
                                       "Command: call def\n");
@@ -542,22 +543,23 @@ void parserDef(PASERSSIGNATURE){
     Statement *name_tmp = NULL;
     Statement *code_tmp = NULL;
     Parameter *pt = NULL;
+    int type = readBackToken(pm);
     long int line = delToken(pm);
 
     if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &name_tmp,
-                            "Don't get a function name"))
+                            "Don't get a function/class name"))
         goto error_;
 
     if (!checkToken_(pm, MATHER_LP)) {
-        syntaxError(pm, syntax_error, line, 1, "Don't get a function ( before parameter");
+        syntaxError(pm, syntax_error, line, 1, "Don't get a function/class ( before parameter");
         goto error_;
     }
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
-        syntaxError(pm, syntax_error, line, 1, "Don't get a function parameter");
+        syntaxError(pm, syntax_error, line, 1, "Don't get a function/class parameter");
         goto error_;
     }
     if (!checkToken_(pm, MATHER_RP)) {
-        syntaxError(pm, syntax_error, line, 1, "Don't get a function ) after parameter");
+        syntaxError(pm, syntax_error, line, 1, "Don't get a function/class ) after parameter");
         goto error_;
     }
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserDef: get function title success\n", NULL);
@@ -568,7 +570,10 @@ void parserDef(PASERSSIGNATURE){
         goto error_;
     }
 
-    st = makeFunctionStatement(name_tmp, code_tmp, pt);
+    if (type == MATHER_DEF)
+        st = makeFunctionStatement(name_tmp, code_tmp, pt);
+    else
+        st = makeClassStatement(name_tmp, code_tmp);  // TODO-szh 处理pt
     addLexToken(pm, MATHER_ENTER);
     addStatementToken(FUNCTION, st, pm);
     return;
@@ -783,9 +788,31 @@ int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
     return 1;
 }
 void parserCallBack(PASERSSIGNATURE){
-    return tailOperation(CALLPASERSSIGNATURE, parserBaseValue, tailCall, BASEVALUE, CALLBACK,
-            "Base Value", "Call Back");
+    return tailOperation(CALLPASERSSIGNATURE, parserPoint, tailCall, POINT, CALLBACK,
+            "point", "call back");
 }
+
+/**
+ * 成员运算符匹配
+ * parserPoint:
+ * | parserBaseValue
+ * | parserBaseValue POINT parserPoint
+ */
+bool switchPoint(PASERSSIGNATURE, int symbol, Statement **st){
+    switch (symbol) {
+        case MATHER_POINT:
+            *st = makeOperationStatement(OPT_POINT, 0, pm->file);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+void parserPoint(PASERSSIGNATURE){
+    return twoOperation(CALLPASERSSIGNATURE, parserBaseValue, switchPoint, BASEVALUE, POINT,
+                        "base value", "point", false);
+}
+
 
 /**
  * 字面量匹配
@@ -809,8 +836,7 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     return_:
     return 1;
 }
-//st = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
-//st = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
+
 void parserBaseValue(PASERSSIGNATURE){
     Token *value_token = popAheadToken(pm);
     Statement *st = NULL;

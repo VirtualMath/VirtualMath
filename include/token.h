@@ -108,6 +108,7 @@
 #define RAISE -23
 #define TUPLE -24
 #define INCLUDE -25
+#define POINT -26
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \

@@ -13,7 +13,6 @@ void setGC(GCStatus *gcs){
 
 void gcAddTmp(GCStatus *gcs){
     gcs->tmp_link ++;
-    gcs->continue_ = false;
 }
 
 void gcAddLink(GCStatus *gcs){

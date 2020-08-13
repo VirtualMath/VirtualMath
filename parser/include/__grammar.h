@@ -44,6 +44,7 @@ void parserOperation(PASERSSIGNATURE);
 void parserPolynomial(PASERSSIGNATURE);
 void parserBaseValue(PASERSSIGNATURE);
 void parserCallBack(PASERSSIGNATURE);
+void parserPoint(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
 void parserTuple(PASERSSIGNATURE);

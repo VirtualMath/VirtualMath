@@ -59,7 +59,7 @@ Inter *makeInter(char *code_file, char *debug) {
         tmp->data.error = stderr;
     }
 
-    Value *none_value = makeValue(tmp);  // 注册None值
+    Value *none_value = makeNoneValue(tmp);  // 注册None值
     gcAddStatementLink(&none_value->gc_status);
     return tmp;
 }

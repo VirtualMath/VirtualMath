@@ -20,6 +20,7 @@ bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG);
 
 ResultType operationStatement(INTER_FUNCTIONSIG);
+ResultType setClass(INTER_FUNCTIONSIG);
 ResultType setFunction(INTER_FUNCTIONSIG);
 ResultType callFunction(INTER_FUNCTIONSIG);
 ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info);
@@ -38,6 +39,7 @@ ResultType raiseCode(INTER_FUNCTIONSIG);
 
 ResultType includeFile(INTER_FUNCTIONSIG);
 
+ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 
 char *setStrVarName(char *old, bool free_old, INTER_FUNCTIONSIG_CORE);

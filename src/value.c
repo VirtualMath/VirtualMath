@@ -1,12 +1,14 @@
 #include "__virtualmath.h"
 
 
-Value *makeValue(Inter *inter) {
+Value *makeObject(Inter *inter, VarList *object) {
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
-    tmp->type = none;
     setGC(&tmp->gc_status);
+    tmp->type = object_;
     tmp->next = NULL;
+    tmp->object.var = object == NULL ? makeVarList(inter) : copyVarList(object, false, inter);
+
     if (list_tmp == NULL){
         inter->base = tmp;
         tmp->last = NULL;
@@ -23,9 +25,16 @@ Value *makeValue(Inter *inter) {
     return tmp;
 }
 
+Value *makeNoneValue(Inter *inter) {
+    Value *tmp;
+    tmp = makeObject(inter, NULL);
+    tmp->type = none;
+    return tmp;
+}
+
 Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
     Value *tmp;
-    tmp = makeValue(inter);
+    tmp = makeObject(inter, NULL);
     tmp->type = number;
     tmp->data.num.num = num;
     return tmp;
@@ -33,7 +42,7 @@ Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
 
 Value *makeStringValue(char *str, Inter *inter) {
     Value *tmp;
-    tmp = makeValue(inter);
+    tmp = makeObject(inter, NULL);
     tmp->type = string;
     tmp->data.str.str = memStrcpy(str);
     return tmp;
@@ -41,18 +50,26 @@ Value *makeStringValue(char *str, Inter *inter) {
 
 Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
     Value *tmp;
-    tmp = makeValue(inter);
+    tmp = makeObject(inter, NULL);
     tmp->type = function;
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
-    tmp->data.function.var = copyVarList(var_list, false, inter);
+    tmp->data.function.out_var = copyVarList(var_list, false, inter);
+    return tmp;
+}
+
+Value *makeClassValue(VarList *var_list, Inter *inter) {
+    Value *tmp;
+    tmp = makeObject(inter, NULL);
+    tmp->type = class;
+    tmp->data.class.out_var = copyVarList(var_list, false, inter);
     return tmp;
 }
 
 Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     Value *tmp;
     Argument *at = *arg_ad;
-    tmp = makeValue(inter);
+    tmp = makeObject(inter, NULL);
     tmp->type = list;
     tmp->data.list.type = type;
     tmp->data.list.list = NULL;
@@ -66,9 +83,9 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     return tmp;
 }
 
-Value *makeDictValue(Argument **arg_ad, bool new_hash, Result *result, Inter *inter, VarList *var_list) {
+Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp;
-    tmp = makeValue(inter);
+    tmp = makeObject(inter, NULL);
     tmp->data.dict.size = 0;
     tmp->type = dict;
     if (new_hash) {
@@ -76,7 +93,7 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, Result *result, Inter *in
         gcAddTmp(&tmp->gc_status);
         tmp->data.dict.dict = hash->hashtable;
         freeResult(result);
-        argumentToVar(arg_ad, &tmp->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result));
+        argumentToVar(arg_ad, &tmp->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result, father));
         popVarList(hash);
         gcFreeTmpLink(&tmp->gc_status);
     }
@@ -97,14 +114,21 @@ Value *freeValue(Value *value, Inter *inter){
     if (value->next != NULL)
         value->next->last = value->last;
 
+    freeVarList(value->object.var, true);
     switch (value->type) {
         case string:
             memFree(value->data.str.str);
             break;
         case function: {
-            VarList *tmp = value->data.function.var;
+            VarList *tmp = value->data.function.out_var;
             freeParameter(value->data.function.pt, true);
             freeStatement(value->data.function.function);
+            while (tmp != NULL)
+                tmp = freeVarList(tmp, true);
+            break;
+        }
+        case class: {
+            VarList *tmp = value->data.class.out_var;
             while (tmp != NULL)
                 tmp = freeVarList(tmp, true);
             break;
@@ -167,22 +191,23 @@ void setResultCore(Result *ru) {
     ru->value = NULL;
 }
 
-void setResult(Result *ru, Inter *inter) {
+void setResult(Result *ru, Inter *inter, LinkValue *father) {
     freeResult(ru);
-    setResultBase(ru, inter);
+    setResultBase(ru, inter, father);
 }
 
-void setResultBase(Result *ru, Inter *inter) {
+void setResultBase(Result *ru, Inter *inter, LinkValue *father) {
     setResultCore(ru);
-    ru->value = makeLinkValue(inter->base, NULL, inter);
+    ru->value = makeLinkValue(inter->base, father, inter);
     gcAddTmp(&ru->value->gc_status);
 }
 
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, bool new) {
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father,
+                    bool new) {
     if (!new && ru->type != error_return)
         return;
     if (new) {
-        setResult(ru, inter);
+        setResult(ru, inter, father);
         ru->type = error_return;
     }
     else{
@@ -192,8 +217,8 @@ void setResultError(Result *ru, Inter *inter, char *error_type, char *error_mess
     ru->error = connectError(makeError(error_type, error_message, st->line, st->code_file), ru->error);
 }
 
-void setResultOperationNone(Result *ru, Inter *inter) {
-    setResult(ru, inter);
+void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father) {
+    setResult(ru, inter, father);
     ru->type = operation_return;
 }
 
@@ -264,6 +289,12 @@ void printValue(Value *value, FILE *debug){
         }
         case none:
             writeLog(debug, INFO, "<None>", NULL);
+            break;
+        case class:
+            writeLog(debug, INFO, "class on <%p>", value);
+            break;
+        case object_:
+            writeLog(debug, INFO, "object on <%p>", value);
             break;
         default:
             writeLog(debug, INFO, "default on <%p>", value);

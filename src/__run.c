@@ -9,17 +9,17 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
         *times = 0;
         goto not_times;
     }
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, father)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultError(result, inter, "TypeException", "Don't get a number value", st, true);
+        setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true);
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
     freeResult(result);
 
     not_times:
-    value = makeLinkValue(makeStringValue(st->u.base_var.name, inter), NULL, inter);
+    value = makeLinkValue(makeStringValue(st->u.base_var.name, inter), father, inter);
     setResultOperation(result, value, inter);
 
     return result->type;
@@ -32,17 +32,17 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
         *times = 0;
         goto not_times;
     }
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, father)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultError(result, inter, "TypeException", "Don't get a number value", st, true);
+        setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true);
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
 
     freeResult(result);
     not_times:
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list, result)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list, result, father)))
         return result->type;
 
     *name = getNameFromValue(result->value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
@@ -53,11 +53,11 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
 
 ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (st->type == base_var)
-        getBaseVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result));
+        getBaseVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
     else if (st->type == base_svar)
-        getBaseSVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result));
+        getBaseSVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
     else{
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result)))
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
             return result->type;
         *name = getNameFromValue(result->value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         *times = 0;

@@ -12,6 +12,7 @@ struct Statement{
         base_svar,
         operation,
         set_function,
+        set_class,
         call_function,
         if_branch,
         while_branch,
@@ -54,10 +55,11 @@ struct Statement{
         struct operation{
             enum OperationType{
                 OPT_ADD = 1,
-                OPT_SUB,
-                OPT_MUL,
-                OPT_DIV,
-                OPT_ASS,
+                OPT_SUB = 2,
+                OPT_MUL = 3,
+                OPT_DIV = 4,
+                OPT_ASS = 5,
+                OPT_POINT = 6,
             } OperationType;
             struct Statement *left;
             struct Statement *right;
@@ -67,6 +69,10 @@ struct Statement{
             struct Statement *function;
             struct Parameter *parameter;
         } set_function;
+        struct {
+            struct Statement *name;
+            struct Statement *st;
+        } set_class;
         struct {
             struct Statement *function;
             struct Parameter *parameter;
@@ -161,6 +167,7 @@ Statement *makeBaseVarStatement(char *name, Statement *times, long int line, cha
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
 Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file);
 Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, char *file);
+Statement *makeClassStatement(Statement *name, Statement *function);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeIfStatement(long int line, char *file);
@@ -173,7 +180,7 @@ Statement *makeRestartStatement(Statement *times, long int line, char *file);
 Statement *makeReturnStatement(Statement *value, long int line, char *file);
 Statement *makeRaiseStatement(Statement *value, long int line, char *file);
 Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);
-struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right);
+struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, enum OperationType type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);
 StatementList *connectStatementList(StatementList *base, StatementList *new);

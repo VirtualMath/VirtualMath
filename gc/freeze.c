@@ -31,10 +31,13 @@ void gc_freezeValue(Value *value, bool is_lock){
 
     if (setIterAlready(&value->gc_status))
         return;
-
+    gc_freezeVarList(value->object.var, is_lock);
     switch (value->type) {
         case function:
-            gc_freezeVarList(value->data.function.var, is_lock);
+            gc_freezeVarList(value->data.function.out_var, is_lock);
+            break;
+        case class:
+            gc_freezeVarList(value->data.class.out_var, is_lock);
             break;
         case list:
             for (int i=0;i < value->data.list.size;i++)
@@ -49,10 +52,8 @@ void gc_freezeValue(Value *value, bool is_lock){
 }
 
 void gc_freezeVarList(VarList *vl, bool is_lock){
-    while (vl != NULL) {
+    for (PASS; vl != NULL; vl = vl->next)
         gc_freezeHashTable(vl->hashtable, is_lock);
-        vl = vl->next;
-    }
 }
 
 void gc_freezeHashTable(HashTable *ht, bool is_lock){
@@ -67,33 +68,28 @@ void gc_freezeHashTable(HashTable *ht, bool is_lock){
     if (setIterAlready(&ht->gc_status))
         return;
 
-    for (int i=0;i < MAX_SIZE;i++){
+    for (int i=0;i < MAX_SIZE;i++)
         gc_freezeVar(ht->hashtable[i], is_lock);
-    }
 }
 
 void gc_freezeVar(Var *var, bool is_lock){
-    while (var != NULL){
+    for (PASS; var != NULL; var = var->next){
         gc_freezeLinkValue(var->name_, is_lock);
         gc_freezeLinkValue(var->value, is_lock);
-        var = var->next;
     }
 }
 
 void iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
-    while (freeze != NULL){
-        VarList *tmp = base;
+    for (PASS; freeze != NULL; freeze = freeze->next){
         bool need_freeze = true;
-        while (tmp != NULL){
+        for (VarList *tmp = base; tmp != NULL;tmp = tmp->next){
             if (tmp->hashtable == freeze->hashtable){
                 need_freeze = false;
                 break;
             }
-            tmp = tmp->next;
         }
         if (need_freeze)
             gc_freezeHashTable(freeze->hashtable, is_lock);
-        freeze = freeze->next;
     }
 }
 

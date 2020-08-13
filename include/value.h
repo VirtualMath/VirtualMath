@@ -2,12 +2,14 @@
 #define VIRTUALMATH_VALUE_H
 
 #include "__macro.h"
+#include "gc.h"
+#include "run.h"
 
 struct VarList;
 struct Argument;
 
 struct Value{
-    GCStatus gc_status;
+    struct GCStatus gc_status;
     enum ValueType{
         none=0,
         number=1,
@@ -15,7 +17,12 @@ struct Value{
         function=3,
         list=4,
         dict=5,
+        class=6,
+        object_=7,
     } type;
+    struct {
+        struct VarList *var;
+    } object;
     union data{
         struct Number{
             NUMBER_TYPE num;
@@ -25,7 +32,7 @@ struct Value{
         } str;
         struct Function{
             struct Statement *function;
-            struct VarList *var;
+            struct VarList *out_var;
             struct Parameter *pt;
         } function;
         struct List{
@@ -40,13 +47,16 @@ struct Value{
             struct HashTable *dict;
             NUMBER_TYPE size;
         } dict;
+        struct Class{
+            struct VarList *out_var;  // class 执行的外部环境
+        } class;
     }data;
     struct Value *next;
     struct Value *last;
 };
 
 struct LinkValue{
-    GCStatus gc_status;
+    struct GCStatus gc_status;
     struct Value *value;
     struct LinkValue *father;
     struct LinkValue *next;
@@ -77,27 +87,31 @@ struct Error{
     struct Error *next;
 };
 
+typedef struct Inter Inter;
 typedef struct Value Value;
 typedef struct LinkValue LinkValue;
 typedef struct Result Result;
 typedef struct Error Error;
 typedef enum ResultType ResultType;
 
-Value *makeValue(Inter *inter);
+Value *makeObject(Inter *inter, struct VarList *object);
 Value * freeValue(Value *value, Inter *inter);
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
 LinkValue * freeLinkValue(LinkValue *value, Inter *inter);
+Value *makeNoneValue(Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
+Value *makeClassValue(struct VarList *var_list, Inter *inter);
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
-Value *makeDictValue(struct Argument **arg_ad, bool new_hash, Result *result, Inter *inter, struct VarList *var_list);
+Value *makeDictValue(struct Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST);
 
 void setResultCore(Result *ru);
-void setResult(Result *ru, Inter *inter);
-void setResultBase(Result *ru, Inter *inter);
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, struct Statement *st, bool new);
-void setResultOperationNone(Result *ru, Inter *inter);
+void setResult(Result *ru, Inter *inter, LinkValue *father);
+void setResultBase(Result *ru, Inter *inter, LinkValue *father);
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father,
+                    bool new);
+void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father);
 void setResultOperation(Result *ru, LinkValue *value, Inter *inter);
 void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter);
 void freeResult(Result *ru);

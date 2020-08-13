@@ -37,7 +37,7 @@ void gc_iterValue(struct Value *value);
 void gc_iterLinkValue(struct LinkValue *value);
 void gc_iterHashTable(struct HashTable *ht);
 void gc_iterVar(struct Var *var);
-void gc_var_list(struct VarList *vl);
+void gc_varList(struct VarList *vl);
 
 void iterFreezeVarList(struct VarList *freeze, struct VarList *base, bool is_lock);
 void runFREEZE(struct Inter *inter, struct VarList *freeze, struct VarList *base, bool is_lock);

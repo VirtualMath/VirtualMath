@@ -10,12 +10,12 @@
 #define HASH_INDEX unsigned int
 
 #define INTER_FUNCTIONSIG_CORE struct Inter *inter, struct VarList *var_list
-#define INTER_FUNCTIONSIG struct Result *result, struct Statement *st, INTER_FUNCTIONSIG_CORE
-#define INTER_FUNCTIONSIG_NOT_ST struct Result *result, INTER_FUNCTIONSIG_CORE
+#define INTER_FUNCTIONSIG_NOT_ST struct LinkValue *father, struct Result *result, INTER_FUNCTIONSIG_CORE
+#define INTER_FUNCTIONSIG struct Statement *st, INTER_FUNCTIONSIG_NOT_ST
 
 #define CALL_INTER_FUNCTIONSIG_CORE(var_list) inter, var_list
-#define CALL_INTER_FUNCTIONSIG(st, var_list, result) result, st, CALL_INTER_FUNCTIONSIG_CORE(var_list)
-#define CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result) result, CALL_INTER_FUNCTIONSIG_CORE(var_list)
+#define CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father) father, result, CALL_INTER_FUNCTIONSIG_CORE(var_list)
+#define CALL_INTER_FUNCTIONSIG(st, var_list, result, father) st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father)
 
 #define run_continue_type(result) (type == not_return || type == operation_return)
 #define run_continue(result) (result->type == not_return || result->type == operation_return)

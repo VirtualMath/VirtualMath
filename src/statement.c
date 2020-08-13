@@ -9,7 +9,7 @@ Statement *makeStatement(long int line, char *file) {
     return tmp;
 }
 
-Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, int type, bool is_right) {
+Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, enum OperationType type, bool is_right) {
     Token *new_token = NULL;
     Statement *st = *st_ad, *left_st = left->data.st;
     if (is_right && left->data.st->type == operation &&
@@ -91,6 +91,14 @@ Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, 
     tmp->type = base_list;
     tmp->u.base_list.type = type;
     tmp->u.base_list.list = pt;
+    return tmp;
+}
+
+Statement *makeClassStatement(Statement *name, Statement *function) {
+    Statement *tmp = makeStatement(name->line, name->code_file);
+    tmp->type = set_class;
+    tmp->u.set_class.name = name;
+    tmp->u.set_class.st = function;
     return tmp;
 }
 
@@ -227,6 +235,10 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.set_function.function);
                 freeParameter(st->u.set_function.parameter, true);
                 break;
+            case set_class:
+                freeStatement(st->u.set_class.name);
+                freeStatement(st->u.set_class.st);
+                break;
             case call_function:
                 freeStatement(st->u.call_function.function);
                 freeParameter(st->u.call_function.parameter, true);
@@ -341,6 +353,10 @@ Statement *copyStatementCore(Statement *st){
             new->u.set_function.name = copyStatement(st->u.set_function.name);
             new->u.set_function.function = copyStatement(st->u.set_function.function);
             new->u.set_function.parameter = copyParameter(st->u.set_function.parameter);
+            break;
+        case set_class:
+            new->u.set_class.name = copyStatement(st->u.set_class.name);
+            new->u.set_class.st = copyStatement(st->u.set_class.st);
             break;
         case call_function:
             new->u.call_function.function = copyStatement(st->u.call_function.function);

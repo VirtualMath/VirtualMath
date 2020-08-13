@@ -5,12 +5,12 @@ int main(int argc, char *argv[]) {
     int status = 1;
 
     if (getArgs(argc, argv))
-        goto args_error_;
+        goto args_error;
 
     global_inter = runBaseInter(args.file, args.log_file, &status);
 
     freeInter(global_inter, true);
-    args_error_: freeArgs();
+    args_error: freeArgs();
     return status;
 }
 
@@ -21,5 +21,4 @@ int main(int argc, char *argv[]) {
  * TODO-szh 生成语法树
  * TODO-szh 取反符号 -
  * TODO-szh 字面量后缀
- * TODO-szh 空参数使用 void
  */

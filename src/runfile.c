@@ -6,11 +6,11 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     char *file_dir = NULL;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.include_file.file, var_list, result)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.include_file.file, var_list, result, father)))
         return result->type;
 
     if (!isType(result->value->value, string)){
-        setResultError(result, inter, "TypeException", "Don't get a string value", st, true);
+        setResultError(result, inter, "TypeException", "Don't get a string value", st, father, true);
         goto return_;
     }
 
@@ -18,7 +18,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     freeResult(result);
 
     if (checkFile(file_dir) != 1){
-        setResultError(result, inter, "IncludeFileException", "File is not readable", st, true);
+        setResultError(result, inter, "IncludeFileException", "File is not readable", st, father, true);
         goto return_;
     }
 
@@ -26,13 +26,13 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     pm = makeParserMessage(file_dir, NULL);
     parserCommandList(pm, inter, true, new_st);
     if (pm->status != success){
-        setResultError(result, inter, "IncludeSyntaxException", pm->status_message, st, true);
+        setResultError(result, inter, "IncludeSyntaxException", pm->status_message, st, father, true);
         goto return_;
     }
 
-    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result));
+    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result, father));
     if (!run_continue(result))
-        setResultError(result, inter, NULL, NULL, st, false);
+        setResultError(result, inter, NULL, NULL, st, father, false);
 
     return_:
     freeStatement(new_st);

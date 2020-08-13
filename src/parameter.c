@@ -218,16 +218,16 @@ ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUN
 
     for (*num = 0; function != NULL && function->type == name_par; (*num)++, function = function->next){
         LinkValue *value = NULL;
-        if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(function->data.value, var_list, result)))
+        if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(function->data.value, var_list, result, father)))
             goto return_;
 
         value = result->value;
         freeResult(result);
-        assCore(function->data.name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+        assCore(function->data.name, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
         if (!run_continue(result))
             goto return_;
     }
-    setResult(result, inter);
+    setResult(result, inter, father);
 
     return_:
     *function_ad = function;
@@ -252,11 +252,11 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
             continue;
         }
         freeResult(result);
-        assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+        assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
         if (!run_continue(result))
             goto return_;
     }
-    setResult(result, inter);
+    setResult(result, inter, father);
 
     return_:
     *call_ad = call;
@@ -286,7 +286,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
         get = true;
 
         if (function->type == kwargs_par){
-            value = makeLinkValue(makeDictValue(NULL, false, NULL, inter, var_list), NULL, inter);
+            value = makeLinkValue(makeDictValue(NULL, false, father, NULL, inter, var_list), father, inter);
             value->value->data.dict.dict = var_list->hashtable;
             value->value->data.dict.size = max - *num;
             *status = true;
@@ -294,7 +294,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
         }
 
         freeResult(result);
-        getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result));
+        getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, father));
         if (!run_continue(result)) {
             memFree(str_name);
             *function_ad = function;
@@ -307,18 +307,18 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
 
         if(value == NULL) {
             get = false;
-            if (function->type == name_par && !operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(function->data.value, var_list, result))) {
+            if (function->type == name_par && !operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(function->data.value, var_list, result, father))) {
                 value = result->value;
                 goto not_return;
             }
-            setResultError(result, inter, "ArgumentException", "Too less Argument", name, true);
+            setResultError(result, inter, "ArgumentException", "Too less Argument", name, father, true);
             *function_ad = function;
             return result->type;
         }
 
         not_return:
         freeResult(result);
-        assCore(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result));
+        assCore(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
 
         if (!run_continue(result)) {
             *function_ad = function;
@@ -331,7 +331,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
             (*num)++;
     }
 
-    setResult(result, inter);
+    setResult(result, inter, father);
     *function_ad = function;
     return result->type;
 }
@@ -352,13 +352,13 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
 
     for (PASS; call != NULL && function != NULL && (call->type == value_arg) && function->type != args_par; call = call->next, function = function->next){
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
-        assCore(name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result));
+        assCore(name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
         if (!run_continue(result))
             goto return_;
         freeResult(result);
     }
 
-    setResult(result, inter);
+    setResult(result, inter, father);
     return_:
     *call_ad = call;
     *function_ad = function;
@@ -377,7 +377,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_
     setResultCore(result);
 
     for (PASS; call != NULL; call = call->next){
-        if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(call->data.value, var_list, result)))
+        if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(call->data.value, var_list, result, father)))
             goto return_;
 
         if (call->type == value_par)
@@ -394,18 +394,18 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_
         }
         freeResult(result);
     }
-    setResult(result, inter);
+    setResult(result, inter, father);
 
     return_:
     *base_ad = base;
     return result->type;
 }
 
-Argument *getArgument(Parameter *call, Result *result, INTER_FUNCTIONSIG_CORE){
+Argument *getArgument(Parameter *call, INTER_FUNCTIONSIG_NOT_ST){
     Argument *new_arg = NULL;
     freeResult(result);
 
-    iterParameter(call, &new_arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+    iterParameter(call, &new_arg, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     return new_arg;
 }
 
@@ -429,14 +429,14 @@ ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList 
                     INTER_FUNCTIONSIG_NOT_ST) {
     Argument *call = NULL;
     setResultCore(result);
-    call = getArgument(call_base, result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    call = getArgument(call_base, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     if (!run_continue(result)) {
         freeArgument(call, false);
         return result->type;
     }
 
     freeResult(result);
-    setParameterCore(call, function_base, function_var, base, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+    setParameterCore(call, function_base, function_var, base, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     freeArgument(call, false);
     return result->type;
 }
@@ -478,13 +478,13 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
         freeResult(result);
         switch (status) {
             case match_status: {
-                argumentToParameter(&call, &function, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result));
+                argumentToParameter(&call, &function, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
                 returnResult(result);
                 break;
             }
             case default_status: {
                 NUMBER_TYPE num = 0;
-                defaultParameter(&function, &num, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result));
+                defaultParameter(&function, &num, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
                 returnResult(result);
                 break;
             }
@@ -494,7 +494,7 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
                 bool dict_status = false;
                 VarList *tmp = pushVarList(var_list, inter);
 
-                argumentToVar(&call, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result));
+                argumentToVar(&call, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST (tmp, result, father));
                 returnResult(result);
                 if (!run_continue(result)) {
                     popVarList(tmp);
@@ -502,7 +502,7 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
                 }
 
                 freeResult(result);
-                parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result));
+                parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CALL_INTER_FUNCTIONSIG_NOT_ST (tmp, result, father));
                 if (!run_continue(result)) {
                     popVarList(tmp);
                     goto return_;
@@ -516,20 +516,20 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
                 break;
             }
             case mul_par: {
-                LinkValue *tmp = makeLinkValue(makeListValue(&call, inter, value_tuple), NULL, inter);
+                LinkValue *tmp = makeLinkValue(makeListValue(&call, inter, value_tuple), father, inter);
                 if (!run_continue(result))
                     goto return_;
                 else
                     freeResult(result);
 
-                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result));
+                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
                 returnResult(result);
                 function = function->next;
                 break;
             }
             case space_kwargs:{
-                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, result, inter, var_list), NULL, inter);
-                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result));
+                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, father, result, inter, var_list), father, inter);
+                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
                 returnResult(result);
                 function = function->next;
                 break;
@@ -537,14 +537,14 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
             case error:
             error_:  // Statement 处理
                 writeLog(inter->data.debug, ERROR, "setParameter error\n", NULL);
-                setResultError(result, inter, "ArgumentException", "Set Argument error", 0, true);
+                setResultError(result, inter, "ArgumentException", "Set Argument error", 0, father, true);
                 goto return_;
             default:
                 goto break_;
         }
     }
     break_:
-    setResult(result, inter);
+    setResult(result, inter, father);
 
     return_:
     freeParameter(tmp_function, true);
