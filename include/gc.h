@@ -21,13 +21,13 @@ struct VarList;
 
 void resetGC(GCStatus *gcs);
 void setGC(GCStatus *gcs);
-void gcAddTmp(GCStatus *gcs);
-void gcAddLink(GCStatus *gcs);
-void gcAddStatementLink(GCStatus *gcs);
-void gcFreeStatementLink(GCStatus *gcs);
-void gcFreeTmpLink(GCStatus *gcs);
-bool setIterAlready(GCStatus *gcs);
-bool needFree(GCStatus *gcs);
+void gc_addTmpLink(GCStatus *gcs);
+void gc_addLink(GCStatus *gcs);
+void gc_addStatementLink(GCStatus *gcs);
+void gc_freeStatementLink(GCStatus *gcs);
+void gc_freeTmpLink(GCStatus *gcs);
+bool gc_IterAlready(GCStatus *gcs);
+bool gc_needFree(GCStatus *gcs);
 
 void gc_freeBase(struct Inter *inter);
 void gc_checkBase(struct Inter *inter);

@@ -5,11 +5,11 @@ void gc_freezeHashTable(HashTable *ht, bool is_lock){
         return;
 
     if (is_lock)
-        gcAddTmp(&ht->gc_status);
+        gc_addTmpLink(&ht->gc_status);
     else
-        gcFreeTmpLink(&ht->gc_status);
+        gc_freeTmpLink(&ht->gc_status);
 
-    setIterAlready(&ht->gc_status);
+    gc_IterAlready(&ht->gc_status);
 }
 
 void iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){

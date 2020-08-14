@@ -89,12 +89,12 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST)
     tmp->type = dict;
     if (new_hash) {
         VarList *hash = pushVarList(var_list, inter);
-        gcAddTmp(&tmp->gc_status);
+        gc_addTmpLink(&tmp->gc_status);
         tmp->data.dict.dict = hash->hashtable;
         freeResult(result);
         argumentToVar(arg_ad, &tmp->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result, father));
         popVarList(hash);
-        gcFreeTmpLink(&tmp->gc_status);
+        gc_freeTmpLink(&tmp->gc_status);
     }
     else
         tmp->data.dict.dict = NULL;
@@ -201,7 +201,7 @@ void setResult(Result *ru, Inter *inter, LinkValue *father) {
 void setResultBase(Result *ru, Inter *inter, LinkValue *father) {
     setResultCore(ru);
     ru->value = makeLinkValue(inter->base, father, inter);
-    gcAddTmp(&ru->value->gc_status);
+    gc_addTmpLink(&ru->value->gc_status);
 }
 
 void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father,
@@ -233,14 +233,14 @@ void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter) {
     setResultCore(ru);
     ru->value = value;
     if (value != NULL)
-        gcAddTmp(&ru->value->gc_status);
+        gc_addTmpLink(&ru->value->gc_status);
     ru->type = operation_return;
 }
 
 void freeResult(Result *ru){
     freeResultSave(ru);
     if (ru->value != NULL) {
-        gcFreeTmpLink(&ru->value->gc_status);
+        gc_freeTmpLink(&ru->value->gc_status);
         ru->value = NULL;
     }
 }

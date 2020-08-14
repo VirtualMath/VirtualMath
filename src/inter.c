@@ -60,7 +60,7 @@ Inter *makeInter(char *code_file, char *debug) {
     }
 
     Value *none_value = makeNoneValue(tmp);  // 注册None值
-    gcAddStatementLink(&none_value->gc_status);
+    gc_addStatementLink(&none_value->gc_status);
     return tmp;
 }
 

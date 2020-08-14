@@ -11,33 +11,33 @@ void setGC(GCStatus *gcs){
     gcs->statement_link = 0;
 }
 
-void gcAddTmp(GCStatus *gcs){
+void gc_addTmpLink(GCStatus *gcs){
     gcs->tmp_link ++;
 }
 
-void gcAddLink(GCStatus *gcs){
+void gc_addLink(GCStatus *gcs){
     gcs->link ++;
 }
 
-void gcAddStatementLink(GCStatus *gcs){
+void gc_addStatementLink(GCStatus *gcs){
     gcs->statement_link ++;
 }
 
-void gcFreeStatementLink(GCStatus *gcs){
+void gc_freeStatementLink(GCStatus *gcs){
     gcs->statement_link --;
 }
 
-void gcFreeTmpLink(GCStatus *gcs){
+void gc_freeTmpLink(GCStatus *gcs){
     gcs->tmp_link --;
 }
 
-bool setIterAlready(GCStatus *gcs){
+bool gc_IterAlready(GCStatus *gcs){
     bool return_ = gcs->continue_;
     gcs->continue_ = true;
     return return_;
 }
 
-bool needFree(GCStatus *gcs){
+bool gc_needFree(GCStatus *gcs){
     if (gcs->statement_link == 0 && gcs->tmp_link == 0 && gcs->link == 0)
         return true;
     return false;

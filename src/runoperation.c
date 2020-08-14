@@ -178,7 +178,7 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     runFREEZE(inter, var_list, object, false);
     if (out_var != NULL)
         out_var->next = NULL;
-    gcFreeTmpLink(&left->gc_status);
+    gc_freeTmpLink(&left->gc_status);
     return result->type;
 }
 
@@ -196,7 +196,7 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
 ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
     int int_times;
     setResultCore(result);
-    gcAddTmp(&value->gc_status);
+    gc_addTmpLink(&value->gc_status);
 
     if (name->type == base_list && name->u.base_list.type == value_tuple){
         Parameter *pt = NULL;
@@ -241,11 +241,11 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
 
         result->type = operation_return;
         result->value = value;
-        gcAddTmp(&result->value->gc_status);
+        gc_addTmpLink(&result->value->gc_status);
     }
 
     return_:
-    gcFreeTmpLink(&value->gc_status);
+    gc_freeTmpLink(&value->gc_status);
     return result->type;
 }
 
@@ -318,7 +318,7 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
         result->value = makeLinkValue(makeStringValue(st->u.base_value.str, inter), father, inter);
 
     result->type = operation_return;
-    gcAddTmp(&result->value->gc_status);
+    gc_addTmpLink(&result->value->gc_status);
     return result->type;
 }
 

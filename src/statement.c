@@ -42,7 +42,7 @@ Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *fil
     tmp->u.base_value.type = link_value;
     tmp->u.base_value.value = value;
     tmp->u.base_value.str = NULL;
-    gcAddStatementLink(&value->gc_status);
+    gc_addStatementLink(&value->gc_status);
     return tmp;
 }
 
@@ -220,7 +220,7 @@ void freeStatement(Statement *st){
                 break;
             case base_value:
                 if (st->u.base_value.type == link_value)
-                    gcFreeStatementLink(&st->u.base_value.value->gc_status);
+                    gc_freeStatementLink(&st->u.base_value.value->gc_status);
                 else
                     memFree(st->u.base_value.str);
                 break;
@@ -331,7 +331,7 @@ Statement *copyStatementCore(Statement *st){
             new->u.base_value.type = st->u.base_value.type;
             if (new->u.base_value.type == link_value) {
                 new->u.base_value.value = st->u.base_value.value;
-                gcAddStatementLink(&new->u.base_value.value->gc_status);
+                gc_addStatementLink(&new->u.base_value.value->gc_status);
             }
             else
                 new->u.base_value.str = memStrcpy(st->u.base_value.str);

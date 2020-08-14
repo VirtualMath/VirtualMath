@@ -20,7 +20,7 @@ Argument *makeArgument(void){
 Argument *makeValueArgument(LinkValue *value){
     Argument *tmp = makeArgument();
     tmp->data.value = value;
-    gcAddTmp(&value->gc_status);
+    gc_addTmpLink(&value->gc_status);
     return tmp;
 }
 
@@ -29,7 +29,7 @@ Argument *makeStatementNameArgument(LinkValue *value, Statement *name){
     tmp->type = name_arg;
     tmp->data.value = value;
     tmp->data.name = name;
-    gcAddTmp(&value->gc_status);
+    gc_addTmpLink(&value->gc_status);
     return tmp;
 }
 
@@ -40,8 +40,8 @@ Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *na
     tmp->data.value = value;
     tmp->data.name_ = memStrcpy(name);
     tmp->data.name_value = name_value;
-    gcAddTmp(&value->gc_status);
-    gcAddTmp(&name_value->gc_status);
+    gc_addTmpLink(&value->gc_status);
+    gc_addTmpLink(&name_value->gc_status);
     return tmp;
 }
 
@@ -78,9 +78,9 @@ void freeArgument(Argument *at, bool free_st) {
         memFree(at->data.name_);
 
         if (at->data.name_value != NULL)
-            gcFreeTmpLink(&at->data.name_value->gc_status);
+            gc_freeTmpLink(&at->data.name_value->gc_status);
         if (at->data.value != NULL)
-            gcFreeTmpLink(&at->data.value->gc_status);
+            gc_freeTmpLink(&at->data.value->gc_status);
 
         memFree(at);
     }
@@ -393,13 +393,13 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
                 LinkValue *value = result->value;
                 setResultCore(result);
                 if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(call->data.name, var_list, result, father))) {
-                    gcFreeTmpLink(&value->gc_status);
+                    gc_freeTmpLink(&value->gc_status);
                     goto return_;
                 }
                 char *name_str = getNameFromValue(result->value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
                 base = connectCharNameArgument(value, result->value, name_str, base);
                 memFree(name_str);
-                gcFreeTmpLink(&value->gc_status);
+                gc_freeTmpLink(&value->gc_status);
             }
             else
                 base = connectStatementNameArgument(result->value, call->data.name, base);
