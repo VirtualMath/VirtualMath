@@ -7,7 +7,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     VarList *father_var = NULL;
     setResultCore(result);
 
-    call = getArgument(st->u.set_class.father, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    call = getArgument(st->u.set_class.father, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     if (!run_continue(result))
         goto error_;
 
@@ -122,7 +122,7 @@ ResultType callFunction(LinkValue *function_value, Parameter *parameter, INTER_F
     gcAddTmp(&function_var->hashtable->gc_status);
     runFREEZE(inter, var_list, function_var, true);
 
-    setParameter(parameter, function_value->value->data.function.pt, function_var, function_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));  // TODO-szh 设置双father
+    setParameter(parameter, function_value->value->data.function.pt, function_var, function_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     if (!run_continue(result)) {
         gcAddTmp(&function_var->hashtable->gc_status);
         runFREEZE(inter, var_list, function_var, false);

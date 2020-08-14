@@ -204,7 +204,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         Statement *tmp_st = makeBaseLinkValueStatement(value, name->line, name->code_file);
 
         pt = makeArgsParameter(tmp_st);
-        call = getArgument(pt, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
         if (!run_continue(result)) {
             freeArgument(call, false);
             freeParameter(pt, true);
@@ -327,7 +327,7 @@ ResultType getList(INTER_FUNCTIONSIG) {
     Argument *at_tmp = NULL;
 
     freeResult(result);
-    at = getArgument(st->u.base_list.list, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     at_tmp = at;
     if (!run_continue(result)){
         freeArgument(at_tmp, true);
@@ -341,13 +341,12 @@ ResultType getList(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-// TODO-szh 设置字典key为变量时直接取值
 ResultType getDict(INTER_FUNCTIONSIG) {
     Argument *at = NULL;
     Argument *at_tmp = NULL;
 
     freeResult(result);
-    at = getArgument(st->u.base_dict.dict, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     at_tmp = at;
     if (!run_continue(result)){
         freeArgument(at_tmp, false);

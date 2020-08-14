@@ -378,7 +378,7 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
  * @param var_list
  * @return
  */
-ResultType iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_NOT_ST){
+ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTER_FUNCTIONSIG_NOT_ST){
     Argument *base = *base_ad;
     setResultCore(result);
 
@@ -388,8 +388,22 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_
 
         if (call->type == value_par)
             base = connectValueArgument(result->value, base);
-        else if (call->type == name_par)
-            base = connectStatementNameArgument(result->value, call->data.name, base);
+        else if (call->type == name_par){
+            if (is_dict){
+                LinkValue *value = result->value;
+                setResultCore(result);
+                if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(call->data.name, var_list, result, father))) {
+                    gcFreeTmpLink(&value->gc_status);
+                    goto return_;
+                }
+                char *name_str = getNameFromValue(result->value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+                base = connectCharNameArgument(value, result->value, name_str, base);
+                memFree(name_str);
+                gcFreeTmpLink(&value->gc_status);
+            }
+            else
+                base = connectStatementNameArgument(result->value, call->data.name, base);
+        }
         else if (call->type == args_par){
             Argument *tmp_at = listToArgument(result->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
             base = connectArgument(tmp_at, base);
@@ -407,11 +421,11 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_
     return result->type;
 }
 
-Argument *getArgument(Parameter *call, INTER_FUNCTIONSIG_NOT_ST){
+Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *new_arg = NULL;
     freeResult(result);
 
-    iterParameter(call, &new_arg, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    iterParameter(call, &new_arg, is_dict, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     return new_arg;
 }
 
@@ -434,7 +448,7 @@ Argument *getArgument(Parameter *call, INTER_FUNCTIONSIG_NOT_ST){
 ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *call = NULL;
     setResultCore(result);
-    call = getArgument(call_base, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    call = getArgument(call_base, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     if (!run_continue(result)) {
         freeArgument(call, false);
         return result->type;

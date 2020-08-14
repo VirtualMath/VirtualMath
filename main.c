@@ -19,12 +19,10 @@ int main(int argc, char *argv[]) {
 
 
 /**
- * TODO-szh 类封装
  * TODO-szh 类super语句
  * TODO-szh const声明
  * TODO-szh import语句
  * TODO-szh 生成语法树
  * TODO-szh 取反符号 -
  * TODO-szh 字面量后缀
- * TODO-szh dict设置： 忽略变量、设置权限、设置father
  */
