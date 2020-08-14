@@ -14,13 +14,7 @@ void gc_freezeHashTable(HashTable *ht, bool is_lock){
 
 void iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
     for (PASS; freeze != NULL; freeze = freeze->next){
-        bool need_freeze = true;
-        for (VarList *tmp = base; tmp != NULL;tmp = tmp->next)
-            if (tmp->hashtable == freeze->hashtable){
-                need_freeze = false;
-                break;
-            }
-        if (need_freeze)
+        if (!comparVarList(freeze, base))
             gc_freezeHashTable(freeze->hashtable, is_lock);
     }
 }

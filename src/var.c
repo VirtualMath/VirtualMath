@@ -196,7 +196,7 @@ VarList *connectVarListBack(VarList *base, VarList *back){
     return base;
 }
 
-bool comparVarList(VarList *dest, VarList *src) {  // TODO-szh GC使用这个函数
+bool comparVarList(VarList *dest, VarList *src) {
     for (PASS; src != NULL; src = src->next)
         if (src->hashtable == dest->hashtable)
             return true;
