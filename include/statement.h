@@ -3,6 +3,7 @@
 #include "__macro.h"
 
 struct Statement{
+    enum ValueAuthority aut;
     enum StatementType{
         start = 1,
         base_value,

@@ -26,4 +26,5 @@ int main(int argc, char *argv[]) {
  * TODO-szh 生成语法树
  * TODO-szh 取反符号 -
  * TODO-szh 字面量后缀
+ * TODO-szh dict设置： 忽略变量、设置权限、设置father
  */

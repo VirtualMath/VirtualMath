@@ -75,6 +75,8 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
             break;
     }
 
+    if (result->value->aut == auto_aut)
+        result->value->aut = st->aut;
     runGC(inter, 1, 0, 0, var_list);
     return type;
 }

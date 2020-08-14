@@ -178,6 +178,9 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_LB:
         case MATHER_LP:
         case MATHER_SUB:
+        case MATHER_PROTECT:
+        case MATHER_PRIVATE:
+        case MATHER_PUBLIC:
             status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st,
                                       "Command: call operation\n");
             break;
@@ -927,6 +930,29 @@ void parserBaseValue(PASERSSIGNATURE){
             goto return_;
         }
         st = makeBaseDictStatement(pt, value_token->line, pm->file);
+    }
+    else if (MATHER_PROTECT == value_token->token_type || MATHER_PRIVATE == value_token->token_type || MATHER_PUBLIC == value_token->token_type){
+        if (MATHER_COLON != readBackToken(pm)){
+            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a : after aut token");
+            freeToken(value_token, true, true);
+            goto return_;
+        }
+        delToken(pm);
+        if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st, "Don't get Base Value after aut token")){
+            freeToken(value_token, true, true);
+            goto return_;
+        }
+        switch (value_token->token_type) {
+            case MATHER_PROTECT:
+                st->aut = protect_aut;
+                break;
+            case MATHER_PRIVATE:
+                st->aut = private_aut;
+                break;
+            case MATHER_PUBLIC:
+                st->aut = public_aut;
+                break;
+        }
     }
     else{
         writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: else\n", NULL);

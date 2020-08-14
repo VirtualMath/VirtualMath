@@ -4,6 +4,7 @@ Statement *makeStatement(long int line, char *file) {
     Statement *tmp = memCalloc(1, sizeof(Statement));
     tmp->type = start;
     tmp->next = NULL;
+    tmp->aut = auto_aut;
     tmp->line = line;
     tmp->code_file = memStrcpy(file);
     return tmp;

@@ -16,7 +16,6 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *
         tmp->gc_last = NULL;
         goto return_;
     }
-
     for (PASS; list_tmp->gc_next != NULL; list_tmp = list_tmp->gc_next)
         PASS;
 
@@ -158,12 +157,13 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
 
     list_tmp->gc_next = tmp;
     tmp->gc_last = list_tmp;
+    tmp->aut = auto_aut;
 
     return_:
     return tmp;
 }
 
-LinkValue * freeLinkValue(LinkValue *value, Inter *inter){
+LinkValue *freeLinkValue(LinkValue *value, Inter *inter){
     LinkValue *return_value = NULL;
     freeBase(value, return_);
     return_value = value->gc_next;
@@ -178,6 +178,12 @@ LinkValue * freeLinkValue(LinkValue *value, Inter *inter){
     memFree(value);
     return_:
     return return_value;
+}
+
+LinkValue *copyLinkValue(LinkValue *value, Inter *inter) {
+    LinkValue *tmp = makeLinkValue(value->value, value->father, inter);
+    tmp->aut = value->aut;
+    return tmp;
 }
 
 void setResultCore(Result *ru) {

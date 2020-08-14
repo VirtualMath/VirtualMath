@@ -268,7 +268,7 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
  * @return
  */
 ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMBER_TYPE *num, NUMBER_TYPE max, bool *status,
-                        INTER_FUNCTIONSIG_NOT_ST) {
+                            INTER_FUNCTIONSIG_NOT_ST) {
     Parameter *function = *function_ad;
     bool get = true;
     setResultCore(result);
@@ -307,9 +307,19 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
                 goto not_return;
             }
             setResultError(result, inter, "ArgumentException", "Too less Argument", name, father, true);
-            *function_ad = function;
-            return result->type;
+            goto reutnr_;
         }
+        else if ((name->aut == public_aut || name->aut == auto_aut) && (value->aut != public_aut && value->aut != auto_aut)) {
+            setResultError(result, inter, "PermissionsException", "Wrong Permissions: access Argument as public", name,
+                           father, true);
+            goto reutnr_;
+        }
+        else if ((name->aut == protect_aut) && (value->aut == private_aut)) {
+            setResultError(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect",
+                           name, father, true);
+            goto reutnr_;
+        }
+        value = copyLinkValue(value, inter);
 
         not_return:
         freeResult(result);
@@ -327,6 +337,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
     }
 
     setResult(result, inter, father);
+    reutnr_:
     *function_ad = function;
     return result->type;
 }
@@ -420,7 +431,7 @@ Argument *getArgument(Parameter *call, INTER_FUNCTIONSIG_NOT_ST){
  * @param var_list
  * @return
  */
-ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *call = NULL;
     setResultCore(result);
     call = getArgument(call_base, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
@@ -430,7 +441,7 @@ ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList 
     }
 
     freeResult(result);
-    setParameterCore(call, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    setParameterCore(call, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_father));
     freeArgument(call, false);
     return result->type;
 }

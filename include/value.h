@@ -9,6 +9,13 @@ struct VarList;
 struct Argument;
 struct FatherValue;
 
+enum ValueAuthority{
+    auto_aut,
+    public_aut,
+    protect_aut,
+    private_aut
+};
+
 struct Value{
     struct GCStatus gc_status;
     enum ValueType{
@@ -56,6 +63,7 @@ struct Value{
 
 struct LinkValue{
     struct GCStatus gc_status;
+    enum ValueAuthority aut;
     struct Value *value;
     struct LinkValue *father;
     struct LinkValue *gc_next;
@@ -103,6 +111,7 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *
 Value * freeValue(Value *value, Inter *inter);
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
 LinkValue * freeLinkValue(LinkValue *value, Inter *inter);
+LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *makeNoneValue(Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);

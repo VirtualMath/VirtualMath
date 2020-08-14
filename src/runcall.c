@@ -122,7 +122,7 @@ ResultType callFunction(LinkValue *function_value, Parameter *parameter, INTER_F
     gcAddTmp(&function_var->hashtable->gc_status);
     runFREEZE(inter, var_list, function_var, true);
 
-    setParameter(parameter, function_value->value->data.function.pt, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    setParameter(parameter, function_value->value->data.function.pt, function_var, function_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));  // TODO-szh 设置双father
     if (!run_continue(result)) {
         gcAddTmp(&function_var->hashtable->gc_status);
         runFREEZE(inter, var_list, function_var, false);
@@ -131,7 +131,7 @@ ResultType callFunction(LinkValue *function_value, Parameter *parameter, INTER_F
     }
 
     freeResult(result);
-    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(function_value->value->data.function.function, function_var, result, father));
+    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(function_value->value->data.function.function, function_var, result, function_value));
 
     gcFreeTmpLink(&function_var->hashtable->gc_status);
     runFREEZE(inter, var_list, function_var, false);

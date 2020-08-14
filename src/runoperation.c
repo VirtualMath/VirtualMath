@@ -165,13 +165,19 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     out_var->next = left->value->object.out_var;
 
     runFREEZE(inter, var_list, object, true);
-    operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));
-    if (run_continue(result))
-        result->value->father = left;
+    operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));  // TODO-szh father设定 (添加参数规定若获得var的位置位于times后则自动设置father)
+    if (!run_continue(result))
+        goto return_;
+    else if ((left->aut == public_aut || left->aut == auto_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut))
+        setResultError(result, inter, "PermissionsException", "Wrong Permissions: access variables as public", st, father, true);
+    else if ((left->aut == protect_aut) && (result->value->aut == private_aut))
+        setResultError(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect", st, father, true);
+    result->value->father = left;  // 保留原father.father，为left.father
+
+    return_:
     runFREEZE(inter, var_list, object, false);
     if (out_var != NULL)
         out_var->next = NULL;
-
     gcFreeTmpLink(&left->gc_status);
     return result->type;
 }
@@ -226,7 +232,10 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
             memFree(str_name);
             return result->type;
         }
-        addFromVarList(str_name, result->value, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        LinkValue *var_value = copyLinkValue(value, inter);
+        if (var_value->aut == auto_aut)
+            var_value->aut = name->aut;
+        addFromVarList(str_name, copyLinkValue(result->value, inter), int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         memFree(str_name);
         freeResult(result);
 
@@ -250,9 +259,9 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     VarList *object = left.value->value->object.var;
     runFREEZE(inter, var_list, object, true);
     if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
-        pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST (object, result, father));
+        pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
     else
-        assCore(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST (object, result, father));
+        assCore(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
     runFREEZE(inter, var_list, object, true);
 
     freeResult(&left);
@@ -273,14 +282,25 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     freeResult(result);
     result->type = operation_return;
     result->value = findFromVarList(name, var_list, int_times, false);
-
-    if (result->value == NULL){
+    if (result->value == NULL) {
         char *info = memStrcat("Name Not Found: ", name, false);
         setResultError(result, inter, "NameException", info, st, father, true);
         memFree(info);
     }
+    else if ((st->aut == public_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut)){
+        setResultCore(result);
+        char *info = memStrcat("Wrong Permissions: access variables as public ", name, false);
+        setResultError(result, inter, "PermissionsException", info, st, father, true);
+        memFree(info);
+    }
+    else if ((st->aut == protect_aut) && (result->value->aut == private_aut)){
+        setResultCore(result);
+        char *info = memStrcat("Wrong Permissions: access variables as protect ", name, false);
+        setResultError(result, inter, "PermissionsException", info, st, father, true);
+        memFree(info);
+    }
     else
-        gcAddTmp(&result->value->gc_status);
+        setResultOperationBase(result, copyLinkValue(result->value, inter), inter);
 
     memFree(name);
     return result->type;
