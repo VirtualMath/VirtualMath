@@ -108,9 +108,9 @@ typedef struct FatherValue FatherValue;
 typedef enum ResultType ResultType;
 
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *father);
-Value * freeValue(Value *value, Inter *inter);
+void freeValue(Value **Value);
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
-LinkValue * freeLinkValue(LinkValue *value, Inter *inter);
+void freeLinkValue(LinkValue **value);
 LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *makeNoneValue(Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);

@@ -225,7 +225,7 @@ bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **
     if (readBackToken(pm) != type) {
         if (message != NULL) {
             *tmp = popAheadToken(pm);
-            syntaxError(pm, error_type, (*tmp)->line, 1, message);  // TODO-szh 设置tmp
+            syntaxError(pm, error_type, (*tmp)->line, 1, message);
             backToken_(pm ,(*tmp));
         }
         return false;

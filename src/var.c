@@ -28,25 +28,17 @@ Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     return tmp;
 }
 
-Var *freeVar(Var *var, Inter *inter) {
-    Var *return_value = NULL;
-    freeBase(var, return_);
-    memFree(var->name);
+void freeVar(Var **var) {
+    Var *free_value = *var;
+    freeBase(free_value, return_);
+    memFree(free_value->name);
 
-    return_value = var->gc_next;
-    if (var->gc_last == NULL)
-        inter->base_var = var->gc_next;
-    else
-        var->gc_last->gc_next = var->gc_next;
+    if ((*var)->gc_next != NULL)
+        (*var)->gc_next->gc_last = (*var)->gc_last;
+    *var = (*var)->gc_next;
 
-    if (var->gc_next != NULL) {  // TODO-szh 优化
-        Var *tmp = var->gc_last;
-        var->gc_next->gc_last = tmp;
-    }
-
-    memFree(var);
-    return_:
-    return return_value;
+    memFree(free_value);
+    return_: return;
 }
 
 HashTable *makeHashTable(Inter *inter) {
@@ -73,24 +65,17 @@ HashTable *makeHashTable(Inter *inter) {
     return tmp;
 }
 
-HashTable *freeHashTable(HashTable *ht, Inter *inter) {
-    HashTable *return_value = NULL;
-    freeBase(ht, return_);
-    return_value = ht->gc_next;
-    if (ht->gc_last == NULL)
-        inter->hash_base = ht->gc_next;
-    else
-        ht->gc_last->gc_next = ht->gc_next;
+void freeHashTable(HashTable **value) {
+    HashTable *free_value = *value;
+    freeBase(free_value, return_);
+    memFree(free_value->hashtable);
 
-    if (ht->gc_next != NULL) {
-        HashTable *tmp = ht->gc_last;
-        ht->gc_next->gc_last = tmp;
-    }
+    if ((*value)->gc_next != NULL)
+        (*value)->gc_next->gc_last = (*value)->gc_last;
+    *value = (*value)->gc_next;
 
-    memFree(ht->hashtable);
-    memFree(ht);
-    return_:
-    return return_value;
+    memFree(free_value);
+    return_: return;
 }
 
 VarList *makeVarList(Inter *inter) {

@@ -30,10 +30,10 @@ typedef struct HashTable HashTable;
 typedef struct VarList VarList;
 
 Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter);
-Var *freeVar(Var *var, Inter *inter);
+void freeVar(Var **var);
 
 HashTable *makeHashTable(Inter *inter);
-HashTable * freeHashTable(HashTable *ht, Inter *inter);
+void freeHashTable(HashTable **value);
 
 VarList *makeVarList(Inter *inter);
 VarList *freeVarList(VarList *vl, bool self);

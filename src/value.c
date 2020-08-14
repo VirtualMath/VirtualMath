@@ -101,42 +101,37 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST)
     return tmp;
 }
 
-Value *freeValue(Value *value, Inter *inter){
-    Value *return_value = NULL;
-    freeBase(value, return_);
-    return_value = value->gc_next;
-    if (value->gc_last == NULL)
-        inter->base = value->gc_next;
-    else
-        value->gc_last->gc_next = value->gc_next;
-
-    if (value->gc_next != NULL)
-        value->gc_next->gc_last = value->gc_last;
-
-    for (VarList *tmp = value->object.var; tmp != NULL; tmp = freeVarList(tmp, true))
-        PASS;
-    for (VarList *tmp = value->object.out_var; tmp != NULL; tmp = freeVarList(tmp, true))
-        PASS;
-    for (struct FatherValue *tmp = value->object.father; tmp != NULL; tmp = freeFatherValue(tmp))
-        PASS;
-    switch (value->type) {
+void freeValue(Value **value) {
+    Value *free_value = *value;
+    freeBase(free_value, return_);
+    for (VarList *tmp = free_value->object.var; tmp != NULL; tmp = freeVarList(tmp, true))
+            PASS;
+    for (VarList *tmp = free_value->object.out_var; tmp != NULL; tmp = freeVarList(tmp, true))
+            PASS;
+    for (struct FatherValue *tmp = free_value->object.father; tmp != NULL; tmp = freeFatherValue(tmp))
+            PASS;
+    switch (free_value->type) {
         case string:
-            memFree(value->data.str.str);
+            memFree(free_value->data.str.str);
             break;
         case function: {
-            freeParameter(value->data.function.pt, true);
-            freeStatement(value->data.function.function);
+            freeParameter(free_value->data.function.pt, true);
+            freeStatement(free_value->data.function.function);
             break;
         }
         case list:
-            memFree(value->data.list.list);
+            memFree(free_value->data.list.list);
             break;
         default:
             break;
     }
-    memFree(value);
-    return_:
-    return return_value;
+
+    if ((*value)->gc_next != NULL)
+        (*value)->gc_next->gc_last = (*value)->gc_last;
+    *value = (*value)->gc_next;
+
+    memFree(free_value);
+    return_: return;
 }
 
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
@@ -163,21 +158,16 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
     return tmp;
 }
 
-LinkValue *freeLinkValue(LinkValue *value, Inter *inter){
-    LinkValue *return_value = NULL;
-    freeBase(value, return_);
-    return_value = value->gc_next;
-    if (value->gc_last == NULL)
-        inter->link_base = value->gc_next;
-    else
-        value->gc_last->gc_next = value->gc_next;
+void freeLinkValue(LinkValue **value) {
+    LinkValue *free_value = *value;
+    freeBase(free_value, return_);
 
-    if (value->gc_next != NULL)
-        value->gc_next->gc_last = value->gc_last;
+    if ((*value)->gc_next != NULL)
+        (*value)->gc_next->gc_last = (*value)->gc_last;
+    *value = (*value)->gc_next;
 
-    memFree(value);
-    return_:
-    return return_value;
+    memFree(free_value);
+    return_: return;
 }
 
 LinkValue *copyLinkValue(LinkValue *value, Inter *inter) {

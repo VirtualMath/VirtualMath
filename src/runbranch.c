@@ -1,6 +1,5 @@
 #include "__run.h"
 
-// TODO-szh 重新命名
 #define checkNumber(new_result) do{ \
 if (!isType(new_result->value->value, number)){ \
 setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true); \

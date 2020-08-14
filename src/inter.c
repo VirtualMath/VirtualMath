@@ -97,16 +97,16 @@ void freeInter(Inter *inter, bool self){
     freeVarList(inter->var_list, true);
 
     while (inter->base != NULL)
-        freeValue(inter->base, inter);
+        freeValue(&inter->base);
 
     while (inter->base_var != NULL)
-        freeVar(inter->base_var, inter);
+        freeVar(&inter->base_var);
 
     while (inter->link_base != NULL)
-        freeLinkValue(inter->link_base, inter);
+        freeLinkValue(&inter->link_base);
 
     while (inter->hash_base != NULL)
-        freeHashTable(inter->hash_base, inter);
+        freeHashTable(&inter->hash_base);
 
     freeBaseInterData(inter);
 

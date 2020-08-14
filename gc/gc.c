@@ -94,29 +94,29 @@ void gc_checkBase(Inter *inter){
 
 void gc_freeBase(Inter *inter){
 #if START_GC
-    for (Value *value_base = inter->base; value_base != NULL;)
-        if (gc_needFree(&value_base->gc_status))
-            value_base = freeValue(value_base, inter);
+    for (Value **value_base = &inter->base; *value_base != NULL;)
+        if (gc_needFree(&(*value_base)->gc_status))
+            freeValue(value_base);
         else
-            value_base = value_base->gc_next;
+            value_base = &(*value_base)->gc_next;
 
-    for (LinkValue *link_base = inter->link_base; link_base != NULL;)
-        if (gc_needFree(&link_base->gc_status))
-            link_base = freeLinkValue(link_base, inter);
+    for (LinkValue **link_base = &inter->link_base; *link_base != NULL;)
+        if (gc_needFree(&(*link_base)->gc_status))
+            freeLinkValue(link_base);
         else
-            link_base = link_base->gc_next;
+            link_base = &(*link_base)->gc_next;
 
-    for (HashTable *hash_base = inter->hash_base; hash_base != NULL;)
-        if (gc_needFree(&hash_base->gc_status))
-            hash_base = freeHashTable(hash_base, inter);
+    for (HashTable **hash_base = &inter->hash_base; *hash_base != NULL;)
+        if (gc_needFree(&(*hash_base)->gc_status))
+            freeHashTable(hash_base);
         else
-            hash_base = hash_base->gc_next;
+            hash_base = &(*hash_base)->gc_next;
 
-    for (Var *var_base = inter->base_var; var_base != NULL;)
-        if (gc_needFree(&var_base->gc_status))
-            var_base = freeVar(var_base, inter);
+    for (Var **var_base = &inter->base_var; *var_base != NULL;)
+        if (gc_needFree(&(*var_base)->gc_status))
+            freeVar(var_base);
         else
-            var_base = var_base->gc_next;
+            var_base = &(*var_base)->gc_next;
 #endif
 }
 
