@@ -126,18 +126,12 @@ void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CO
 LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
     LinkValue *tmp = NULL;
     HASH_INDEX index = time33(name);
-    Var *base = var_list->hashtable->hashtable[index];
-    Var *last = NULL;
 
-    for (PASS; base != NULL; last = base, base = base->next){
-        if (eqString(base->name, name)){
-            tmp = base->value;
-            if (del_var){  // TODO-szh 使用指针优化
-                if (last == NULL)
-                    var_list->hashtable->hashtable[index] = base->next;
-                else
-                    last->next = base->next;
-            }
+    for (Var **base = &var_list->hashtable->hashtable[index]; base != NULL; base = &(*base)->next){
+        if (eqString((*base)->name, name)){
+            tmp = (*base)->value;
+            if (del_var)
+                *base = (*base)->next;
             goto return_;
         }
     }
