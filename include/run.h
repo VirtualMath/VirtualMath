@@ -9,6 +9,7 @@ typedef struct Value Value;
 typedef struct Statement Statement;
 typedef struct Inter Inter;
 typedef struct VarList VarList;
+typedef struct Parameter Parameter;
 
 typedef ResultType (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
 
@@ -22,7 +23,9 @@ bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG);
 ResultType operationStatement(INTER_FUNCTIONSIG);
 ResultType setClass(INTER_FUNCTIONSIG);
 ResultType setFunction(INTER_FUNCTIONSIG);
-ResultType callFunction(INTER_FUNCTIONSIG);
+ResultType callBack(INTER_FUNCTIONSIG);
+ResultType callClass(LinkValue *class_value, Parameter *parameter, INTER_FUNCTIONSIG_NOT_ST);
+ResultType callFunction(LinkValue *function_value, Parameter *parameter, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info);
 ResultType getBaseValue(INTER_FUNCTIONSIG);
 ResultType getList(INTER_FUNCTIONSIG);

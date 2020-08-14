@@ -94,11 +94,12 @@ Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, 
     return tmp;
 }
 
-Statement *makeClassStatement(Statement *name, Statement *function) {
+Statement *makeClassStatement(Statement *name, Statement *function, Parameter *pt) {
     Statement *tmp = makeStatement(name->line, name->code_file);
     tmp->type = set_class;
     tmp->u.set_class.name = name;
     tmp->u.set_class.st = function;
+    tmp->u.set_class.father = pt;
     return tmp;
 }
 
@@ -238,6 +239,7 @@ void freeStatement(Statement *st){
             case set_class:
                 freeStatement(st->u.set_class.name);
                 freeStatement(st->u.set_class.st);
+                freeParameter(st->u.set_class.father, true);
                 break;
             case call_function:
                 freeStatement(st->u.call_function.function);
@@ -311,14 +313,11 @@ void freeStatement(Statement *st){
 }
 
 Statement *copyStatement(Statement *st){
-    if (st == NULL)
-        return NULL;
-
-    Statement *tmp = copyStatementCore(st);
     Statement *base_tmp = NULL;
+    Statement **tmp = &base_tmp;
 
-    for (base_tmp = tmp; st->next != NULL;st = st->next, tmp = tmp->next)
-        tmp->next = copyStatementCore(st->next);
+    for (PASS; st != NULL; st = st->next, tmp = &(*tmp)->next)
+        *tmp = copyStatementCore(st);
     return base_tmp;
 }
 
@@ -357,6 +356,7 @@ Statement *copyStatementCore(Statement *st){
         case set_class:
             new->u.set_class.name = copyStatement(st->u.set_class.name);
             new->u.set_class.st = copyStatement(st->u.set_class.st);
+            new->u.set_class.father = copyParameter(st->u.set_class.father);
             break;
         case call_function:
             new->u.call_function.function = copyStatement(st->u.call_function.function);
@@ -438,12 +438,10 @@ StatementList *makeStatementList(Statement *condition, Statement *var, Statement
 }
 
 StatementList *connectStatementList(StatementList *base, StatementList *new){
-    StatementList *tmp = base;
-    if (base == NULL)
-        return new;
-    for (PASS; tmp->next != NULL; tmp = tmp->next)
+    StatementList **tmp = &base;
+    for (PASS; *tmp != NULL; tmp = &(*tmp)->next)
         PASS;
-    tmp->next = new;
+    *tmp = new;
     return base;
 }
 
@@ -459,14 +457,10 @@ void freeStatementList(StatementList *base){
 }
 
 StatementList *copyStatementList(StatementList *sl){
-    StatementList *tmp = NULL;
     StatementList *base_tmp = NULL;
+    StatementList **tmp = &base_tmp;
 
-    if (sl == NULL)
-        return NULL;
-
-    tmp = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var),copyStatement(sl->code), sl->type);
-    for (base_tmp = tmp; sl->next != NULL;tmp = tmp->next, sl = sl->next)
-        tmp->next = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var), copyStatement(sl->code), sl->type);
+    for (PASS; sl != NULL; sl = sl->next, tmp = &(*tmp)->next)
+        *tmp = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var), copyStatement(sl->code), sl->type);
     return base_tmp;
 }

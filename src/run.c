@@ -38,7 +38,7 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
             type = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
         case call_function:
-            type = callFunction(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            type = callBack(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
         case if_branch:
             type = ifBranch(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
@@ -118,7 +118,7 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
  * @return
  */
 ResultType globalIterStatement(Inter *inter, Result *result) {
-    LinkValue *father = makeLinkValue(makeObject(inter, inter->var_list), NULL, inter);
+    LinkValue *father = makeLinkValue(makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL), NULL, inter);
     Statement *base_st = NULL;
     VarList *var_list = NULL;
     enum ResultType type;

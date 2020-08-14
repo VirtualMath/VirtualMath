@@ -7,6 +7,7 @@
 
 struct VarList;
 struct Argument;
+struct FatherValue;
 
 struct Value{
     struct GCStatus gc_status;
@@ -22,6 +23,8 @@ struct Value{
     } type;
     struct {
         struct VarList *var;
+        struct VarList *out_var;
+        struct FatherValue *father;
     } object;
     union data{
         struct Number{
@@ -32,7 +35,6 @@ struct Value{
         } str;
         struct Function{
             struct Statement *function;
-            struct VarList *out_var;
             struct Parameter *pt;
         } function;
         struct List{
@@ -47,20 +49,17 @@ struct Value{
             struct HashTable *dict;
             NUMBER_TYPE size;
         } dict;
-        struct Class{
-            struct VarList *out_var;  // class 执行的外部环境
-        } class;
     }data;
-    struct Value *next;
-    struct Value *last;
+    struct Value *gc_next;
+    struct Value *gc_last;
 };
 
 struct LinkValue{
     struct GCStatus gc_status;
     struct Value *value;
     struct LinkValue *father;
-    struct LinkValue *next;
-    struct LinkValue *last;
+    struct LinkValue *gc_next;
+    struct LinkValue *gc_last;
 };
 
 struct Result{
@@ -87,14 +86,20 @@ struct Error{
     struct Error *next;
 };
 
+struct FatherValue{
+    struct LinkValue *value;
+    struct FatherValue *next;
+};
+
 typedef struct Inter Inter;
 typedef struct Value Value;
 typedef struct LinkValue LinkValue;
 typedef struct Result Result;
 typedef struct Error Error;
+typedef struct FatherValue FatherValue;
 typedef enum ResultType ResultType;
 
-Value *makeObject(Inter *inter, struct VarList *object);
+Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *father);
 Value * freeValue(Value *value, Inter *inter);
 LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
 LinkValue * freeLinkValue(LinkValue *value, Inter *inter);
@@ -102,7 +107,7 @@ Value *makeNoneValue(Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
-Value *makeClassValue(struct VarList *var_list, Inter *inter);
+Value *makeClassValue(VarList *var_list, Inter *inter, FatherValue *father);
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
 Value *makeDictValue(struct Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST);
 
@@ -126,5 +131,11 @@ void printValue(Value *value, FILE *debug);
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug);
 
 bool isType(Value *value, enum ValueType type);
+
+FatherValue *makeFatherValue(LinkValue *value);
+FatherValue *copyFatherValue(FatherValue *value);
+FatherValue *freeFatherValue(FatherValue *value);
+FatherValue *connectFatherValue(FatherValue *base, FatherValue *back);
+FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back);
 
 #endif //VIRTUALMATH_VALUE_H

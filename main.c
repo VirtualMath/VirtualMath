@@ -19,8 +19,6 @@ int main(int argc, char *argv[]) {
 
 
 /**
- * TODO-szh 类->对象
- * TODO-szh 类继承
  * TODO-szh 类封装
  * TODO-szh 类super语句
  * TODO-szh const声明

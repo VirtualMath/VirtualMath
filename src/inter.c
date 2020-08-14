@@ -68,8 +68,22 @@ void setBaseInterData(struct Inter *inter){
     inter->data.var_str_prefix = memStrcpy("str_");
     inter->data.var_num_prefix = memStrcpy("num_");
     inter->data.var_defualt = memStrcpy("default_var");
+    inter->data.object_init = memStrcpy("__init__");
     inter->data.debug = NULL;
     inter->data.log_dir = NULL;
+}
+
+void freeBaseInterData(struct Inter *inter){
+    memFree(inter->data.var_defualt);
+    memFree(inter->data.var_num_prefix);
+    memFree(inter->data.var_str_prefix);
+    memFree(inter->data.object_init);
+    memFree(inter->data.log_dir);
+
+    if (inter->data.log_dir != NULL) {
+        fclose(inter->data.debug);
+        fclose(inter->data.error);
+    }
 }
 
 void freeInter(Inter *inter, bool self){
@@ -77,6 +91,7 @@ void freeInter(Inter *inter, bool self){
 
     printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter);
     printValueGC("\nprintValueGC TAG : freeInter", inter);
+    printVarGC("\nprintVarGC TAG : freeInter", inter);
 
     freeStatement(inter->statement);  // Statement放在Value前面释放, 因为base_value的释放需要处理gc_status
     freeVarList(inter->var_list, true);
@@ -84,23 +99,16 @@ void freeInter(Inter *inter, bool self){
     while (inter->base != NULL)
         freeValue(inter->base, inter);
 
+    while (inter->base_var != NULL)
+        freeVar(inter->base_var, inter);
+
     while (inter->link_base != NULL)
         freeLinkValue(inter->link_base, inter);
 
     while (inter->hash_base != NULL)
         freeHashTable(inter->hash_base, inter);
 
-
-    memFree(inter->data.var_defualt);
-    memFree(inter->data.var_num_prefix);
-    memFree(inter->data.var_str_prefix);
-
-    memFree(inter->data.log_dir);
-
-    if (inter->data.log_dir != NULL) {
-        fclose(inter->data.debug);
-        fclose(inter->data.error);
-    }
+    freeBaseInterData(inter);
 
     if (self)
         memFree(inter);
@@ -119,7 +127,7 @@ void printLinkValueGC(char *tag, Inter *inter){
         printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
         printLinkValue(base, "value = ", "\n", stdout);
         printf("-------------------------------------------\n");
-        base = base->next;
+        base = base->gc_next;
     }
     printf("printLinkValueGC TAG : END\n");
 }
@@ -134,9 +142,26 @@ void printValueGC(char *tag, Inter *inter){
         printf("value = ");
         printValue(base, stdout);
         printf("\n-------------------------------------------\n");
-        base = base->next;
+        base = base->gc_next;
     }
     printf("printValueGC TAG : END\n");
+}
+
+void printVarGC(char *tag, Inter *inter){
+    Var *base = inter->base_var;
+    printf("%s\n", tag);
+    while (base != NULL) {
+        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+        printf("value :\n");
+        printLinkValue(base->name_, "name_: ", "\n", stdout);
+        printLinkValue(base->value, "value_: ", "\n", stdout);
+        printf("str_name = %s\n", base->name);
+        printf("-------------------------------------------\n");
+        base = base->gc_next;
+    }
+    printf("printVarGC TAG : END\n");
 }
 
 void showLinkValue(struct LinkValue *base){

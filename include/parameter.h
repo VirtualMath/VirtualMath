@@ -63,8 +63,8 @@ void freeParameter(Parameter *pt, bool free_st);
 Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE);
 Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE);
 
-ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, struct Statement *base, INTER_FUNCTIONSIG_NOT_ST);
-ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, struct Statement *base, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
 ResultType iterParameter(Parameter *call, Argument **base_ad, INTER_FUNCTIONSIG_NOT_ST);
 Argument *getArgument(Parameter *call, INTER_FUNCTIONSIG_NOT_ST);
 
@@ -73,4 +73,7 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
 ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMBER_TYPE *num, NUMBER_TYPE max, bool *status,
                         INTER_FUNCTIONSIG_NOT_ST);
 ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
+
+FatherValue *setFatherCore(FatherValue *father_tmp);
+FatherValue *setFather(Argument *call, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH_PARAMETER_H

@@ -72,6 +72,7 @@ struct Statement{
         struct {
             struct Statement *name;
             struct Statement *st;
+            struct Parameter *father;
         } set_class;
         struct {
             struct Statement *function;
@@ -167,7 +168,7 @@ Statement *makeBaseVarStatement(char *name, Statement *times, long int line, cha
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
 Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file);
 Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, char *file);
-Statement *makeClassStatement(Statement *name, Statement *function);
+Statement *makeClassStatement(Statement *name, Statement *function, Parameter *pt);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeIfStatement(long int line, char *file);

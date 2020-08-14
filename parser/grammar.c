@@ -573,7 +573,7 @@ void parserDef(PASERSSIGNATURE){
     if (type == MATHER_DEF)
         st = makeFunctionStatement(name_tmp, code_tmp, pt);
     else
-        st = makeClassStatement(name_tmp, code_tmp);  // TODO-szh 处理pt
+        st = makeClassStatement(name_tmp, code_tmp, pt);
     addLexToken(pm, MATHER_ENTER);
     addStatementToken(FUNCTION, st, pm);
     return;

@@ -7,6 +7,8 @@ struct Inter{
     struct Value *base;
     struct LinkValue *link_base;
     struct HashTable *hash_base;
+    struct Var *base_var;
+
     struct Statement *statement;
     struct VarList *var_list;
     struct InterData{
@@ -16,6 +18,7 @@ struct Inter{
         char *var_str_prefix;
         char *var_num_prefix;
         char *var_defualt;
+        char *object_init;
     } data;
 };
 

@@ -1,25 +1,52 @@
 #include "__virtualmath.h"
 
-Var *makeVar(char *name, LinkValue *value, LinkValue *name_) {
+Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
+    Var *list_tmp = inter->base_var;
     Var *tmp;
     tmp = memCalloc(1, sizeof(Var));
+    setGC(&tmp->gc_status);
     tmp->name = memStrcpy(name);
     tmp->value = value;
     tmp->name_ = name_;
     tmp->next = NULL;
+
+    tmp->gc_next = NULL;
+    tmp->gc_last = NULL;
+
+    if (list_tmp == NULL){
+        inter->base_var = tmp;
+        tmp->gc_last = NULL;
+        goto return_;
+    }
+
+    for (PASS; list_tmp->gc_next !=  NULL; list_tmp = list_tmp->gc_next)
+            PASS;
+    list_tmp->gc_next = tmp;
+    tmp->gc_last = list_tmp;
+
+    return_:
     return tmp;
 }
 
-Var *freeVar(Var *var, bool self){
+Var *freeVar(Var *var, Inter *inter) {
+    Var *return_value = NULL;
     freeBase(var, return_);
     memFree(var->name);
-    if (self){
-        Var *next_var = var->next;
-        memFree(var);
-        return next_var;
+
+    return_value = var->gc_next;
+    if (var->gc_last == NULL)
+        inter->base_var = var->gc_next;
+    else
+        var->gc_last->gc_next = var->gc_next;
+
+    if (var->gc_next != NULL) {  // TODO-szh 优化
+        Var *tmp = var->gc_last;
+        var->gc_next->gc_last = tmp;
     }
+
+    memFree(var);
     return_:
-    return var;
+    return return_value;
 }
 
 HashTable *makeHashTable(Inter *inter) {
@@ -28,19 +55,19 @@ HashTable *makeHashTable(Inter *inter) {
     tmp = memCalloc(1, sizeof(Value));
     tmp->hashtable = (Var **)calloc(MAX_SIZE, sizeof(Var *));
     setGC(&tmp->gc_status);
-    tmp->next = NULL;
-    tmp->last = NULL;
+    tmp->gc_next = NULL;
+    tmp->gc_last = NULL;
 
     if (list_tmp == NULL){
         inter->hash_base = tmp;
-        tmp->last = NULL;
+        tmp->gc_last = NULL;
         goto return_;
     }
 
-    for (PASS; list_tmp->next !=  NULL; list_tmp = list_tmp->next)
+    for (PASS; list_tmp->gc_next != NULL; list_tmp = list_tmp->gc_next)
         PASS;
-    list_tmp->next = tmp;
-    tmp->last = list_tmp;
+    list_tmp->gc_next = tmp;
+    tmp->gc_last = list_tmp;
 
     return_:
     return tmp;
@@ -49,22 +76,17 @@ HashTable *makeHashTable(Inter *inter) {
 HashTable *freeHashTable(HashTable *ht, Inter *inter) {
     HashTable *return_value = NULL;
     freeBase(ht, return_);
-    return_value = ht->next;
-    if (ht->last == NULL)
-        inter->hash_base = ht->next;
+    return_value = ht->gc_next;
+    if (ht->gc_last == NULL)
+        inter->hash_base = ht->gc_next;
     else
-        ht->last->next = ht->next;
+        ht->gc_last->gc_next = ht->gc_next;
 
-    if (ht->next != NULL) {
-        HashTable *tmp = ht->last;
-        ht->next->last = tmp;
+    if (ht->gc_next != NULL) {
+        HashTable *tmp = ht->gc_last;
+        ht->gc_next->gc_last = tmp;
     }
 
-    for (int i=0; i < MAX_SIZE; i++){
-        Var *tmp = ht->hashtable[i];
-        while (tmp != NULL)
-            tmp = freeVar(tmp, true);
-    }
     memFree(ht->hashtable);
     memFree(ht);
     return_:
@@ -102,22 +124,18 @@ HASH_INDEX time33(char *key){ // hash function
 }
 
 
-void addVar(char *name, LinkValue *value, LinkValue *name_, VarList *var_list) {
+void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CORE) {
     HASH_INDEX index = time33(name);
-    Var *base = var_list->hashtable->hashtable[index];
-    if (base == NULL){
-        var_list->hashtable->hashtable[index] = makeVar(name, value, name_);
-        return;
+    Var **base = &var_list->hashtable->hashtable[index];
+    for (PASS; true; base = &(*base)->next) {
+        if (*base == NULL) {
+            *base = makeVar(name, value, name_, inter);
+            break;
+        } else if (eqString((*base)->name, name)) {
+            (*base)->value = value;
+            break;
+        }
     }
-    for (PASS; true; base = base->next)
-        if (base->next != NULL) {
-            base->next = makeVar(name, value, name_);
-            break;
-        }
-        else if (eqString(base->name, name)) {
-            base->value = value;
-            break;
-        }
 }
 
 LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
@@ -126,17 +144,14 @@ LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
     Var *base = var_list->hashtable->hashtable[index];
     Var *last = NULL;
 
-    if (base == NULL)
-        goto return_;
-
     for (PASS; base != NULL; last = base, base = base->next){
         if (eqString(base->name, name)){
             tmp = base->value;
-            if (del_var){
+            if (del_var){  // TODO-szh 使用指针优化
                 if (last == NULL)
-                    var_list->hashtable->hashtable[index] = freeVar(base, true);
+                    var_list->hashtable->hashtable[index] = base->next;
                 else
-                    last->next = freeVar(base, true);
+                    last->next = base->next;
             }
             goto return_;
         }
@@ -154,10 +169,10 @@ LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, boo
     return tmp;
 }
 
-void addFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, LinkValue *value, LinkValue *name_) {
+void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *value, INTER_FUNCTIONSIG_CORE) {
     for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++)
         var_list = var_list->next;
-    addVar(name, value, name_, var_list);
+    addVar(name, value, name_, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }
 
 VarList *pushVarList(VarList *base, Inter *inter){
@@ -180,11 +195,46 @@ VarList *copyVarListCore(VarList *base, Inter *inter){
 
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter){
     VarList *new = NULL;
-    VarList *tmp = NULL;
-    new = tmp = copyVarListCore(base, inter);
-    for (PASS; base->next != NULL; tmp = tmp->next, base = base->next)
-        tmp->next = copyVarListCore(base->next, inter);
+    VarList **tmp = &new;
+    for (int i=0; base != NULL; tmp = &(*tmp)->next, base = base->next,i++)
+        *tmp = copyVarListCore(base, inter);
     if (n_new)
-        new = pushVarList(new, inter);
+        return pushVarList(new, inter);
     return new;
+}
+
+VarList *connectVarListBack(VarList *base, VarList *back){
+    VarList **tmp = NULL;
+    for (tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
+        PASS;
+    *tmp = back;
+    return base;
+}
+
+bool comparVarList(VarList *dest, VarList *src) {  // TODO-szh GC使用这个函数
+    for (PASS; src != NULL; src = src->next)
+        if (src->hashtable == dest->hashtable)
+            return true;
+    return false;
+}
+
+VarList *connectSafeVarListBack(VarList *base, VarList *back){
+    VarList **last_node = &base;
+    for (PASS; *last_node != NULL; ){
+        if ((*last_node)->hashtable == back->hashtable)
+            *last_node = freeVarList(*last_node, true);
+        else
+            last_node = &(*last_node)->next;
+    }
+    *last_node = back;
+    return base;
+}
+
+VarList *makeObjectVarList(FatherValue *value, Inter *inter){
+    VarList *tmp = makeVarList(inter);
+    for (PASS; value != NULL; value = value->next) {
+        VarList *new = copyVarList(value->value->value->object.var, false, inter);
+        tmp = connectVarListBack(tmp, new);
+    }
+    return tmp;
 }

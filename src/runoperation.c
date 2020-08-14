@@ -159,12 +159,18 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     left = result->value;
     setResultCore(result);
     VarList *object = left->value->object.var;
+    VarList *out_var = NULL;
+    for (out_var = object; out_var->next != NULL; out_var = out_var->next)
+        PASS;
+    out_var->next = left->value->object.out_var;
 
     runFREEZE(inter, var_list, object, true);
     operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));
     if (run_continue(result))
         result->value->father = left;
     runFREEZE(inter, var_list, object, false);
+    if (out_var != NULL)
+        out_var->next = NULL;
 
     gcFreeTmpLink(&left->gc_status);
     return result->type;
@@ -200,7 +206,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         }
 
         freeResult(result);
-        setParameterCore(call, name->u.base_list.list, var_list, name, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        setParameterCore(call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
         if (run_continue(result)){
             Argument *tmp = call;
             LinkValue *new_value = makeLinkValue(makeListValue(&tmp, inter, value_tuple), father, inter);
@@ -220,7 +226,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
             memFree(str_name);
             return result->type;
         }
-        addFromVarList(str_name, var_list, int_times, value, result->value);
+        addFromVarList(str_name, result->value, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         memFree(str_name);
         freeResult(result);
 

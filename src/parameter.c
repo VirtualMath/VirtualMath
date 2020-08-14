@@ -104,16 +104,11 @@ Parameter *copyenOneParameter(Parameter *base){
 }
 
 Parameter *copyParameter(Parameter *base){
-    Parameter *tmp = NULL;
     Parameter *base_tmp = NULL;
+    Parameter **tmp = &base_tmp;
 
-    if (base == NULL)
-        return NULL;
-
-    tmp = copyenOneParameter(base);
-    base_tmp = tmp;
-    for (; base->next != NULL; tmp = tmp->next,base = base->next)
-        tmp->next = copyenOneParameter(base->next);
+    for (PASS; base != NULL; tmp = &(*tmp)->next,base = base->next)
+        *tmp = copyenOneParameter(base);
 
     return base_tmp;
 }
@@ -248,7 +243,7 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
 
     for (*num = 0; call != NULL && call->type == name_arg; (*num)++, call = call->next){
         if (call->name_type == name_char){
-            addFromVarList(call->data.name_, var_list, 0, call->data.value, call->data.name_value);
+            addFromVarList(call->data.name_, call->data.name_value, 0, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
             continue;
         }
         freeResult(result);
@@ -425,8 +420,7 @@ Argument *getArgument(Parameter *call, INTER_FUNCTIONSIG_NOT_ST){
  * @param var_list
  * @return
  */
-ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, Statement *base,
-                    INTER_FUNCTIONSIG_NOT_ST) {
+ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *call = NULL;
     setResultCore(result);
     call = getArgument(call_base, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
@@ -436,12 +430,12 @@ ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList 
     }
 
     freeResult(result);
-    setParameterCore(call, function_base, function_var, base, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    setParameterCore(call, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     freeArgument(call, false);
     return result->type;
 }
 
-ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *function_var, Statement *base,
+ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *function_var,
                         INTER_FUNCTIONSIG_NOT_ST) {
     Parameter *function = NULL;
     Parameter *tmp_function = NULL;  // 释放使用
@@ -549,4 +543,28 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
     return_:
     freeParameter(tmp_function, true);
     return result->type;
+}
+
+FatherValue *setFather(Argument *call, INTER_FUNCTIONSIG_NOT_ST) {
+    setResultCore(result);
+
+    FatherValue *father_tmp = NULL;
+    for (Argument *tmp = call; tmp != NULL && tmp->type == value_arg; tmp = tmp->next)
+        if (tmp->data.value->value->type == class) {
+            father_tmp = connectFatherValue(father_tmp, makeFatherValue(tmp->data.value));
+            father_tmp = connectFatherValue(father_tmp, copyFatherValue(tmp->data.value->value->object.father));
+        }
+
+    return setFatherCore(father_tmp);
+}
+
+FatherValue *setFatherCore(FatherValue *father_tmp) {
+    FatherValue *base_father = NULL;
+    while (father_tmp != NULL){
+        FatherValue *next = father_tmp->next;
+        father_tmp->next = NULL;
+        base_father = connectSafeFatherValue(base_father, father_tmp);
+        father_tmp = next;
+    }
+    return base_father;
 }

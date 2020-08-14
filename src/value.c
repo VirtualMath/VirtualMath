@@ -1,25 +1,27 @@
 #include "__virtualmath.h"
 
 
-Value *makeObject(Inter *inter, VarList *object) {
+Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *father) {
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
     setGC(&tmp->gc_status);
     tmp->type = object_;
-    tmp->next = NULL;
-    tmp->object.var = object == NULL ? makeVarList(inter) : copyVarList(object, false, inter);
+    tmp->gc_next = NULL;
+    tmp->object.var = object == NULL ? makeObjectVarList(father, inter) : object;
+    tmp->object.out_var = out_var;
+    tmp->object.father = father;
 
     if (list_tmp == NULL){
         inter->base = tmp;
-        tmp->last = NULL;
+        tmp->gc_last = NULL;
         goto return_;
     }
 
-    for (PASS; list_tmp->next !=  NULL; list_tmp = list_tmp->next)
+    for (PASS; list_tmp->gc_next != NULL; list_tmp = list_tmp->gc_next)
         PASS;
 
-    list_tmp->next = tmp;
-    tmp->last = list_tmp;
+    list_tmp->gc_next = tmp;
+    tmp->gc_last = list_tmp;
 
     return_:
     return tmp;
@@ -27,14 +29,14 @@ Value *makeObject(Inter *inter, VarList *object) {
 
 Value *makeNoneValue(Inter *inter) {
     Value *tmp;
-    tmp = makeObject(inter, NULL);
+    tmp = makeObject(inter, NULL, NULL, NULL);
     tmp->type = none;
     return tmp;
 }
 
 Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
     Value *tmp;
-    tmp = makeObject(inter, NULL);
+    tmp = makeObject(inter, NULL, NULL, NULL);
     tmp->type = number;
     tmp->data.num.num = num;
     return tmp;
@@ -42,7 +44,7 @@ Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
 
 Value *makeStringValue(char *str, Inter *inter) {
     Value *tmp;
-    tmp = makeObject(inter, NULL);
+    tmp = makeObject(inter, NULL, NULL, NULL);
     tmp->type = string;
     tmp->data.str.str = memStrcpy(str);
     return tmp;
@@ -50,26 +52,24 @@ Value *makeStringValue(char *str, Inter *inter) {
 
 Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
     Value *tmp;
-    tmp = makeObject(inter, NULL);
+    tmp = makeObject(inter, NULL, var_list, NULL);
     tmp->type = function;
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
-    tmp->data.function.out_var = copyVarList(var_list, false, inter);
     return tmp;
 }
 
-Value *makeClassValue(VarList *var_list, Inter *inter) {
+Value *makeClassValue(VarList *var_list, Inter *inter, FatherValue *father) {
     Value *tmp;
-    tmp = makeObject(inter, NULL);
+    tmp = makeObject(inter, NULL, var_list, father);
     tmp->type = class;
-    tmp->data.class.out_var = copyVarList(var_list, false, inter);
     return tmp;
 }
 
 Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
     Value *tmp;
     Argument *at = *arg_ad;
-    tmp = makeObject(inter, NULL);
+    tmp = makeObject(inter, NULL, NULL, NULL);
     tmp->type = list;
     tmp->data.list.type = type;
     tmp->data.list.list = NULL;
@@ -85,7 +85,7 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
 
 Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp;
-    tmp = makeObject(inter, NULL);
+    tmp = makeObject(inter, NULL, NULL, NULL);
     tmp->data.dict.size = 0;
     tmp->type = dict;
     if (new_hash) {
@@ -105,32 +105,28 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST)
 Value *freeValue(Value *value, Inter *inter){
     Value *return_value = NULL;
     freeBase(value, return_);
-    return_value = value->next;
-    if (value->last == NULL)
-        inter->base = value->next;
+    return_value = value->gc_next;
+    if (value->gc_last == NULL)
+        inter->base = value->gc_next;
     else
-        value->last->next = value->next;
+        value->gc_last->gc_next = value->gc_next;
 
-    if (value->next != NULL)
-        value->next->last = value->last;
+    if (value->gc_next != NULL)
+        value->gc_next->gc_last = value->gc_last;
 
-    freeVarList(value->object.var, true);
+    for (VarList *tmp = value->object.var; tmp != NULL; tmp = freeVarList(tmp, true))
+        PASS;
+    for (VarList *tmp = value->object.out_var; tmp != NULL; tmp = freeVarList(tmp, true))
+        PASS;
+    for (struct FatherValue *tmp = value->object.father; tmp != NULL; tmp = freeFatherValue(tmp))
+        PASS;
     switch (value->type) {
         case string:
             memFree(value->data.str.str);
             break;
         case function: {
-            VarList *tmp = value->data.function.out_var;
             freeParameter(value->data.function.pt, true);
             freeStatement(value->data.function.function);
-            while (tmp != NULL)
-                tmp = freeVarList(tmp, true);
-            break;
-        }
-        case class: {
-            VarList *tmp = value->data.class.out_var;
-            while (tmp != NULL)
-                tmp = freeVarList(tmp, true);
             break;
         }
         case list:
@@ -153,15 +149,15 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
     tmp->value = value;
     if (list_tmp == NULL){
         inter->link_base = tmp;
-        tmp->last = NULL;
+        tmp->gc_last = NULL;
         goto return_;
     }
 
-    for (PASS; list_tmp->next !=  NULL; list_tmp = list_tmp->next)
+    for (PASS; list_tmp->gc_next != NULL; list_tmp = list_tmp->gc_next)
         PASS;
 
-    list_tmp->next = tmp;
-    tmp->last = list_tmp;
+    list_tmp->gc_next = tmp;
+    tmp->gc_last = list_tmp;
 
     return_:
     return tmp;
@@ -170,14 +166,14 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
 LinkValue * freeLinkValue(LinkValue *value, Inter *inter){
     LinkValue *return_value = NULL;
     freeBase(value, return_);
-    return_value = value->next;
-    if (value->last == NULL)
-        inter->link_base = value->next;
+    return_value = value->gc_next;
+    if (value->gc_last == NULL)
+        inter->link_base = value->gc_next;
     else
-        value->last->next = value->next;
+        value->gc_last->gc_next = value->gc_next;
 
-    if (value->next != NULL)
-        value->next->last = value->last;
+    if (value->gc_next != NULL)
+        value->gc_next->gc_last = value->gc_last;
 
     memFree(value);
     return_:
@@ -357,4 +353,50 @@ void printError(Result *result, Inter *inter, bool free) {
 
 inline bool isType(Value *value, enum ValueType type){
     return value->type == type;
+}
+
+FatherValue *makeFatherValue(LinkValue *value){
+    FatherValue *tmp;
+    tmp = memCalloc(1, sizeof(FatherValue));
+    tmp->value = value;
+    tmp->next = NULL;
+    return tmp;
+}
+
+FatherValue *copyFatherValue(FatherValue *value){
+    FatherValue *tmp;
+    if (value == NULL)
+        return NULL;
+    tmp = makeFatherValue(value->value);
+    return tmp;
+}
+
+FatherValue *freeFatherValue(FatherValue *value){
+    freeBase(value, error_);
+    FatherValue *next = value->next;
+    memFree(value);
+    return next;
+    error_: return NULL;
+}
+
+FatherValue *connectFatherValue(FatherValue *base, FatherValue *back){
+    FatherValue **tmp = &base;
+    for (tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
+        PASS;
+    *tmp = back;
+    return base;
+}
+
+FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back){
+    FatherValue **last_node = &base;
+    if (back == NULL)
+        goto reutrn_;
+    for (PASS; *last_node != NULL; ){
+        if ((*last_node)->value->value == back->value->value)
+            *last_node = freeFatherValue(*last_node);
+        else
+            last_node = &(*last_node)->next;
+    }
+    *last_node = back;
+    reutrn_: return base;
 }

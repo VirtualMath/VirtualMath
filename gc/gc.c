@@ -17,19 +17,15 @@ void gc_iterValue(Value *value){
     if (setIterAlready(&value->gc_status))
         return;
     gc_varList(value->object.var);
+    gc_varList(value->object.out_var);
+    // TODO-szh 处理father_value
     switch (value->type) {
-        case function:
-            gc_varList(value->data.function.out_var);
-            break;
         case list:
             for (int i=0;i < value->data.list.size;i++)
                 gc_iterLinkValue(value->data.list.list[i]);
             break;
         case dict:
             gc_iterHashTable(value->data.dict.dict);
-            break;
-        case class:
-            gc_varList(value->data.class.out_var);
             break;
         default:
             break;
@@ -52,6 +48,11 @@ void gc_iterHashTable(HashTable *ht){
 }
 
 void gc_iterVar(Var *var){
+    if (var == NULL)
+        return;
+    gcAddLink(&var->gc_status);
+    if (setIterAlready(&var->gc_status))
+        return;
     for (PASS; var != NULL; var = var->next){
         gc_iterLinkValue(var->name_);
         gc_iterLinkValue(var->value);
@@ -59,26 +60,29 @@ void gc_iterVar(Var *var){
 }
 
 void gc_resetBase(Inter *inter){
-    for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->next)
+    for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->gc_next)
         resetGC(&value_base->gc_status);
 
-    for (LinkValue *link_base = inter->link_base; link_base != NULL; link_base = link_base->next)
+    for (LinkValue *link_base = inter->link_base; link_base != NULL; link_base = link_base->gc_next)
         resetGC(&link_base->gc_status);
 
-    for (HashTable *hash_base = inter->hash_base; hash_base != NULL; hash_base = hash_base->next)
+    for (HashTable *hash_base = inter->hash_base; hash_base != NULL; hash_base = hash_base->gc_next)
         resetGC(&hash_base->gc_status);
+
+    for (Var *var_base = inter->base_var; var_base != NULL; var_base = var_base->gc_next)
+        resetGC(&var_base->gc_status);
 }
 
 void gc_checkBase(Inter *inter){
-    for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->next)
+    for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->gc_next)
         if (!needFree(&value_base->gc_status) && !value_base->gc_status.continue_)
             gc_iterValue(value_base);
 
-    for (LinkValue *link_base = inter->link_base; link_base != NULL; link_base = link_base->next)
+    for (LinkValue *link_base = inter->link_base; link_base != NULL; link_base = link_base->gc_next)
         if (!needFree(&link_base->gc_status) && !link_base->gc_status.continue_)
             gc_iterLinkValue(link_base);
 
-    for (HashTable *hash_base = inter->hash_base; hash_base != NULL; hash_base = hash_base->next)
+    for (HashTable *hash_base = inter->hash_base; hash_base != NULL; hash_base = hash_base->gc_next)
         if (!needFree(&hash_base->gc_status) && !hash_base->gc_status.continue_)
             gc_iterHashTable(hash_base);
 }
@@ -89,19 +93,25 @@ void gc_freeBase(Inter *inter){
         if (needFree(&value_base->gc_status))
             value_base = freeValue(value_base, inter);
         else
-            value_base = value_base->next;
+            value_base = value_base->gc_next;
 
     for (LinkValue *link_base = inter->link_base; link_base != NULL;)
         if (needFree(&link_base->gc_status))
             link_base = freeLinkValue(link_base, inter);
         else
-            link_base = link_base->next;
+            link_base = link_base->gc_next;
 
     for (HashTable *hash_base = inter->hash_base; hash_base != NULL;)
         if (needFree(&hash_base->gc_status))
             hash_base = freeHashTable(hash_base, inter);
         else
-            hash_base = hash_base->next;
+            hash_base = hash_base->gc_next;
+
+    for (Var *var_base = inter->base_var; var_base != NULL;)
+        if (needFree(&var_base->gc_status))
+            var_base = freeVar(var_base, inter);
+        else
+            var_base = var_base->gc_next;
 #endif
 }
 
