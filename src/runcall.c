@@ -120,12 +120,12 @@ ResultType callFunction(LinkValue *function_value, Parameter *parameter, INTER_F
 
     function_var = pushVarList(function_value->value->object.out_var, inter);
     gc_addTmpLink(&function_var->hashtable->gc_status);
-    runFREEZE(inter, var_list, function_var, true);
+    gc_freeze(inter, var_list, function_var, true);
 
     setParameter(parameter, function_value->value->data.function.pt, function_var, function_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     if (!run_continue(result)) {
         gc_addTmpLink(&function_var->hashtable->gc_status);
-        runFREEZE(inter, var_list, function_var, false);
+        gc_freeze(inter, var_list, function_var, false);
         popVarList(function_var);
         goto return_;
     }
@@ -134,7 +134,7 @@ ResultType callFunction(LinkValue *function_value, Parameter *parameter, INTER_F
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(function_value->value->data.function.function, function_var, result, function_value));
 
     gc_freeTmpLink(&function_var->hashtable->gc_status);
-    runFREEZE(inter, var_list, function_var, false);
+    gc_freeze(inter, var_list, function_var, false);
     popVarList(function_var);
 
     return_:

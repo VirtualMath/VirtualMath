@@ -77,7 +77,7 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
 
     if (result->value->aut == auto_aut)
         result->value->aut = st->aut;
-    runGC(inter, 1, 0, 0, var_list);
+    gc_run(inter, 1, 0, 0, var_list);
     return type;
 }
 
@@ -110,7 +110,7 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
     if (type == not_return || type == restart_return)
         setResultOperationNone(result, inter, father);
 
-    runGC(inter, 1, 0, 0, var_list);
+    gc_run(inter, 1, 0, 0, var_list);
     return result->type;
 }
 
@@ -137,7 +137,7 @@ ResultType globalIterStatement(Inter *inter, Result *result) {
     if (type != error_return && type != function_return)
         setResultOperationNone(result, inter, father);
 
-    runGC(inter, 1, 0, 0, var_list);
+    gc_run(inter, 1, 0, 0, var_list);
     return result->type;
 }
 

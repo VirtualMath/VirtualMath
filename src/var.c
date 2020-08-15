@@ -127,7 +127,7 @@ LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
     LinkValue *tmp = NULL;
     HASH_INDEX index = time33(name);
 
-    for (Var **base = &var_list->hashtable->hashtable[index]; base != NULL; base = &(*base)->next){
+    for (Var **base = &var_list->hashtable->hashtable[index]; *base != NULL; base = &(*base)->next){
         if (eqString((*base)->name, name)){
             tmp = (*base)->value;
             if (del_var)

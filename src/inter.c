@@ -89,9 +89,11 @@ void freeBaseInterData(struct Inter *inter){
 void freeInter(Inter *inter, bool self){
     freeBase(inter, return_);
 
-    printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter);
-    printValueGC("\nprintValueGC TAG : freeInter", inter);
-    printVarGC("\nprintVarGC TAG : freeInter", inter);
+    if (getc(stdin) == '1') {
+        printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter);
+        printValueGC("\nprintValueGC TAG : freeInter", inter);
+        printVarGC("\nprintVarGC TAG : freeInter", inter);
+    }
 
     freeStatement(inter->statement);  // Statement放在Value前面释放, 因为base_value的释放需要处理gc_status
     freeVarList(inter->var_list, true);

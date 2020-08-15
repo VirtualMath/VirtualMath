@@ -12,7 +12,7 @@ void gc_freezeHashTable(HashTable *ht, bool is_lock){
     gc_IterAlready(&ht->gc_status);
 }
 
-void iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
+void gc_iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
     for (PASS; freeze != NULL; freeze = freeze->next){
         if (!comparVarList(freeze, base))
             gc_freezeHashTable(freeze->hashtable, is_lock);
@@ -26,9 +26,9 @@ void iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
  * @param base
  * @param is_lock
  */
-void runFREEZE(Inter *inter, VarList *freeze, VarList *base, bool is_lock){
+void gc_freeze(Inter *inter, VarList *freeze, VarList *base, bool is_lock){
 #if START_GC
     gc_resetBase(inter);
-    iterFreezeVarList(freeze, base, is_lock);
+    gc_iterFreezeVarList(freeze, base, is_lock);
 #endif
 }

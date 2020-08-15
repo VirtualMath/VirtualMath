@@ -387,12 +387,24 @@ FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back){
     FatherValue **last_node = &base;
     if (back == NULL)
         goto reutrn_;
-    for (PASS; *last_node != NULL; ){
+    for (PASS; *last_node != NULL; )
         if ((*last_node)->value->value == back->value->value)
             *last_node = freeFatherValue(*last_node);
         else
             last_node = &(*last_node)->next;
-    }
     *last_node = back;
     reutrn_: return base;
+}
+
+/**
+ * 检查 father 是否为 self 的父亲
+ * @param self
+ * @param father
+ * @return
+ */
+bool checkAttribution(Value *self, Value *father){
+    for (FatherValue *self_father = self->object.father; self_father != NULL; self_father = self_father->next)
+        if (self_father->value->value == father)
+            return true;
+    return false;
 }

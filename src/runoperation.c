@@ -164,18 +164,27 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
         PASS;
     out_var->next = left->value->object.out_var;
 
-    runFREEZE(inter, var_list, object, true);
-    operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));  // TODO-szh father设定 (添加参数规定若获得var的位置位于times后则自动设置father)
+    gc_freeze(inter, var_list, object, true);
+    operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));
     if (!run_continue(result))
         goto return_;
     else if ((left->aut == public_aut || left->aut == auto_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut))
         setResultError(result, inter, "PermissionsException", "Wrong Permissions: access variables as public", st, father, true);
     else if ((left->aut == protect_aut) && (result->value->aut == private_aut))
         setResultError(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect", st, father, true);
-    result->value->father = left;  // 保留原father.father，为left.father
 
+    if (result->value->father->value != left->value && checkAttribution(left->value, result->value->father->value)) {
+        /**
+         * 若获得的值的father是left的father, 则将获得值的father调整为left (拷贝)
+         */
+        LinkValue *return_value = copyLinkValue(result->value, inter);
+        return_value->father = left;
+        gc_freeTmpLink(&result->value->gc_status);
+        gc_addTmpLink(&return_value->gc_status);
+        result->value = return_value;
+    }
     return_:
-    runFREEZE(inter, var_list, object, false);
+    gc_freeze(inter, var_list, object, false);
     if (out_var != NULL)
         out_var->next = NULL;
     gc_freeTmpLink(&left->gc_status);
@@ -257,12 +266,12 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     setResultCore(result);
 
     VarList *object = left.value->value->object.var;
-    runFREEZE(inter, var_list, object, true);
+    gc_freeze(inter, var_list, object, true);
     if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
         pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
     else
         assCore(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
-    runFREEZE(inter, var_list, object, true);
+    gc_freeze(inter, var_list, object, true);
 
     freeResult(&left);
     return result->type;

@@ -120,7 +120,7 @@ void gc_freeBase(Inter *inter){
 #endif
 }
 
-void runGC(Inter *inter, int var_list, int link_value, int value, ...){
+void gc_run(Inter *inter, int var_list, int link_value, int value, ...){
 #if START_GC
     gc_resetBase(inter);
     va_list arg;

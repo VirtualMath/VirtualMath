@@ -146,5 +146,5 @@ FatherValue *copyFatherValue(FatherValue *value);
 FatherValue *freeFatherValue(FatherValue *value);
 FatherValue *connectFatherValue(FatherValue *base, FatherValue *back);
 FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back);
-
+bool checkAttribution(Value *self, Value *father);
 #endif //VIRTUALMATH_VALUE_H
