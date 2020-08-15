@@ -70,7 +70,7 @@ TokenMessage *makeTokenMessage(char *file_dir, char *debug) {
     tm->ts = makeTokenStream();
 #if OUT_LOG
     if (debug != NULL){
-        char *debug_dir = memStrcat(debug, LEXICAL_LOG, false);
+        char *debug_dir = memStrcat(debug, LEXICAL_LOG, false, false);
         if (access(debug_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
             tm->debug = fopen(debug_dir, "w");
         memFree(debug_dir);

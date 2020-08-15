@@ -67,7 +67,7 @@ ResultType addOperation(INTER_FUNCTIONSIG) {
     if (left.value->value->type == number && right.value->value->type == number)
         result->value->value = makeNumberValue(left.value->value->data.num.num + right.value->value->data.num.num, inter);
     else if(left.value->value->type == string && right.value->value->type == string){
-        char *new_string = memStrcat(left.value->value->data.str.str, right.value->value->data.str.str, false);
+        char *new_string = memStrcat(left.value->value->data.str.str, right.value->value->data.str.str, false, false);
         result->value->value = makeStringValue(new_string, inter);
         memFree(new_string);
     }
@@ -235,7 +235,6 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     else{
         char *str_name = NULL;
-
         getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, father));
         if (!run_continue(result)) {
             memFree(str_name);
@@ -244,7 +243,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         LinkValue *var_value = copyLinkValue(value, inter);
         if (var_value->aut == auto_aut)
             var_value->aut = name->aut;
-        addFromVarList(str_name, copyLinkValue(result->value, inter), int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         memFree(str_name);
         freeResult(result);
 
@@ -290,26 +289,26 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 
     freeResult(result);
     result->type = operation_return;
-    result->value = findFromVarList(name, var_list, int_times, false);
+    result->value = findFromVarList(name, int_times, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (result->value == NULL) {
-        char *info = memStrcat("Name Not Found: ", name, false);
+        char *info = memStrcat("Name Not Found: ", name, false, false);
         setResultError(result, inter, "NameException", info, st, father, true);
         memFree(info);
     }
     else if ((st->aut == public_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut)){
         setResultCore(result);
-        char *info = memStrcat("Wrong Permissions: access variables as public ", name, false);
+        char *info = memStrcat("Wrong Permissions: access variables as public ", name, false, false);
         setResultError(result, inter, "PermissionsException", info, st, father, true);
         memFree(info);
     }
     else if ((st->aut == protect_aut) && (result->value->aut == private_aut)){
         setResultCore(result);
-        char *info = memStrcat("Wrong Permissions: access variables as protect ", name, false);
+        char *info = memStrcat("Wrong Permissions: access variables as protect ", name, false, false);
         setResultError(result, inter, "PermissionsException", info, st, father, true);
         memFree(info);
     }
     else
-        setResultOperationBase(result, copyLinkValue(result->value, inter), inter);
+        setResultOperationBase(result, result->value, inter);
 
     memFree(name);
     return result->type;

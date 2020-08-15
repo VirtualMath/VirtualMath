@@ -48,12 +48,13 @@ void parserPoint(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
 void parserTuple(PASERSSIGNATURE);
+void parserImport(PASERSSIGNATURE);
 
 void syntaxError(ParserMessage *pm, int status,long int line , int num, ...);
 
 int readBackToken(ParserMessage *pm);
 Token *popAheadToken(ParserMessage *pm);
-bool checkToken_(ParserMessage *pm, int type);
+bool checkToken(ParserMessage *pm, int type);
 
 bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st,
                          char *log_message, bool must_operation, char *error_message);

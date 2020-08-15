@@ -70,6 +70,12 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case include_file:
             type = includeFile(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
+        case import_file:
+            type = importFile(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
+        case from_import_file:
+            type = fromImportFile(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
         default:
             setResult(result, inter, father);
             break;
@@ -119,8 +125,8 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
  * @param inter
  * @return
  */
-ResultType globalIterStatement(Inter *inter, Result *result) {
-    LinkValue *father = makeLinkValue(makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL), NULL, inter);
+ResultType globalIterStatement(Inter *inter, Result *result, LinkValue *base_father) {
+    LinkValue *father = makeLinkValue(makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL), base_father, inter);
     Statement *base_st = NULL;
     VarList *var_list = NULL;
     enum ResultType type;

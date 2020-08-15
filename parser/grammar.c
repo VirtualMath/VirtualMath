@@ -9,7 +9,8 @@ ParserMessage *makeParserMessage(char *file_dir, char *debug){
     tmp->count = 0;
 #if OUT_LOG
     if (debug != NULL){
-        char *debug_dir = memStrcat(debug, PASERS_LOG, false), *grammar_dir = memStrcat(debug, GRAMMAR_LOG, false);
+        char *debug_dir = memStrcat(debug, PASERS_LOG, false, false), *grammar_dir = memStrcat(debug, GRAMMAR_LOG, false,
+                                                                                               false);
         if (access(debug_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
             tmp->paser_debug = fopen(debug_dir, "w");
         if (access(grammar_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
@@ -83,7 +84,6 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
                 delToken(pm);
             else  if(stop != MATHER_EOF){
                 if (global) {
-                    printf("stop = %d\n", stop);
                     syntaxError(pm, command_list_error, command_token->line, 1, "ERROR from parserCommand list(get stop)");
                     freeToken(command_token, true, true);
                 }
@@ -170,6 +170,10 @@ void parserCommand(PASERSSIGNATURE){
                                          "Command: call include\n", true,
                                          "parserInclude: Don't get file after include");
             break;
+        case MATHER_FROM :
+        case MATHER_IMPORT :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserImport, IMPORT, &st, "Command: call import\n");
+            break;
         case MATHER_STRING:
         case MATHER_NUMBER:
         case MATHER_VAR:
@@ -196,35 +200,85 @@ void parserCommand(PASERSSIGNATURE){
 }
 
 /**
- * 控制语句匹配
- * parserControl
- * | (control token) NULL
- * | (control token) parserOperation
- *
+ * import 匹配
+ * parserImport
+ * | parserControl AS parserOperation
  * @param callBack statement生成函数
  * @param type 输出token的类型
  * @param must_operation 必须匹配 operation
  */
-void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool must_operation,
-                   char *message) {
-    Statement *times = NULL;
+void parserImport(PASERSSIGNATURE) {
+    Statement *opt = NULL;
     Statement *st = NULL;
+    int token_type = readBackToken(pm);
+    long int line = delToken(pm);
+
+    if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &opt, "Don't get a import file"))
+        goto return_;
+    if (token_type == MATHER_IMPORT) {
+        Statement *as = NULL;
+        if (checkToken(pm, MATHER_AS) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &as, "Don't get a as after import")) {
+            freeStatement(opt);
+            goto return_;
+        }
+        st = makeImportStatement(opt, as);
+    }
+    else{
+        Parameter *pt = NULL;
+        Parameter *as = NULL;
+        if (!checkToken(pm, MATHER_IMPORT)) {
+            syntaxError(pm, syntax_error, opt->line, 1, "Don't get a as after import");
+            freeStatement(opt);
+            goto return_;
+        }
+        if (checkToken(pm, MATHER_MUL))  // 导入所有
+            goto mul_;
+        if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT) || pt == NULL) {
+            syntaxError(pm, syntax_error, line, 1, "Don't get any value for import");
+            freeStatement(opt);
+            goto return_;
+        }
+        if (checkToken(pm, MATHER_AS) && (!parserParameter(CALLPASERSSIGNATURE, &as, true, true, false, MATHER_COMMA, MATHER_ASSIGNMENT) || as == NULL)) {
+            freeParameter(pt, true);
+            syntaxError(pm, syntax_error, opt->line, 1, "Don't get any value after import");
+            freeStatement(opt);
+            goto return_;
+        }
+
+
+        mul_:
+        st = makeFromImportStatement(opt, as, pt);
+    }
+
+    addStatementToken(IMPORT, st, pm);
+    return_:
+    return;
+}
+
+/**
+ * 控制语句匹配
+ * parserControl
+ * | (control token) NULL
+ * | (control token) parserOperation
+ * @param callBack statement生成函数
+ * @param type 输出token的类型
+ * @param must_operation 必须匹配 operation
+ */
+void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool must_operation, char *message) {
+    Statement *opt = NULL;
+    Statement *st = NULL;
+    Token *tmp = NULL;
     long int line = 0;
     line = delToken(pm);
     parserOperation(CALLPASERSSIGNATURE);
-    if (!call_success(pm))
-        goto return_;
-    if (readBackToken(pm) == OPERATION){
-        Token *tmp;
-        tmp = popAheadToken(pm);
-        times = tmp->data.st;
-        freeToken(tmp, true, false);
-    }
-    else if (must_operation){
+    if (!call_success(pm) || readBackToken(pm) != OPERATION && must_operation){
         syntaxError(pm, syntax_error, line, 1, message);
         goto return_;
     }
-    st = callBack(times, line, pm->file);
+    tmp = popAheadToken(pm);
+    opt = tmp->data.st;
+    freeToken(tmp, true, false);
+    st = callBack(opt, line, pm->file);
     addStatementToken(type, st, pm);
     return_:
     return;
@@ -553,7 +607,7 @@ void parserDef(PASERSSIGNATURE){
                             "Don't get a function/class name"))
         goto error_;
 
-    if (!checkToken_(pm, MATHER_LP)) {
+    if (!checkToken(pm, MATHER_LP)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get a function/class ( before parameter");
         goto error_;
     }
@@ -561,7 +615,7 @@ void parserDef(PASERSSIGNATURE){
         syntaxError(pm, syntax_error, line, 1, "Don't get a function/class parameter");
         goto error_;
     }
-    if (!checkToken_(pm, MATHER_RP)) {
+    if (!checkToken(pm, MATHER_RP)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get a function/class ) after parameter");
         goto error_;
     }
@@ -606,7 +660,7 @@ void parserCode(PASERSSIGNATURE) {
         }
         break;
         again_:
-        if (!checkToken_(pm, MATHER_ENTER))
+        if (!checkToken(pm, MATHER_ENTER))
             goto return_;
     }
     st = makeStatement(line, pm->file);
@@ -616,7 +670,7 @@ void parserCode(PASERSSIGNATURE) {
         goto error_;
 
     writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList success\n", NULL);
-    if (!checkToken_(pm, MATHER_RC)) {
+    if (!checkToken(pm, MATHER_RC)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get the }");  // 使用{的行号
         goto error_;
     }
@@ -773,14 +827,14 @@ int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
         return -1;
     long int line = delToken(pm);
 
-    if (checkToken_(pm, MATHER_RP))
+    if (checkToken(pm, MATHER_RP))
         goto not_pt;
 
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get call parameter");
         return 0;
     }
-    if (!checkToken_(pm, MATHER_RP)){
+    if (!checkToken(pm, MATHER_RP)){
         freeParameter(pt, true);
         syntaxError(pm, syntax_error, line, 1, "Don't get ) from call back");
         return 0;
@@ -825,13 +879,13 @@ void parserPoint(PASERSSIGNATURE){
  */
 int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     *st = NULL;
-    if (checkToken_(pm, right_type))
+    if (checkToken(pm, right_type))
         goto return_;
 
     if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, st, NULL))
         return 0;
 
-    if (!checkToken_(pm, right_type)){
+    if (!checkToken(pm, right_type)){
         freeStatement(*st);
         return -1;
     }
@@ -923,7 +977,7 @@ void parserBaseValue(PASERSSIGNATURE){
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");
             goto return_;
         }
-        if (!checkToken_(pm, MATHER_RC)) {
+        if (!checkToken(pm, MATHER_RC)) {
             freeToken(value_token, true, true);
             freeParameter(pt, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a } after dict");

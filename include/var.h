@@ -39,9 +39,10 @@ VarList *makeVarList(Inter *inter);
 VarList *freeVarList(VarList *vl, bool self);
 
 HASH_INDEX time33(char *key);
-LinkValue *findVar(char *name, VarList *var_list, bool del_var);
-LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, bool del_var);
+LinkValue *findVar(char *name, bool del_var, INTER_FUNCTIONSIG_CORE);
+LinkValue *findFromVarList(char *name, NUMBER_TYPE times, bool del_var, INTER_FUNCTIONSIG_CORE);
 void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CORE);
+void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
 void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *value, INTER_FUNCTIONSIG_CORE);
 
 VarList *pushVarList(VarList *base, Inter *inter);

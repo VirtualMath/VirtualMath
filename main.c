@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 
     global_inter = runBaseInter(args.file, args.log_file, &status);
 
-    freeInter(global_inter, true);
+    freeInter(global_inter, true, true);
     args_error: freeArgs();
     return status;
 }
@@ -21,7 +21,6 @@ int main(int argc, char *argv[]) {
 /**
  * TODO-szh 类super语句
  * TODO-szh const声明
- * TODO-szh import语句
  * TODO-szh 生成语法树
  * TODO-szh 取反符号 -
  * TODO-szh 字面量后缀

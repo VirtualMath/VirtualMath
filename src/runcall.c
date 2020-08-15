@@ -89,7 +89,7 @@ ResultType callClass(LinkValue *class_value, Parameter *parameter, INTER_FUNCTIO
     setResultOperation(result, value, inter);
 
     char *init_name = setStrVarName(inter->data.object_init, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    __init__ = findFromVarList(init_name, value->value->object.var, 0, false);
+    __init__ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
     memFree(init_name);
 
     if (__init__ != NULL && __init__->value->type == function){

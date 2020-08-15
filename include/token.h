@@ -84,8 +84,9 @@
 #define MATHER_SEMICOLON 72
 #define MATHER_LINK 73
 #define MATHER_RAISE 74
+#define MATHER_FROM 75
 
-#define MATHER_MAX 75
+#define MATHER_MAX 76
 
 // 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMAND -6
@@ -109,6 +110,7 @@
 #define TUPLE -24
 #define INCLUDE -25
 #define POINT -26
+#define IMPORT -27
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \

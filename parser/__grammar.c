@@ -45,12 +45,7 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
                   "%s: get symbol success\n%s: call %s[right]\n", self_name, self_name, call_name);
 
         callBack(CALLPASERSSIGNATURE);  // 获得右值
-        if (!call_success(pm)){
-            freeToken(left_token, true, true);
-            freeStatement(st);
-            goto return_;
-        }
-        if (readBackToken(pm) != call_type){  // 若非正确数值
+        if (!call_success(pm) || readBackToken(pm) != call_type){  // 若非正确数值
             syntaxError(pm, syntax_error, line, 3, "ERROR from ", self_name, "(get right)");
             freeToken(left_token, true, true);
             freeStatement(st);
@@ -133,13 +128,13 @@ void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
     va_list message_args;
     va_start(message_args, num);
     for (int i=0; i < num; i++)
-        message = memStrcat(message, va_arg(message_args, char *), true);
+        message = memStrcat(message, va_arg(message_args, char *), true, false);
     va_end(message_args);
 
     char info[100];
     snprintf(info, 100, "\non line %ld\nin file ", line);
-    message = memStrcat(message, info, true);
-    message = memStrcat(message, pm->file, true);
+    message = memStrcat(message, info, true, false);
+    message = memStrcat(message, pm->file, true, false);
 
     not_message:
     pm->status = status;
@@ -164,7 +159,7 @@ Token *popAheadToken(ParserMessage *pm){
     return popNewToken(pm->tm, pm->paser_debug);
 }
 
-bool checkToken_(ParserMessage *pm, int type){
+bool checkToken(ParserMessage *pm, int type){
     if (readBackToken(pm) != type)
         return false;
     delToken(pm);
@@ -194,9 +189,7 @@ bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int lin
     Token *tmp;
     *st = NULL;
     parserCode(CALLPASERSSIGNATURE);
-    if (!call_success(pm))
-        return false;
-    if (readBackToken(pm) != CODE) {
+    if (!call_success(pm) || readBackToken(pm) != CODE) {
         if (message != NULL)
             syntaxError(pm, syntax_error, line, 1, message);
         return false;
@@ -220,9 +213,7 @@ bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **
                     int error_type) {
     *tmp = NULL;
     callBack(CALLPASERSSIGNATURE);
-    if (!call_success(pm))
-        return false;
-    if (readBackToken(pm) != type) {
+    if (!call_success(pm) || readBackToken(pm) != type) {
         if (message != NULL) {
             *tmp = popAheadToken(pm);
             syntaxError(pm, error_type, (*tmp)->line, 1, message);
@@ -268,7 +259,7 @@ bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Stat
  *
  * @param is_formal 是否为形式参数, 若为true，则限定*args为only_value的结尾, **kwargs为name_value结尾
  * @param is_list 若为true则关闭对name_value和**kwargs的支持
- * @param is_dict 若为true则关闭对only_value和*args的支持
+ * @param is_dict 若为true则关闭对only_value和*args的支持  (is_list和is_dict同时为true表示纯 a,b,c 匹配)
  * @param sep 设定分割符号
  * @param ass 设定赋值符号
  * @return
@@ -285,16 +276,16 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
         s_4,  // name_args模式
     } status;
 
-    if (is_dict)
+    if (is_dict && !is_list)
         status = s_2;  // is_formal关闭对only_value的支持
     else
         status = s_1;
 
     while (!last_pt){
         tmp = NULL;
-        if (!is_dict && status != s_2 && checkToken_(pm, MATHER_MUL))  // is_formal关闭对*args的支持
+        if (!is_dict && status != s_2 && checkToken(pm, MATHER_MUL))  // is_formal关闭对*args的支持
             status = s_3;
-        else if (!is_list && checkToken_(pm, MATHER_POW))  // is_formal关闭对*args的支持
+        else if (!is_list && checkToken(pm, MATHER_POW))  // is_formal关闭对*args的支持
             status = s_4;
 
         parserPolynomial(CALLPASERSSIGNATURE);
@@ -312,8 +303,8 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
 
         int pt_type = value_par;
         if (status == s_1){
-            if (!checkToken_(pm, sep)){
-                if (is_list || !checkToken_(pm, ass))  // // is_list关闭对name_value的支持
+            if (!checkToken(pm, sep)){
+                if (is_list || !checkToken(pm, ass))  // // is_list关闭对name_value的支持
                     last_pt = true;
                 else {
                     pt_type = name_par;
@@ -323,17 +314,17 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
         }
         else if (status == s_2){
             pt_type = name_par;
-            if (!checkToken_(pm, ass))
+            if (!checkToken(pm, ass))
                 goto error_;
         }
         else if (status == s_3){
             pt_type = args_par;
-            if (!checkToken_(pm, sep))
+            if (!checkToken(pm, sep))
                 last_pt = true;
         }
         else {
             pt_type = kwargs_par;
-            if (!checkToken_(pm, sep))
+            if (!checkToken(pm, sep))
                 last_pt = true;
         }
 
@@ -344,7 +335,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
             if (!callChildStatement(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
                 goto error_;
             new_pt = connectNameParameter(tmp_value, tmp->data.st, new_pt);
-            if (!checkToken_(pm, sep))
+            if (!checkToken(pm, sep))
                 last_pt = true;
         }
         else if (pt_type == args_par){

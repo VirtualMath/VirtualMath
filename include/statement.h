@@ -27,6 +27,8 @@ struct Statement{
         return_code,
         raise_code,
         include_file,
+        import_file,
+        from_import_file,
     } type;
     union StatementU{
         struct base_value{
@@ -134,6 +136,15 @@ struct Statement{
         struct {
             struct Statement *file;
         } include_file;
+        struct {
+            struct Statement *file;
+            struct Statement *as;
+        } import_file;
+        struct {
+            struct Statement *file;
+            struct Parameter *pt;
+            struct Parameter *as;
+        } from_import_file;
     }u;
     long int line;
     char *code_file;
@@ -182,6 +193,8 @@ Statement *makeRestartStatement(Statement *times, long int line, char *file);
 Statement *makeReturnStatement(Statement *value, long int line, char *file);
 Statement *makeRaiseStatement(Statement *value, long int line, char *file);
 Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);
+Statement *makeImportStatement(Statement *file, Statement *as);
+Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt);
 struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, enum OperationType type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);

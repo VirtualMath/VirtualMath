@@ -90,6 +90,10 @@ void gc_checkBase(Inter *inter){
     for (HashTable *hash_base = inter->hash_base; hash_base != NULL; hash_base = hash_base->gc_next)
         if (!gc_needFree(&hash_base->gc_status) && !hash_base->gc_status.continue_)
             gc_iterHashTable(hash_base);
+
+    for (Var *var_base = inter->base_var; var_base != NULL; var_base = var_base->gc_next)
+        if (!gc_needFree(&var_base->gc_status) && !var_base->gc_status.continue_)
+            gc_iterVar(var_base);
 }
 
 void gc_freeBase(Inter *inter){

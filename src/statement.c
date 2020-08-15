@@ -201,6 +201,23 @@ Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir){
     return tmp;
 }
 
+Statement *makeImportStatement(Statement *file, Statement *as) {
+    Statement *tmp = makeStatement(file->line, file->code_file);
+    tmp->type = import_file;
+    tmp->u.import_file.file = file;
+    tmp->u.import_file.as = as;
+    return tmp;
+}
+
+Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt) {
+    Statement *tmp = makeStatement(file->line, file->code_file);
+    tmp->type = from_import_file;
+    tmp->u.from_import_file.file = file;
+    tmp->u.from_import_file.as = as;
+    tmp->u.from_import_file.pt = pt;
+    return tmp;
+}
+
 void connectStatement(Statement *base, Statement *new){
     for (PASS; base->next != NULL; base = base->next)
         PASS;
@@ -302,6 +319,15 @@ void freeStatement(Statement *st){
                 break;
             case include_file:
                 freeStatement(st->u.include_file.file);
+                break;
+            case import_file:
+                freeStatement(st->u.import_file.file);
+                freeStatement(st->u.import_file.as);
+                break;
+            case from_import_file:
+                freeStatement(st->u.from_import_file.file);
+                freeParameter(st->u.from_import_file.as, true);
+                freeParameter(st->u.from_import_file.pt, true);
                 break;
             default:
                 break;
@@ -421,6 +447,15 @@ Statement *copyStatementCore(Statement *st){
             break;
         case include_file:
             new->u.include_file.file = copyStatement(st->u.include_file.file);
+            break;
+        case import_file:
+            new->u.import_file.file = copyStatement(st->u.import_file.file);
+            new->u.import_file.as = copyStatement(st->u.import_file.as);
+            break;
+        case from_import_file:
+            new->u.from_import_file.file = copyStatement(st->u.from_import_file.file);
+            new->u.from_import_file.as = copyParameter(st->u.from_import_file.as);
+            new->u.from_import_file.pt = copyParameter(st->u.from_import_file.pt);
             break;
         default:
             break;

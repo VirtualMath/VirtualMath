@@ -6,8 +6,8 @@ Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     tmp = memCalloc(1, sizeof(Var));
     setGC(&tmp->gc_status);
     tmp->name = memStrcpy(name);
-    tmp->value = value;
-    tmp->name_ = name_;
+    tmp->value = copyLinkValue(value, inter);
+    tmp->name_ = copyLinkValue(name_, inter);
     tmp->next = NULL;
 
     tmp->gc_next = NULL;
@@ -108,43 +108,57 @@ HASH_INDEX time33(char *key){ // hash function
     return (hash & (HASH_INDEX)0x7FFFFFFF) % MAX_SIZE;
 }
 
-
-void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CORE) {
-    HASH_INDEX index = time33(name);
-    Var **base = &var_list->hashtable->hashtable[index];
+void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     for (PASS; true; base = &(*base)->next) {
         if (*base == NULL) {
             *base = makeVar(name, value, name_, inter);
             break;
         } else if (eqString((*base)->name, name)) {
-            (*base)->value = value;
+            (*base)->value->value = value->value;
+            (*base)->value->father = value->father;
             break;
         }
     }
 }
 
-LinkValue *findVar(char *name, VarList *var_list, bool del_var) {
+
+void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CORE) {
+    HASH_INDEX index = time33(name);
+    addVarCore(&var_list->hashtable->hashtable[index], name, value, name_, inter);
+}
+
+void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
+    for (int i = 0; i < MAX_SIZE; i++)
+        for (Var *tmp = new->hashtable[i]; tmp != NULL; tmp = tmp->next)
+            addVarCore(&update->hashtable[i], tmp->name, tmp->value, tmp->name_, inter);
+}
+
+
+LinkValue *findVar(char *name, bool del_var, INTER_FUNCTIONSIG_CORE) {
     LinkValue *tmp = NULL;
     HASH_INDEX index = time33(name);
 
     for (Var **base = &var_list->hashtable->hashtable[index]; *base != NULL; base = &(*base)->next){
         if (eqString((*base)->name, name)){
             tmp = (*base)->value;
-            if (del_var)
-                *base = (*base)->next;
+            if (del_var) {
+                Var *next = (*base)->next;
+                (*base)->next = NULL;
+                *base = next;
+            }
             goto return_;
         }
     }
     return_:
-    return tmp;
+    return copyLinkValue(tmp, inter);
 }
 
-LinkValue *findFromVarList(char *name, VarList *var_list, NUMBER_TYPE times, bool del_var) {
+LinkValue *findFromVarList(char *name, NUMBER_TYPE times, bool del_var, INTER_FUNCTIONSIG_CORE) {
     LinkValue *tmp = NULL;
     for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++)
         var_list = var_list->next;
     for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
-        tmp = findVar(name, var_list, del_var);
+        tmp = findVar(name, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     return tmp;
 }
 

@@ -29,7 +29,7 @@ Inter *newInter(char *code_file, char *debug_dir, Result *global_result, int *st
         goto return_;
     }
 
-    type = globalIterStatement(global_inter, global_result);
+    type = globalIterStatement(global_inter, global_result, NULL);
     if (type == error_return)
         printError(global_result, global_inter, true);
 
@@ -43,12 +43,15 @@ Inter *makeInter(char *code_file, char *debug) {
     setBaseInterData(tmp);
     tmp->base = NULL;
     tmp->link_base = NULL;
+    tmp->hash_base = NULL;
+    tmp->base_var = NULL;
+
     tmp->statement = makeStatement(0, code_file);
     tmp->var_list = makeVarList(tmp);
     tmp->data.log_dir = memStrcpy(debug);
 
     if (debug != NULL && !args.stdout_inter){
-        char *debug_dir = memStrcat(debug, INTER_LOG, false), *error_dir = memStrcat(debug, INTER_ERROR, false);
+        char *debug_dir = memStrcat(debug, INTER_LOG, false, false), *error_dir = memStrcat(debug, INTER_ERROR, false, false);
         tmp->data.debug = fopen(debug_dir, "w");
         tmp->data.error = fopen(error_dir, "w");
         memFree(debug_dir);
@@ -86,13 +89,16 @@ void freeBaseInterData(struct Inter *inter){
     }
 }
 
-void freeInter(Inter *inter, bool self){
+void freeInter(Inter *inter, bool self, bool show_gc) {
     freeBase(inter, return_);
 
-    if (getc(stdin) == '1') {
+    if (show_gc && (printf("Enter '1' to show gc: "), getc(stdin) == '1')) {
         printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter);
         printValueGC("\nprintValueGC TAG : freeInter", inter);
         printVarGC("\nprintVarGC TAG : freeInter", inter);
+        printHashTableGC("\nprintHashTableGC TAG : freeInter", inter);
+        while (getc(stdin) != '\n')
+            PASS;
     }
 
     freeStatement(inter->statement);  // Statement放在Value前面释放, 因为base_value的释放需要处理gc_status
@@ -166,10 +172,50 @@ void printVarGC(char *tag, Inter *inter){
     printf("printVarGC TAG : END\n");
 }
 
+void printHashTableGC(char *tag, Inter *inter){
+    HashTable *base = inter->hash_base;
+    printf("%s\n", tag);
+    while (base != NULL) {
+        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+        printf("-------------------------------------------\n");
+        base = base->gc_next;
+    }
+    printf("printHashTableGC TAG : END\n");
+}
+
 void showLinkValue(struct LinkValue *base){
     printf("tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
     printf("statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
     printf("link           = %ld :: %p\n", base->gc_status.link, base);
     printLinkValue(base, "value = ", "\n", stdout);
     printf("--------------------------\n");
+}
+
+void mergeInter(Inter *new, Inter *base){
+    Value **base_value = NULL;
+    LinkValue **base_linkValue = NULL;
+    HashTable **base_hash = NULL;
+    Var **base_var = NULL;
+
+    for (base_value = &base->base; *base_value != NULL; base_value = &(*base_value)->gc_next)
+        PASS;
+    for (base_linkValue = &base->link_base; *base_linkValue != NULL; base_linkValue = &(*base_linkValue)->gc_next)
+        PASS;
+    for (base_hash = &base->hash_base; *base_hash != NULL; base_hash = &(*base_hash)->gc_next)
+        PASS;
+    for (base_var = &base->base_var; *base_var != NULL; base_var = &(*base_var)->gc_next)
+        PASS;
+
+    *base_value = new->base;
+    *base_linkValue = new->link_base;
+    *base_hash = new->hash_base;
+    *base_var = new->base_var;
+
+    new->base = NULL;
+    new->link_base = NULL;
+    new->hash_base = NULL;
+    new->base_var = NULL;
+    freeInter(new, true, false);
 }

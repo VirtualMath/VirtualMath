@@ -8,5 +8,5 @@ extern bool memVirtualMathUseJmp;
 typedef struct Inter Inter;
 typedef struct Result Result;
 Inter *runBaseInter(char *code_file, char *debug_dir, int *status);
-void freeInter(Inter *inter, int self);
+void freeInter(Inter *inter, bool self, bool show_gc);
 #endif //VIRTUALMATH_VIRTUALMATH_H

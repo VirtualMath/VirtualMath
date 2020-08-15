@@ -297,7 +297,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
         }
 
         freeResult(result);
-        value = findFromVarList(str_name, var_list, int_times, true);
+        value = findFromVarList(str_name, int_times, true, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         memFree(str_name);
 
         if(value == NULL) {
@@ -319,7 +319,6 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
                            name, father, true);
             goto reutnr_;
         }
-        value = copyLinkValue(value, inter);
 
         not_return:
         freeResult(result);

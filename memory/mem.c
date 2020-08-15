@@ -57,36 +57,37 @@ char *memStrCharcpy(char *str, size_t nsize, bool free_old, bool write, ...) {  
     return tmp;
 }
 
-char *memStrcat(char *first, char *second, bool free_old) {
+char *memStrcat(char *first, char *second, bool free_first, bool free_last) {
     if (first == NULL && second == NULL)
         return NULL;
     else if (first == NULL){
         first = second;
         second = NULL;
-        free_old = false;
+        free_first = free_last;
+        free_last = false;
     }
 
     char *new = memStrCharcpy(first, memStrlen(second), false, false);
     if (second != NULL)
         strcat(new, second);
-    if (free_old)
+
+    if (free_first)
         memFree(first);
+    if (free_last)
+        memFree(second);
     return new;
 }
 
 char *memStrcpySelf(char *str, NUMBER_TYPE times){
     bool need_free = false;
+    char *new_str = NULL;
     if (times < 0){
         str = memStrrev(str);
         times = -times;
         need_free = true;
     }
-    char *new_str = memStrcpy(str), *tmp;
-    for (NUMBER_TYPE i=0; i < times - 1; i++){
-        tmp = memStrcat(new_str, str, false);
-        memFree(new_str);
-        new_str = tmp;
-    }
+    for (NUMBER_TYPE i=0; i < times; i++)
+        new_str = memStrcat(new_str, str, true, false);
     if (need_free)
         memFree(str);
     return new_str;

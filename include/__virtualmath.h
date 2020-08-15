@@ -22,5 +22,6 @@
 void printLinkValueGC(char *tag, Inter *inter);
 void printValueGC(char *tag, Inter *inter);
 void printVarGC(char *tag, Inter *inter);
+void printHashTableGC(char *tag, Inter *inter);
 void showLinkValue(struct LinkValue *base);
 #endif //VIRTUALMATH___VIRTUALMATH_H

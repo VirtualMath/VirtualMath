@@ -66,16 +66,13 @@ ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
 }
 
 char *setStrVarName(char *old, bool free_old, INTER_FUNCTIONSIG_CORE) {
-    char *name = memStrcat(inter->data.var_str_prefix, old, false);
-    if (free_old)
-        memFree(old);
-    return name;
+    return memStrcat(inter->data.var_str_prefix, old, false, free_old);
 }
 
 char *setNumVarName(NUMBER_TYPE num, INTER_FUNCTIONSIG_CORE) {
     char name[50];
     snprintf(name, 50, "%"NUMBER_FORMAT, num);
-    return memStrcat(inter->data.var_num_prefix, name, false);
+    return memStrcat(inter->data.var_num_prefix, name, false, false);
 }
 
 char *getNameFromValue(Value *value, INTER_FUNCTIONSIG_CORE) {

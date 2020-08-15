@@ -171,7 +171,10 @@ void freeLinkValue(LinkValue **value) {
 }
 
 LinkValue *copyLinkValue(LinkValue *value, Inter *inter) {
-    LinkValue *tmp = makeLinkValue(value->value, value->father, inter);
+    LinkValue *tmp = NULL;
+    if (value == NULL)
+        return NULL;
+    tmp = makeLinkValue(value->value, value->father, inter);
     tmp->aut = value->aut;
     return tmp;
 }

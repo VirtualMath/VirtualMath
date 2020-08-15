@@ -13,7 +13,7 @@ typedef struct Parameter Parameter;
 
 typedef ResultType (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
 
-ResultType globalIterStatement(Inter *inter, Result *result);
+ResultType globalIterStatement(Inter *inter, Result *result, LinkValue *base_father);
 bool operationSafeInterStatement(INTER_FUNCTIONSIG);
 bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool functionSafeInterStatement(INTER_FUNCTIONSIG);
@@ -41,6 +41,8 @@ ResultType returnCode(INTER_FUNCTIONSIG);
 ResultType raiseCode(INTER_FUNCTIONSIG);
 
 ResultType includeFile(INTER_FUNCTIONSIG);
+ResultType importFile(INTER_FUNCTIONSIG);
+ResultType fromImportFile(INTER_FUNCTIONSIG);
 
 ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
