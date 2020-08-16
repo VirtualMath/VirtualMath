@@ -22,7 +22,9 @@ int main(int argc, char *argv[]) {
 
 /** TODO-szh List
  * 匿名函数
- * 字面量后缀
+ * f(x) = x * 2 表达式
+ * 合适形参检查
+ * 装饰器
  * 官方函数
  * 官方类
  * do 语句

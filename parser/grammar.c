@@ -319,8 +319,7 @@ void parserIf(PASERSSIGNATURE){
             }
 
             not_del:
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp,
-                                    "Don't get a if condition"))
+            if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, "Don't get a if condition"))
                 goto error_;
 
             if (!callParserAs(CALLPASERSSIGNATURE, &var_tmp, "Don't get a while var")) {
@@ -860,6 +859,12 @@ void parserPoint(PASERSSIGNATURE){
  * parserBaseValue：
  * | MATHER_NUMBER
  * | MATHER_STRING
+ * | MATHER_VAR
+ * | MATHER_LAMBDA parserParameter MATHER_COLON parserOperation
+ * | MATHER_LP parserOperation MATHER_LP
+ * | MATHER_LP parserOperation MATHER_LP -> list
+ * | MATHER_LP parserOperation MATHER_LP MATHER_VAR
+ * | MATHER_LC parserParameter(dict) MATHER_LC
  */
 int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     *st = NULL;
@@ -901,6 +906,25 @@ void parserBaseValue(PASERSSIGNATURE){
             Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line, pm->file);
             st = makeCallStatement(sencod_var, makeValueParameter(tmp));
         }
+    }
+    else if (MATHER_LAMBDA == value_token->token_type){
+        Parameter *pt = NULL;
+        Statement *lambda_st = NULL;
+        if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
+            freeToken(value_token, true, true);
+            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a lambda parameter");
+            goto return_;
+        }
+        if (!checkToken(pm, MATHER_COLON)){
+            lambda_st = makeStatement(value_token->line, pm->file);
+            goto not_lambda_st;
+        }
+        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &lambda_st, "Don't get a lambda operation")){
+            freeToken(value_token, true, true);
+            goto return_;
+        }
+        not_lambda_st:
+        st = makeLambdaStatement(lambda_st, pt);
     }
     else if (MATHER_VAR == value_token->token_type)
         st = makeBaseVarStatement(value_token->data.str, NULL, value_token->line, pm->file);

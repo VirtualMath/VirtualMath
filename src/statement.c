@@ -120,6 +120,14 @@ Statement *makeFunctionStatement(Statement *name, Statement *function, Parameter
     return tmp;
 }
 
+Statement *makeLambdaStatement(Statement *function, Parameter *pt) {
+    Statement *tmp = makeStatement(function->line, function->code_file);
+    tmp->type = base_lambda;
+    tmp->u.base_lambda.function = function;
+    tmp->u.base_lambda.parameter = pt;
+    return tmp;
+}
+
 Statement *makeCallStatement(Statement *function, Parameter *pt) {
     Statement *tmp = makeStatement(function->line, function->code_file);
     tmp->type = call_function;
@@ -271,6 +279,10 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.base_svar.name);
                 freeStatement(st->u.base_svar.times);
                 break;
+            case base_lambda:
+                freeStatement(st->u.base_lambda.function);
+                freeParameter(st->u.base_lambda.parameter, true);
+                break;
             case set_function:
                 freeStatement(st->u.set_function.name);
                 freeStatement(st->u.set_function.function);
@@ -402,6 +414,10 @@ Statement *copyStatementCore(Statement *st){
         case base_svar:
             new->u.base_svar.name = copyStatement(st->u.base_svar.name);
             new->u.base_svar.times = copyStatement(st->u.base_svar.times);
+            break;
+        case base_lambda:
+            new->u.base_lambda.function = copyStatement(st->u.base_lambda.function);
+            new->u.base_lambda.parameter = copyParameter(st->u.base_lambda.parameter);
             break;
         case set_function:
             new->u.set_function.name = copyStatement(st->u.set_function.name);

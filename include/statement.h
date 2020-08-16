@@ -13,6 +13,7 @@ struct Statement{
         base_dict,
         base_var,
         base_svar,
+        base_lambda,
         operation,
         set_function,
         set_class,
@@ -59,6 +60,10 @@ struct Statement{
         struct {
             struct Parameter *dict;
         } base_dict;
+        struct {
+            struct Parameter *parameter;
+            struct Statement *function;
+        } base_lambda;
         struct operation{
             enum OperationType{
                 OPT_ADD = 1,
@@ -200,6 +205,7 @@ Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file);
 Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, char *file);
 Statement *makeClassStatement(Statement *name, Statement *function, Parameter *pt);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
+Statement *makeLambdaStatement(Statement *function, Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeIfStatement(long int line, char *file);
 Statement *makeWhileStatement(long int line, char *file);

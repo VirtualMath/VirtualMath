@@ -26,6 +26,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case base_dict:
             type = getDict(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
+        case base_lambda:
+            type = setLambda(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
         case operation:
             type = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             if (run_continue_type(type))

@@ -44,13 +44,29 @@ ResultType setClass(INTER_FUNCTIONSIG) {
 
 ResultType setFunction(INTER_FUNCTIONSIG) {
     LinkValue *tmp = NULL;
+    Value *function_value = NULL;
+    VarList *function_var = NULL;
     setResultCore(result);
 
-    tmp = makeLinkValue(makeFunctionValue(st->u.set_function.function, st->u.set_function.parameter, copyVarList(var_list, false, inter), inter), father, inter);
+    function_var = copyVarList(var_list, false, inter);
+    function_value = makeFunctionValue(st->u.set_function.function, st->u.set_function.parameter, function_var, inter);
+    tmp = makeLinkValue(function_value, father, inter);
     assCore(st->u.set_function.name, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     if (run_continue(result))
         setResult(result, inter, father);
+    return result->type;
+}
 
+ResultType setLambda(INTER_FUNCTIONSIG) {
+    Value *function_value = NULL;
+    VarList *function_var = NULL;
+    setResultCore(result);
+
+    result->type = operation_return;
+    function_var = copyVarList(var_list, false, inter);
+    function_value = makeFunctionValue(st->u.base_lambda.function, st->u.base_lambda.parameter, function_var, inter);
+    result->value = makeLinkValue(function_value, father, inter);
+    gc_addTmpLink(&result->value->gc_status);
     return result->type;
 }
 
