@@ -218,6 +218,14 @@ Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt
     return tmp;
 }
 
+Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir, enum DefaultType type) {
+    Statement *tmp = makeStatement(line, file_dir);
+    tmp->type = default_var;
+    tmp->u.default_var.var = var;
+    tmp->u.default_var.default_type = type;
+    return tmp;
+}
+
 void connectStatement(Statement *base, Statement *new){
     for (PASS; base->next != NULL; base = base->next)
         PASS;
@@ -328,6 +336,9 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.from_import_file.file);
                 freeParameter(st->u.from_import_file.as, true);
                 freeParameter(st->u.from_import_file.pt, true);
+                break;
+            case default_var:
+                freeParameter(st->u.default_var.var, true);
                 break;
             default:
                 break;
@@ -456,6 +467,9 @@ Statement *copyStatementCore(Statement *st){
             new->u.from_import_file.file = copyStatement(st->u.from_import_file.file);
             new->u.from_import_file.as = copyParameter(st->u.from_import_file.as);
             new->u.from_import_file.pt = copyParameter(st->u.from_import_file.pt);
+            break;
+        case default_var:
+            new->u.default_var.var = copyParameter(st->u.default_var.var);
             break;
         default:
             break;

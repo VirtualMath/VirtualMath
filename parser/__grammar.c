@@ -161,7 +161,6 @@ bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type
 }
 
 inline bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message){
-    
     return callChildStatement(CALLPASERSSIGNATURE, callBack, type, st, NULL);
 }
 

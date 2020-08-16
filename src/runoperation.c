@@ -315,7 +315,7 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 }
 
 ResultType getBaseValue(INTER_FUNCTIONSIG) {
-    freeResult(result);
+    setResultCore(result);
     if (st->u.base_value.type == link_value)
         result->value = st->u.base_value.value;
     else if (st->u.base_value.type == number_str){
@@ -334,7 +334,7 @@ ResultType getList(INTER_FUNCTIONSIG) {
     Argument *at = NULL;
     Argument *at_tmp = NULL;
 
-    freeResult(result);
+    setResultCore(result);
     at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     at_tmp = at;
     if (!run_continue(result)){
@@ -353,7 +353,7 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     Argument *at = NULL;
     Argument *at_tmp = NULL;
 
-    freeResult(result);
+    setResultCore(result);
     at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     at_tmp = at;
     if (!run_continue(result)){
@@ -373,5 +373,29 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     setResultOperation(result, value, inter);
     freeArgument(at_tmp, false);
 
+    return result->type;
+}
+
+ResultType setDefault(INTER_FUNCTIONSIG){
+    enum DefaultType type = st->u.default_var.default_type;
+    int base = 0;  // 用于nonlocal和global
+    setResultCore(result);
+    if (type == global_)
+        for (VarList *tmp = var_list; tmp->next != NULL; tmp = tmp->next)
+            base++;
+    else if (type == nonlocal_)
+        base = 1;
+    for (Parameter *pt = st->u.default_var.var; pt != NULL; pt = pt->next){
+        char *name = NULL;
+        int times = 0;
+        freeResult(result);
+        getVarInfo(&name, &times, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list, result, father));
+        if (!run_continue(result))
+            break;
+        if (type != default_)
+            times = base;
+        var_list->default_var = connectDefaultVar(var_list->default_var, name, times);
+        memFree(name);
+    }
     return result->type;
 }

@@ -20,13 +20,21 @@ struct HashTable{
     struct HashTable *gc_last;
 };
 
+struct DefaultVar{
+    char *name;
+    NUMBER_TYPE times;
+    struct DefaultVar *next;
+};
+
 struct VarList{
     struct HashTable *hashtable;
+    struct DefaultVar *default_var;
     struct VarList *next;
 };
 
 typedef struct Var Var;
 typedef struct HashTable HashTable;
+typedef struct DefaultVar DefaultVar;
 typedef struct VarList VarList;
 
 Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter);
@@ -52,5 +60,10 @@ VarList *connectVarListBack(VarList *base, VarList *back);
 bool comparVarList(VarList *dest, VarList *src);
 VarList *connectSafeVarListBack(VarList *base, VarList *back);
 VarList *makeObjectVarList(FatherValue *value, Inter *inter);
+
+NUMBER_TYPE findDefault(DefaultVar *base, char *name);
+DefaultVar *connectDefaultVar(DefaultVar *base, char *name, NUMBER_TYPE times);
+DefaultVar *freeDefaultVar(DefaultVar *dv);
+DefaultVar *makeDefaultVar(char *name, NUMBER_TYPE times);
 
 #endif //VIRTUALMATH_VAR_H

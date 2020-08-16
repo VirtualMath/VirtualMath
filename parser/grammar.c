@@ -90,22 +90,23 @@ void parserCommand(PASERSSIGNATURE){
     Statement *st = NULL;
     token_type = readBackToken(pm);
     switch (token_type) {
+        case MATHER_NONLOCAL :
+        case MATHER_GLOBAL :
+        case MATHER_DEFAULT :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserVarControl, VARCONTROL, &st, "Command: call var control\n");  // TODO-szh 取消message
+            break;
         case MATHER_CLASS :
         case MATHER_DEF :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st,
-                                      "Command: call def\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Command: call def/class\n");
             break;
         case MATHER_IF :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st,
-                                      "Command: call if\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call if\n");
             break;
         case MATHER_WHILE :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st,
-                                      "Command: call while\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Command: call while\n");
             break;
         case MATHER_TRY :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st,
-                                      "Command: call try\n");
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st, "Command: call try\n");
             break;
         case MATHER_BREAK :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st,
@@ -220,6 +221,32 @@ void parserImport(PASERSSIGNATURE) {
     return;
 }
 
+
+/**
+ * 控制语句匹配
+ * parserControl
+ * | (control token) NULL
+ * | (control token) parserOperation
+ * @param callBack statement生成函数
+ * @param type 输出token的类型
+ * @param must_operation 必须匹配 operation
+ */
+void parserVarControl(PASERSSIGNATURE) {
+    Parameter *var = NULL;
+    Statement *st = NULL;
+    Token *tmp = NULL;
+    int token_type = readBackToken(pm);
+    long int line = delToken(pm);
+    if (!parserParameter(CALLPASERSSIGNATURE, &var, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT) || var == NULL) {
+        syntaxError(pm, syntax_error, line, 1, "Don't get any var");
+        goto return_;
+    }
+    st = makeDefaultVarStatement(var, line, pm->file, token_type == MATHER_DEFAULT ? default_ : token_type == MATHER_GLOBAL ? global_ : nonlocal_);
+    addStatementToken(VARCONTROL, st, pm);
+    return_:
+    return;
+}
+
 /**
  * 控制语句匹配
  * parserControl
@@ -233,8 +260,7 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
     Statement *opt = NULL;
     Statement *st = NULL;
     Token *tmp = NULL;
-    long int line = 0;
-    line = delToken(pm);
+    long int line = delToken(pm);
     parserOperation(CALLPASERSSIGNATURE);
     if (!call_success(pm) || readBackToken(pm) != OPERATION && must_operation){
         syntaxError(pm, syntax_error, line, 1, message);

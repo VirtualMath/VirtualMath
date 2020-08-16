@@ -31,6 +31,7 @@ struct Statement{
         include_file,
         import_file,
         from_import_file,
+        default_var,
     } type;
     union StatementU{
         struct base_value{
@@ -147,6 +148,14 @@ struct Statement{
             struct Parameter *pt;
             struct Parameter *as;
         } from_import_file;
+        struct {
+            struct Parameter *var;
+            enum DefaultType{
+                default_,
+                global_,
+                nonlocal_,
+            } default_type;
+        } default_var;
     }u;
     long int line;
     char *code_file;
@@ -198,6 +207,7 @@ Statement *makeRaiseStatement(Statement *value, long int line, char *file);
 Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);
 Statement *makeImportStatement(Statement *file, Statement *as);
 Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt);
+Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir, enum DefaultType type);
 struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, enum OperationType type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);

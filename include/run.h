@@ -10,7 +10,6 @@ typedef struct Statement Statement;
 typedef struct Inter Inter;
 typedef struct VarList VarList;
 typedef struct Parameter Parameter;
-
 typedef ResultType (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
 
 ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *inter, Statement *st);
@@ -30,6 +29,8 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info);
 ResultType getBaseValue(INTER_FUNCTIONSIG);
 ResultType getList(INTER_FUNCTIONSIG);
 ResultType getDict(INTER_FUNCTIONSIG);
+ResultType setDefault(INTER_FUNCTIONSIG);
+
 ResultType ifBranch(INTER_FUNCTIONSIG);
 ResultType whileBranch(INTER_FUNCTIONSIG);
 ResultType tryBranch(INTER_FUNCTIONSIG);

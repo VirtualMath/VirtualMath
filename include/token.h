@@ -113,6 +113,7 @@
 #define INCLUDE -25
 #define POINT -26
 #define IMPORT -27
+#define VARCONTROL -28
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \

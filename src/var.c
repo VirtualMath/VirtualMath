@@ -82,11 +82,14 @@ VarList *makeVarList(Inter *inter) {
     VarList *tmp = calloc(1, sizeof(VarList));
     tmp->next = NULL;
     tmp->hashtable = makeHashTable(inter);
+    tmp->default_var = NULL;
     return tmp;
 }
 
 VarList *freeVarList(VarList *vl, bool self){
     freeBase(vl, return_);
+    for (PASS; vl->default_var != NULL; vl->default_var = freeDefaultVar(vl->default_var))
+        PASS;
     if (self){
         VarList *next_var = vl->next;
         memFree(vl);
@@ -94,6 +97,43 @@ VarList *freeVarList(VarList *vl, bool self){
     }
     return_:
     return vl;
+}
+
+DefaultVar *makeDefaultVar(char *name, NUMBER_TYPE times) {
+    DefaultVar *tmp;
+    tmp = memCalloc(1, sizeof(DefaultVar));
+    tmp->name = memStrcpy(name);
+    tmp->times = times;
+    tmp->next = NULL;
+    return tmp;
+}
+
+DefaultVar *freeDefaultVar(DefaultVar *dv) {
+    DefaultVar *next = dv->next;
+    memFree(dv->name);
+    memFree(dv);
+    return next;
+}
+
+DefaultVar *connectDefaultVar(DefaultVar *base, char *name, NUMBER_TYPE times) {
+    for (DefaultVar **tmp = &base; PASS; tmp = &(*tmp)->next){
+        if (*tmp == NULL){
+            *tmp = makeDefaultVar(name, times);
+            break;
+        }
+        if (eqString((*tmp)->name, name)){
+            (*tmp)->times = times;
+            break;
+        }
+    }
+    return base;
+}
+
+NUMBER_TYPE findDefault(DefaultVar *base, char *name) {
+    for (DefaultVar **tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
+        if (eqString((*tmp)->name, name))
+            return (*tmp)->times;
+    return 0;
 }
 
 /**
@@ -120,7 +160,6 @@ void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inte
         }
     }
 }
-
 
 void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CORE) {
     HASH_INDEX index = time33(name);
@@ -155,7 +194,8 @@ LinkValue *findVar(char *name, bool del_var, INTER_FUNCTIONSIG_CORE) {
 
 LinkValue *findFromVarList(char *name, NUMBER_TYPE times, bool del_var, INTER_FUNCTIONSIG_CORE) {
     LinkValue *tmp = NULL;
-    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++)
+    NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
+    for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
         tmp = findVar(name, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
@@ -163,7 +203,8 @@ LinkValue *findFromVarList(char *name, NUMBER_TYPE times, bool del_var, INTER_FU
 }
 
 void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *value, INTER_FUNCTIONSIG_CORE) {
-    for (NUMBER_TYPE i=0; i < times && var_list->next != NULL; i++)
+    NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
+    for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     addVar(name, value, name_, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

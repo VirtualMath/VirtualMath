@@ -76,6 +76,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case from_import_file:
             type = fromImportFile(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
+        case default_var:
+            type = setDefault(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
         default:
             setResult(result, inter, father);
             break;
