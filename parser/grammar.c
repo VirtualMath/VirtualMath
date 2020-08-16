@@ -882,15 +882,28 @@ void parserBaseValue(PASERSSIGNATURE){
     Token *value_token = popNewToken(pm->tm);
     Statement *st = NULL;
     if (MATHER_NUMBER == value_token->token_type){
-        st = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
+        Statement *tmp = NULL;
+        tmp = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
+        if (*value_token->data.second_str == NUL)
+            st = tmp;
+        else{
+            Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line, pm->file);
+            st = makeCallStatement(sencod_var, makeValueParameter(tmp));
+        }
     }
     else if (MATHER_STRING == value_token->token_type){
         Value *tmp_value = makeStringValue(value_token->data.str, inter);
-        st = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
+        Statement *tmp = NULL;
+        tmp = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
+        if (*value_token->data.second_str == NUL)
+            st = tmp;
+        else{
+            Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line, pm->file);
+            st = makeCallStatement(sencod_var, makeValueParameter(tmp));
+        }
     }
-    else if (MATHER_VAR == value_token->token_type){
+    else if (MATHER_VAR == value_token->token_type)
         st = makeBaseVarStatement(value_token->data.str, NULL, value_token->line, pm->file);
-    }
     else if (MATHER_SVAR == value_token->token_type){
         Statement *svar_st = NULL;
         if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)){

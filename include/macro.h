@@ -15,5 +15,6 @@
 #define bool int
 #define true 1
 #define false 0
+#define NUL 0
 
 #endif //VIRTUALMATH_MACRO_H
