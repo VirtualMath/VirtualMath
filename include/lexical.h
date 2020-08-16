@@ -8,6 +8,9 @@ struct LexFile{
         bool is_back;
         int p;
     } back;
+    struct {
+        int enter;  // 若计数为0则不忽略enter
+    } filter_data;
     long int line;
 };
 

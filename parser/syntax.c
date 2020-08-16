@@ -148,6 +148,26 @@ void charMather(int p, LexMather *mather, int dest_p){
 }
 
 /**
+ * 匹配空白符号
+ * @param p
+ * @param mather
+ */
+void spaceMather(int p, LexMather *mather){
+    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING)
+        if (isspace(p) && p != '\n'){
+            mather->str = memStrCharcpy(mather->str, 1, true, true, p);
+            mather->len ++;
+            mather->status = LEXMATHER_ING;
+        }
+        else if (mather->status == LEXMATHER_ING)
+            mather->status = LEXMATHER_END;
+        else
+            mather->status = LEXMATHER_MISTAKE;
+    else
+        mather->status = LEXMATHER_MISTAKE;
+}
+
+/**
  * 开始匹配，返回的int即checkoutMather返回的值(匹配成功的匹配器的索引)
  * @param file
  * @param mathers
@@ -161,9 +181,9 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         numberMather(p ,mathers->mathers[MATHER_NUMBER]);
         stringMather(p ,mathers->mathers[MATHER_STRING]);
         varMather(p ,mathers->mathers[MATHER_VAR]);
+        spaceMather(p ,mathers->mathers[MATHER_SPACE]);
         charMatherMacro(MATHER_EOF, EOF);
         charMatherMacro(MATHER_ENTER, '\n');
-        charMatherMacro(MATHER_SPACE, ' ');
 
         strMatherMacro(MATHER_IF, "if");  // 条件判断
         strMatherMacro(MATHER_ELIF, "elif");  // 条件循环
@@ -248,10 +268,19 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         strMatherMacro(MATHER_FROM, "from");
         strMatherMacro(MATHER_ASSERT, "assert");
         strMatherMacro(MATHER_LAMBDA, "lambda");
+        strMatherMacro(MATHER_NOTENTER, "\\\n");
 
         status = checkoutMather(mathers, MATHER_MAX);
     }
     backChar(file);
+    return status;
+}
+
+int lexFilter(LexFile *file, int status){
+    if (status == MATHER_SPACE || status == MATHER_NOTENTER)
+        return -1;
+    if (file->filter_data.enter != 0 && status == MATHER_ENTER)
+        return -1;
     return status;
 }
 
@@ -263,14 +292,17 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
  */
 Token *getToken(LexFile *file, LexMathers *mathers) {
     int status = MATHER_SPACE;
-    Token *tmp;
-    while (status == MATHER_SPACE)
+    int filter;
+    Token *tmp = NULL;
+
+    while ((filter = lexFilter(file, status)) == -1)
         status = getMatherStatus(file, mathers);
+
     if (status == -2){
         tmp = makeLexToken(MATHER_ERROR_, NULL, NULL, file->line);
         goto return_;
     }
-    tmp = makeLexToken(status, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
+    tmp = makeLexToken(filter, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
     return_:
     return tmp;
 }

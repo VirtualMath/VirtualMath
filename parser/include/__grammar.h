@@ -60,4 +60,6 @@ void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction ge
 void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type, int self_type,
                    char *call_name, char *self_name);
 
+void lexEnter(ParserMessage *pm, bool lock);
+
 #endif //VIRTUALMATH___GRAMMAR_H

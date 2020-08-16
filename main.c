@@ -25,11 +25,9 @@ int main(int argc, char *argv[]) {
  * 官方函数
  * 官方类
  * for 循环
- * with as 语句
  * goto 语句
  * label 标签
  * yield 语句
- * 括号无视换行
  * \ 无视换行
  * # 注释设定
  */

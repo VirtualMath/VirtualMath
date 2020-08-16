@@ -257,6 +257,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
         s_4,  // name_args模式
     } status;
 
+    lexEnter(pm, true);
     if (is_dict && !is_list)
         status = s_2;  // is_formal关闭对only_value的支持
     else
@@ -336,11 +337,20 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
         freeToken(tmp, false);
     }
     *pt = new_pt;
+    lexEnter(pm, false);
     return true;
 
     error_:
     freeToken(tmp, true);
     freeParameter(new_pt, true);
     *pt = NULL;
+    lexEnter(pm, false);
     return false;
+}
+
+void lexEnter(ParserMessage *pm, bool lock){
+    if (lock)
+        pm->tm->file->filter_data.enter ++;
+    else
+        pm->tm->file->filter_data.enter --;
 }

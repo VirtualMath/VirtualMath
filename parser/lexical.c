@@ -31,6 +31,7 @@ LexFile *makeLexFile(char *dir){
     tmp->back.is_back = false;
     tmp->back.p = EOF;
     tmp->line = 1;
+    tmp->filter_data.enter = 0;
     return tmp;
 }
 

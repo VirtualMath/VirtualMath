@@ -89,8 +89,9 @@
 #define MATHER_FROM 75
 #define MATHER_ASSERT 76
 #define MATHER_LAMBDA 77
+#define MATHER_NOTENTER 78
 
-#define MATHER_MAX 78
+#define MATHER_MAX 79
 
 // 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMAND -6

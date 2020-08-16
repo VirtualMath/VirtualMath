@@ -32,7 +32,8 @@ void freeParserMessage(ParserMessage *pm, bool self) {
 void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
     int token_type;
     char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
-
+    int save_enter = pm->tm->file->filter_data.enter;
+    pm->tm->file->filter_data.enter = 0;
     while (true){
         token_type = readBackToken(pm);
         if (token_type == MATHER_EOF){
@@ -67,7 +68,9 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
             freeToken(command_token, false);
         }
     }
-    return_: return;
+    return_:
+    pm->tm->file->filter_data.enter = save_enter;
+    return;
 }
 
 /**
@@ -1079,7 +1082,9 @@ void parserBaseValue(PASERSSIGNATURE){
     else if (MATHER_LB == value_token->token_type){
         int tmp;
         Statement *tmp_st = NULL;
+        lexEnter(pm, true);
         tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
+        lexEnter(pm, false);
         if (tmp == 0){
             freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
@@ -1108,7 +1113,10 @@ void parserBaseValue(PASERSSIGNATURE){
         }
     }
     else if (MATHER_LP == value_token->token_type){
-        int tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
+        int tmp;
+        lexEnter(pm, true);
+        tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
+        lexEnter(pm, false);
         if (tmp == 0){
             freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
@@ -1122,7 +1130,11 @@ void parserBaseValue(PASERSSIGNATURE){
     }
     else if (MATHER_LC == value_token->token_type){
         Parameter *pt = NULL;
-        if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, MATHER_COMMA, MATHER_COLON)) {
+        int parser_status;
+        lexEnter(pm, true);
+        parser_status = parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, MATHER_COMMA, MATHER_COLON);
+        lexEnter(pm, false);
+        if (!parser_status) {
             freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");
             goto return_;
