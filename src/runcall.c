@@ -97,7 +97,7 @@ ResultType callBack(INTER_FUNCTIONSIG) {
 ResultType callClass(LinkValue *class_value, Parameter *parameter, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *function_var = NULL;
     LinkValue *value = NULL;
-    LinkValue *__init__ = NULL;
+    LinkValue *_init_ = NULL;
     setResultCore(result);
 
     value = makeLinkValue(makeObject(inter, NULL,copyVarList(class_value->value->object.out_var, false, inter),
@@ -105,17 +105,16 @@ ResultType callClass(LinkValue *class_value, Parameter *parameter, INTER_FUNCTIO
     setResultOperation(result, value, inter);
 
     char *init_name = setStrVarName(inter->data.object_init, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    __init__ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+    _init_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
     memFree(init_name);
 
-    if (__init__ != NULL && __init__->value->type == function){
+    if (_init_ != NULL && _init_->value->type == function){
         Result __init__result;
         setResultCore(&__init__result);
-        __init__ = makeLinkValue(__init__->value, value, inter);
 
-        gc_addTmpLink(&__init__->gc_status);
-        callFunction(__init__, parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &__init__result, value));
-        gc_freeTmpLink(&__init__->gc_status);
+        gc_addTmpLink(&_init_->gc_status);
+        callFunction(_init_, parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &__init__result, value));
+        gc_freeTmpLink(&_init_->gc_status);
 
         if (!run_continue_type(__init__result.type)){
             freeResult(result);

@@ -102,6 +102,9 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_DO :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserDo, DO_BRANCH, &st, "Command: call do\n");
             break;
+        case MATHER_WITH :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserWith, WITH_BRANCH, &st, "Command: call with\n");
+            break;
         case MATHER_IF :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call if\n");
             break;
@@ -349,6 +352,64 @@ void parserDo(PASERSSIGNATURE){
     return;
 }
 
+void parserWith(PASERSSIGNATURE){
+    Statement *st = NULL;
+    Statement *code_tmp = NULL;
+    Statement *var_tmp = NULL;
+    Statement *condition_tmp = NULL;
+    Statement *else_st = NULL;
+    Statement *finally_st = NULL;
+    StatementList *sl = NULL;
+    long int line = 0;
+    long int tmp_line;
+
+    line = delToken(pm);
+    if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, "Don't get a with operation"))
+        goto error_;
+    if (!callParserAs(CALLPASERSSIGNATURE, &var_tmp, "Don't get a with var"))
+        goto error_;
+    if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a with code", line))
+        goto error_;
+    sl = makeConnectStatementList(sl, condition_tmp, var_tmp, code_tmp, if_b);
+    condition_tmp = NULL;
+    var_tmp = NULL;
+    code_tmp = NULL;
+
+    for (int tk=readBackToken(pm); tk == MATHER_ENTER; tk = readBackToken(pm))
+        delToken(pm);
+
+    if (readBackToken(pm) == MATHER_ELSE) {
+        tmp_line = delToken(pm);
+        if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a with...else code", tmp_line))
+            goto error_;
+    }
+
+    for (int tk=readBackToken(pm); tk == MATHER_ENTER; tk = readBackToken(pm))
+        delToken(pm);
+
+    if (readBackToken(pm) == MATHER_FINALLY) {
+        tmp_line = delToken(pm);
+        if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a wilt...finally code", tmp_line))
+            goto error_;
+    }
+
+    addLexToken(pm, MATHER_ENTER);
+    st = makeWithStatement(line, pm->file);
+    st->u.with_branch.with_list = sl;
+    st->u.with_branch.else_list = else_st;
+    st->u.with_branch.finally = finally_st;
+    addStatementToken(WITH_BRANCH, st, pm);
+    return;
+
+    error_:
+    freeStatement(condition_tmp);
+    freeStatement(var_tmp);
+    freeStatement(else_st);
+    freeStatement(finally_st);
+    freeStatementList(sl);
+    return;
+}
+
 /**
  * 条件分支匹配
  * parserIf:
@@ -427,7 +488,7 @@ void parserIf(PASERSSIGNATURE){
         }
         case MATHER_FINALLY: {
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a if...else code", tmp_line))
+            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a if...finally code", tmp_line))
                 goto error_;
             break;
         }

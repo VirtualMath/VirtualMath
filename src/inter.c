@@ -9,7 +9,7 @@ Inter *makeInter(char *debug) {
     tmp->hash_base = NULL;
     tmp->base_var = NULL;
 
-    tmp->var_list = makeVarList(tmp);
+    tmp->var_list = makeVarList(tmp, true);
     tmp->data.log_dir = memStrcpy(debug);
 
     if (debug != NULL && !args.stdout_inter){

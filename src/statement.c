@@ -166,6 +166,15 @@ Statement *makeTryStatement(long int line, char *file) {
     return tmp;
 }
 
+Statement *makeWithStatement(long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
+    tmp->type = with_branch;
+    tmp->u.with_branch.with_list = NULL;
+    tmp->u.with_branch.else_list = NULL;
+    tmp->u.with_branch.finally = NULL;
+    return tmp;
+}
+
 Statement *makeBreakStatement(Statement *times, long int line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = break_cycle;

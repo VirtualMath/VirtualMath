@@ -43,7 +43,7 @@ void freeVar(Var **var);
 HashTable *makeHashTable(Inter *inter);
 void freeHashTable(HashTable **value);
 
-VarList *makeVarList(Inter *inter);
+VarList *makeVarList(Inter *inter, bool make_hash);
 VarList *freeVarList(VarList *vl);
 
 HASH_INDEX time33(char *key);
@@ -55,6 +55,7 @@ void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *
 
 VarList *pushVarList(VarList *base, Inter *inter);
 VarList *popVarList(VarList *base);
+VarList *copyVarListCore(VarList *base, Inter *inter);
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter);
 VarList *connectVarListBack(VarList *base, VarList *back);
 bool comparVarList(VarList *dest, VarList *src);

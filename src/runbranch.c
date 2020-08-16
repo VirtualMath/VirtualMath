@@ -182,8 +182,119 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         set_result = false;
         *result = finally_tmp;
     }
+    else
+        freeResult(&finally_tmp);
 
     var_list = popVarList(var_list);
+    if (set_result)
+        setResult(result, inter, father);
+    return result->type;
+}
+
+ResultType withBranch(INTER_FUNCTIONSIG) {
+    StatementList *with_list = st->u.with_branch.with_list;
+    Statement *else_st = st->u.with_branch.else_list;
+    Statement *finally = st->u.with_branch.finally;
+    VarList *new = NULL;
+    LinkValue *_enter_ = NULL;
+    LinkValue *_exit_ = NULL;
+    LinkValue *value = NULL;
+    bool set_result = true;
+
+    Result finally_tmp;
+    Result else_tmp;
+    Result exit_tmp;
+    setResultCore(result);
+    setResultCore(&finally_tmp);
+    setResultCore(&else_tmp);
+    setResultCore(&exit_tmp);
+
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(with_list->condition, var_list, result, father))){
+        set_result = false;
+        goto not_else;
+    }
+
+    value = result->value;
+    if (with_list->var == NULL) {
+        new = copyVarListCore(result->value->value->object.var, inter);
+        new->next = var_list;
+    }
+    else {
+        LinkValue *enter_value = NULL;
+        char *enter_name = setStrVarName("__Enter__", false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        char *exit_name = setStrVarName("__Exit__", false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        _enter_ = findFromVarList(enter_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+        _exit_ = findFromVarList(exit_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+        memFree(enter_name);
+        memFree(exit_name);
+
+        freeResult(result);
+        if (_enter_ == NULL || _exit_ == NULL){
+            _enter_ = NULL;
+            _exit_ = NULL;
+            setResultError(result, inter, "EnterException", "Get Not Support Value to Enter with", st, father, true);
+            set_result = false;
+            goto not_else;
+        }
+
+        gc_addTmpLink(&_enter_->gc_status);
+        gc_addTmpLink(&_exit_->gc_status);
+        callFunction(_enter_, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+        if (!run_continue(result)){
+            set_result = false;
+            goto not_else;
+        }
+
+        new = pushVarList(var_list, inter);
+        enter_value = result->value;
+        freeResult(result);
+        assCore(with_list->var, enter_value, CALL_INTER_FUNCTIONSIG_NOT_ST (new, result, father));
+        if (!run_continue(result)){
+            set_result = false;
+            popVarList(new);
+            goto not_else;
+        }
+        freeResult(result);
+    }
+
+    if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(with_list->code, new, result, father)))
+        set_result = false;
+    else
+        freeResult(result);
+
+    if (else_st != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, new, &else_tmp, father))) {
+        if (!set_result)
+            freeResult(result);
+        set_result = false;
+        *result = else_tmp;
+    }
+    else
+        freeResult(&else_tmp);
+
+    popVarList(new);
+    if (_exit_ != NULL && _enter_ != NULL) {
+        callFunction(_exit_, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
+        if (!run_continue_type(exit_tmp.type)) {
+            if (!set_result)
+                freeResult(result);
+            set_result = false;
+            *result = exit_tmp;
+        } else
+            freeResult(&exit_tmp);
+        gc_freeTmpLink(&_enter_->gc_status);
+        gc_freeTmpLink(&_exit_->gc_status);
+    }
+
+    not_else:
+    if (finally != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(finally, var_list, &finally_tmp, father))){
+        if (!set_result)
+            freeResult(result);
+        set_result = false;
+        *result = finally_tmp;
+    }
+    else
+        freeResult(&finally_tmp);
+
     if (set_result)
         setResult(result, inter, father);
     return result->type;
@@ -241,6 +352,8 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
         set_result = false;
         *result = finally_tmp;
     }
+    else
+        freeResult(&finally_tmp);
 
     var_list = popVarList(var_list);
     if (set_result)

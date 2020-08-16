@@ -49,6 +49,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case while_branch:
             type = whileBranch(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
+        case with_branch:
+            type = withBranch(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
         case try_branch:
             type = tryBranch(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;

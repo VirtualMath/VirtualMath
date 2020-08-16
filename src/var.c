@@ -78,10 +78,13 @@ void freeHashTable(HashTable **value) {
     return_: return;
 }
 
-VarList *makeVarList(Inter *inter) {
+VarList *makeVarList(Inter *inter, bool make_hash) {
     VarList *tmp = calloc(1, sizeof(VarList));
     tmp->next = NULL;
-    tmp->hashtable = makeHashTable(inter);
+    if (make_hash)
+        tmp->hashtable = makeHashTable(inter);
+    else
+        tmp->hashtable = NULL;
     tmp->default_var = NULL;
     return tmp;
 }
@@ -208,7 +211,7 @@ void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *
 }
 
 VarList *pushVarList(VarList *base, Inter *inter){
-    VarList *new = makeVarList(inter);
+    VarList *new = makeVarList(inter, true);
     new->next = base;
     return new;
 }
@@ -220,7 +223,7 @@ VarList *popVarList(VarList *base) {
 }
 
 VarList *copyVarListCore(VarList *base, Inter *inter){
-    VarList *tmp = makeVarList(inter);
+    VarList *tmp = makeVarList(inter, false);
     tmp->hashtable = base->hashtable;
     return tmp;
 }
@@ -263,7 +266,7 @@ VarList *connectSafeVarListBack(VarList *base, VarList *back){
 }
 
 VarList *makeObjectVarList(FatherValue *value, Inter *inter){
-    VarList *tmp = makeVarList(inter);
+    VarList *tmp = makeVarList(inter, true);
     for (PASS; value != NULL; value = value->next) {
         VarList *new = copyVarList(value->value->value->object.var, false, inter);
         tmp = connectVarListBack(tmp, new);

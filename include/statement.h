@@ -211,6 +211,7 @@ Statement *makeIfStatement(long int line, char *file);
 Statement *makeWhileStatement(long int line, char *file);
 Statement *makeTryStatement(long int line, char *file);
 Statement *makeBreakStatement(Statement *times, long int line, char *file);
+Statement *makeWithStatement(long int line, char *file);
 Statement *makeContinueStatement(Statement *times, long int line, char *file);
 Statement *makeRegoStatement(Statement *times, long int line, char *file);
 Statement *makeRestartStatement(Statement *times, long int line, char *file);
