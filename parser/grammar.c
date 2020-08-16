@@ -103,6 +103,12 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_DEF :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Command: call def/class\n");
             break;
+        case MATHER_GOTO :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserGoto, GOTO, &st, "Command: call goto\n");
+            break;
+        case MATHER_LABEL :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserLabel, LABEL, &st, "Command: call label\n");
+            break;
         case MATHER_DO :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserDo, DO_BRANCH, &st, "Command: call do\n");
             break;
@@ -177,7 +183,109 @@ void parserCommand(PASERSSIGNATURE){
         goto return_;
     addStatementToken(COMMAND, st, pm);
     return_: return;
+}
+
+void parserLabel(PASERSSIGNATURE){
+    Statement *st = NULL;
+    Statement *var = NULL;
+    Statement *command = NULL;
+    Token *label_tk = NULL;
+    int tmp;
+    char *label = NULL;
+    long int line = delToken(pm);
+
+    if (!checkToken(pm, MATHER_COLON)){
+        syntaxError(pm, syntax_error, line, 1, "Don't get : afther label");
+        goto error_;
     }
+    switch (readBackToken(pm)) {
+        case MATHER_STRING:
+        case MATHER_VAR:
+            label_tk = popNewToken(pm->tm);
+            label = memStrcpy(label_tk->data.str);
+            freeToken(label_tk, false);
+            break;
+        default:
+            syntaxError(pm, syntax_error, line, 1, "Don't get a label name");
+            goto error_;
+    }
+
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+        goto make;
+    if (tmp != MATHER_COLON) {
+        if (!checkToken(pm, MATHER_AS)) {
+            syntaxError(pm, syntax_error, line, 1, "Don't get as afther goto label");
+            goto error_;
+        } else if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &var, "Don't get a goto var"))
+            goto error_;
+    }
+
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+        goto make;
+    else if (!checkToken(pm, MATHER_COLON)){
+        syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto var");
+        goto error_;
+    }
+    else if (!callChildStatement(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command, "Don't get a label command"))
+        goto error_;
+
+    make:
+    st = makeLabelStatement(var, command, label, line, pm->file);
+    addStatementToken(LABEL, st, pm);
+    memFree(label);
+    return;
+
+    error_:
+    freeStatement(var);
+    freeStatement(command);
+    memFree(label);
+    return;
+}
+
+void parserGoto(PASERSSIGNATURE){
+    Statement *st = NULL;
+    Statement *label = NULL;
+    Statement *times = NULL;
+    Statement *return_ = NULL;
+    int tmp;
+    long int line = delToken(pm);
+
+    if (!checkToken(pm, MATHER_AT)){
+        syntaxError(pm, syntax_error, line, 1, "Don't get @ afther goto");
+        goto error_;
+    }
+    if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &label, "Don't get a goto times"))
+        goto error_;
+
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+        goto make;
+    else if (!checkToken(pm, MATHER_COLON)){
+        syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto label");
+        goto error_;
+    }
+    else if (!checkToken(pm, MATHER_COLON) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &times, "Don't get a goto times"))
+        goto error_;
+
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+        goto make;
+    else if (times != NULL && !checkToken(pm, MATHER_COLON)){
+        syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto times");
+        goto error_;
+    }
+    else if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &return_, "Don't get a goto return"))
+        goto error_;
+
+    make:
+    st = makeGotoStatement(return_, times, label, line, pm->file);
+    addStatementToken(GOTO, st, pm);
+    return;
+
+    error_:
+    freeStatement(label);
+    freeStatement(times);
+    freeStatement(return_);
+    return;
+}
 
 /**
  * import 匹配

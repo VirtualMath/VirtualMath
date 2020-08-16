@@ -88,6 +88,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case assert:
             type = assertCode(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
+        case goto_:
+            type = gotoLabel(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
         default:
             setResult(result, inter, father);
             break;
@@ -117,11 +120,25 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
     }
 
     do {
-        for (base_st = st; base_st != NULL; base_st = base_st->next) {
+        for (base_st = st; base_st != NULL; PASS) {
             freeResult(result);
             type = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list, result, father));
-            if (!run_continue_type(type))
+            if (type == goto_return && result->times == 0){
+                Statement *label_st = checkLabel(st, result->label);
+                if (label_st == NULL){
+                    setResultError(result, inter, "GotoException", "Don't find label", st, father, true);
+                    type = error_return;
+                    break;
+                }
+                type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, father));
+                if (!run_continue_type(type))
+                    break;
+                base_st = label_st->next;
+            }
+            else if (!run_continue_type(type))
                 break;
+            else
+                base_st = base_st->next;
         }
     } while (type == restart_return && result->times == 0);
 
@@ -142,13 +159,26 @@ ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *in
     Statement *base_st = NULL;
     VarList *var_list = NULL;
     enum ResultType type;
-
     do {
-        for (base_st = st, var_list = inter->var_list; base_st != NULL; base_st = base_st->next) {
+        for (base_st = st, var_list = inter->var_list; base_st != NULL; PASS) {
             freeResult(result);
             type = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list, result, father));
-            if (!run_continue_type(type))
+            if (type == goto_return){
+                Statement *label_st = checkLabel(st, result->label);
+                if (label_st == NULL){
+                    setResultError(result, inter, "GotoException", "Don't find label", st, father, true);
+                    type = error_return;
+                    break;
+                }
+                type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, father));
+                if (!run_continue_type(type))
+                    break;
+                base_st = label_st->next;
+            }
+            else if (!run_continue_type(type))
                 break;
+            else
+                base_st = base_st->next;
         }
     } while (type == restart_return && result->times == 0);
 
@@ -178,7 +208,7 @@ bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG){
         if (result->times < 0)
             return false;
     }
-    if (type == restart_return)
+    if (type == restart_return || type == goto_return)
         result->times--;
     return true;
 }
@@ -194,7 +224,7 @@ bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
         if (result->times < 0)
             return false;
     }
-    if (type == restart_return)
+    if (type == restart_return || type == goto_return)
         result->times--;
     return true;
 }
@@ -205,7 +235,7 @@ bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
     if (run_continue_type(type)){
         return false;
     }
-    if (type == restart_return)
+    if (type == restart_return || type == goto_return)
         result->times--;
     return true;
 }
@@ -221,4 +251,11 @@ bool functionSafeInterStatement(INTER_FUNCTIONSIG){
     }
     result->type = not_return;
     return false;
+}
+
+Statement *checkLabel(Statement *base, char *label){
+    for (PASS; base != NULL; base = base->next)
+        if (base->type == label_ && eqString(base->u.label_.label, label))
+            return base;
+    return NULL;
 }

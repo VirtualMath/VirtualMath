@@ -36,6 +36,8 @@ void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);
 void parserTuple(PASERSSIGNATURE);
 void parserImport(PASERSSIGNATURE);
+void parserLabel(PASERSSIGNATURE);
+void parserGoto(PASERSSIGNATURE);
 void parserVarControl(PASERSSIGNATURE);
 
 void syntaxError(ParserMessage *pm, int status,long int line , int num, ...);

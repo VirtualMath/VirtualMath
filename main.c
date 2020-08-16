@@ -22,10 +22,12 @@ int main(int argc, char *argv[]) {
 
 /** TODO-szh List
  * 装饰器
+ * __call__ 设定
+ * __var__ 设定
+ * super函数
+ * 默认形参
  * 官方函数
  * 官方类
  * for 循环
- * goto 语句
- * label 标签
  * yield 语句
  */

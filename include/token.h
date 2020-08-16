@@ -91,8 +91,10 @@
 #define MATHER_LAMBDA 77
 #define MATHER_NOTENTER 78
 #define MATHER_COMMENT 79
+#define MATHER_GOTO 80
+#define MATHER_LABEL 81
 
-#define MATHER_MAX 80
+#define MATHER_MAX 82
 
 // 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMAND -6
@@ -121,6 +123,8 @@
 #define ASSERT -29
 #define DO_BRANCH -30
 #define WITH_BRANCH -31
+#define GOTO -32
+#define LABEL -33
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \

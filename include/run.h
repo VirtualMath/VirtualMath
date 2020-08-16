@@ -18,6 +18,7 @@ bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool functionSafeInterStatement(INTER_FUNCTIONSIG);
 bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG);
+Statement *checkLabel(Statement *base, char *label);
 
 ResultType operationStatement(INTER_FUNCTIONSIG);
 ResultType setClass(INTER_FUNCTIONSIG);
@@ -43,6 +44,8 @@ ResultType restartCode(INTER_FUNCTIONSIG);
 ResultType returnCode(INTER_FUNCTIONSIG);
 ResultType raiseCode(INTER_FUNCTIONSIG);
 ResultType assertCode(INTER_FUNCTIONSIG);
+ResultType gotoLabel(INTER_FUNCTIONSIG);
+ResultType runLabel(INTER_FUNCTIONSIG);
 
 ResultType includeFile(INTER_FUNCTIONSIG);
 ResultType importFile(INTER_FUNCTIONSIG);

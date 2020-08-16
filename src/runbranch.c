@@ -8,6 +8,14 @@ bool checkNumber(INTER_FUNCTIONSIG){
     return true;
 }
 
+bool checkString(INTER_FUNCTIONSIG){
+    if (!isType(result->value->value, string)) {
+        setResultError(result, inter, "TypeException", "Don't get a string value", st, father, true);
+        return false;
+    }
+    return true;
+}
+
 bool checkBool(Value *value){
     switch (value->type) {
         case number:
@@ -370,7 +378,7 @@ ResultType breakCycle(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.break_cycle.times, var_list, result, father)))
         return result->type;
 
-    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -392,7 +400,7 @@ ResultType continueCycle(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.continue_cycle.times, var_list, result, father)))
         return result->type;
 
-    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -414,7 +422,7 @@ ResultType regoIf(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.rego_if.times, var_list, result, father)))
         return result->type;
 
-    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -436,7 +444,7 @@ ResultType restartCode(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.restart.times, var_list, result, father)))
         return result->type;
 
-    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -490,5 +498,66 @@ ResultType assertCode(INTER_FUNCTIONSIG){
         setResult(result, inter, father);
     else
         setResultError(result, inter, "AssertException", "Raise by user", st, father, true);
+    return result->type;
+}
+
+ResultType gotoLabel(INTER_FUNCTIONSIG){
+    int times_int = 0;
+    char *label = NULL;
+    setResultCore(result);
+
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.label, var_list, result, father)))
+        return result->type;
+    if (!checkString(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+        return result->type;
+    label = memStrcpy(result->value->value->data.str.str);
+
+    freeResult(result);
+    if (st->u.goto_.times == NULL)
+        goto not_times;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.times, var_list, result, father))) {
+        memFree(label);
+        return result->type;
+    }
+    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father))) {
+        memFree(label);
+        return result->type;
+    }
+    times_int = (int)result->value->value->data.num.num;
+    freeResult(result);
+    not_times:
+    if (st->u.goto_.return_ == NULL)
+        setResult(result, inter, father);
+    else if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.return_, var_list, result, father))) {
+        memFree(label);
+        return result->type;
+    }
+
+    result->times = times_int;
+    result->type = goto_return;
+    result->label = label;
+    return result->type;
+}
+
+ResultType runLabel(INTER_FUNCTIONSIG) {
+    // goto的值通过result传入
+    LinkValue *goto_value = result->value;
+    result->value = NULL;
+    freeResult(result);
+    var_list = pushVarList(var_list, inter);
+    if (st->u.label_.as != NULL)
+        assCore(st->u.label_.as, goto_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    gc_freeTmpLink(&goto_value->gc_status);
+    if (st->u.label_.as != NULL && !run_continue(result))
+        goto return_;
+
+    freeResult(result);
+    if (st->u.label_.command != NULL)
+        operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.label_.command, var_list, result, father));
+    else
+        setResult(result, inter, father);
+
+    return_:
+    popVarList(var_list);
     return result->type;
 }

@@ -325,6 +325,8 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         strMatherMacro(MATHER_FROM, "from");
         strMatherMacro(MATHER_ASSERT, "assert");
         strMatherMacro(MATHER_LAMBDA, "lambda");
+        strMatherMacro(MATHER_GOTO, "goto");
+        strMatherMacro(MATHER_LABEL, "label");
 
         status = checkoutMather(mathers, MATHER_MAX);
     }

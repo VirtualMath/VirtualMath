@@ -184,6 +184,7 @@ void setResultCore(Result *ru) {
     ru->times = 0;
     ru->error = NULL;
     ru->value = NULL;
+    ru->label = NULL;
 }
 
 void setResult(Result *ru, Inter *inter, LinkValue *father) {
@@ -231,16 +232,19 @@ void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter) {
 }
 
 void freeResult(Result *ru){
-    freeResultSave(ru);
+    memFree(ru->label);
+    ru->label = NULL;
+    freeResultSafe(ru);
     if (ru->value != NULL) {
         gc_freeTmpLink(&ru->value->gc_status);
         ru->value = NULL;
     }
 }
 
-void freeResultSave(Result *ru){
+void freeResultSafe(Result *ru){
     if (ru->error != NULL)
         freeError(ru);
+    ru->error = NULL;
 }
 
 void printValue(Value *value, FILE *debug){

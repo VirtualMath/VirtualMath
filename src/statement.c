@@ -256,6 +256,24 @@ Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir
     return tmp;
 }
 
+Statement *makeLabelStatement(Statement *var, Statement *command, char *label, long int line, char *file_dir) {
+    Statement *tmp = makeStatement(line, file_dir);
+    tmp->type = label_;
+    tmp->u.label_.as = var;
+    tmp->u.label_.command = command;
+    tmp->u.label_.label = memStrcpy(label);
+    return tmp;
+}
+
+Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, long int line, char *file_dir) {
+    Statement *tmp = makeStatement(line, file_dir);
+    tmp->type = goto_;
+    tmp->u.goto_.return_ = return_;
+    tmp->u.goto_.times = times;
+    tmp->u.goto_.label = label;
+    return tmp;
+}
+
 void connectStatement(Statement *base, Statement *new){
     for (PASS; base->next != NULL; base = base->next)
         PASS;
@@ -376,6 +394,16 @@ void freeStatement(Statement *st){
                 break;
             case assert:
                 freeStatement(st->u.assert.conditions);
+                break;
+            case label_:
+                freeStatement(st->u.label_.command);
+                freeStatement(st->u.label_.as);
+                memFree(st->u.label_.label);
+                break;
+            case goto_:
+                freeStatement(st->u.goto_.return_);
+                freeStatement(st->u.goto_.times);
+                freeStatement(st->u.goto_.label);
                 break;
             default:
                 break;
@@ -514,6 +542,16 @@ Statement *copyStatementCore(Statement *st){
             break;
         case assert:
             new->u.assert.conditions = copyStatement(st->u.assert.conditions);
+            break;
+        case label_:
+            new->u.label_.command = copyStatement(st->u.label_.command);
+            new->u.label_.as = copyStatement(st->u.label_.as);
+            new->u.label_.label = memStrcpy(st->u.label_.label);
+            break;
+        case goto_:
+            new->u.goto_.times = copyStatement(st->u.goto_.times);
+            new->u.goto_.return_ = copyStatement(st->u.goto_.return_);
+            new->u.goto_.label = copyStatement(st->u.goto_.label);
             break;
         default:
             break;

@@ -73,14 +73,16 @@ struct LinkValue{
 struct Result{
     enum ResultType{
         not_return = 1,  // 无返回值
-        function_return,  // 函数返回值
-        operation_return,  // 表达式返回值
-        error_return,  // 错误
+        function_return=2,  // 函数返回值
+        operation_return=3,  // 表达式返回值
+        error_return=4,  // 错误
         break_return,
         continue_return,
         rego_return,
         restart_return,
+        goto_return,
     } type;
+    char *label;
     struct LinkValue *value;
     struct Error *error;
     int times;
@@ -129,7 +131,7 @@ void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father);
 void setResultOperation(Result *ru, LinkValue *value, Inter *inter);
 void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter);
 void freeResult(Result *ru);
-void freeResultSave(Result *ru);
+void freeResultSafe(Result *ru);
 
 Error *makeError(char *type, char *message, long int line, char *file);
 void freeError(Result *base);

@@ -34,6 +34,8 @@ struct Statement{
         from_import_file,
         default_var,
         assert,
+        label_,
+        goto_,
     } type;
     union StatementU{
         struct base_value{
@@ -166,6 +168,16 @@ struct Statement{
         struct {
             struct Statement *conditions;
         } assert;
+        struct {
+            struct Statement *command;
+            struct Statement *as;
+            char *label;
+        } label_;
+        struct {
+            struct Statement *times;
+            struct Statement *return_;
+            struct Statement *label;
+        } goto_;
     }u;
     long int line;
     char *code_file;
@@ -222,6 +234,8 @@ Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);
 Statement *makeImportStatement(Statement *file, Statement *as);
 Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt);
 Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir, enum DefaultType type);
+Statement *makeLabelStatement(Statement *var, Statement *command, char *label, long int line, char *file_dir);
+Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, long int line, char *file_dir);
 struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, enum OperationType type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);

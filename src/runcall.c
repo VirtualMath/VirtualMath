@@ -88,7 +88,6 @@ ResultType callBack(INTER_FUNCTIONSIG) {
         return result->type;
     }
 
-
     setResultError(result, inter, NULL, NULL, st, father, false);
     return_:
     return result->type;
