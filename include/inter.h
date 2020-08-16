@@ -9,7 +9,6 @@ struct Inter{
     struct HashTable *hash_base;
     struct Var *base_var;
 
-    struct Statement *statement;
     struct VarList *var_list;
     struct InterData{
         FILE *debug;
@@ -23,11 +22,13 @@ struct Inter{
 };
 
 typedef struct Inter Inter;
+typedef struct Statement Statement;
 
-Inter *makeInter(char *code_file, char *debug);
+Inter *makeInter(char *debug);
 void freeInter(Inter *inter, bool self, bool show_gc);
 void setBaseInterData(struct Inter *inter);
-Inter *newInter(char *code_file, char *debug_dir,struct Result *global_result, int *status);
-Inter *runBaseInter(char *code_file, char *debug_dir, int *status);
+int runCodeBlock(char *code_file, Inter *inter);
+void runParser(char *code_file, Inter *inter, Statement **st);
+void runCode(Statement *st, Inter *inter);
 void mergeInter(Inter *new, Inter *base);
 #endif //VIRTUALMATH_INTER_H

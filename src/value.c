@@ -246,53 +246,53 @@ void freeResultSave(Result *ru){
 void printValue(Value *value, FILE *debug){
     switch (value->type){
         case number:
-            writeLog(debug, INFO, "%"NUMBER_FORMAT"", value->data.num.num);
+            fprintf(debug, "%"NUMBER_FORMAT"", value->data.num.num);
             break;
         case string:
-            writeLog(debug, INFO, "'%s'", value->data.str.str);
+            fprintf(debug, "'%s'", value->data.str.str);
             break;
         case function:
-            writeLog(debug, INFO, "function on <%p>", value);
+            fprintf(debug, "function on <%p>", value);
             break;
         case list:
-            writeLog(debug, INFO, "list on <%p> size : %d  [ ", value, (int)value->data.list.size);
+            fprintf(debug, "list on <%p> size : %d  [ ", value, (int)value->data.list.size);
             for (int i=0;i < value->data.list.size;i++){
                 if (i > 0)
-                    writeLog(debug, INFO, ", ", NULL);
+                    fprintf(debug, ", ", NULL);
 
                 printLinkValue(value->data.list.list[i], "", "", debug);
             }
-            writeLog(debug, INFO, " ]", NULL);
+            fprintf(debug, " ]", NULL);
             break;
         case dict: {
             Var *tmp = NULL;
             bool print_comma = false;
-            writeLog(debug, INFO, "dict on <%p> size : %d  { ", value, (int) value->data.dict.size);
+            fprintf(debug, "dict on <%p> size : %d  { ", value, (int) value->data.dict.size);
             for (int i = 0; i < MAX_SIZE; i++) {
                 for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
                     if (print_comma)
-                        writeLog(debug, INFO, ", ", NULL);
+                        fprintf(debug, ", ", NULL);
                     else
                         print_comma = true;
                     printLinkValue(tmp->name_, "", "", debug);
-                    writeLog(debug, INFO, " ['%s'] : ", tmp->name);
+                    fprintf(debug, " ['%s'] : ", tmp->name);
                     printLinkValue(tmp->value, "", "", debug);
                 }
             }
-            writeLog(debug, INFO, " }", NULL);
+            fprintf(debug, " }", NULL);
             break;
         }
         case none:
-            writeLog(debug, INFO, "<None>", NULL);
+            fprintf(debug, "<None>", NULL);
             break;
         case class:
-            writeLog(debug, INFO, "class on <%p>", value);
+            fprintf(debug, "class on <%p>", value);
             break;
         case object_:
-            writeLog(debug, INFO, "object on <%p>", value);
+            fprintf(debug, "object on <%p>", value);
             break;
         default:
-            writeLog(debug, INFO, "default on <%p>", value);
+            fprintf(debug, "default on <%p>", value);
             break;
     }
 }
@@ -300,14 +300,14 @@ void printValue(Value *value, FILE *debug){
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
     if (value == NULL)
         return;
-    writeLog(debug, INFO, "%s", first);
+    fprintf(debug, "%s", first);
     if (value->father != NULL) {
         printLinkValue(value->father, "", "", debug);
-        writeLog(debug, INFO, " . ", NULL);
+        fprintf(debug, " . ", NULL);
     }
     if (value->value != NULL)
         printValue(value->value, debug);
-    writeLog(debug, INFO, "%s", last);
+    fprintf(debug, "%s", last);
 }
 
 Error *makeError(char *type, char *message, long int line, char *file) {
@@ -339,12 +339,10 @@ void freeError(Result *base){
 
 void printError(Result *result, Inter *inter, bool free) {
     for (Error *base = result->error; base != NULL; base = base->next){
-        if (base->next != NULL){
-            writeLog(inter->data.error, ERROR, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", base->line, base->file, base);
-        }
-        else{
-            writeLog(inter->data.error, ERROR, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
-        }
+        if (base->next != NULL)
+            fprintf(inter->data.error, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", base->line, base->file, base);
+        else
+            fprintf(inter->data.error, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
     }
     if (free)
         freeError(result);

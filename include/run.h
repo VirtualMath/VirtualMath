@@ -13,7 +13,7 @@ typedef struct Parameter Parameter;
 
 typedef ResultType (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
 
-ResultType globalIterStatement(Inter *inter, Result *result, LinkValue *base_father);
+ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *inter, Statement *st);
 bool operationSafeInterStatement(INTER_FUNCTIONSIG);
 bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool functionSafeInterStatement(INTER_FUNCTIONSIG);

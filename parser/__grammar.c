@@ -23,26 +23,22 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         long int line = 0;
 
         if (readBackToken(pm) != self_type){
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call %s(left)\n", self_name, call_name);
+            
             if (!callChildStatement(CALLPASERSSIGNATURE, callBack, call_type, &st, NULL))
                 goto return_;
             addStatementToken(self_type, st, pm);
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
-                      "%s: get %s(left) success[push %s]\n", self_name, call_name, self_name);
             continue;
         }
-        left_token = popAheadToken(pm);
+        left_token = popNewToken(pm->tm);
         line = left_token->line;
 
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call symbol\n", self_name);
+        
         if (getSymbol(CALLPASERSSIGNATURE, readBackToken(pm), &st))
             delToken(pm);
         else{
             backToken_(pm, left_token);
             goto return_;
         }
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
-                  "%s: get symbol success\n%s: call %s[right]\n", self_name, self_name, call_name);
 
         callBack(CALLPASERSSIGNATURE);  // 获得右值
         if (!call_success(pm) || readBackToken(pm) != call_type){  // 若非正确数值
@@ -51,15 +47,11 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
             freeStatement(st);
             goto return_;
         }
-        right_token = popAheadToken(pm);
+        right_token = popNewToken(pm->tm);
         addToken_(pm, setOperationFromToken(&st, left_token, right_token, self_type, is_right_));
-
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
-                  "Polynomial: get base value(right) success[push polynomial]\n", NULL);
         is_right_ = is_right;  // 第一次is_right不生效
     }
-    return_:
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: return\n", self_name);
+    return_: return;
 }
 
 /**
@@ -81,15 +73,13 @@ inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction
         struct Statement *st = NULL;
 
         if (readBackToken(pm) != self_type){
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call %s(left)\n", self_name, call_name);
+            
             if (!callChildStatement(CALLPASERSSIGNATURE, callBack, call_type, &st, NULL))
                 goto return_;
             addStatementToken(self_type, st, pm);
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
-                      "%s: get %s(left) success[push %s]\n", self_name, call_name, self_name);
             continue;
         }
-        left_token = popAheadToken(pm);
+        left_token = popNewToken(pm->tm);
 
         int tail_status = tailFunction(CALLPASERSSIGNATURE, left_token, &st);
         if (tail_status == -1){
@@ -103,10 +93,9 @@ inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction
 
         addStatementToken(self_type, st, pm);
         freeToken(left_token, true, false);
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: call tail success\n", self_name);
+        
     }
-    return_:
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "%s: return\n", self_name);
+    return_: return;
 }
 
 /**
@@ -142,21 +131,13 @@ void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
 }
 
 int readBackToken(ParserMessage *pm){
-    writeLog(pm->grammar_debug, GRAMMAR_DEBUG, "token operation number : %d\n", pm->count);
-    writeLog(pm->paser_debug, DEBUG, "\ntoken operation number : %d\n", pm->count);
-    pm->count ++;
-    Token *tmp = popNewToken(pm->tm, pm->paser_debug);
+    Token *tmp = popNewToken(pm->tm);
     if (tmp->token_type == -2){
         freeToken(tmp, true, false);
         syntaxError(pm, lexical_error, tmp->line, 1, "lexical make some error");
     }
-    addBackToken(pm->tm->ts, tmp, pm->paser_debug);
+    addBackToken(pm->tm->ts, tmp);
     return tmp->token_type;
-}
-
-Token *popAheadToken(ParserMessage *pm){
-    doubleLog(pm, GRAMMAR_DEBUG, DEBUG, "token operation number : %d\n", pm->count ++);
-    return popNewToken(pm->tm, pm->paser_debug);
 }
 
 bool checkToken(ParserMessage *pm, int type){
@@ -168,20 +149,19 @@ bool checkToken(ParserMessage *pm, int type){
 
 bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st,
                          char *log_message, bool must_operation, char *error_message) {
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, log_message, NULL);
     Token *tmp_token = NULL;
     *st = NULL;
     parserControl(CALLPASERSSIGNATURE, callBack, type, must_operation, error_message);
     if (!call_success(pm) || readBackToken(pm) != type)
         return false;
-    tmp_token = popAheadToken(pm);
+    tmp_token = popNewToken(pm->tm);
     *st = tmp_token->data.st;
     freeToken(tmp_token, true, false);
     return true;
 }
 
 inline bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message){
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, message, NULL);
+    
     return callChildStatement(CALLPASERSSIGNATURE, callBack, type, st, NULL);
 }
 
@@ -194,7 +174,7 @@ bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int lin
             syntaxError(pm, syntax_error, line, 1, message);
         return false;
     }
-    tmp = popAheadToken(pm);
+    tmp = popNewToken(pm->tm);
     *st = tmp->data.st;
     freeToken(tmp, true, false);
     return true;
@@ -215,13 +195,13 @@ bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **
     callBack(CALLPASERSSIGNATURE);
     if (!call_success(pm) || readBackToken(pm) != type) {
         if (message != NULL) {
-            *tmp = popAheadToken(pm);
+            *tmp = popNewToken(pm->tm);
             syntaxError(pm, error_type, (*tmp)->line, 1, message);
-            backToken_(pm ,(*tmp));
+            backToken_(pm, (*tmp));
         }
         return false;
     }
-    *tmp = popAheadToken(pm);
+    *tmp = popNewToken(pm->tm);
     return true;
 }
 
@@ -299,7 +279,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
             }
             break;
         }
-        tmp = popAheadToken(pm);
+        tmp = popNewToken(pm->tm);
 
         int pt_type = value_par;
         if (status == s_1){

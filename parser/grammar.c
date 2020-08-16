@@ -1,47 +1,20 @@
 #include "__grammar.h"
 
-ParserMessage *makeParserMessage(char *file_dir, char *debug){
+ParserMessage *makeParserMessage(char *file_dir) {
     ParserMessage *tmp = memCalloc(1, sizeof(ParserMessage));
     tmp->file = file_dir;
-    tmp->tm = makeTokenMessage(file_dir, debug);
+    tmp->tm = makeTokenMessage(file_dir);
     tmp->status = success;
     tmp->status_message = NULL;
-    tmp->count = 0;
-#if OUT_LOG
-    if (debug != NULL){
-        char *debug_dir = memStrcat(debug, PASERS_LOG, false, false), *grammar_dir = memStrcat(debug, GRAMMAR_LOG, false,
-                                                                                               false);
-        if (access(debug_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
-            tmp->paser_debug = fopen(debug_dir, "w");
-        if (access(grammar_dir, F_OK) != 0 || access(debug_dir, W_OK) == 0)
-            tmp->grammar_debug = fopen(grammar_dir, "w");
-        memFree(debug_dir);
-        memFree(grammar_dir);
-    }
-    else{
-        tmp->paser_debug = NULL;
-        tmp->grammar_debug = NULL;
-    }
-#else
-    tmp->paser_debug = NULL;
-    tmp->grammar_debug = NULL;
-#endif
     return tmp;
 }
 
 void freeParserMessage(ParserMessage *pm, bool self) {
     freeBase(pm, return_);
     freeTokenMessage(pm->tm, true, true);
-#if OUT_LOG
-    if (pm->paser_debug != NULL)
-        fclose(pm->paser_debug);
-    if (pm->grammar_debug != NULL)
-        fclose(pm->grammar_debug);
-#endif
     memFree(pm->status_message);
-    if (self){
+    if (self)
         memFree(pm);
-    }
     return_:
     return;
 }
@@ -63,19 +36,16 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
     while (true){
         token_type = readBackToken(pm);
         if (token_type == MATHER_EOF){
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: <EOF>\n", NULL);
             delToken(pm);
             goto return_;
         }
         else if (token_type == MATHER_ENTER || token_type == MATHER_SEMICOLON){
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: <ENTER>/<SEMICOLON>\n", NULL);
             delToken(pm);
             continue;
         }
         else{
             Token *command_token = NULL;
             int stop;
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: call command\n", NULL);
             if (!callChildToken(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command_token, command_message, command_list_error))
                 goto return_;
 
@@ -90,18 +60,14 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
                 else{
                     connectStatement(st, command_token->data.st);
                     freeToken(command_token, true, false);
-                    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG,
-                            "Command List: get command success[at !global end]\n", NULL);
                 }
                 goto return_;
             }
             connectStatement(st, command_token->data.st);
             freeToken(command_token, true, false);
-            writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: get command success\n", NULL);
         }
     }
-    return_:
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command List: return\n", NULL);
+    return_: return;
 }
 
 /**
@@ -195,9 +161,8 @@ void parserCommand(PASERSSIGNATURE){
     if (!status)
         goto return_;
     addStatementToken(COMMAND, st, pm);
-    return_:
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Command: get return\n", NULL);
-}
+    return_: return;
+    }
 
 /**
  * import 匹配
@@ -275,7 +240,7 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
         syntaxError(pm, syntax_error, line, 1, message);
         goto return_;
     }
-    tmp = popAheadToken(pm);
+    tmp = popNewToken(pm->tm);
     opt = tmp->data.st;
     freeToken(tmp, true, false);
     st = callBack(opt, line, pm->file);
@@ -619,9 +584,6 @@ void parserDef(PASERSSIGNATURE){
         syntaxError(pm, syntax_error, line, 1, "Don't get a function/class ) after parameter");
         goto error_;
     }
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserDef: get function title success\n", NULL);
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserDef: call parserCode\n", NULL);
-
     if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a function code", line)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get a function code");
         goto error_;
@@ -664,12 +626,10 @@ void parserCode(PASERSSIGNATURE) {
             goto return_;
     }
     st = makeStatement(line, pm->file);
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList\n", NULL);
     parserCommandList(CALLPASERSSIGNATURE, false, st);
     if (!call_success(pm))
         goto error_;
 
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "parserCode: call parserCommandList success\n", NULL);
     if (!checkToken(pm, MATHER_RC)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get the }");  // 使用{的行号
         goto error_;
@@ -691,15 +651,11 @@ void parserCode(PASERSSIGNATURE) {
  */
 void parserOperation(PASERSSIGNATURE){
     Statement *operation_st = NULL;
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: call assignment\n", NULL);
     if (!callChildStatement(CALLPASERSSIGNATURE, parserAssignment, ASSIGNMENT, &operation_st, NULL))
         goto return_;
 
     addStatementToken(OPERATION, operation_st, pm);
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: get polynomial success\n", NULL);
-
     return_:
-    writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Operation: return\n", NULL);
     return;
 }
 
@@ -895,24 +851,20 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
 }
 
 void parserBaseValue(PASERSSIGNATURE){
-    Token *value_token = popAheadToken(pm);
+    Token *value_token = popNewToken(pm->tm);
     Statement *st = NULL;
     if (MATHER_NUMBER == value_token->token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get number [%s]\n", value_token->data.str);
         st = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
     }
     else if (MATHER_STRING == value_token->token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get string [%s]\n", value_token->data.str);
         Value *tmp_value = makeStringValue(value_token->data.str, inter);
         st = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
     }
     else if (MATHER_VAR == value_token->token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get var [%s]\n", value_token->data.str);
         st = makeBaseVarStatement(value_token->data.str, NULL, value_token->line, pm->file);
     }
     else if (MATHER_SVAR == value_token->token_type){
         Statement *svar_st = NULL;
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: get super var\n", NULL);
         if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)){
             freeToken(value_token, true, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
@@ -923,8 +875,6 @@ void parserBaseValue(PASERSSIGNATURE){
     else if (MATHER_LB == value_token->token_type){
         int tmp;
         Statement *tmp_st = NULL;
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation\n", NULL);
-
         tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
         if (tmp == 0){
             freeToken(value_token, true, true);
@@ -936,11 +886,9 @@ void parserBaseValue(PASERSSIGNATURE){
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ] from list/var");
             goto return_;
         }
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation success\n", NULL);
-
         if (MATHER_VAR == readBackToken(pm)){
             Token *var_token;
-            var_token = popAheadToken(pm);
+            var_token = popNewToken(pm->tm);
             st = makeBaseVarStatement(var_token->data.str, tmp_st, var_token->line, pm->file);
             freeToken(var_token, true, false);
         }
@@ -956,7 +904,6 @@ void parserBaseValue(PASERSSIGNATURE){
         }
     }
     else if (MATHER_LP == value_token->token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get operation\n", NULL);
         int tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
         if (tmp == 0){
             freeToken(value_token, true, true);
@@ -970,7 +917,6 @@ void parserBaseValue(PASERSSIGNATURE){
         }
     }
     else if (MATHER_LC == value_token->token_type){
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "base value: get dict\n", NULL);
         Parameter *pt = NULL;
         if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, MATHER_COMMA, MATHER_COLON)) {
             freeToken(value_token, true, true);
@@ -1009,7 +955,6 @@ void parserBaseValue(PASERSSIGNATURE){
         }
     }
     else{
-        writeLog_(pm->grammar_debug, GRAMMAR_DEBUG, "Base Value: else\n", NULL);
         backToken_(pm, value_token);
         goto return_;
     }

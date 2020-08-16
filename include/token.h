@@ -1,6 +1,8 @@
 #ifndef VIRTUALMATH_TOKEN_H
 #define VIRTUALMATH_TOKEN_H
 
+#include <__macro.h>
+
 #define MATHER_ERROR_ -1
 #define MATHER_NUMBER 0
 #define MATHER_STRING 1
@@ -126,7 +128,6 @@ struct Token{
         char *second_str;  // 针对123.4j这种形式设定的，其中second_str存储j
         struct Statement *st;
     } data;
-    struct Token *last;
     struct Token *next;
 };
 
@@ -139,14 +140,15 @@ struct TokenMessage{
     struct TokenStream *ts;
     struct LexFile *file;
     struct LexMathers *mathers;
-    FILE *debug;
 };
 
+typedef struct LexFile LexFile;
+typedef struct LexMathers LexMathers;
 typedef struct Token Token;
 typedef struct TokenStream TokenStream;
 typedef struct TokenMessage TokenMessage;
 
-TokenMessage *makeTokenMessage(char *file_dir, char *debug);
+TokenMessage *makeTokenMessage(char *file_dir);
 void freeTokenMessage(TokenMessage *tm, bool self, bool free_st);
 
 Token *makeToken(long int line);
@@ -154,12 +156,8 @@ long freeToken(Token *tk, bool self, bool free_st);
 Token *makeLexToken(int type, char *str, char *second_str, long int line);
 Token *makeStatementToken(int type, struct Statement *st);
 
-extern Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug);
-void addBackToken(TokenStream *ts, Token *new_tk, FILE *debug);
-Token *popNewToken(TokenMessage *tm, FILE *debug);
-
-// token 可视化函数
-void printTokenStream(TokenStream *ts, FILE *debug, int type);
-void printToken(Token *tk, FILE *debug, int type);
+extern Token *getToken(LexFile *file, LexMathers *mathers);
+void addBackToken(TokenStream *ts, Token *new_tk);
+Token *popNewToken(TokenMessage *tm);
 
 #endif //VIRTUALMATH_TOKEN_H

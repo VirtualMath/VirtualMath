@@ -554,7 +554,6 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
             }
             case error:
             error_:  // Statement 处理
-                writeLog(inter->data.debug, ERROR, "setParameter error\n", NULL);
                 setResultError(result, inter, "ArgumentException", "Set Argument error", 0, father, true);
                 goto return_;
             default:

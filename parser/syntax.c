@@ -1,4 +1,4 @@
-#include "__syntax.h"
+#include "__virtualmath.h"
 
 /**
  * 匹配一个数字字面量
@@ -153,17 +153,11 @@ void charMather(int p, LexMather *mather, int dest_p){
  * @param mathers
  * @return
  */
-int getMatherStatus(LexFile *file, LexMathers *mathers, FILE *debug) {
+int getMatherStatus(LexFile *file, LexMathers *mathers) {
     setupMathers(mathers);
     int status = -1;
     while (status == -1){
         int p = readChar(file);
-        if (p == EOF)
-            writeLog_(debug, LEXICAL_DEBUG, "get char: (EOF)\n", NULL);
-        else if (p == '\n')
-            writeLog_(debug, LEXICAL_DEBUG, "get char: (\\n)\n", NULL);
-        else
-            writeLog_(debug, LEXICAL_DEBUG, "get char: '%c'\n", p);
         numberMather(p ,mathers->mathers[MATHER_NUMBER]);
         stringMather(p ,mathers->mathers[MATHER_STRING]);
         varMather(p ,mathers->mathers[MATHER_VAR]);
@@ -253,8 +247,7 @@ int getMatherStatus(LexFile *file, LexMathers *mathers, FILE *debug) {
         strMatherMacro(MATHER_RAISE, "raise");
         strMatherMacro(MATHER_FROM, "from");
 
-        status = checkoutMather(mathers, MATHER_MAX, debug);
-        writeLog_(debug, LEXICAL_DEBUG, "get status: %d\n", status);
+        status = checkoutMather(mathers, MATHER_MAX);
     }
     backChar(file);
     return status;
@@ -266,21 +259,16 @@ int getMatherStatus(LexFile *file, LexMathers *mathers, FILE *debug) {
  * @param mathers
  * @return
  */
-Token *getToken(LexFile *file, LexMathers *mathers, FILE *debug) {
+Token *getToken(LexFile *file, LexMathers *mathers) {
     int status = MATHER_SPACE;
     Token *tmp;
-    writeLog_(debug, DEBUG, "get token: [%ld]\n", file->count);
     while (status == MATHER_SPACE)
-        status = getMatherStatus(file, mathers, debug);
+        status = getMatherStatus(file, mathers);
     if (status == -2){
-        writeLog_(debug, ERROR, "lexical ERROR\n", NULL);
         tmp = makeLexToken(MATHER_ERROR_, NULL, NULL, file->line);
         goto return_;
     }
     tmp = makeLexToken(status, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
-    printTokenEnter(tmp, debug, DEBUG, "new token: ");
-    writeLog_(debug, DEBUG, "\n", NULL);
     return_:
-    file->count ++;
     return tmp;
 }

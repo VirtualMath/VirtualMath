@@ -125,14 +125,14 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
  * @param inter
  * @return
  */
-ResultType globalIterStatement(Inter *inter, Result *result, LinkValue *base_father) {
+ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *inter, Statement *st) {
     LinkValue *father = makeLinkValue(makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL), base_father, inter);
     Statement *base_st = NULL;
     VarList *var_list = NULL;
     enum ResultType type;
 
     do {
-        for (base_st = inter->statement, var_list = inter->var_list; base_st != NULL; base_st = base_st->next) {
+        for (base_st = st, var_list = inter->var_list; base_st != NULL; base_st = base_st->next) {
             freeResult(result);
             type = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list, result, father));
             if (!run_continue_type(type))

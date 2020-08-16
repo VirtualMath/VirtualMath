@@ -4,9 +4,6 @@
 
 struct ParserMessage{
     struct TokenMessage *tm;
-    FILE *paser_debug;
-    FILE *grammar_debug;
-    int count;
     enum ParserMessageStatus{
         success = 1,
         syntax_error,
@@ -19,7 +16,7 @@ struct ParserMessage{
 
 typedef struct ParserMessage ParserMessage;
 
-ParserMessage *makeParserMessage(char *file_dir, char *debug);
+ParserMessage *makeParserMessage(char *file_dir);
 void freeParserMessage(ParserMessage *pm, bool self);
 void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st);
 // PASERSSIGNATURE 位于__grammar

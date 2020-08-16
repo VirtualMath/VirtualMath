@@ -5,24 +5,9 @@
 #define PASERSSIGNATURE ParserMessage *pm, Inter *inter /*pasers函数的统一签名*/
 #define CALLPASERSSIGNATURE pm, inter /*pasers函数调用的统一实参*/
 
-#if OUT_LOG && OUT_PASERS_LOG
-#define doubleLog(pm, grammar_level, pasers_level, message, ...) do{ \
-writeLog(pm->grammar_debug, grammar_level, message, __VA_ARGS__); \
-writeLog(pm->paser_debug, pasers_level, "\n"message, __VA_ARGS__); \
-} while(0)
-#else
-#define doubleLog(...) PASS
-#endif
-
-#if OUT_LOG && OUT_GRAMMER_LOG
-#define writeLog_(...) writeLog(__VA_ARGS__)
-#else
-#define writeLog_(...) PASS
-#endif
-
-#define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st), pm->paser_debug)
-#define delToken(pm) (freeToken(popAheadToken(pm), true, false))
-#define backToken_(pm, token) addBackToken(pm->tm->ts, (token), pm->paser_debug)
+#define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st))
+#define delToken(pm) (freeToken(popNewToken(pm->tm), true, false))
+#define backToken_(pm, token) addBackToken(pm->tm->ts, (token))
 #define addLexToken(pm, type) backToken_(pm, makeLexToken(type, NULL, NULL, 0))
 #define addToken_ backToken_
 #define call_success(pm) (pm->status == success)
@@ -33,8 +18,7 @@ typedef Statement *(*MakeControlFunction)(Statement *, long int, char *);
 typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 
 void parserCommand(PASERSSIGNATURE);
-void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool must_operation,
-                   char *message);
+void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool must_operation, char *message);
 void parserDef(PASERSSIGNATURE);
 void parserIf(PASERSSIGNATURE);
 void parserWhile(PASERSSIGNATURE);
@@ -53,7 +37,6 @@ void parserImport(PASERSSIGNATURE);
 void syntaxError(ParserMessage *pm, int status,long int line , int num, ...);
 
 int readBackToken(ParserMessage *pm);
-Token *popAheadToken(ParserMessage *pm);
 bool checkToken(ParserMessage *pm, int type);
 
 bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st,

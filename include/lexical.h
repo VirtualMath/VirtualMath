@@ -8,7 +8,6 @@ struct LexFile{
         bool is_back;
         int p;
     } back;
-    long int count;
     long int line;
 };
 
@@ -51,5 +50,5 @@ void freeMather(LexMather *mather, bool self);
 LexMathers *makeMathers(int size);
 void freeMathers(LexMathers *mathers, bool self);
 void setupMathers(LexMathers *mathers);
-int checkoutMather(LexMathers *mathers, int max, FILE *debug);
+int checkoutMather(LexMathers *mathers, int max);
 #endif //VIRTUALMATH_LEXICAL_H

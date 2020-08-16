@@ -23,7 +23,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     }
 
     new_st = makeStatement(0, file_dir);
-    pm = makeParserMessage(file_dir, NULL);
+    pm = makeParserMessage(file_dir);
     parserCommandList(pm, inter, true, new_st);
     if (pm->status != success){
         setResultError(result, inter, "IncludeSyntaxException", pm->status_message, st, father, true);
@@ -43,6 +43,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
 ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONSIG) {
     Inter *import_inter = NULL;
     ParserMessage *pm = NULL;
+    Statement *run_st = NULL;
     setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
         goto return_;
@@ -59,27 +60,32 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
         goto return_;
     }
 
-    import_inter = makeInter(*file_dir, NULL);
-    pm = makeParserMessage(*file_dir, NULL);
-    parserCommandList(pm, import_inter, true, import_inter->statement);
+
+    import_inter = makeInter(NULL);
+    pm = makeParserMessage(*file_dir);
+    run_st = makeStatement(0, *file_dir);
+    parserCommandList(pm, import_inter, true, run_st);
     if (pm->status != success) {
         freeInter(import_inter, true, false);
         setResultError(result, inter, "ImportSyntaxException", pm->status_message, st, father, true);
         goto return_;
     }
-    globalIterStatement(import_inter, result, father);
+
+    globalIterStatement(result, father, import_inter, run_st);
     if (!run_continue(result)) {
         freeInter(import_inter, true, false);
         result->value = makeLinkValue(inter->base, father, inter);  // 重新设定none值
         setResultError(result, inter, NULL, NULL, st, father, false);
         goto return_;
     }
+
     *new_object = import_inter->var_list;
     import_inter->var_list = NULL;
     mergeInter(import_inter, inter);
     setResult(result, inter, father);
 
     return_:
+    freeStatement(run_st);
     freeParserMessage(pm, true);
     return result->type;
 }

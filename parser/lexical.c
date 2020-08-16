@@ -1,4 +1,4 @@
-#include "__lexical.h"
+#include "__virtualmath.h"
 
 /**
  * 从文件中读取一个字节，并处理is_back
@@ -30,7 +30,6 @@ LexFile *makeLexFile(char *dir){
     tmp->file = fopen(dir, "r");
     tmp->back.is_back = false;
     tmp->back.p = EOF;
-    tmp->count = 0;
     tmp->line = 1;
     return tmp;
 }
@@ -120,7 +119,7 @@ void setupMathers(LexMathers *mathers){
  * @param max
  * @return
  */
-int checkoutMather(LexMathers *mathers, int max, FILE *debug) {
+int checkoutMather(LexMathers *mathers, int max) {
     bool return_1 = false;
     int mistake_count = 0;
     int end_count = 0, end_index = -1;
@@ -140,7 +139,6 @@ int checkoutMather(LexMathers *mathers, int max, FILE *debug) {
         else{
             return_1 = true;
         }
-        writeLog_(debug, LEXICAL_CHECKOUT_DEBUG,"mathers->mathers[%d]->status == %d\n", i, mathers->mathers[i]->status);
     }
     if (return_1)
         goto return_;

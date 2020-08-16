@@ -14,7 +14,6 @@
 #include "token.h"
 #include "syntax.h"
 #include "grammar.h"
-#include "log.h"
 #include "arguement.h"
 #include "file.h"
 
@@ -23,5 +22,4 @@ void printLinkValueGC(char *tag, Inter *inter);
 void printValueGC(char *tag, Inter *inter);
 void printVarGC(char *tag, Inter *inter);
 void printHashTableGC(char *tag, Inter *inter);
-void showLinkValue(struct LinkValue *base);
 #endif //VIRTUALMATH___VIRTUALMATH_H
