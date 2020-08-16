@@ -26,7 +26,7 @@ Token *makeStatementToken(int type, struct Statement *st){
     return tmp;
 }
 
-long freeToken(Token *tk, bool self, bool free_st) {
+long freeToken(Token *tk, bool free_st) {
     long int line = 0;
     freeBase(tk, return_);
     line = tk->line;
@@ -34,8 +34,7 @@ long freeToken(Token *tk, bool self, bool free_st) {
     memFree(tk->data.second_str);
     if (free_st)
         freeStatement(tk->data.st);
-    if (self)
-        memFree(tk);
+    memFree(tk);
     return_:
     return line;
 }
@@ -51,7 +50,7 @@ void freeToekStream(TokenStream *ts, bool free_st) {
     freeBase(ts, return_);
     for (Token *tmp = ts->token_list, *tmp_next=NULL; tmp != NULL; tmp = tmp_next){
         tmp_next = tmp->next;
-        freeToken(tmp, true, free_st);
+        freeToken(tmp, free_st);
     }
     memFree(ts);
     return_:

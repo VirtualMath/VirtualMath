@@ -76,4 +76,5 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
 
 FatherValue *setFatherCore(FatherValue *father_tmp);
 FatherValue *setFather(Argument *call, INTER_FUNCTIONSIG_NOT_ST);
+bool checkFormal(Parameter *pt);
 #endif //VIRTUALMATH_PARAMETER_H

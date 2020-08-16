@@ -13,7 +13,7 @@
  * @param self_name 输出值名称(log)
  * @param is_right 表达式是否从右运算到左
  */
-inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol,
+inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                          int call_type, int self_type, char *call_name, char *self_name, bool is_right) {
     bool is_right_ = false;
     while(true){
@@ -23,7 +23,6 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         long int line = 0;
 
         if (readBackToken(pm) != self_type){
-            
             if (!callChildStatement(CALLPASERSSIGNATURE, callBack, call_type, &st, NULL))
                 goto return_;
             addStatementToken(self_type, st, pm);
@@ -31,8 +30,11 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         }
         left_token = popNewToken(pm->tm);
         line = left_token->line;
+        if (checkleft != NULL && !checkleft(CALLPASERSSIGNATURE, left_token->data.st)) {
+            freeToken(left_token, true);
+            goto return_;
+        }
 
-        
         if (getSymbol(CALLPASERSSIGNATURE, readBackToken(pm), &st))
             delToken(pm);
         else{
@@ -43,7 +45,7 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         callBack(CALLPASERSSIGNATURE);  // 获得右值
         if (!call_success(pm) || readBackToken(pm) != call_type){  // 若非正确数值
             syntaxError(pm, syntax_error, line, 3, "ERROR from ", self_name, "(get right)");
-            freeToken(left_token, true, true);
+            freeToken(left_token, true);
             freeStatement(st);
             goto return_;
         }
@@ -87,12 +89,12 @@ inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction
             goto return_;
         }
         else if(tail_status == 0) {
-            freeToken(left_token, true, true);
+            freeToken(left_token, true);
             goto return_;
         }
 
         addStatementToken(self_type, st, pm);
-        freeToken(left_token, true, false);
+        freeToken(left_token, false);
         
     }
     return_: return;
@@ -133,7 +135,7 @@ void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
 int readBackToken(ParserMessage *pm){
     Token *tmp = popNewToken(pm->tm);
     if (tmp->token_type == -2){
-        freeToken(tmp, true, false);
+        freeToken(tmp, false);
         syntaxError(pm, lexical_error, tmp->line, 1, "lexical make some error");
     }
     addBackToken(pm->tm->ts, tmp);
@@ -156,7 +158,7 @@ bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type
         return false;
     tmp_token = popNewToken(pm->tm);
     *st = tmp_token->data.st;
-    freeToken(tmp_token, true, false);
+    freeToken(tmp_token, false);
     return true;
 }
 
@@ -175,7 +177,7 @@ bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int lin
     }
     tmp = popNewToken(pm->tm);
     *st = tmp->data.st;
-    freeToken(tmp, true, false);
+    freeToken(tmp, false);
     return true;
 }
 
@@ -211,7 +213,7 @@ bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Stat
     if (!status)
         return false;
     *st = tmp->data.st;
-    freeToken(tmp, true, false);
+    freeToken(tmp, false);
     return true;
 }
 
@@ -331,13 +333,13 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
             else
                 status = s_2;
         }
-        freeToken(tmp, true, false);
+        freeToken(tmp, false);
     }
     *pt = new_pt;
     return true;
 
     error_:
-    freeToken(tmp, true, true);
+    freeToken(tmp, true);
     freeParameter(new_pt, true);
     *pt = NULL;
     return false;

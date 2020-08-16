@@ -21,7 +21,6 @@ int main(int argc, char *argv[]) {
 
 
 /** TODO-szh List
- * 匿名函数
  * f(x) = x * 2 表达式
  * 合适形参检查
  * 装饰器

@@ -55,16 +55,16 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
             else  if(stop != MATHER_EOF){
                 if (global) {
                     syntaxError(pm, command_list_error, command_token->line, 1, "ERROR from parserCommand list(get stop)");
-                    freeToken(command_token, true, true);
+                    freeToken(command_token, true);
                 }
                 else{
                     connectStatement(st, command_token->data.st);
-                    freeToken(command_token, true, false);
+                    freeToken(command_token, false);
                 }
                 goto return_;
             }
             connectStatement(st, command_token->data.st);
-            freeToken(command_token, true, false);
+            freeToken(command_token, false);
         }
     }
     return_: return;
@@ -203,14 +203,20 @@ void parserImport(PASERSSIGNATURE) {
         }
         if (checkToken(pm, MATHER_MUL))  // 导入所有
             goto mul_;
-        if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT) || pt == NULL) {
-            syntaxError(pm, syntax_error, line, 1, "Don't get any value for import");
+        if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT) || pt == NULL) {
+            syntaxError(pm, syntax_error, line, 1, "Don't get any value to import");
             freeStatement(opt);
             goto return_;
         }
-        if (checkToken(pm, MATHER_AS) && (!parserParameter(CALLPASERSSIGNATURE, &as, true, true, false, MATHER_COMMA, MATHER_ASSIGNMENT) || as == NULL)) {
+        if (checkToken(pm, MATHER_AS) && (!parserParameter(CALLPASERSSIGNATURE, &as, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT) || as == NULL)) {
             freeParameter(pt, true);
             syntaxError(pm, syntax_error, opt->line, 1, "Don't get any value after import");
+            freeStatement(opt);
+            goto return_;
+        }
+        else if (checkFormal(pt)){
+            freeParameter(pt, true);
+            syntaxError(pm, syntax_error, opt->line, 1, "Don't get success value to import");
             freeStatement(opt);
             goto return_;
         }
@@ -272,7 +278,7 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
     }
     tmp = popNewToken(pm->tm);
     opt = tmp->data.st;
-    freeToken(tmp, true, false);
+    freeToken(tmp, false);
     st = callBack(opt, line, pm->file);
     addStatementToken(type, st, pm);
     return_:
@@ -693,6 +699,14 @@ void parserOperation(PASERSSIGNATURE){
  * | parserAssignment ASSIGNMENT parserTuple [2]
  * 注意：在链接statement的时候, 模式[2]相当于 parserTuple ASSIGNMENT parserAssignment
  */
+bool checkAssignmentLeft(PASERSSIGNATURE, Statement *left){
+    if (left->type == call_function && !checkFormal(left->u.call_function.parameter)){
+        syntaxError(pm, syntax_error, left->line, 1, "Don't get success function definition from Assignmen");
+        return false;
+    }
+    return true;
+}
+
 bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_ASSIGNMENT:
@@ -704,7 +718,7 @@ bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
     return true;
 }
 void parserAssignment(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserTuple, switchAssignment, TUPLE, ASSIGNMENT,
+    return twoOperation(CALLPASERSSIGNATURE, parserTuple, switchAssignment, checkAssignmentLeft, TUPLE, ASSIGNMENT,
                         "polynomial", "assignment", true);
 }
 
@@ -769,7 +783,7 @@ bool switchPolynomial(PASERSSIGNATURE, int symbol, Statement **st){
     return true;
 }
 void parserPolynomial(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserFactor, switchPolynomial, FACTOR, POLYNOMIAL,
+    return twoOperation(CALLPASERSSIGNATURE, parserFactor, switchPolynomial, NULL, FACTOR, POLYNOMIAL,
                         "factor", "polynomial", false);
 }
 
@@ -794,7 +808,7 @@ bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
     return true;
 }
 void parserFactor(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserCallBack, switchFactor, CALLBACK, FACTOR,
+    return twoOperation(CALLPASERSSIGNATURE, parserCallBack, switchFactor, NULL, CALLBACK, FACTOR,
                         "call back", "factor", false);
 }
 
@@ -849,7 +863,7 @@ bool switchPoint(PASERSSIGNATURE, int symbol, Statement **st){
     return true;
 }
 void parserPoint(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserBaseValue, switchPoint, BASEVALUE, POINT,
+    return twoOperation(CALLPASERSSIGNATURE, parserBaseValue, switchPoint, NULL, BASEVALUE, POINT,
                         "base value", "point", false);
 }
 
@@ -911,7 +925,7 @@ void parserBaseValue(PASERSSIGNATURE){
         Parameter *pt = NULL;
         Statement *lambda_st = NULL;
         if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a lambda parameter");
             goto return_;
         }
@@ -920,7 +934,7 @@ void parserBaseValue(PASERSSIGNATURE){
             goto not_lambda_st;
         }
         if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &lambda_st, "Don't get a lambda operation")){
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             goto return_;
         }
         not_lambda_st:
@@ -931,7 +945,7 @@ void parserBaseValue(PASERSSIGNATURE){
     else if (MATHER_SVAR == value_token->token_type){
         Statement *svar_st = NULL;
         if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)){
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
             goto return_;
         }
@@ -942,12 +956,12 @@ void parserBaseValue(PASERSSIGNATURE){
         Statement *tmp_st = NULL;
         tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
         if (tmp == 0){
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
             goto return_;
         }
         else if(tmp == -1){
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ] from list/var");
             goto return_;
         }
@@ -955,7 +969,7 @@ void parserBaseValue(PASERSSIGNATURE){
             Token *var_token;
             var_token = popNewToken(pm->tm);
             st = makeBaseVarStatement(var_token->data.str, tmp_st, var_token->line, pm->file);
-            freeToken(var_token, true, false);
+            freeToken(var_token, false);
         }
         else{
             if (tmp_st == NULL)
@@ -971,12 +985,12 @@ void parserBaseValue(PASERSSIGNATURE){
     else if (MATHER_LP == value_token->token_type){
         int tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
         if (tmp == 0){
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
             goto return_;
         }
         else if(tmp == -1){
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ) from Base Value");
             goto return_;
         }
@@ -984,12 +998,12 @@ void parserBaseValue(PASERSSIGNATURE){
     else if (MATHER_LC == value_token->token_type){
         Parameter *pt = NULL;
         if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, MATHER_COMMA, MATHER_COLON)) {
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");
             goto return_;
         }
         if (!checkToken(pm, MATHER_RC)) {
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             freeParameter(pt, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a } after dict");
             goto return_;
@@ -1000,7 +1014,7 @@ void parserBaseValue(PASERSSIGNATURE){
         Statement *block = NULL;
         if (!callParserCode(CALLPASERSSIGNATURE, &block, "Don't get a while code", value_token->line)) {
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get block command");
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             goto return_;
         }
         st = makeOperationStatement(OPT_BLOCK, block, NULL);
@@ -1008,12 +1022,12 @@ void parserBaseValue(PASERSSIGNATURE){
     else if (MATHER_PROTECT == value_token->token_type || MATHER_PRIVATE == value_token->token_type || MATHER_PUBLIC == value_token->token_type){
         if (MATHER_COLON != readBackToken(pm)){
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a : after aut token");
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             goto return_;
         }
         delToken(pm);
         if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st, "Don't get Base Value after aut token")){
-            freeToken(value_token, true, true);
+            freeToken(value_token, true);
             goto return_;
         }
         switch (value_token->token_type) {
@@ -1032,7 +1046,7 @@ void parserBaseValue(PASERSSIGNATURE){
         backToken_(pm, value_token);
         goto return_;
     }
-    freeToken(value_token, true, false);
+    freeToken(value_token, false);
     addStatementToken(BASEVALUE, st, pm);
 
     return_:

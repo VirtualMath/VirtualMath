@@ -207,17 +207,27 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
 
 ResultType assOperation(INTER_FUNCTIONSIG) {
     LinkValue *value = NULL;
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, father)))
-        return result->type;
-    value = result->value;
+    if (st->u.operation.left->type == call_function){
+        VarList *function_var = NULL;
+        Value *function_value = NULL;
+        LinkValue *tmp = NULL;
+        function_var = copyVarList(var_list, false, inter);
+        function_value = makeFunctionValue(st->u.operation.right, st->u.operation.left->u.call_function.parameter, function_var, inter);
+        tmp = makeLinkValue(function_value, father, inter);
+        assCore(st->u.operation.left->u.call_function.function, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    }
+    else{
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, father)))
+            return result->type;
+        value = result->value;
 
-    freeResult(result);
-    assCore(st->u.operation.left, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        freeResult(result);
+        assCore(st->u.operation.left, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    }
     return result->type;
 }
 
 ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
-    int int_times;
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
@@ -249,6 +259,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
     else{
         char *str_name = NULL;
+        int int_times = 0;
         getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, father));
         if (!run_continue(result)) {
             memFree(str_name);
@@ -273,12 +284,13 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
 
 ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
     Result left;
+    VarList *object = NULL;
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.operation.left, var_list, result, father)))
         return result->type;
     left = *result;
     setResultCore(result);
 
-    VarList *object = left.value->value->object.var;
+    object = left.value->value->object.var;
     gc_freeze(inter, var_list, object, true);
     if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
         pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));

@@ -591,3 +591,18 @@ FatherValue *setFatherCore(FatherValue *father_tmp) {
     }
     return base_father;
 }
+
+
+bool checkFormal(Parameter *pt) {
+    enum {
+        Formal_1,
+        Formal_2,
+    } status = Formal_1;
+    for (PASS; pt != NULL; pt = pt->next){
+        if (status == Formal_1 && (pt->type == name_par || pt->type == args_par))
+                status = Formal_2;
+        else if (status == Formal_2 && (pt->type == value_par || pt->type == args_par) || pt->type == kwargs_par && pt->next != NULL)
+            return false;
+    }
+    return true;
+}

@@ -6,7 +6,7 @@
 #define CALLPASERSSIGNATURE pm, inter /*pasers函数调用的统一实参*/
 
 #define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st))
-#define delToken(pm) (freeToken(popNewToken(pm->tm), true, false))
+#define delToken(pm) (freeToken(popNewToken(pm->tm), false))
 #define backToken_(pm, token) addBackToken(pm->tm->ts, (token))
 #define addLexToken(pm, type) backToken_(pm, makeLexToken(type, NULL, NULL, 0))
 #define addToken_ backToken_
@@ -14,6 +14,7 @@
 
 typedef void (*PasersFunction)(PASERSSIGNATURE);
 typedef int (*GetSymbolFunction)(PASERSSIGNATURE, int, Statement **);
+typedef int (*ChecktLeftToken)(PASERSSIGNATURE, Statement *);
 typedef Statement *(*MakeControlFunction)(Statement *, long int, char *);
 typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 
@@ -52,7 +53,7 @@ bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **
 bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_list, bool is_dict,
                      int sep,int ass);
 
-void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol,
+void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                   int call_type, int self_type, char *call_name, char *self_name, bool is_right);
 void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type, int self_type,
                    char *call_name, char *self_name);
