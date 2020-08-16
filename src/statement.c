@@ -194,6 +194,13 @@ Statement *makeRaiseStatement(Statement *value, long int line, char *file){
     return tmp;
 }
 
+Statement *makeAssertStatement(Statement *conditions, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
+    tmp->type = assert;
+    tmp->u.assert.conditions = conditions;
+    return tmp;
+}
+
 Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir){
     Statement *tmp = makeStatement(line, file_dir);
     tmp->type = include_file;
@@ -340,6 +347,9 @@ void freeStatement(Statement *st){
             case default_var:
                 freeParameter(st->u.default_var.var, true);
                 break;
+            case assert:
+                freeStatement(st->u.assert.conditions);
+                break;
             default:
                 break;
         }
@@ -470,6 +480,9 @@ Statement *copyStatementCore(Statement *st){
             break;
         case default_var:
             new->u.default_var.var = copyParameter(st->u.default_var.var);
+            break;
+        case assert:
+            new->u.assert.conditions = copyStatement(st->u.assert.conditions);
             break;
         default:
             break;

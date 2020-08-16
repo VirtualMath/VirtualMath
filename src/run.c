@@ -79,12 +79,15 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case default_var:
             type = setDefault(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
+        case assert:
+            type = assertCode(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
         default:
             setResult(result, inter, father);
             break;
     }
 
-    if (result->value->aut == auto_aut)
+    if (run_continue_type(type) && result->value->aut == auto_aut)
         result->value->aut = st->aut;
     gc_run(inter, 1, 0, 0, var_list);
     return type;

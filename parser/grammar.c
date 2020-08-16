@@ -131,6 +131,10 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_RAISE :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE, &st,
                                          "Command: call raise\n", false, NULL);
+        case MATHER_ASSERT :
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeAssertStatement, ASSERT, &st,
+                                         "Command: call assert\n", true,
+                                         "parserAssert: Don't get conditions after assert");
             break;
         case MATHER_INCLUDE :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeIncludeStatement, INCLUDE, &st,

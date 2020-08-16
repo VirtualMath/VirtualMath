@@ -32,6 +32,7 @@ struct Statement{
         import_file,
         from_import_file,
         default_var,
+        assert,
     } type;
     union StatementU{
         struct base_value{
@@ -156,6 +157,9 @@ struct Statement{
                 nonlocal_,
             } default_type;
         } default_var;
+        struct {
+            struct Statement *conditions;
+        } assert;
     }u;
     long int line;
     char *code_file;
@@ -204,6 +208,7 @@ Statement *makeRegoStatement(Statement *times, long int line, char *file);
 Statement *makeRestartStatement(Statement *times, long int line, char *file);
 Statement *makeReturnStatement(Statement *value, long int line, char *file);
 Statement *makeRaiseStatement(Statement *value, long int line, char *file);
+Statement *makeAssertStatement(Statement *conditions, long int line, char *file);
 Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);
 Statement *makeImportStatement(Statement *file, Statement *as);
 Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt);

@@ -40,6 +40,7 @@ ResultType regoIf(INTER_FUNCTIONSIG);
 ResultType restartCode(INTER_FUNCTIONSIG);
 ResultType returnCode(INTER_FUNCTIONSIG);
 ResultType raiseCode(INTER_FUNCTIONSIG);
+ResultType assertCode(INTER_FUNCTIONSIG);
 
 ResultType includeFile(INTER_FUNCTIONSIG);
 ResultType importFile(INTER_FUNCTIONSIG);

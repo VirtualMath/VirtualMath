@@ -1,10 +1,12 @@
 #include "__run.h"
 
-#define checkNumber(new_result) do{ \
-if (!isType(new_result->value->value, number)){ \
-setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true); \
-return result->type; \
-}}while(0) /*该Macro只适用于控制分支*/
+bool checkNumber(INTER_FUNCTIONSIG){
+    if (!isType(result->value->value, number)) {
+        setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true);
+        return false;
+    }
+    return true;
+}
 
 bool checkBool(Value *value){
     switch (value->type) {
@@ -245,7 +247,8 @@ ResultType breakCycle(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.break_cycle.times, var_list, result, father)))
         return result->type;
 
-    checkNumber(result);
+    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+        return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
 
@@ -266,7 +269,8 @@ ResultType continueCycle(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.continue_cycle.times, var_list, result, father)))
         return result->type;
 
-    checkNumber(result);
+    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+        return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
 
@@ -287,7 +291,8 @@ ResultType regoIf(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.rego_if.times, var_list, result, father)))
         return result->type;
 
-    checkNumber(result);
+    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+        return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
 
@@ -308,7 +313,8 @@ ResultType restartCode(INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.restart.times, var_list, result, father)))
         return result->type;
 
-    checkNumber(result);
+    if (checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+        return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
 
@@ -349,5 +355,17 @@ ResultType raiseCode(INTER_FUNCTIONSIG){
     set_result:
     result->type = error_return;
     result->error = connectError(makeError("RaiseException", "Exception was raise by user", st->line, st->code_file), result->error);
+    return result->type;
+}
+
+ResultType assertCode(INTER_FUNCTIONSIG){
+    setResultCore(result);
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list, result, father)))
+        return result->type;
+
+    if (checkBool(result->value->value))
+        setResult(result, inter, father);
+    else
+        setResultError(result, inter, "AssertException", "Raise by user", st, father, true);
     return result->type;
 }

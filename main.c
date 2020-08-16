@@ -20,10 +20,17 @@ int main(int argc, char *argv[]) {
 }
 
 
-/**
- * TODO-szh 断言
- * TODO-szh 代码块
- * TODO-szh 类super语句
- * TODO-szh 取反符号 -
- * TODO-szh 字面量后缀
+/** TODO-szh List
+ * 断言
+ * 内嵌代码块
+ * 字面量后缀
+ * 官方函数
+ * 官方类
+ * do 语句
+ * do...while语句
+ * for 循环
+ * with as 语句
+ * goto 语句
+ * label 标签
+ * yield 语句
  */

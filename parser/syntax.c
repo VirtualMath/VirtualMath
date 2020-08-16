@@ -246,6 +246,7 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         strMatherMacro(MATHER_LINK, "->");
         strMatherMacro(MATHER_RAISE, "raise");
         strMatherMacro(MATHER_FROM, "from");
+        strMatherMacro(MATHER_ASSERT, "assert");
 
         status = checkoutMather(mathers, MATHER_MAX);
     }

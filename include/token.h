@@ -87,8 +87,9 @@
 #define MATHER_LINK 73
 #define MATHER_RAISE 74
 #define MATHER_FROM 75
+#define MATHER_ASSERT 76
 
-#define MATHER_MAX 76
+#define MATHER_MAX 77
 
 // 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMAND -6
@@ -114,6 +115,7 @@
 #define POINT -26
 #define IMPORT -27
 #define VARCONTROL -28
+#define ASSERT -29
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \
