@@ -47,17 +47,13 @@ TokenStream *makeTokenStream(){
     return tmp;
 }
 
-void freeToekStream(TokenStream *ts, bool self, bool free_st) {
+void freeToekStream(TokenStream *ts, bool free_st) {
     freeBase(ts, return_);
-    Token *tmp = ts->token_list;
-    while (tmp != NULL){
-        Token *tmp_next = tmp->next;
+    for (Token *tmp = ts->token_list, *tmp_next=NULL; tmp != NULL; tmp = tmp_next){
+        tmp_next = tmp->next;
         freeToken(tmp, true, free_st);
-        tmp = tmp_next;
     }
-    if (self){
-        memFree(ts);
-    }
+    memFree(ts);
     return_:
     return;
 }
@@ -71,9 +67,9 @@ TokenMessage *makeTokenMessage(char *file_dir) {
 }
 
 void freeTokenMessage(TokenMessage *tm, bool self, bool free_st) {
-    freeLexFile(tm->file, true);
-    freeToekStream(tm->ts, true, free_st);
-    freeMathers(tm->mathers, true);
+    freeLexFile(tm->file);
+    freeToekStream(tm->ts, free_st);
+    freeMathers(tm->mathers);
     if (self)
         free(tm);
 }

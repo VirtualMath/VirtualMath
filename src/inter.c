@@ -54,7 +54,7 @@ void freeBaseInterData(struct Inter *inter){
     }
 }
 
-void freeInter(Inter *inter, bool self, bool show_gc) {
+void freeInter(Inter *inter, bool show_gc) {
     freeBase(inter, return_);
 
     if (show_gc && (printf("Enter '1' to show gc: "), getc(stdin) == '1')) {
@@ -66,7 +66,7 @@ void freeInter(Inter *inter, bool self, bool show_gc) {
             PASS;
     }
 
-    freeVarList(inter->var_list, true);
+    freeVarList(inter->var_list);
     freeBaseInterData(inter);
     while (inter->base != NULL)
         freeValue(&inter->base);
@@ -76,8 +76,7 @@ void freeInter(Inter *inter, bool self, bool show_gc) {
         freeLinkValue(&inter->link_base);
     while (inter->hash_base != NULL)
         freeHashTable(&inter->hash_base);
-    if (self)
-        memFree(inter);
+    memFree(inter);
     return_:
     return;
 }
@@ -102,7 +101,7 @@ void mergeInter(Inter *new, Inter *base){
     *base_hash = new->hash_base;
     *base_var = new->base_var;
 
-    freeVarList(new->var_list, true);
+    freeVarList(new->var_list);
     freeBaseInterData(new);
     memFree(new);
 }

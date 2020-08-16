@@ -44,7 +44,7 @@ HashTable *makeHashTable(Inter *inter);
 void freeHashTable(HashTable **value);
 
 VarList *makeVarList(Inter *inter);
-VarList *freeVarList(VarList *vl, bool self);
+VarList *freeVarList(VarList *vl);
 
 HASH_INDEX time33(char *key);
 LinkValue *findVar(char *name, bool del_var, INTER_FUNCTIONSIG_CORE);

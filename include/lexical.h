@@ -41,14 +41,14 @@ int readChar(LexFile *file);
 void backChar(LexFile *file);
 
 LexFile *makeLexFile(char *dir);
-void freeLexFile(LexFile *file, bool self);
+void freeLexFile(LexFile *file);
 
 void setupMather(LexMather *mather);
 LexMather *makeMather();
-void freeMather(LexMather *mather, bool self);
+void freeMather(LexMather *mather);
 
 LexMathers *makeMathers(int size);
-void freeMathers(LexMathers *mathers, bool self);
+void freeMathers(LexMathers *mathers);
 void setupMathers(LexMathers *mathers);
 int checkoutMather(LexMathers *mathers, int max);
 #endif //VIRTUALMATH_LEXICAL_H

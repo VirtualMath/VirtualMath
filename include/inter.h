@@ -25,7 +25,7 @@ typedef struct Inter Inter;
 typedef struct Statement Statement;
 
 Inter *makeInter(char *debug);
-void freeInter(Inter *inter, bool self, bool show_gc);
+void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
 int runCodeBlock(char *code_file, Inter *inter);
 void runParser(char *code_file, Inter *inter, Statement **st);

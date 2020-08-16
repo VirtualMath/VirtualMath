@@ -66,14 +66,14 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     run_st = makeStatement(0, *file_dir);
     parserCommandList(pm, import_inter, true, run_st);
     if (pm->status != success) {
-        freeInter(import_inter, true, false);
+        freeInter(import_inter, false);
         setResultError(result, inter, "ImportSyntaxException", pm->status_message, st, father, true);
         goto return_;
     }
 
     globalIterStatement(result, father, import_inter, run_st);
     if (!run_continue(result)) {
-        freeInter(import_inter, true, false);
+        freeInter(import_inter, false);
         result->value = makeLinkValue(inter->base, father, inter);  // 重新设定none值
         setResultError(result, inter, NULL, NULL, st, father, false);
         goto return_;
@@ -138,6 +138,6 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
     setResult(result, inter, father);
 
     return_:
-    freeVarList(new_object, true);
+    freeVarList(new_object);
     return result->type;
 }

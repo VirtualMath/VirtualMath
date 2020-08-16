@@ -86,17 +86,15 @@ VarList *makeVarList(Inter *inter) {
     return tmp;
 }
 
-VarList *freeVarList(VarList *vl, bool self){
+VarList *freeVarList(VarList *vl) {
+    VarList *next_var = NULL;
     freeBase(vl, return_);
+    next_var = vl->next;
     for (PASS; vl->default_var != NULL; vl->default_var = freeDefaultVar(vl->default_var))
         PASS;
-    if (self){
-        VarList *next_var = vl->next;
-        memFree(vl);
-        return next_var;
-    }
+    memFree(vl);
     return_:
-    return vl;
+    return next_var;
 }
 
 DefaultVar *makeDefaultVar(char *name, NUMBER_TYPE times) {
@@ -218,7 +216,7 @@ VarList *pushVarList(VarList *base, Inter *inter){
 VarList *popVarList(VarList *base) {
     if (base->next == NULL)
         return base;
-    return freeVarList(base, true);
+    return freeVarList(base);
 }
 
 VarList *copyVarListCore(VarList *base, Inter *inter){
@@ -256,7 +254,7 @@ VarList *connectSafeVarListBack(VarList *base, VarList *back){
     VarList **last_node = &base;
     for (PASS; *last_node != NULL; ){
         if ((*last_node)->hashtable == back->hashtable)
-            *last_node = freeVarList(*last_node, true);
+            *last_node = freeVarList(*last_node);
         else
             last_node = &(*last_node)->next;
     }

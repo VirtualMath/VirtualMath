@@ -34,12 +34,10 @@ LexFile *makeLexFile(char *dir){
     return tmp;
 }
 
-void freeLexFile(LexFile *file, bool self){
+void freeLexFile(LexFile *file) {
     freeBase(file, return_);
     fclose(file->file);
-    if (self){
-        memFree(file);
-    }
+    memFree(file);
     return_:
     return;
 }
@@ -62,13 +60,11 @@ LexMather *makeMather(){
     return tmp;
 }
 
-void freeMather(LexMather *mather, bool self){
+void freeMather(LexMather *mather) {
     memFree(mather->str);
     memFree(mather->second_str);
     mather->len = 0;
-    if (self){
-        memFree(mather);
-    }
+    memFree(mather);
 }
 
 LexMathers *makeMathers(int size){
@@ -81,16 +77,14 @@ LexMathers *makeMathers(int size){
     return tmp;
 }
 
-void freeMathers(LexMathers *mathers, bool self){
+void freeMathers(LexMathers *mathers) {
     freeBase(mathers, return_);
     for(int i=0;i < mathers->size; i++){
-        freeMather(mathers->mathers[i], true);
+        freeMather(mathers->mathers[i]);
     }
     memFree(mathers->mathers);
     mathers->size = 0;
-    if (self){
-        memFree(mathers);
-    }
+    memFree(mathers);
     return_:
     return;
 }

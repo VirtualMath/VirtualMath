@@ -104,9 +104,9 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST)
 void freeValue(Value **value) {
     Value *free_value = *value;
     freeBase(free_value, return_);
-    for (VarList *tmp = free_value->object.var; tmp != NULL; tmp = freeVarList(tmp, true))
+    for (VarList *tmp = free_value->object.var; tmp != NULL; tmp = freeVarList(tmp))
             PASS;
-    for (VarList *tmp = free_value->object.out_var; tmp != NULL; tmp = freeVarList(tmp, true))
+    for (VarList *tmp = free_value->object.out_var; tmp != NULL; tmp = freeVarList(tmp))
             PASS;
     for (struct FatherValue *tmp = free_value->object.father; tmp != NULL; tmp = freeFatherValue(tmp))
             PASS;
