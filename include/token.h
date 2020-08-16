@@ -117,6 +117,7 @@
 #define IMPORT -27
 #define VARCONTROL -28
 #define ASSERT -29
+#define DO_BRANCH -30
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \

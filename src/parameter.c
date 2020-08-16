@@ -592,7 +592,6 @@ FatherValue *setFatherCore(FatherValue *father_tmp) {
     return base_father;
 }
 
-
 bool checkFormal(Parameter *pt) {
     enum {
         Formal_1,

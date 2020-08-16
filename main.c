@@ -21,13 +21,9 @@ int main(int argc, char *argv[]) {
 
 
 /** TODO-szh List
- * f(x) = x * 2 表达式
- * 合适形参检查
  * 装饰器
  * 官方函数
  * 官方类
- * do 语句
- * do...while语句
  * for 循环
  * with as 语句
  * goto 语句

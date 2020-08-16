@@ -21,6 +21,7 @@ typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 void parserCommand(PASERSSIGNATURE);
 void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool must_operation, char *message);
 void parserDef(PASERSSIGNATURE);
+void parserDo(PASERSSIGNATURE);
 void parserIf(PASERSSIGNATURE);
 void parserWhile(PASERSSIGNATURE);
 void parserTry(PASERSSIGNATURE);

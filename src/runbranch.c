@@ -33,7 +33,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
     setResultCore(&finally_tmp);
 
     var_list = pushVarList(var_list, inter);
-    for (; if_list != NULL; if_list = if_list->next){
+    for (PASS; if_list != NULL; if_list = if_list->next){
         freeResult(result);
         if (if_list->type == if_b){
             LinkValue *condition_value = NULL;
@@ -102,19 +102,28 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
 
 ResultType whileBranch(INTER_FUNCTIONSIG) {
     StatementList *while_list = st->u.while_branch.while_list;
+    Statement *first = st->u.while_branch.first;
     Statement *after = st->u.while_branch.after;
     Statement *else_st = st->u.while_branch.else_list;
     Statement *finally = st->u.while_branch.finally;
     bool set_result = true;
     bool is_break = false;
+    bool do_while = st->u.while_branch.type == do_while_;
 
     Result finally_tmp;
     setResultCore(result);
     setResultCore(&finally_tmp);
 
     var_list = pushVarList(var_list, inter);
+
+    if (first != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(first, var_list, result, father)))
+        set_result = false;
+    else
+        freeResult(result);
+
     while (!is_break){
         LinkValue *condition_value = NULL;
+        bool condition = false;
 
         freeResult(result);
         if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_list->condition, var_list, result, father))){
@@ -133,7 +142,8 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
             freeResult(result);  // 赋值的返回值被丢弃
         }
 
-        bool condition = checkBool(condition_value->value);
+        condition = do_while || checkBool(condition_value->value);
+        do_while = false;
         if (condition){
             if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_list->code, var_list, result, father))){
                 set_result = false;

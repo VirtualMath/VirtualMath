@@ -99,6 +99,9 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_DEF :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Command: call def/class\n");
             break;
+        case MATHER_DO :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserDo, DO_BRANCH, &st, "Command: call do\n");
+            break;
         case MATHER_IF :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call if\n");
             break;
@@ -221,7 +224,6 @@ void parserImport(PASERSSIGNATURE) {
             goto return_;
         }
 
-
         mul_:
         st = makeFromImportStatement(opt, as, pt);
     }
@@ -282,6 +284,68 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
     st = callBack(opt, line, pm->file);
     addStatementToken(type, st, pm);
     return_:
+    return;
+}
+
+void parserDo(PASERSSIGNATURE){
+    Statement *st = NULL;
+    Statement *do_code = NULL;
+    long int line = delToken(pm);
+    if (readBackToken(pm) == MATHER_WHILE){  // do...while语句
+        if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
+            goto error_;
+        st->u.while_branch.type = do_while_;
+    }
+    else {
+        if (!callParserCode(CALLPASERSSIGNATURE, &do_code, "Don't get a if...else code", line))
+            goto error_;
+
+        again:
+        switch (readBackToken(pm)){
+            case MATHER_IF: {
+                StatementList *do_sl = NULL;
+                if (!callChildStatement(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Don't get a if code after do"))
+                    goto error_;
+                do_sl = makeStatementList(NULL, NULL, do_code, do_b);
+                do_sl->next = st->u.if_branch.if_list;
+                st->u.if_branch.if_list = do_sl;
+                break;
+            }
+            case MATHER_WHILE:
+                if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a if code after do"))
+                    goto error_;
+                st->u.while_branch.first = do_code;
+                break;
+            case MATHER_DO: {
+                long int tmp_line = delToken(pm);
+                if (readBackToken(pm) != MATHER_WHILE){
+                    syntaxError(pm, syntax_error, tmp_line, 1, "Don't get while after do");
+                    goto error_;
+                }
+                if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
+                    goto error_;
+                st->u.while_branch.type = do_while_;
+                st->u.while_branch.first = do_code;
+                break;
+            }
+            case MATHER_ENTER:
+                delToken(pm);
+                goto again;
+            default: {
+                Token *tmp = popNewToken(pm->tm);
+                syntaxError(pm, syntax_error, tmp->line, 1, "Get don't support branch after do");
+                backToken_(pm, tmp);
+                goto error_;
+            }
+        }
+    }
+
+    addStatementToken(DO_BRANCH, st, pm);
+    return;
+
+    error_:
+    freeStatement(do_code);
+    freeStatement(st);
     return;
 }
 
