@@ -13,30 +13,30 @@
  * @param mather
  */
 void numberMather(int p, LexMather *mather){
-    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT)
-        if (isdigit(p) || '.' == p && mather->status == LEXMATHER_ING){
+    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING_1 || mather->status == LEXMATHER_ING_2)
+        if (isdigit(p) || '.' == p && mather->status == LEXMATHER_ING_1){
             mather->str = memStrCharcpy(mather->str, 1, true, true, p);
             mather->len += 1;
             if ('.' == p)
-                mather->status = LEXMATHER_INGPOINT;
+                mather->status = LEXMATHER_ING_2;
             else if (mather->status == LEXMATHER_START)
-                mather->status = LEXMATHER_ING;
+                mather->status = LEXMATHER_ING_1;
         }
-        else if(mather->status == LEXMATHER_ING || mather->status == LEXMATHER_INGPOINT){
+        else if(mather->status == LEXMATHER_ING_1 || mather->status == LEXMATHER_ING_2){
             if (isalpha(p) ||'_' == p){
                 mather->second_str = memStrCharcpy(mather->second_str, 1, true, true, p);
-                mather->status = LEXMATHER_INGSECOND;
+                mather->status = LEXMATHER_ING_3;
             }
             else
-                mather->status = LEXMATHER_END;
+                mather->status = LEXMATHER_END_1;
         }
         else
             mather->status = LEXMATHER_MISTAKE;
-    else if (mather->status == LEXMATHER_INGSECOND)
+    else if (mather->status == LEXMATHER_ING_3)
         if (isalnum(p) ||'_' == p)
             mather->second_str = memStrCharcpy(mather->second_str, 1, true, true, p);
         else
-            mather->status = LEXMATHER_END;
+            mather->status = LEXMATHER_END_1;
     else
         mather->status = LEXMATHER_MISTAKE;
 }
@@ -50,14 +50,14 @@ void numberMather(int p, LexMather *mather){
  * @param mather
  */
 void varMather(int p, LexMather *mather){
-    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING){
-        if (isalpha(p) ||'_' == p || isdigit(p) && mather->status == LEXMATHER_ING){
+    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING_1){
+        if (isalpha(p) ||'_' == p || isdigit(p) && mather->status == LEXMATHER_ING_1){
             mather->str = memStrCharcpy(mather->str, 1, true, true, p);
             mather->len ++;
-            mather->status = LEXMATHER_ING;
+            mather->status = LEXMATHER_ING_1;
         }
-        else if(mather->status == LEXMATHER_ING)
-            mather->status = LEXMATHER_END_SECOND;
+        else if(mather->status == LEXMATHER_ING_1)
+            mather->status = LEXMATHER_END_2;
         else if(mather->status == LEXMATHER_START)
             mather->status = LEXMATHER_MISTAKE;
     }
@@ -77,33 +77,33 @@ void varMather(int p, LexMather *mather){
 void stringMather(int p, LexMather *mather){
     if (mather->status == LEXMATHER_START)
         if ('\"' == p || '\'' == p){
-            mather->status = LEXMATHER_ING;
+            mather->status = LEXMATHER_ING_1;
             mather->string_type = p;
         }
         else
             mather->status = LEXMATHER_MISTAKE;
-    else if (mather->status == LEXMATHER_ING)
+    else if (mather->status == LEXMATHER_ING_1)
         if (mather->string_type == p)
-            mather->status = LEXMATHER_INGPASS;
+            mather->status = LEXMATHER_ING_4;
         else if (EOF == p)
             mather->status = LEXMATHER_MISTAKE;
         else{
             mather->str = memStrCharcpy(mather->str, 1, true, true, p);
             mather->len ++;
-            mather->status = LEXMATHER_ING;
+            mather->status = LEXMATHER_ING_1;
         }
-    else if (mather->status == LEXMATHER_INGSECOND)
+    else if (mather->status == LEXMATHER_ING_3)
         if (isalnum(p) ||'_' == p)
             mather->second_str = memStrCharcpy(mather->second_str, 1, true, true, p);
         else
-            mather->status = LEXMATHER_END;
-    else if(mather->status == LEXMATHER_INGPASS)
+            mather->status = LEXMATHER_END_1;
+    else if(mather->status == LEXMATHER_ING_4)
         if (isalpha(p) ||'_' == p){
             mather->second_str = memStrCharcpy(mather->second_str, 1, true, true, p);
-            mather->status = LEXMATHER_INGSECOND;
+            mather->status = LEXMATHER_ING_3;
         }
         else
-            mather->status = LEXMATHER_END;
+            mather->status = LEXMATHER_END_1;
     else
         mather->status = LEXMATHER_MISTAKE;
 }
@@ -115,14 +115,14 @@ void stringMather(int p, LexMather *mather){
  * @param dest_p
  */
 void strMather(int p, LexMather *mather, const char *dest_p){
-    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING)
+    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING_1)
         if (p == dest_p[mather->len]){
             mather->str = memStrCharcpy(mather->str, 1, true, true, p);
             mather->len ++;
-            mather->status = LEXMATHER_ING;
+            mather->status = LEXMATHER_ING_1;
         }
-        else if(mather->status == LEXMATHER_ING && mather->len == memStrlen((char *)dest_p))
-            mather->status = LEXMATHER_END;
+        else if(mather->status == LEXMATHER_ING_1 && mather->len == memStrlen((char *)dest_p))
+            mather->status = LEXMATHER_END_1;
         else
             mather->status = LEXMATHER_MISTAKE;
     else
@@ -139,10 +139,10 @@ void charMather(int p, LexMather *mather, int dest_p){
     if (p == dest_p && mather->status == LEXMATHER_START){
         mather->str = memStrCharcpy(mather->str, 1, true, true, p);
         mather->len ++;
-        mather->status = LEXMATHER_ING;
+        mather->status = LEXMATHER_ING_1;
     }
-    else if (mather->status == LEXMATHER_ING)
-        mather->status = LEXMATHER_END;
+    else if (mather->status == LEXMATHER_ING_1)
+        mather->status = LEXMATHER_END_1;
     else
         mather->status = LEXMATHER_MISTAKE;
 }
@@ -153,16 +153,71 @@ void charMather(int p, LexMather *mather, int dest_p){
  * @param mather
  */
 void spaceMather(int p, LexMather *mather){
-    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING)
+    if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING_1)
         if (isspace(p) && p != '\n'){
             mather->str = memStrCharcpy(mather->str, 1, true, true, p);
             mather->len ++;
-            mather->status = LEXMATHER_ING;
+            mather->status = LEXMATHER_ING_1;
         }
-        else if (mather->status == LEXMATHER_ING)
-            mather->status = LEXMATHER_END;
+        else if (mather->status == LEXMATHER_ING_1)
+            mather->status = LEXMATHER_END_1;
         else
             mather->status = LEXMATHER_MISTAKE;
+    else
+        mather->status = LEXMATHER_MISTAKE;
+}
+
+void backslashMather(int p, LexMather *mather){
+    if (mather->status == LEXMATHER_START)
+        if (p == '\\')
+            mather->status = LEXMATHER_ING_1;
+        else
+            mather->status = LEXMATHER_MISTAKE;
+    else if (mather->status == LEXMATHER_ING_1) {
+        if (p == EOF)
+            mather->status = LEXMATHER_END_1;
+        else if (p == '\n')
+            mather->status = LEXMATHER_ING_2;
+    }
+    else if (mather->status == LEXMATHER_ING_2)
+        mather->status = LEXMATHER_END_1;
+    else
+        mather->status = LEXMATHER_MISTAKE;
+}
+
+void commentMather(int p, LexMather *mather){
+    if (mather->status == LEXMATHER_START) {
+        if (p == '#')
+            mather->status = LEXMATHER_ING_1;
+        else
+            mather->status = LEXMATHER_MISTAKE;
+    }
+    else if (mather->status == LEXMATHER_ING_1) {  // 匹配到1个#的模式
+        if (p == '#')
+            mather->status = LEXMATHER_ING_3;
+        else if (p == '\n' || p == EOF)
+            mather->status = LEXMATHER_END_1;
+        else
+            mather->status = LEXMATHER_ING_2;
+    }
+    else if (mather->status == LEXMATHER_ING_2){  // 单#匹配模式
+        if (p == '\n' || p == EOF)
+            mather->status = LEXMATHER_END_1;
+    }
+    else if (mather->status == LEXMATHER_ING_3) { // 双#匹配模式
+        if (p == '#')
+            mather->status = LEXMATHER_ING_4;
+        else if (p == EOF)
+            mather->status = LEXMATHER_END_1;
+    }
+    else if (mather->status == LEXMATHER_ING_4) {
+        if (p == '#')
+            mather->status = LEXMATHER_ING_5;
+        else
+            mather->status = LEXMATHER_ING_3;
+    }
+    else if (mather->status == LEXMATHER_ING_5)
+        mather->status = LEXMATHER_END_1;
     else
         mather->status = LEXMATHER_MISTAKE;
 }
@@ -182,6 +237,8 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         stringMather(p ,mathers->mathers[MATHER_STRING]);
         varMather(p ,mathers->mathers[MATHER_VAR]);
         spaceMather(p ,mathers->mathers[MATHER_SPACE]);
+        commentMather(p ,mathers->mathers[MATHER_COMMENT]);
+        backslashMather(p ,mathers->mathers[MATHER_NOTENTER]);
         charMatherMacro(MATHER_EOF, EOF);
         charMatherMacro(MATHER_ENTER, '\n');
 
@@ -268,7 +325,6 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         strMatherMacro(MATHER_FROM, "from");
         strMatherMacro(MATHER_ASSERT, "assert");
         strMatherMacro(MATHER_LAMBDA, "lambda");
-        strMatherMacro(MATHER_NOTENTER, "\\\n");
 
         status = checkoutMather(mathers, MATHER_MAX);
     }
@@ -277,7 +333,7 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
 }
 
 int lexFilter(LexFile *file, int status){
-    if (status == MATHER_SPACE || status == MATHER_NOTENTER)
+    if (status == MATHER_SPACE || status == MATHER_NOTENTER || status == MATHER_COMMENT)
         return -1;
     if (file->filter_data.enter != 0 && status == MATHER_ENTER)
         return -1;

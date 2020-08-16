@@ -221,8 +221,8 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
     }
     else {
         LinkValue *enter_value = NULL;
-        char *enter_name = setStrVarName("__Enter__", false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        char *exit_name = setStrVarName("__Exit__", false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        char *enter_name = setStrVarName(inter->data.object_enter, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        char *exit_name = setStrVarName(inter->data.object_exit, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         _enter_ = findFromVarList(enter_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
         _exit_ = findFromVarList(exit_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
         memFree(enter_name);

@@ -55,6 +55,7 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
                 delToken(pm);
             else  if(stop != MATHER_EOF){
                 if (global) {
+                    fprintf(stderr, "stop = %d\n", stop);
                     syntaxError(pm, command_list_error, command_token->line, 1, "ERROR from parserCommand list(get stop)");
                     freeToken(command_token, true);
                 }

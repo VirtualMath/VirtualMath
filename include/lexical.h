@@ -21,12 +21,13 @@ struct LexMather{
     char *second_str;
     enum LexMatherStatus{
         LEXMATHER_START=1,
-        LEXMATHER_ING,
-        LEXMATHER_INGPOINT,
-        LEXMATHER_INGSECOND,
-        LEXMATHER_INGPASS,
-        LEXMATHER_END,
-        LEXMATHER_END_SECOND,
+        LEXMATHER_ING_1,
+        LEXMATHER_ING_2,
+        LEXMATHER_ING_3,
+        LEXMATHER_ING_4,
+        LEXMATHER_ING_5,
+        LEXMATHER_END_1,
+        LEXMATHER_END_2,
         LEXMATHER_MISTAKE,
     } status;
 };

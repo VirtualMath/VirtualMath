@@ -120,11 +120,11 @@ int checkoutMather(LexMathers *mathers, int max) {
     int end_count = 0, end_index = -1;
     int end_second_count = 0, end_second_index = -1;
     for (int i=0;i < mathers->size;i++){
-        if(mathers->mathers[i]->status == LEXMATHER_END){
+        if(mathers->mathers[i]->status == LEXMATHER_END_1){
             end_count ++;
             end_index = i;
         }
-        else if(mathers->mathers[i]->status == LEXMATHER_END_SECOND){
+        else if(mathers->mathers[i]->status == LEXMATHER_END_2){
             end_second_count ++;
             end_second_index = i;
         }

@@ -37,17 +37,19 @@ void setBaseInterData(struct Inter *inter){
     inter->data.var_num_prefix = memStrcpy("num_");
     inter->data.var_defualt = memStrcpy("default_var");
     inter->data.object_init = memStrcpy("__init__");
-    inter->data.debug = NULL;
-    inter->data.log_dir = NULL;
+    inter->data.object_enter = memStrcpy("__enter__");
+    inter->data.object_exit = memStrcpy("__exit__");
 }
 
 void freeBaseInterData(struct Inter *inter){
-    memFree(inter->data.var_defualt);
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
+    memFree(inter->data.var_defualt);
     memFree(inter->data.object_init);
-    memFree(inter->data.log_dir);
+    memFree(inter->data.object_enter);
+    memFree(inter->data.object_exit);
 
+    memFree(inter->data.log_dir);
     if (inter->data.log_dir != NULL) {
         fclose(inter->data.debug);
         fclose(inter->data.error);
