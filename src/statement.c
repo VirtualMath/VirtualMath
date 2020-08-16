@@ -46,7 +46,7 @@ Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *fil
     return tmp;
 }
 
-Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file) {
+Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
     tmp->u.base_value.type = type;
@@ -55,7 +55,7 @@ Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long 
     return tmp;
 }
 
-Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file) {
+Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_var;
     tmp->u.base_var.name = memStrcpy(name);
@@ -71,19 +71,26 @@ Statement *makeBaseSVarStatement(Statement *name, Statement *times){
     return tmp;
 }
 
-Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file) {
+Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_dict;
     tmp->u.base_dict.dict = pt;
     return tmp;
 }
 
-Statement *makeOperationStatement(int type, long int line, char *file) {
+Statement *makeOperationBaseStatement(enum OperationType type, long int line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = operation;
     tmp->u.operation.OperationType = type;
     tmp->u.operation.left = NULL;
     tmp->u.operation.right = NULL;
+    return tmp;
+}
+
+Statement *makeOperationStatement(enum OperationType type, Statement *left, Statement *right){
+    Statement *tmp = makeOperationBaseStatement(type, left->line, left->code_file);
+    tmp->u.operation.left = left;
+    tmp->u.operation.right = right;
     return tmp;
 }
 

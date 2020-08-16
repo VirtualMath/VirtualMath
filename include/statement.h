@@ -67,6 +67,7 @@ struct Statement{
                 OPT_DIV = 4,
                 OPT_ASS = 5,
                 OPT_POINT = 6,
+                OPT_BLOCK = 7,
             } OperationType;
             struct Statement *left;
             struct Statement *right;
@@ -189,7 +190,8 @@ Statement *copyStatement(Statement *st);
 Statement *copyStatementCore(Statement *st);
 void connectStatement(Statement *base, Statement *new);
 
-Statement *makeOperationStatement(int type, long int line, char *file);
+Statement *makeOperationBaseStatement(enum OperationType type, long int line, char *file);
+Statement *makeOperationStatement(enum OperationType type, Statement *left, Statement *right);
 Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *file);
 Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file);
 Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file);

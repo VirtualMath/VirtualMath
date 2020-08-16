@@ -6,6 +6,7 @@ ResultType mulOperation(INTER_FUNCTIONSIG);
 ResultType divOperation(INTER_FUNCTIONSIG);
 ResultType assOperation(INTER_FUNCTIONSIG);
 ResultType pointOperation(INTER_FUNCTIONSIG);
+ResultType blockOperation(INTER_FUNCTIONSIG);
 
 /**
  * operation的整体操作
@@ -34,6 +35,9 @@ ResultType operationStatement(INTER_FUNCTIONSIG) {
             break;
         case OPT_POINT:
             pointOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
+        case OPT_BLOCK:
+            blockOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
         default:
             setResult(result, inter, father);
@@ -148,6 +152,16 @@ ResultType divOperation(INTER_FUNCTIONSIG) {
     freeResult(&left);
     freeResult(&right);
     return result->type;
+}
+
+ResultType blockOperation(INTER_FUNCTIONSIG) {
+    ResultType type;
+    var_list = pushVarList(var_list, inter);
+    type = operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father));
+    if (run_continue_type(type) && st->aut != auto_aut)
+        result->value->aut = st->aut;
+    popVarList(var_list);
+    return type;
 }
 
 ResultType pointOperation(INTER_FUNCTIONSIG) {

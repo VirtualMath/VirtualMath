@@ -644,18 +644,16 @@ void parserDef(PASERSSIGNATURE){
  */
 void parserCode(PASERSSIGNATURE) {
     long int line = 0;
-    Statement *st = NULL;
+    Statement *st = makeStatement(line, pm->file);
     while (true){
-        if (readBackToken(pm) == MATHER_LC){
-            line = delToken(pm);
+        if (readBackToken(pm) != MATHER_LC)
             goto again_;
-        }
+        line = delToken(pm);
         break;
         again_:
         if (!checkToken(pm, MATHER_ENTER))
             goto return_;
     }
-    st = makeStatement(line, pm->file);
     parserCommandList(CALLPASERSSIGNATURE, false, st);
     if (!call_success(pm))
         goto error_;
@@ -699,7 +697,7 @@ void parserOperation(PASERSSIGNATURE){
 bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_ASSIGNMENT:
-            *st = makeOperationStatement(OPT_ASS, 0, pm->file);
+            *st = makeOperationBaseStatement(OPT_ASS, 0, pm->file);
             break;
         default:
             return false;
@@ -761,10 +759,10 @@ void parserTuple(PASERSSIGNATURE){
 bool switchPolynomial(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_ADD:
-            *st = makeOperationStatement(OPT_ADD, 0, pm->file);
+            *st = makeOperationBaseStatement(OPT_ADD, 0, pm->file);
             break;
         case MATHER_SUB:
-            *st = makeOperationStatement(OPT_SUB, 0, pm->file);
+            *st = makeOperationBaseStatement(OPT_SUB, 0, pm->file);
             break;
         default:
             return false;
@@ -786,10 +784,10 @@ void parserPolynomial(PASERSSIGNATURE){
 bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_MUL:
-            *st = makeOperationStatement(OPT_MUL, 0, pm->file);
+            *st = makeOperationBaseStatement(OPT_MUL, 0, pm->file);
             break;
         case MATHER_DIV:
-            *st = makeOperationStatement(OPT_DIV, 0, pm->file);
+            *st = makeOperationBaseStatement(OPT_DIV, 0, pm->file);
             break;
         default:
             return false;
@@ -844,7 +842,7 @@ void parserCallBack(PASERSSIGNATURE){
 bool switchPoint(PASERSSIGNATURE, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_POINT:
-            *st = makeOperationStatement(OPT_POINT, 0, pm->file);
+            *st = makeOperationBaseStatement(OPT_POINT, 0, pm->file);
             break;
         default:
             return false;
@@ -960,6 +958,15 @@ void parserBaseValue(PASERSSIGNATURE){
             goto return_;
         }
         st = makeBaseDictStatement(pt, value_token->line, pm->file);
+    }
+    else if (MATHER_BLOCK == value_token->token_type){
+        Statement *block = NULL;
+        if (!callParserCode(CALLPASERSSIGNATURE, &block, "Don't get a while code", value_token->line)) {
+            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get block command");
+            freeToken(value_token, true, true);
+            goto return_;
+        }
+        st = makeOperationStatement(OPT_BLOCK, block, NULL);
     }
     else if (MATHER_PROTECT == value_token->token_type || MATHER_PRIVATE == value_token->token_type || MATHER_PUBLIC == value_token->token_type){
         if (MATHER_COLON != readBackToken(pm)){

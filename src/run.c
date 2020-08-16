@@ -165,9 +165,8 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
 bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
-    if (run_continue_type(type)){
+    if (run_continue_type(type))
         return false;
-    }
     if (type == rego_return){
         result->times--;
         if (result->times < 0)

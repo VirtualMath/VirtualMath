@@ -21,8 +21,6 @@ int main(int argc, char *argv[]) {
 
 
 /** TODO-szh List
- * 断言
- * 内嵌代码块
  * 字面量后缀
  * 官方函数
  * 官方类
@@ -33,4 +31,7 @@ int main(int argc, char *argv[]) {
  * goto 语句
  * label 标签
  * yield 语句
+ * 括号无视换行
+ * \ 无视换行
+ * # 注释设定
  */
