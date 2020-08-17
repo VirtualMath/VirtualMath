@@ -54,6 +54,15 @@ Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long 
     return tmp;
 }
 
+Statement *makeBaseValueStatement(enum BaseValueType type, long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
+    tmp->type = base_value;
+    tmp->u.base_value.type = type;
+    tmp->u.base_value.value = NULL;
+    tmp->u.base_value.str = NULL;
+    return tmp;
+}
+
 Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_var;
@@ -434,11 +443,13 @@ Statement *copyStatementCore(Statement *st){
     switch (st->type) {
         case base_value:
             new->u.base_value.type = st->u.base_value.type;
+            new->u.base_value.value = NULL;
+            new->u.base_value.str = NULL;
             if (new->u.base_value.type == link_value) {
                 new->u.base_value.value = st->u.base_value.value;
                 gc_addStatementLink(&new->u.base_value.value->gc_status);
             }
-            else
+            else if (new->u.base_value.type == string_str || new->u.base_value.type == number_str)
                 new->u.base_value.str = memStrcpy(st->u.base_value.str);
             break;
         case operation:

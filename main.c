@@ -21,13 +21,9 @@ int main(int argc, char *argv[]) {
 
 
 /** TODO-szh List
- * 检查copy函数不copy next
  * __call__ 设定
  * __var__ 设定
  * 下标和切片
- * ...运算符
- * null符号
- * true和false符号
  * super函数
  * 默认形参
  * 官方函数

@@ -1210,6 +1210,14 @@ void parserBaseValue(PASERSSIGNATURE){
             st = makeCallStatement(sencod_var, makeValueParameter(tmp));
         }
     }
+    else if (MATHER_TRUE == value_token->token_type)
+        st = makeBaseValueStatement(bool_true, value_token->line, pm->file);
+    else if (MATHER_FALSE == value_token->token_type)
+        st = makeBaseValueStatement(bool_false, value_token->line, pm->file);
+    else if (MATHER_NULL == value_token->token_type)
+        st = makeBaseValueStatement(null_value, value_token->line, pm->file);
+    else if (MATHER_PASSVALUE == value_token->token_type)
+        st = makeBaseValueStatement(pass_value, value_token->line, pm->file);
     else if (MATHER_LAMBDA == value_token->token_type){
         Parameter *pt = NULL;
         Statement *lambda_st = NULL;
@@ -1234,8 +1242,8 @@ void parserBaseValue(PASERSSIGNATURE){
     else if (MATHER_SVAR == value_token->token_type){
         Statement *svar_st = NULL;
         if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)){
-            freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
+            freeToken(value_token, true);
             goto return_;
         }
         st = makeBaseSVarStatement(svar_st, NULL);
@@ -1254,7 +1262,7 @@ void parserBaseValue(PASERSSIGNATURE){
         else if(tmp == -1){
             freeToken(value_token, true);
             syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ] from list/var");
-            goto return_;
+            goto return_;  // 优化goto return freeToken
         }
         if (MATHER_VAR == readBackToken(pm)){
             Token *var_token;

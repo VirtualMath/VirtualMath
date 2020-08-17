@@ -93,8 +93,9 @@
 #define MATHER_COMMENT 79
 #define MATHER_GOTO 80
 #define MATHER_LABEL 81
+#define MATHER_PASSVALUE 82
 
-#define MATHER_MAX 82
+#define MATHER_MAX 83
 
 // 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMAND -6

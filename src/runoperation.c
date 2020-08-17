@@ -157,7 +157,9 @@ ResultType divOperation(INTER_FUNCTIONSIG) {
 ResultType blockOperation(INTER_FUNCTIONSIG) {
     ResultType type;
     var_list = pushVarList(var_list, inter);
-    type = operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father));
+    type = functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father));
+    if (type == not_return)
+        setResult(result, inter, father);
     if (run_continue_type(type) && st->aut != auto_aut)
         result->value->aut = st->aut;
     popVarList(var_list);
@@ -346,12 +348,24 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
     setResultCore(result);
     if (st->u.base_value.type == link_value)
         result->value = st->u.base_value.value;
-    else if (st->u.base_value.type == number_str){
-        char *stop = NULL;
-        result->value = makeLinkValue(makeNumberValue(strtol(st->u.base_value.str, &stop, 10), inter), father, inter);
+    else {
+        Value *value = NULL;
+        if (st->u.base_value.type == number_str) {
+            char *stop = NULL;
+            value = makeNumberValue(strtol(st->u.base_value.str, &stop, 10), inter);
+        }
+        else if (st->u.base_value.type == bool_true)
+            value = makeBoolValue(true, inter);
+        else if (st->u.base_value.type == bool_false)
+            value = makeBoolValue(false, inter);
+        else if (st->u.base_value.type == pass_value)
+            value = makePassValue(inter);
+        else if (st->u.base_value.type == null_value)
+            value = makeNoneValue(inter);
+        else
+            value = makeStringValue(st->u.base_value.str, inter);
+        result->value = makeLinkValue(value, father, inter);
     }
-    else
-        result->value = makeLinkValue(makeStringValue(st->u.base_value.str, inter), father, inter);
 
     result->type = operation_return;
     gc_addTmpLink(&result->value->gc_status);

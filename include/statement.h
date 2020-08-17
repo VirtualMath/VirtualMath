@@ -43,6 +43,10 @@ struct Statement{
                 link_value = 0,
                 string_str = 1,
                 number_str = 2,
+                bool_true = 3,
+                bool_false = 4,
+                pass_value = 5,
+                null_value = 6,
             } type;
             struct LinkValue *value;
             char *str;
@@ -219,6 +223,7 @@ Statement *makeOperationBaseStatement(enum OperationType type, long int line, ch
 Statement *makeOperationStatement(enum OperationType type, Statement *left, Statement *right);
 Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *file);
 Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file);
+Statement *makeBaseValueStatement(enum BaseValueType type, long int line, char *file);
 Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file);
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
 Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file);

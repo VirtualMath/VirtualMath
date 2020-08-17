@@ -7,10 +7,10 @@
  */
 int checkFile(char *dir){
     struct stat my_stat;
-    int status = 0;
+    int status;
     if (dir == NULL)
         return 3;
-    stat(dir, &my_stat);
+    status = stat(dir, &my_stat);
     if (status != 0)
         return 0;
     else if (S_ISREG(my_stat.st_mode))

@@ -27,6 +27,8 @@ struct Value{
         dict=5,
         class=6,
         object_=7,
+        bool_=8,
+        pass_=9,
     } type;
     struct {
         struct VarList *var;
@@ -50,12 +52,15 @@ struct Value{
                 value_list,
             } type;
             struct LinkValue **list;
-            long int size;
+            NUMBER_TYPE size;  // TODO-szh typedef NUMBER_TYPE
         } list;
         struct Dict{
             struct HashTable *dict;
             NUMBER_TYPE size;
         } dict;
+        struct Bool{
+            bool bool_;
+        } bool_;
     }data;
     struct Value *gc_next;
     struct Value *gc_last;
@@ -115,6 +120,8 @@ LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
 void freeLinkValue(LinkValue **value);
 LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *makeNoneValue(Inter *inter);
+Value *makeBoolValue(bool bool_num, Inter *inter);
+Value *makePassValue(Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);

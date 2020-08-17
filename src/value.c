@@ -1,6 +1,5 @@
 #include "__virtualmath.h"
 
-
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *father) {
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
@@ -28,8 +27,27 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *
 
 Value *makeNoneValue(Inter *inter) {
     Value *tmp;
+    if (inter->base == NULL) {
+        tmp = makeObject(inter, NULL, NULL, NULL);
+        tmp->type = none;
+    }
+    else
+        tmp = inter->base;
+    return tmp;
+}
+
+Value *makeBoolValue(bool bool_num, Inter *inter) {
+    Value *tmp;
     tmp = makeObject(inter, NULL, NULL, NULL);
-    tmp->type = none;
+    tmp->type = bool_;
+    tmp->data.bool_.bool_ = bool_num;
+    return tmp;
+}
+
+Value *makePassValue(Inter *inter){
+    Value *tmp;
+    tmp = makeObject(inter, NULL, NULL, NULL);
+    tmp->type = pass_;
     return tmp;
 }
 
@@ -194,11 +212,10 @@ void setResult(Result *ru, Inter *inter, LinkValue *father) {
 
 void setResultBase(Result *ru, Inter *inter, LinkValue *father) {
     setResultCore(ru);
-    ru->value = makeLinkValue(inter->base, father, inter);
+    ru->value = makeLinkValue(makeNoneValue(inter), father, inter);
     gc_addTmpLink(&ru->value->gc_status);
 }
 
-// TODO-szh findUseage调整为 setResultError
 void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father, bool new) {
     setResultError(ru, inter, error_type, error_message, st->line, st->code_file, father, new);
 }
@@ -298,6 +315,15 @@ void printValue(Value *value, FILE *debug){
             break;
         case object_:
             fprintf(debug, "object on <%p>", value);
+            break;
+        case bool_:
+            if (value->data.bool_.bool_)
+                fprintf(debug, "true");
+            else
+                fprintf(debug, "false");
+            break;
+        case pass_:
+            fprintf(debug, "...");
             break;
         default:
             fprintf(debug, "default on <%p>", value);

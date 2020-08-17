@@ -195,6 +195,8 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
     if (run_continue_type(type))
         return false;
+    else if (type != return_code && type != error_return)
+        setResultErrorSt(result, inter, "ResultException", "Get Not Support Result", st, father, true);
     return true;
 }
 
