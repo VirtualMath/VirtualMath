@@ -59,6 +59,9 @@ void freeBaseInterData(struct Inter *inter){
 void freeInter(Inter *inter, bool show_gc) {
     freeBase(inter, return_);
 
+    freeVarList(inter->var_list);
+    freeBaseInterData(inter);
+
     if (show_gc && (printf("Enter '1' to show gc: "), getc(stdin) == '1')) {
         printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter);
         printValueGC("\nprintValueGC TAG : freeInter", inter);
@@ -68,8 +71,6 @@ void freeInter(Inter *inter, bool show_gc) {
             PASS;
     }
 
-    freeVarList(inter->var_list);
-    freeBaseInterData(inter);
     while (inter->base != NULL)
         freeValue(&inter->base);
     while (inter->base_var != NULL)
@@ -114,10 +115,7 @@ void printLinkValueGC(char *tag, Inter *inter){
     LinkValue *base = inter->link_base;
     printf("%s\n", tag);
     while (base != NULL) {
-        if (base->gc_status.tmp_link == 0)
-            fprintf(stdout, "inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
-        else
-            fprintf(stderr, "inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
         printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
         printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
         printLinkValue(base, "value = ", "\n", stdout);

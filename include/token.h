@@ -113,6 +113,7 @@
 #define CONTINUE -18
 #define REGO -19
 #define RETURN -20
+#define YIELD -20
 #define RESTART -21
 #define TRY_BRANCH -22
 #define RAISE -23

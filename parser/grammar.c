@@ -147,6 +147,10 @@ void parserCommand(PASERSSIGNATURE){
             status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN, &st,
                                          "Command: call return\n", false, NULL);
             break;
+        case MATHER_YIELD :
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeYieldStatement, YIELD, &st,
+                                         "Command: call yield\n", false, NULL);
+            break;
         case MATHER_RAISE :
             status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE, &st,
                                          "Command: call raise\n", false, NULL);

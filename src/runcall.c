@@ -1,5 +1,27 @@
 #include "__run.h"
 
+void newFunctionYield(Statement *funtion_st, Statement *node, VarList *new_var, Inter *inter){
+    new_var->next = NULL;
+    gc_freeze(inter, new_var, NULL, true);
+    funtion_st->info.var_list = new_var;
+    funtion_st->info.node = node->type == yield_code ? node->next : node;
+    funtion_st->info.have_info = true;
+}
+
+void updateFunctionYield(Statement *function_st, Statement *node){
+    function_st->info.node = node->type == yield_code ? node->next : node;
+    function_st->info.have_info = true;
+}
+
+void freeFunctionYield(Statement *function_st, Inter *inter){  // TODO-szh 去除该函数
+    function_st->info.var_list->next = NULL;
+    gc_freeze(inter, function_st->info.var_list, NULL, false);
+    freeVarList(function_st->info.var_list);
+    function_st->info.var_list = NULL;
+    function_st->info.have_info = false;
+    function_st->info.node = NULL;
+}
+
 ResultType setClass(INTER_FUNCTIONSIG) {
     Argument *call = NULL;
     LinkValue *tmp = NULL;
@@ -158,30 +180,66 @@ ResultType callClass(LinkValue *class_value, Parameter *parameter, long int line
     return result->type;
 }
 
+bool popStatementVarList(Statement *funtion_st, VarList **function_var, VarList *out_var, Inter *inter){
+    bool yield_run;
+    if ((yield_run = funtion_st->info.have_info)) {
+        *function_var = funtion_st->info.var_list;
+        (*function_var)->next = out_var;
+    }
+    else
+        *function_var = pushVarList(out_var, inter);
+    return yield_run;
+}
+
+Statement *getRunInfoStatement(Statement *funtion_st){  // TODO-szh 去除该函数
+    return funtion_st->info.node;
+}
+
 ResultType callFunction(LinkValue *function_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *function_var = NULL;
+    Statement *funtion_st = NULL;
+    bool yield_run = false;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
+    funtion_st = function_value->value->data.function.function;
+    if ((yield_run = popStatementVarList(funtion_st, &function_var, function_value->value->object.out_var, inter)))
+        funtion_st = getRunInfoStatement(funtion_st);
 
-    function_var = pushVarList(function_value->value->object.out_var, inter);
-    gc_addTmpLink(&function_var->hashtable->gc_status);
     gc_freeze(inter, var_list, function_var, true);
-
-    setParameter(line, file, parameter, function_value->value->data.function.pt, function_var, function_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    gc_addTmpLink(&function_var->hashtable->gc_status);
+    setParameter(line, file, parameter, function_value->value->data.function.pt, function_var, function_value,
+                 CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    gc_freeTmpLink(&function_var->hashtable->gc_status);
     if (!run_continue(result)) {
-        gc_addTmpLink(&function_var->hashtable->gc_status);
         gc_freeze(inter, var_list, function_var, false);
-        popVarList(function_var);
+        funtion_st = function_value->value->data.function.function;
+        if (yield_run)
+            freeFunctionYield(funtion_st, inter);
+        else
+            popVarList(function_var);
         goto return_;
     }
-
     freeResult(result);
-    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(function_value->value->data.function.function, function_var, result, function_value));
+    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(funtion_st, function_var, result, function_value));
 
-    gc_freeTmpLink(&function_var->hashtable->gc_status);
     gc_freeze(inter, var_list, function_var, false);
-    popVarList(function_var);
-
+    funtion_st = function_value->value->data.function.function;
+    if (yield_run) {
+        if (result->type == yield_return){
+            updateFunctionYield(funtion_st, result->node);
+            result->type = operation_return;
+        }
+        else
+            freeFunctionYield(funtion_st, inter);
+    }
+    else {
+        if (result->type == yield_return){
+            newFunctionYield(funtion_st, result->node, function_var, inter);
+            result->type = operation_return;
+        }
+        else
+            popVarList(function_var);
+    }
     return_:
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;

@@ -1,6 +1,6 @@
 #include "__run.h"
 
-bool checkNumber(INTER_FUNCTIONSIG){
+static bool checkNumber(INTER_FUNCTIONSIG){
     if (!isType(result->value->value, number)) {
         setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, father, true);
         return false;
@@ -8,7 +8,7 @@ bool checkNumber(INTER_FUNCTIONSIG){
     return true;
 }
 
-bool checkString(INTER_FUNCTIONSIG){
+static bool checkString(INTER_FUNCTIONSIG){
     if (!isType(result->value->value, string)) {
         setResultErrorSt(result, inter, "TypeException", "Don't get a string value", st, father, true);
         return false;
@@ -16,7 +16,7 @@ bool checkString(INTER_FUNCTIONSIG){
     return true;
 }
 
-bool checkBool(Value *value){
+static bool checkBool(Value *value){
     switch (value->type) {
         case number:
             return value->data.num.num != 0;
@@ -36,21 +36,74 @@ bool checkBool(Value *value){
     }
 }
 
+void newBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status, Inter *inter){
+    if (new_var != NULL)
+        new_var->next = NULL;
+    gc_freeze(inter, new_var, NULL, true);
+    branch_st->info.var_list = new_var;
+    branch_st->info.node = node->type == yield_code ? node->next : node;
+    branch_st->info.branch.sl_node = sl_node;
+    branch_st->info.branch.status = status;
+    branch_st->info.have_info = true;
+}
+
+void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
+                        Inter *inter, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_){
+    newBranchYield(branch_st, node, sl_node, new_var, status, inter);
+    branch_st->info.branch.with_.value = value;
+    branch_st->info.branch.with_._exit_ = _exit_;
+    branch_st->info.branch.with_._enter_ = _enter_;
+
+}
+
+void updateBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status){
+    branch_st->info.node = node->type == yield_code ? node->next : node;
+    branch_st->info.branch.sl_node = sl_node;
+    branch_st->info.branch.status = status;
+    branch_st->info.have_info = true;
+}
+
 ResultType ifBranch(INTER_FUNCTIONSIG) {
     StatementList *if_list = st->u.if_branch.if_list;
     Statement *else_st = st->u.if_branch.else_list;
     Statement *finally = st->u.if_branch.finally;
+    Statement *info_vl = NULL;
     bool set_result = true;
     bool is_rego = false;
+    bool yield_run = false;
+    enum StatementInfoStatus result_from = info_vl_branch;
 
     Result finally_tmp;
     setResultCore(result);
     setResultCore(&finally_tmp);
 
-    var_list = pushVarList(var_list, inter);
+    yield_run = popStatementVarList(st, &var_list, var_list, inter);
+    if (yield_run && st->info.branch.status == info_vl_branch){
+        if_list = st->info.branch.sl_node;
+        info_vl = st->info.node;
+    }
+    else if (yield_run && st->info.branch.status == info_else_branch){
+        if_list = NULL;
+        else_st = st->info.node;
+    }
+    else if (yield_run && st->info.branch.status == info_finally_branch){
+        finally = st->info.node;
+        goto not_else;
+    }
+
     for (PASS; if_list != NULL; if_list = if_list->next){
         freeResult(result);
-        if (if_list->type == if_b){
+        if (info_vl != NULL){
+            if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_vl, var_list, result, father))){
+                set_result = false;
+                goto not_else;
+            }
+            if (result->type == rego_return)
+                is_rego = true;
+            freeResult(result);
+            info_vl = NULL;
+        }
+        else if (if_list->type == if_b){
             LinkValue *condition_value = NULL;
             if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(if_list->condition, var_list, result, father))){
                 set_result = false;
@@ -94,8 +147,10 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
             freeResult(result);
         }
     }
-    if (else_st != NULL && ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, father)))
+    if (else_st != NULL && ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, father))) {
         set_result = false;
+        result_from = info_else_branch;
+    }
     else
         freeResult(result);
 
@@ -104,12 +159,22 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
         if (!set_result)
             freeResult(result);
         set_result = false;
+        result_from = info_finally_branch;
         *result = finally_tmp;
     }
     else
         freeResult(&finally_tmp);
 
-    var_list = popVarList(var_list);
+    if (yield_run)
+        if (result->type == yield_return)
+            updateBranchYield(st, result->node, if_list, result_from);
+        else
+            freeRunInfo(st);
+    else
+        if (result->type == yield_return)
+            newBranchYield(st, result->node, if_list, var_list, result_from, inter);
+        else
+            var_list = popVarList(var_list);
     if (set_result)
         setResult(result, inter, father);
     return result->type;
@@ -121,26 +186,64 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
     Statement *after = st->u.while_branch.after;
     Statement *else_st = st->u.while_branch.else_list;
     Statement *finally = st->u.while_branch.finally;
+    Statement *info_vl = NULL;
+    Statement *after_vl = NULL;
     bool set_result = true;
     bool is_break = false;
     bool do_while = st->u.while_branch.type == do_while_;
+    int yield_run = false;
+    enum StatementInfoStatus result_from = info_vl_branch;
 
     Result finally_tmp;
     setResultCore(result);
     setResultCore(&finally_tmp);
 
-    var_list = pushVarList(var_list, inter);
+    yield_run = popStatementVarList(st, &var_list, var_list, inter);
+    if (yield_run && st->info.branch.status == info_first_do)
+        first = st->info.node;
+    else if (yield_run && st->info.branch.status == info_vl_branch){
+        first = NULL;
+        info_vl = st->info.node;
+    }
+    else if (yield_run && st->info.branch.status == info_after_do){
+        first = NULL;
+        after_vl = st->info.node;
+    }
+    else if (yield_run && st->info.branch.status == info_else_branch){
+        else_st = st->info.node;
+        goto run_else;
+    }
+    else if (yield_run && st->info.branch.status == info_finally_branch){
+        finally = st->info.node;
+        goto not_else;
+    }
 
-    if (first != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(first, var_list, result, father)))
+
+    if (first != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(first, var_list, result, father))) {
+        result_from = info_first_do;
         set_result = false;
+    }
     else
         freeResult(result);
 
     while (!is_break){
         LinkValue *condition_value = NULL;
+        Statement *after_st = after;
+        Statement *while_st = while_list->code;
         bool condition = false;
-
         freeResult(result);
+
+        if (info_vl != NULL){
+            while_st = info_vl;
+            info_vl = NULL;
+            goto do_while_st;
+        }
+        else if (after_vl != NULL){
+            after_st = after_vl;
+            after_vl = NULL;
+            goto do_after;
+        }
+
         if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_list->condition, var_list, result, father))){
             set_result = false;
             goto not_else;
@@ -160,7 +263,8 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         condition = do_while || checkBool(condition_value->value);
         do_while = false;
         if (condition){
-            if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_list->code, var_list, result, father))){
+            do_while_st:
+            if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_st, var_list, result, father))){
                 set_result = false;
                 goto not_else;
             }
@@ -171,10 +275,11 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         else
             break;
 
-        if (after == NULL)
+        do_after:
+        if (after_st == NULL)
             continue;
-
-        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(after, var_list, result, father))){
+        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(after_st, var_list, result, father))){
+            result_from = info_after_do;
             set_result = false;
             goto not_else;
         }
@@ -185,8 +290,12 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
 
         freeResult(result);
     }
-    if (!is_break && else_st != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, father)))
+
+    run_else:
+    if (!is_break && else_st != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, father))) {
+        result_from = info_else_branch;
         set_result = false;
+    }
     else
         freeResult(result);
 
@@ -195,12 +304,22 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         if (!set_result)
             freeResult(result);
         set_result = false;
+        result_from = info_finally_branch;
         *result = finally_tmp;
     }
     else
         freeResult(&finally_tmp);
 
-    var_list = popVarList(var_list);
+    if (yield_run)
+        if (result->type == yield_return)
+            updateBranchYield(st, result->node, while_list, result_from);
+        else
+            freeRunInfo(st);
+    else
+        if (result->type == yield_return)
+            newBranchYield(st, result->node, while_list, var_list, result_from, inter);
+        else
+            var_list = popVarList(var_list);
     if (set_result)
         setResult(result, inter, father);
     return result->type;
@@ -210,11 +329,14 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
     StatementList *with_list = st->u.with_branch.with_list;
     Statement *else_st = st->u.with_branch.else_list;
     Statement *finally = st->u.with_branch.finally;
+    Statement *vl_info = NULL;
     VarList *new = NULL;
     LinkValue *_enter_ = NULL;
     LinkValue *_exit_ = NULL;
     LinkValue *value = NULL;
     bool set_result = true;
+    bool yield_run;
+    enum StatementInfoStatus result_from = info_vl_branch;
 
     Result finally_tmp;
     Result else_tmp;
@@ -224,91 +346,166 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
     setResultCore(&else_tmp);
     setResultCore(&exit_tmp);
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(with_list->condition, var_list, result, father))){
-        set_result = false;
-        goto not_else;
-    }
-
-    value = result->value;
-    if (with_list->var == NULL) {
-        new = copyVarListCore(result->value->value->object.var, inter);
-        new->next = var_list;
+    if ((yield_run = st->info.have_info)){
+        value = st->info.branch.with_.value;
+        _enter_ = st->info.branch.with_._enter_;
+        _exit_ = st->info.branch.with_._exit_;
+        if (st->info.var_list != NULL) {
+            new = st->info.var_list;
+            new->next = var_list;
+        }
+        if (st->info.branch.status == info_vl_branch)
+            vl_info = st->info.node;
+        else if (st->info.branch.status == info_else_branch) {
+            else_st = st->info.node;
+            goto run_else;
+        }
+        else if (st->info.branch.status == info_finally_branch){
+            finally = st->info.node;
+            goto run_finally;
+        }
     }
     else {
-        LinkValue *enter_value = NULL;
-        char *enter_name = setStrVarName(inter->data.object_enter, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        char *exit_name = setStrVarName(inter->data.object_exit, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        _enter_ = findFromVarList(enter_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
-        _exit_ = findFromVarList(exit_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
-        memFree(enter_name);
-        memFree(exit_name);
-
-        freeResult(result);
-        if (_enter_ == NULL || _exit_ == NULL){
-            _enter_ = NULL;
-            _exit_ = NULL;
-            setResultErrorSt(result, inter, "EnterException", "Get Not Support Value to Enter with", st, father, true);
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(with_list->condition, var_list, result, father))) {
             set_result = false;
-            goto not_else;
+            goto run_finally;
         }
 
-        gc_addTmpLink(&_enter_->gc_status);
-        gc_addTmpLink(&_exit_->gc_status);
-        callBackCore(_enter_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
-        if (!run_continue(result)){
-            set_result = false;
-            goto not_else;
-        }
+        if (with_list->var == NULL) {
+            new = copyVarListCore(result->value->value->object.var, inter);
+            new->next = var_list;
+            freeResult(result);
+        } else {
+            LinkValue *enter_value = NULL;
+            char *enter_name = NULL;
+            char *exit_name = NULL;
+            value = result->value;
+            result->value = NULL;
 
-        new = pushVarList(var_list, inter);
-        enter_value = result->value;
-        freeResult(result);
-        assCore(with_list->var, enter_value, CALL_INTER_FUNCTIONSIG_NOT_ST (new, result, father));
-        if (!run_continue(result)){
-            set_result = false;
-            popVarList(new);
-            goto not_else;
+            enter_name = setStrVarName(inter->data.object_enter, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            exit_name = setStrVarName(inter->data.object_exit, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            _enter_ = findFromVarList(enter_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+            _exit_ = findFromVarList(exit_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+            memFree(enter_name);
+            memFree(exit_name);
+
+            freeResult(result);
+            if (_enter_ == NULL || _exit_ == NULL) {
+                gc_freeTmpLink(&value->gc_status);
+                _enter_ = NULL;
+                _exit_ = NULL;
+                value = NULL;
+                setResultErrorSt(result, inter, "EnterException", "Get Not Support Value to Enter with", st, father, true);
+                set_result = false;
+                goto run_finally;
+            }
+
+            gc_addTmpLink(&_enter_->gc_status);
+            gc_addTmpLink(&_exit_->gc_status);
+            callBackCore(_enter_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+            if (!run_continue(result)) {
+                set_result = false;
+                gc_freeTmpLink(&value->gc_status);
+                gc_freeTmpLink(&_enter_->gc_status);
+                gc_freeTmpLink(&_exit_->gc_status);
+                goto run_finally;
+            }
+
+            new = pushVarList(var_list, inter);
+            enter_value = result->value;
+            freeResult(result);
+            assCore(with_list->var, enter_value, CALL_INTER_FUNCTIONSIG_NOT_ST (new, result, father));
+            if (!run_continue(result)) {
+                set_result = false;
+                popVarList(new);
+                gc_freeTmpLink(&value->gc_status);
+                gc_freeTmpLink(&_enter_->gc_status);
+                gc_freeTmpLink(&_exit_->gc_status);
+                goto run_finally;
+            }
+            freeResult(result);
         }
-        freeResult(result);
     }
 
-    if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(with_list->code, new, result, father)))
+    gc_freeze(inter, new, var_list, true);
+    if (vl_info == NULL)
+        vl_info = with_list->code;
+    if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(vl_info, new, result, father))) {
         set_result = false;
+        if (result->type == yield_return)
+            goto run_finally;
+    }
     else
         freeResult(result);
 
+    run_else:
     if (else_st != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, new, &else_tmp, father))) {
         if (!set_result)
             freeResult(result);
         set_result = false;
         *result = else_tmp;
+        result_from = info_else_branch;
+        if (result->type == yield_return)
+            goto run_finally;
     }
     else
         freeResult(&else_tmp);
 
-    popVarList(new);
-    if (_exit_ != NULL && _enter_ != NULL) {
+    if (_exit_ != NULL) {
         callBackCore(_exit_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
         if (!run_continue_type(exit_tmp.type)) {
             if (!set_result)
                 freeResult(result);
             set_result = false;
             *result = exit_tmp;
-        } else
+        }
+        else
             freeResult(&exit_tmp);
-        gc_freeTmpLink(&_enter_->gc_status);
-        gc_freeTmpLink(&_exit_->gc_status);
+        if (!yield_run){
+            gc_freeTmpLink(&value->gc_status);
+            gc_freeTmpLink(&_enter_->gc_status);
+            gc_freeTmpLink(&_exit_->gc_status);
+        }
     }
 
-    not_else:
+    run_finally:
     if (finally != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(finally, var_list, &finally_tmp, father))){
         if (!set_result)
             freeResult(result);
         set_result = false;
         *result = finally_tmp;
+        result_from = info_finally_branch;
     }
     else
         freeResult(&finally_tmp);
+
+    gc_freeze(inter, new, var_list, false);
+    if (yield_run)
+        if (result->type == yield_return)
+            if (result_from == info_finally_branch) {
+                freeRunInfo(st);
+                newBranchYield(st, result->node, with_list, NULL, result_from, inter);
+            }
+            else
+                updateBranchYield(st, result->node, with_list, result_from);
+        else
+            freeRunInfo(st);
+    else {
+        if (result->type == yield_return)
+            if (result_from == info_finally_branch) {
+                if (value != NULL) {
+                    gc_freeTmpLink(&value->gc_status);
+                    gc_freeTmpLink(&_enter_->gc_status);
+                    gc_freeTmpLink(&_exit_->gc_status);
+                }
+                newBranchYield(st, result->node, with_list, NULL, result_from, inter);
+                popVarList(new);
+            }
+            else
+                newWithBranchYield(st, result->node, with_list, new, result_from, inter, value, _exit_, _enter_);
+        else
+            popVarList(new);
+    }
 
     if (set_result)
         setResult(result, inter, father);
@@ -320,21 +517,46 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     Statement *try = st->u.try_branch.try;
     Statement *else_st = st->u.try_branch.else_list;
     Statement *finally = st->u.try_branch.finally;
+    Statement *info_vl = NULL;
     LinkValue *error_value = NULL;
     bool set_result = true;
+    bool yield_run;
+    enum StatementInfoStatus result_from = info_first_do;
 
     Result finally_tmp;
     setResultCore(result);
     setResultCore(&finally_tmp);
 
-    var_list = pushVarList(var_list, inter);
-    if (!tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(try, var_list, result, father))){
+    yield_run = popStatementVarList(st, &var_list, var_list, inter);
+    if (yield_run && st->info.branch.status == info_first_do)
+        try = st->info.node;
+    else if (yield_run && st->info.branch.status == info_vl_branch){
+        try = NULL;
+        info_vl = st->info.node;
+        goto run_except;
+    }
+    else if (yield_run && st->info.branch.status == info_else_branch){
+        try = NULL;
+        else_st = st->info.node;
+        goto not_except;
+    }
+    else if (yield_run && st->info.branch.status == info_finally_branch){
+        try = NULL;
+        else_st = NULL;
+        finally = st->info.node;
+        goto not_else;
+    }
+
+    if (try == NULL || !tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(try, var_list, result, father))){
         freeResult(result);
         goto not_except;
     }
+    if (result->type == yield_return)
+        goto not_else;
 
     if (except_list == NULL) {
         set_result = false;
+        result_from = info_first_do;
         goto not_else;
     }
 
@@ -348,15 +570,23 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
         }
         freeResult(result);
     }
-    if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(except_list->code, var_list, result, father)))
+
+    run_except:
+    if (info_vl == NULL)
+        info_vl = except_list->code;
+    if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_vl, var_list, result, father))) {
+        result_from = info_vl_branch;
         set_result = false;
+    }
     else
         freeResult(result);
     goto not_else;
 
     not_except:
-    if (else_st != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, father)))
+    if (else_st != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, father))) {
         set_result = false;
+        result_from = info_else_branch;
+    }
     else
         freeResult(result);
 
@@ -366,11 +596,22 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
             freeResult(result);
         set_result = false;
         *result = finally_tmp;
+        result_from = info_finally_branch;
     }
     else
         freeResult(&finally_tmp);
 
-    var_list = popVarList(var_list);
+    if (yield_run)
+        if (result->type == yield_return)
+            updateBranchYield(st, result->node, except_list, result_from);
+        else
+            freeRunInfo(st);
+    else
+        if (result->type == yield_return)
+            newBranchYield(st, result->node, except_list, var_list, result_from, inter);
+        else
+            var_list = popVarList(var_list);
+
     if (set_result)
         setResult(result, inter, father);
     return result->type;
@@ -477,6 +718,21 @@ ResultType returnCode(INTER_FUNCTIONSIG){
 
     set_result:
     result->type = function_return;
+    return result->type;
+}
+
+ResultType yieldCode(INTER_FUNCTIONSIG){
+    setResultCore(result);
+    if (st->u.yield_code.value == NULL) {
+        setResult(result, inter, father);
+        goto set_result;
+    }
+
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.yield_code.value, var_list, result, father)))
+        return result->type;
+
+    set_result:
+    result->type = yield_return;
     return result->type;
 }
 

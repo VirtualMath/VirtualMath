@@ -2,11 +2,13 @@
 #define VIRTUALMATH_RUN_H
 #include "__macro.h"
 
+enum StatementInfoStatus;
 typedef struct Result Result;
 typedef enum ResultType ResultType;
 typedef struct LinkValue LinkValue;
 typedef struct Value Value;
 typedef struct Statement Statement;
+typedef struct StatementList StatementList;
 typedef struct Inter Inter;
 typedef struct VarList VarList;
 typedef struct Parameter Parameter;
@@ -17,6 +19,7 @@ ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *in
 bool operationSafeInterStatement(INTER_FUNCTIONSIG);
 bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool functionSafeInterStatement(INTER_FUNCTIONSIG);
+bool blockSafeInterStatement(INTER_FUNCTIONSIG);
 bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG);
 Statement *checkLabel(Statement *base, char *label);
@@ -45,6 +48,7 @@ ResultType continueCycle(INTER_FUNCTIONSIG);
 ResultType regoIf(INTER_FUNCTIONSIG);
 ResultType restartCode(INTER_FUNCTIONSIG);
 ResultType returnCode(INTER_FUNCTIONSIG);
+ResultType yieldCode(INTER_FUNCTIONSIG);
 ResultType raiseCode(INTER_FUNCTIONSIG);
 ResultType assertCode(INTER_FUNCTIONSIG);
 ResultType gotoLabel(INTER_FUNCTIONSIG);
@@ -63,5 +67,17 @@ char *getNameFromValue(Value *value, INTER_FUNCTIONSIG_CORE);
 ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
+
+Statement *getRunInfoStatement(Statement *funtion_st);
+bool popStatementVarList(Statement *funtion_st, VarList **function_var, VarList *out_var, Inter *inter);
+
+void newFunctionYield(Statement *funtion_st, Statement *node, VarList *new_var, Inter *inter);
+void updateFunctionYield(Statement *function_st, Statement *node);
+void freeFunctionYield(Statement *function_st, Inter *inter);
+
+void updateBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status);
+void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
+                        Inter *inter, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_);
+void updateBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status);
 
 #endif //VIRTUALMATH_RUN_H

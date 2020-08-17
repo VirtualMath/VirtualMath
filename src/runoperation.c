@@ -154,16 +154,33 @@ ResultType divOperation(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-ResultType blockOperation(INTER_FUNCTIONSIG) {
-    ResultType type;
-    var_list = pushVarList(var_list, inter);
-    type = functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father));
-    if (type == not_return)
-        setResult(result, inter, father);
-    if (run_continue_type(type) && st->aut != auto_aut)
+ResultType blockOperation(INTER_FUNCTIONSIG) {  // TODO-szh 处理yield
+    Statement *info_st = st->u.operation.left;
+    bool yield_run;
+    if ((yield_run = popStatementVarList(st, &var_list, var_list, inter)))
+        info_st = st->info.node;
+    blockSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_st, var_list, result, father));
+    if (result->type == error_return)
+        return result->type;
+    else if (yield_run) {
+        if (result->type == yield_return){
+            updateFunctionYield(st, result->node);
+            result->type = operation_return;
+        }
+        else
+            freeFunctionYield(st, inter);
+    }
+    else {
+        if (result->type == yield_return){
+            newFunctionYield(st, result->node, var_list, inter);
+            result->type = operation_return;
+        }
+        else
+            popVarList(var_list);
+    }
+    if (run_continue(result) && st->aut != auto_aut)
         result->value->aut = st->aut;
-    popVarList(var_list);
-    return type;
+    return result->type;
 }
 
 ResultType pointOperation(INTER_FUNCTIONSIG) {

@@ -7,7 +7,33 @@ Statement *makeStatement(long int line, char *file) {
     tmp->aut = auto_aut;
     tmp->line = line;
     tmp->code_file = memStrcpy(file);
+    setRunInfo(tmp);
     return tmp;
+}
+
+void setRunInfo(Statement *st){
+    st->info.have_info = false;
+    st->info.node = NULL;
+    st->info.var_list = NULL;
+    st->info.branch.sl_node = NULL;
+    st->info.branch.status = info_vl_branch;
+    st->info.branch.with_.value = NULL;
+    st->info.branch.with_._exit_ = NULL;
+    st->info.branch.with_._enter_ = NULL;
+}
+
+void freeRunInfo(Statement *st) {
+    if (st->info.var_list != NULL) {
+        gc_freeTmpLink(&st->info.var_list->hashtable->gc_status);
+        freeVarList(st->info.var_list);
+    }
+    if (st->info.branch.with_.value != NULL)
+        gc_freeTmpLink(&st->info.branch.with_.value->gc_status);
+    if (st->info.branch.with_._exit_ != NULL)
+        gc_freeTmpLink(&st->info.branch.with_._exit_->gc_status);
+    if (st->info.branch.with_._enter_ != NULL)
+        gc_freeTmpLink(&st->info.branch.with_._enter_->gc_status);
+    setRunInfo(st);
 }
 
 Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, enum OperationType type, bool is_right) {
@@ -221,6 +247,13 @@ Statement *makeReturnStatement(Statement *value, long int line, char *file){
     return tmp;
 }
 
+Statement *makeYieldStatement(Statement *value, long int line, char *file){
+    Statement *tmp = makeStatement(line, file);
+    tmp->type = yield_code;
+    tmp->u.yield_code.value = value;
+    return tmp;
+}
+
 Statement *makeRaiseStatement(Statement *value, long int line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = raise_code;
@@ -294,7 +327,6 @@ void connectStatement(Statement *base, Statement *new){
 void freeStatement(Statement *st){
     Statement *next_tmp = NULL;
     freeBase(st, return_);
-
     for (PASS; st != NULL; st = next_tmp){
         next_tmp = st->next;
         switch (st->type) {
@@ -387,6 +419,9 @@ void freeStatement(Statement *st){
             case return_code:
                 freeStatement(st->u.return_code.value);
                 break;
+            case yield_code:
+                freeStatement(st->u.yield_code.value);
+                break;
             case raise_code:
                 freeStatement(st->u.raise_code.value);
                 break;
@@ -421,6 +456,7 @@ void freeStatement(Statement *st){
             default:
                 break;
         }
+        freeRunInfo(st);
         memFree(st->code_file);
         memFree(st);
     }
@@ -537,6 +573,9 @@ Statement *copyStatementCore(Statement *st){
             break;
         case return_code:
             new->u.return_code.value = copyStatement(st->u.return_code.value);
+            break;
+        case yield_code:
+            new->u.yield_code.value = copyStatement(st->u.yield_code.value);
             break;
         case raise_code:
             new->u.raise_code.value = copyStatement(st->u.raise_code.value);

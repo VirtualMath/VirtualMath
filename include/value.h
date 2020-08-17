@@ -81,16 +81,18 @@ struct Result{
         function_return=2,  // 函数返回值
         operation_return=3,  // 表达式返回值
         error_return=4,  // 错误
-        break_return,
-        continue_return,
-        rego_return,
-        restart_return,
-        goto_return,
+        break_return=5,
+        continue_return=6,
+        rego_return=7,
+        restart_return=8,
+        goto_return=9,
+        yield_return=10,
     } type;
     char *label;
     struct LinkValue *value;
     struct Error *error;
     int times;
+    struct Statement *node;
 };
 
 struct Error{

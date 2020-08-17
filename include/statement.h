@@ -28,6 +28,7 @@ struct Statement{
         rego_if,
         restart,
         return_code,
+        yield_code,
         raise_code,
         include_file,
         import_file,
@@ -150,6 +151,9 @@ struct Statement{
         } return_code;
         struct {
             struct Statement *value;
+        } yield_code;
+        struct {
+            struct Statement *value;
         } raise_code;
         struct {
             struct Statement *file;
@@ -185,6 +189,26 @@ struct Statement{
             struct Statement *label;
         } goto_;
     }u;
+    struct {  // 运行info信息
+        bool have_info;
+        struct VarList *var_list;
+        struct Statement *node;
+        struct {
+            struct StatementList *sl_node;
+            enum StatementInfoStatus{
+                info_vl_branch,
+                info_else_branch,
+                info_finally_branch,
+                info_first_do,
+                info_after_do,
+            } status;
+            struct{
+                LinkValue *value;
+                LinkValue *_exit_;
+                LinkValue *_enter_;
+            } with_;
+        } branch;
+    } info;
     long int line;
     char *code_file;
     struct Statement *next;
@@ -214,6 +238,8 @@ typedef struct StatementList StatementList;
 typedef struct DecorationStatement DecorationStatement;
 
 Statement *makeStatement(long int line, char *file);
+void setRunInfo(Statement *st);
+void freeRunInfo(Statement *st);
 void freeStatement(Statement *st);
 Statement *copyStatement(Statement *st);
 Statement *copyStatementCore(Statement *st);
@@ -241,6 +267,7 @@ Statement *makeContinueStatement(Statement *times, long int line, char *file);
 Statement *makeRegoStatement(Statement *times, long int line, char *file);
 Statement *makeRestartStatement(Statement *times, long int line, char *file);
 Statement *makeReturnStatement(Statement *value, long int line, char *file);
+Statement *makeYieldStatement(Statement *value, long int line, char *file);
 Statement *makeRaiseStatement(Statement *value, long int line, char *file);
 Statement *makeAssertStatement(Statement *conditions, long int line, char *file);
 Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);

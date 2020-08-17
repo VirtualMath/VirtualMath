@@ -70,6 +70,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case return_code:
             type = returnCode(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
+        case yield_code:
+            type = yieldCode(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            break;
         case raise_code:
             type = raiseCode(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
             break;
@@ -98,6 +101,7 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
 
     if (run_continue_type(type) && result->value->aut == auto_aut)
         result->value->aut = st->aut;
+    result->node = st;
     gc_run(inter, 1, 0, 0, var_list);
     return type;
 }
@@ -144,7 +148,7 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
 
     if (type == not_return || type == restart_return)
         setResultOperationNone(result, inter, father);
-
+    result->node = base_st;
     gc_run(inter, 1, 0, 0, var_list);
     return result->type;
 }
@@ -184,7 +188,7 @@ ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *in
 
     if (type != error_return && type != function_return)
         setResultOperationNone(result, inter, father);
-
+    result->node = base_st;
     gc_run(inter, 1, 0, 0, var_list);
     return result->type;
 }
@@ -195,8 +199,10 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
     if (run_continue_type(type))
         return false;
-    else if (type != return_code && type != error_return)
+    else if (type != return_code && type != error_return) {
+        printf("type = %d\n", type);
         setResultErrorSt(result, inter, "ResultException", "Get Not Support Result", st, father, true);
+    }
     return true;
 }
 
@@ -218,9 +224,8 @@ bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG){
 bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
-    if (run_continue_type(type)){
+    if (run_continue_type(type))
         return false;
-    }
     if (type == break_return || type == continue_return){
         result->times--;
         if (result->times < 0)
@@ -234,9 +239,8 @@ bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
-    if (run_continue_type(type)){
+    if (run_continue_type(type))
         return false;
-    }
     if (type == restart_return || type == goto_return)
         result->times--;
     return true;
@@ -245,13 +249,21 @@ bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
 bool functionSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
-    if (type == error_return)
+    if (type == error_return || result->type == yield_return)
         return true;
-    else if (type == function_return){
+    else if (type == function_return)
         result->type = operation_return;
+    else
+        result->type = not_return;
+    return false;
+}
+
+bool blockSafeInterStatement(INTER_FUNCTIONSIG){
+    ResultType type;
+    type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+    if (type == error_return || type == yield_return)
         return true;
-    }
-    result->type = not_return;
+    result->type = operation_return;
     return false;
 }
 

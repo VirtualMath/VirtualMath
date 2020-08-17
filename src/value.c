@@ -203,6 +203,7 @@ void setResultCore(Result *ru) {
     ru->error = NULL;
     ru->value = NULL;
     ru->label = NULL;
+    ru->node = NULL;
 }
 
 void setResult(Result *ru, Inter *inter, LinkValue *father) {
