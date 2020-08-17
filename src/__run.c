@@ -12,7 +12,7 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, father)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, father, true);
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -20,7 +20,7 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
 
     not_times:
     value = makeLinkValue(makeStringValue(st->u.base_var.name, inter), father, inter);
-    setResultOperation(result, value, inter);
+    setResultOperation(result, value);
 
     return result->type;
 }
@@ -35,7 +35,7 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, father)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, father, true);
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;

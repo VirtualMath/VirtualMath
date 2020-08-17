@@ -107,6 +107,7 @@ Statement *makeClassStatement(Statement *name, Statement *function, Parameter *p
     tmp->u.set_class.name = name;
     tmp->u.set_class.st = function;
     tmp->u.set_class.father = pt;
+    tmp->u.set_class.decoration = NULL;
     return tmp;
 }
 
@@ -116,6 +117,7 @@ Statement *makeFunctionStatement(Statement *name, Statement *function, Parameter
     tmp->u.set_function.name = name;
     tmp->u.set_function.function = function;
     tmp->u.set_function.parameter = pt;
+    tmp->u.set_function.decoration = NULL;
     return tmp;
 }
 
@@ -313,11 +315,13 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.set_function.name);
                 freeStatement(st->u.set_function.function);
                 freeParameter(st->u.set_function.parameter, true);
+                freeDecorationStatement(st->u.set_function.decoration);
                 break;
             case set_class:
                 freeStatement(st->u.set_class.name);
                 freeStatement(st->u.set_class.st);
                 freeParameter(st->u.set_class.father, true);
+                freeDecorationStatement(st->u.set_class.decoration);
                 break;
             case call_function:
                 freeStatement(st->u.call_function.function);
@@ -418,7 +422,6 @@ void freeStatement(Statement *st){
 Statement *copyStatement(Statement *st){
     Statement *base_tmp = NULL;
     Statement **tmp = &base_tmp;
-
     for (PASS; st != NULL; st = st->next, tmp = &(*tmp)->next)
         *tmp = copyStatementCore(st);
     return base_tmp;
@@ -459,11 +462,13 @@ Statement *copyStatementCore(Statement *st){
             new->u.set_function.name = copyStatement(st->u.set_function.name);
             new->u.set_function.function = copyStatement(st->u.set_function.function);
             new->u.set_function.parameter = copyParameter(st->u.set_function.parameter);
+            new->u.set_function.decoration = copyDecorationStatement(st->u.set_function.decoration);
             break;
         case set_class:
             new->u.set_class.name = copyStatement(st->u.set_class.name);
             new->u.set_class.st = copyStatement(st->u.set_class.st);
             new->u.set_class.father = copyParameter(st->u.set_class.father);
+            new->u.set_class.decoration = copyDecorationStatement(st->u.set_class.decoration);
             break;
         case call_function:
             new->u.call_function.function = copyStatement(st->u.call_function.function);
@@ -591,8 +596,44 @@ void freeStatementList(StatementList *base){
 StatementList *copyStatementList(StatementList *sl){
     StatementList *base_tmp = NULL;
     StatementList **tmp = &base_tmp;
-
     for (PASS; sl != NULL; sl = sl->next, tmp = &(*tmp)->next)
         *tmp = makeStatementList(copyStatement(sl->condition), copyStatement(sl->var), copyStatement(sl->code), sl->type);
     return base_tmp;
+}
+
+DecorationStatement *makeDecorationStatement(){
+    DecorationStatement *tmp;
+    tmp = memCalloc(1, sizeof(DecorationStatement));
+    tmp->decoration = NULL;
+    tmp->next = NULL;
+    return tmp;
+}
+
+DecorationStatement *connectDecorationStatement(Statement *decoration, DecorationStatement *base){
+    DecorationStatement *tmp = makeDecorationStatement();
+    tmp->decoration = decoration;
+    tmp->next = base;
+    return tmp;
+}
+
+void freeDecorationStatement(DecorationStatement *base){
+    for (DecorationStatement *next; base != NULL; base = next) {
+        next = base->next;
+        freeStatement(base->decoration);
+        memFree(base);
+    }
+}
+
+DecorationStatement *copyDecorationStatement(DecorationStatement *ds){
+    DecorationStatement *base = NULL;
+    DecorationStatement **tmp = &base;
+    for (PASS; ds != NULL; tmp = &(*tmp)->next, ds = ds->next)
+        *tmp = copyDecorationStatementCore(ds);
+    return base;
+}
+
+DecorationStatement *copyDecorationStatementCore(DecorationStatement *base){
+    DecorationStatement *tmp = makeDecorationStatement();
+    tmp->decoration = copyStatement(base->decoration);
+    return tmp;
 }

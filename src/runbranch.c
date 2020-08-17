@@ -2,7 +2,7 @@
 
 bool checkNumber(INTER_FUNCTIONSIG){
     if (!isType(result->value->value, number)) {
-        setResultError(result, inter, "TypeException", "Don't get a number value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, father, true);
         return false;
     }
     return true;
@@ -10,7 +10,7 @@ bool checkNumber(INTER_FUNCTIONSIG){
 
 bool checkString(INTER_FUNCTIONSIG){
     if (!isType(result->value->value, string)) {
-        setResultError(result, inter, "TypeException", "Don't get a string value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a string value", st, father, true);
         return false;
     }
     return true;
@@ -240,14 +240,14 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
         if (_enter_ == NULL || _exit_ == NULL){
             _enter_ = NULL;
             _exit_ = NULL;
-            setResultError(result, inter, "EnterException", "Get Not Support Value to Enter with", st, father, true);
+            setResultErrorSt(result, inter, "EnterException", "Get Not Support Value to Enter with", st, father, true);
             set_result = false;
             goto not_else;
         }
 
         gc_addTmpLink(&_enter_->gc_status);
         gc_addTmpLink(&_exit_->gc_status);
-        callFunction(_enter_, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+        callBackCore(_enter_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
         if (!run_continue(result)){
             set_result = false;
             goto not_else;
@@ -281,7 +281,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
 
     popVarList(new);
     if (_exit_ != NULL && _enter_ != NULL) {
-        callFunction(_exit_, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
+        callBackCore(_exit_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
         if (!run_continue_type(exit_tmp.type)) {
             if (!set_result)
                 freeResult(result);
@@ -497,7 +497,7 @@ ResultType assertCode(INTER_FUNCTIONSIG){
     if (checkBool(result->value->value))
         setResult(result, inter, father);
     else
-        setResultError(result, inter, "AssertException", "Raise by user", st, father, true);
+        setResultErrorSt(result, inter, "AssertException", "Raise by user", st, father, true);
     return result->type;
 }
 

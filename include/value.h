@@ -125,11 +125,11 @@ Value *makeDictValue(struct Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_
 void setResultCore(Result *ru);
 void setResult(Result *ru, Inter *inter, LinkValue *father);
 void setResultBase(Result *ru, Inter *inter, LinkValue *father);
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father,
-                    bool new);
+void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father, bool new);
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *father, bool new);
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father);
-void setResultOperation(Result *ru, LinkValue *value, Inter *inter);
-void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter);
+void setResultOperation(Result *ru, LinkValue *value);
+void setResultOperationBase(Result *ru, LinkValue *value);
 void freeResult(Result *ru);
 void freeResultSafe(Result *ru);
 

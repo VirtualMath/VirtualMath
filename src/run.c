@@ -126,7 +126,7 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
             if (type == goto_return && result->times == 0){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
-                    setResultError(result, inter, "GotoException", "Don't find label", st, father, true);
+                    setResultErrorSt(result, inter, "GotoException", "Don't find label", st, father, true);
                     type = error_return;
                     break;
                 }
@@ -166,7 +166,7 @@ ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *in
             if (type == goto_return){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
-                    setResultError(result, inter, "GotoException", "Don't find label", st, father, true);
+                    setResultErrorSt(result, inter, "GotoException", "Don't find label", st, father, true);
                     type = error_return;
                     break;
                 }

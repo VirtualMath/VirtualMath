@@ -9,11 +9,10 @@
 int readChar(LexFile *file){
     if (file->back.is_back)
         file->back.is_back = false;
-    else {
+    else
         file->back.p = fgetc(file->file);
-        if (file->back.p == '\n')
-            file->line ++;
-    }
+    if (file->back.p == '\n')
+        file->line++;
     return file->back.p;
 }
 
@@ -23,6 +22,8 @@ int readChar(LexFile *file){
  */
 void backChar(LexFile *file){
     file->back.is_back = true;
+    if (file->back.p == '\n')
+        file->line --;
 }
 
 LexFile *makeLexFile(char *dir){

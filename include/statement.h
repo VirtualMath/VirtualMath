@@ -83,11 +83,13 @@ struct Statement{
             struct Statement *name;
             struct Statement *function;
             struct Parameter *parameter;
+            struct DecorationStatement *decoration;
         } set_function;
         struct {
             struct Statement *name;
             struct Statement *st;
             struct Parameter *father;
+            struct DecorationStatement *decoration;
         } set_class;
         struct {
             struct Statement *function;
@@ -197,9 +199,15 @@ struct StatementList{
     struct StatementList *next;
 };
 
+struct DecorationStatement {
+    struct Statement *decoration;
+    struct DecorationStatement *next;
+};
+
 typedef struct Token Token;
 typedef struct Statement Statement;
 typedef struct StatementList StatementList;
+typedef struct DecorationStatement DecorationStatement;
 
 Statement *makeStatement(long int line, char *file);
 void freeStatement(Statement *st);
@@ -242,5 +250,11 @@ StatementList *makeStatementList(Statement *condition, Statement *var, Statement
 StatementList *connectStatementList(StatementList *base, StatementList *new);
 void freeStatementList(StatementList *base);
 StatementList *copyStatementList(StatementList *sl);
+
+DecorationStatement *makeDecorationStatement();
+DecorationStatement *connectDecorationStatement(Statement *decoration, DecorationStatement *base);
+void freeDecorationStatement(DecorationStatement *base);
+DecorationStatement *copyDecorationStatement(DecorationStatement *ds);
+DecorationStatement *copyDecorationStatementCore(DecorationStatement *base);
 
 #endif //VIRTUALMATH_STATEMENT_H

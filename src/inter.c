@@ -114,7 +114,10 @@ void printLinkValueGC(char *tag, Inter *inter){
     LinkValue *base = inter->link_base;
     printf("%s\n", tag);
     while (base != NULL) {
-        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+        if (base->gc_status.tmp_link == 0)
+            fprintf(stdout, "inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+        else
+            fprintf(stderr, "inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
         printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
         printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
         printLinkValue(base, "value = ", "\n", stdout);

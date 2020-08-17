@@ -20,9 +20,9 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         Token *left_token = NULL;
         Token *right_token = NULL;
         Statement *st = NULL;
-        long int line = 0;
+        long int line;
 
-        if (readBackToken(pm) != self_type){
+        if (readBackToken(pm) != self_type) {
             if (!callChildStatement(CALLPASERSSIGNATURE, callBack, call_type, &st, NULL))
                 goto return_;
             addStatementToken(self_type, st, pm);

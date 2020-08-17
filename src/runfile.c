@@ -10,7 +10,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
         return result->type;
 
     if (!isType(result->value->value, string)){
-        setResultError(result, inter, "TypeException", "Don't get a string value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a string value", st, father, true);
         goto return_;
     }
 
@@ -18,7 +18,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     freeResult(result);
 
     if (checkFile(file_dir) != 1){
-        setResultError(result, inter, "IncludeFileException", "File is not readable", st, father, true);
+        setResultErrorSt(result, inter, "IncludeFileException", "File is not readable", st, father, true);
         goto return_;
     }
 
@@ -26,13 +26,13 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     pm = makeParserMessage(file_dir);
     parserCommandList(pm, inter, true, new_st);
     if (pm->status != success){
-        setResultError(result, inter, "IncludeSyntaxException", pm->status_message, st, father, true);
+        setResultErrorSt(result, inter, "IncludeSyntaxException", pm->status_message, st, father, true);
         goto return_;
     }
 
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result, father));
     if (!run_continue(result))
-        setResultError(result, inter, NULL, NULL, st, father, false);
+        setResultErrorSt(result, inter, NULL, NULL, st, father, false);
 
     return_:
     freeStatement(new_st);
@@ -49,14 +49,14 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
         goto return_;
 
     if (!isType(result->value->value, string)) {
-        setResultError(result, inter, "TypeException", "Don't get a string value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a string value", st, father, true);
         goto return_;
     }
 
     *file_dir = result->value->value->data.str.str;
     freeResult(result);
     if (checkFile(*file_dir) != 1) {
-        setResultError(result, inter, "ImportFileException", "File is not readable", st, father, true);
+        setResultErrorSt(result, inter, "ImportFileException", "File is not readable", st, father, true);
         goto return_;
     }
 
@@ -67,7 +67,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     parserCommandList(pm, import_inter, true, run_st);
     if (pm->status != success) {
         freeInter(import_inter, false);
-        setResultError(result, inter, "ImportSyntaxException", pm->status_message, st, father, true);
+        setResultErrorSt(result, inter, "ImportSyntaxException", pm->status_message, st, father, true);
         goto return_;
     }
 
@@ -75,7 +75,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     if (!run_continue(result)) {
         freeInter(import_inter, false);
         result->value = makeLinkValue(inter->base, father, inter);  // 重新设定none值
-        setResultError(result, inter, NULL, NULL, st, father, false);
+        setResultErrorSt(result, inter, NULL, NULL, st, father, false);
         goto return_;
     }
 
@@ -129,7 +129,7 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
 
     freeResult(result);
     if (pt != NULL) {
-        setParameter(pt, as, var_list, father, CALL_INTER_FUNCTIONSIG_NOT_ST(new_object, result, father));
+        setParameter(st->line, st->code_file, pt, as, var_list, father, CALL_INTER_FUNCTIONSIG_NOT_ST(new_object, result, father));
         if (!run_continue(result))
             goto return_;
     }

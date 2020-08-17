@@ -198,8 +198,12 @@ void setResultBase(Result *ru, Inter *inter, LinkValue *father) {
     gc_addTmpLink(&ru->value->gc_status);
 }
 
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father,
-                    bool new) {
+// TODO-szh findUseage调整为 setResultError
+void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father, bool new) {
+    setResultError(ru, inter, error_type, error_message, st->line, st->code_file, father, new);
+}
+
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *father, bool new) {
     if (!new && ru->type != error_return)
         return;
     if (new) {
@@ -210,7 +214,7 @@ void setResultError(Result *ru, Inter *inter, char *error_type, char *error_mess
         error_type = NULL;
         error_message = NULL;
     }
-    ru->error = connectError(makeError(error_type, error_message, st->line, st->code_file), ru->error);
+    ru->error = connectError(makeError(error_type, error_message, line, file), ru->error);
 }
 
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father) {
@@ -218,12 +222,12 @@ void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father) {
     ru->type = operation_return;
 }
 
-void setResultOperation(Result *ru, LinkValue *value, Inter *inter) {
+void setResultOperation(Result *ru, LinkValue *value) {
     freeResult(ru);
-    setResultOperationBase(ru, value, inter);
+    setResultOperationBase(ru, value);
 }
 
-void setResultOperationBase(Result *ru, LinkValue *value, Inter *inter) {
+void setResultOperationBase(Result *ru, LinkValue *value) {
     setResultCore(ru);
     ru->value = value;
     if (value != NULL)
@@ -382,7 +386,7 @@ FatherValue *freeFatherValue(FatherValue *value){
 
 FatherValue *connectFatherValue(FatherValue *base, FatherValue *back){
     FatherValue **tmp = &base;
-    for (tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
+    for (PASS; *tmp != NULL; tmp = &(*tmp)->next)
         PASS;
     *tmp = back;
     return base;
@@ -392,7 +396,7 @@ FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back){
     FatherValue **last_node = &base;
     if (back == NULL)
         goto reutrn_;
-    for (PASS; *last_node != NULL; )
+    for (PASS; *last_node != NULL;)
         if ((*last_node)->value->value == back->value->value)
             *last_node = freeFatherValue(*last_node);
         else

@@ -94,6 +94,9 @@ void parserCommand(PASERSSIGNATURE){
     Statement *st = NULL;
     token_type = readBackToken(pm);
     switch (token_type) {
+        case MATHER_AT :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserDecoration, DECORATION, &st, "Command: call decoration\n");
+            break;
         case MATHER_NONLOCAL :
         case MATHER_GLOBAL :
         case MATHER_DEFAULT :
@@ -185,6 +188,48 @@ void parserCommand(PASERSSIGNATURE){
     return_: return;
 }
 
+void parserDecoration(PASERSSIGNATURE){
+    Statement *st = NULL;
+    DecorationStatement *ds = NULL;
+    int tmp;
+    long int line = 0;
+    while ((tmp = readBackToken(pm)) == MATHER_AT || tmp == MATHER_ENTER){
+        Statement *dst = NULL;
+        line = delToken(pm);
+        if (tmp == MATHER_ENTER)
+            continue;
+        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &dst, "Don't get a decoration operation"))
+            goto error_;
+        ds = connectDecorationStatement(dst, ds);
+    }
+    if (tmp!= MATHER_CLASS && tmp != MATHER_DEF) {
+        syntaxError(pm, syntax_error, line, 1, "Don't get a decoration object");
+        goto error_;
+    }
+    if (!callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Don't get a decoration object"))
+        goto error_;
+    if (tmp == MATHER_CLASS)
+        st->u.set_class.decoration = ds;
+    else
+        st->u.set_function.decoration = ds;
+    addStatementToken(DECORATION, st, pm);
+    return;
+
+    error_:
+    freeDecorationStatement(ds);
+    return;
+}
+
+/**
+ * label语句匹配
+ * parserLabel:
+ * | MATHER_LABEL MATHER_COLON MATHER_STRING(MATHER_VAR) stop_token [缺省所有参数]
+ * | MATHER_LABEL MATHER_COLON MATHER_STRING(MATHER_VAR) MATHER_AS parserOperation stop_token [缺省command参数]
+ * | MATHER_LABEL MATHER_COLON MATHER_STRING(MATHER_VAR) MATHER_COLON parserOperation stop_token
+ * | MATHER_LABEL MATHER_COLON MATHER_STRING(MATHER_VAR) MATHER_AS parserOperation MATHER_COLON parserOperation [缺省var参数]
+ * @param pm
+ * @param inter
+ */
 void parserLabel(PASERSSIGNATURE){
     Statement *st = NULL;
     Statement *var = NULL;
@@ -210,9 +255,9 @@ void parserLabel(PASERSSIGNATURE){
             goto error_;
     }
 
-    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)  // 匹配到stop_token则label后参数缺省
         goto make;
-    if (tmp != MATHER_COLON) {
+    if (tmp != MATHER_COLON) {  // 匹配到 ： 则label的times参数缺省
         if (!checkToken(pm, MATHER_AS)) {
             syntaxError(pm, syntax_error, line, 1, "Don't get as afther goto label");
             goto error_;
@@ -220,7 +265,7 @@ void parserLabel(PASERSSIGNATURE){
             goto error_;
     }
 
-    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)  // 如匹配到stop_token则label的command参数缺省
         goto make;
     else if (!checkToken(pm, MATHER_COLON)){
         syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto var");
@@ -242,6 +287,14 @@ void parserLabel(PASERSSIGNATURE){
     return;
 }
 
+/**
+ * goto语句匹配
+ * parserGoto:
+ * | MATHER_GOTO MATHER_AT parserOperation stop_token [缺省所有参数]
+ * | MATHER_GOTO MATHER_AT parserOperation MATHER_COLON parserOperation stop_token [缺省return_参数]
+ * | MATHER_GOTO MATHER_AT parserOperation MATHER_COLON parserOperation MATHER_COLON parserOperation
+ * | MATHER_GOTO MATHER_AT parserOperation MATHER_COLON MATHER_COLON parserOperation [缺省times参数]
+ */
 void parserGoto(PASERSSIGNATURE){
     Statement *st = NULL;
     Statement *label = NULL;
@@ -257,16 +310,16 @@ void parserGoto(PASERSSIGNATURE){
     if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &label, "Don't get a goto times"))
         goto error_;
 
-    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)  // 如匹配到stop_token则goto后面参数缺省
         goto make;
     else if (!checkToken(pm, MATHER_COLON)){
         syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto label");
         goto error_;
     }
     else if (!checkToken(pm, MATHER_COLON) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &times, "Don't get a goto times"))
-        goto error_;
+        goto error_;  // 若再次匹配到 MATHER_COLON 则表示goto的times参数缺省
 
-    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)
+    if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)  // 如匹配到stop_token则goto的return_参数缺省
         goto make;
     else if (times != NULL && !checkToken(pm, MATHER_COLON)){
         syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto times");
@@ -923,7 +976,6 @@ void parserOperation(PASERSSIGNATURE){
     Statement *operation_st = NULL;
     if (!callChildStatement(CALLPASERSSIGNATURE, parserAssignment, ASSIGNMENT, &operation_st, NULL))
         goto return_;
-
     addStatementToken(OPERATION, operation_st, pm);
     return_:
     return;

@@ -106,10 +106,8 @@ Parameter *copyenOneParameter(Parameter *base){
 Parameter *copyParameter(Parameter *base){
     Parameter *base_tmp = NULL;
     Parameter **tmp = &base_tmp;
-
     for (PASS; base != NULL; tmp = &(*tmp)->next,base = base->next)
         *tmp = copyenOneParameter(base);
-
     return base_tmp;
 }
 
@@ -306,17 +304,18 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
                 value = result->value;
                 goto not_return;
             }
-            setResultError(result, inter, "ArgumentException", "Too less Argument", name, father, true);
+            setResultErrorSt(result, inter, "ArgumentException", "Too less Argument", name, father, true);
             goto reutnr_;
         }
         else if ((name->aut == public_aut || name->aut == auto_aut) && (value->aut != public_aut && value->aut != auto_aut)) {
-            setResultError(result, inter, "PermissionsException", "Wrong Permissions: access Argument as public", name,
-                           father, true);
+            setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access Argument as public",
+                             name,
+                             father, true);
             goto reutnr_;
         }
         else if ((name->aut == protect_aut) && (value->aut == private_aut)) {
-            setResultError(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect",
-                           name, father, true);
+            setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect",
+                             name, father, true);
             goto reutnr_;
         }
 
@@ -444,7 +443,7 @@ Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) 
  * @param var_list
  * @return
  */
-ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType setParameter(long int line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *call = NULL;
     setResultCore(result);
     call = getArgument(call_base, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
@@ -454,12 +453,12 @@ ResultType setParameter(Parameter *call_base, Parameter *function_base, VarList 
     }
 
     freeResult(result);
-    setParameterCore(call, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_father));
+    setParameterCore(line, file, call, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_father));
     freeArgument(call, false);
     return result->type;
 }
 
-ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *function_var,
+ResultType setParameterCore(long int line, char *file, Argument *call, Parameter *function_base, VarList *function_var,
                         INTER_FUNCTIONSIG_NOT_ST) {
     Parameter *function = NULL;
     Parameter *tmp_function = NULL;  // 释放使用
@@ -554,7 +553,7 @@ ResultType setParameterCore(Argument *call, Parameter *function_base, VarList *f
             }
             case error:
             error_:  // Statement 处理
-                setResultError(result, inter, "ArgumentException", "Set Argument error", 0, father, true);
+                setResultError(result, inter, "ArgumentException", "Set Argument error", line, file, father, true);
                 goto return_;
             default:
                 goto break_;
