@@ -6,7 +6,10 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *
     setGC(&tmp->gc_status);
     tmp->type = object_;
     tmp->gc_next = NULL;
-    tmp->object.var = object == NULL ? makeObjectVarList(father, inter) : object;
+
+    if (inter->data.object != NULL && father == NULL)
+        father = makeFatherValue(makeLinkValue(inter->data.object, NULL, inter));
+    tmp->object.var = makeObjectVarList(father, inter, object);
     tmp->object.out_var = out_var;
     tmp->object.father = father;
 
@@ -291,10 +294,10 @@ void printValue(Value *value, FILE *debug){
             fprintf(debug, "'%s'", value->data.str.str);
             break;
         case function:
-            fprintf(debug, "function on <%p>", value);
+            fprintf(debug, "function");
             break;
         case list:
-            fprintf(debug, "list on <%p> size : %d  [ ", value, (int)value->data.list.size);
+            fprintf(debug, "list on size : %d  [ ", (int)value->data.list.size);
             for (int i=0;i < value->data.list.size;i++){
                 if (i > 0)
                     fprintf(debug, ", ", NULL);
@@ -306,7 +309,7 @@ void printValue(Value *value, FILE *debug){
         case dict: {
             Var *tmp = NULL;
             bool print_comma = false;
-            fprintf(debug, "dict on <%p> size : %d  { ", value, (int) value->data.dict.size);
+            fprintf(debug, "dict size : %d  { ", (int) value->data.dict.size);
             for (int i = 0; i < MAX_SIZE; i++) {
                 for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
                     if (print_comma)
@@ -325,10 +328,10 @@ void printValue(Value *value, FILE *debug){
             fprintf(debug, "<None>", NULL);
             break;
         case class:
-            fprintf(debug, "class on <%p>", value);
+            fprintf(debug, "class");
             break;
         case object_:
-            fprintf(debug, "object on <%p>", value);
+            fprintf(debug, "object");
             break;
         case bool_:
             if (value->data.bool_.bool_)
@@ -340,9 +343,15 @@ void printValue(Value *value, FILE *debug){
             fprintf(debug, "...");
             break;
         default:
-            fprintf(debug, "default on <%p>", value);
+            fprintf(debug, "unknow");
             break;
     }
+    fprintf(debug, "(");
+    printf("<%p>", value);
+    for (FatherValue *fv = value->object.father; fv != NULL; fv = fv->next)
+        printLinkValue(fv->value, " -> ", "", debug);
+    fprintf(debug, ")");
+
 }
 
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){

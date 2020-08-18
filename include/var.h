@@ -60,7 +60,7 @@ VarList *copyVarList(VarList *base, bool n_new, Inter *inter);
 VarList *connectVarListBack(VarList *base, VarList *back);
 bool comparVarList(VarList *dest, VarList *src);
 VarList *connectSafeVarListBack(VarList *base, VarList *back);
-VarList *makeObjectVarList(FatherValue *value, Inter *inter);
+VarList *makeObjectVarList(FatherValue *value, Inter *inter, VarList *base);
 
 NUMBER_TYPE findDefault(DefaultVar *base, char *name);
 DefaultVar *connectDefaultVar(DefaultVar *base, char *name, NUMBER_TYPE times);

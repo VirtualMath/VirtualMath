@@ -29,12 +29,17 @@ Inter *makeInter(char *debug, LinkValue *father) {
     }
 
     makeBaseObject(tmp);
+
     tmp->data.none = makeNoneValue(tmp);
     gc_addStatementLink(&tmp->data.none->gc_status);
 
-    base_father = makeLinkValue(makeObject(tmp, copyVarList(tmp->var_list, false, tmp), NULL, NULL), father, tmp);
-    gc_addStatementLink(&base_father->gc_status);
-    tmp->base_father = base_father;
+    {
+        VarList *out_var = copyVarList(tmp->var_list, false, tmp);
+        Value *base_father_value = makeObject(tmp, out_var, NULL, NULL);
+        base_father = makeLinkValue(base_father_value, father, tmp);
+        gc_addStatementLink(&base_father->gc_status);
+        tmp->base_father = base_father;
+    }
 
     registeredBaseFunction(base_father, tmp);
     return tmp;

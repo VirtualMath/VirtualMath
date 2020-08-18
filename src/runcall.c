@@ -154,9 +154,13 @@ ResultType callClass(LinkValue *class_value, Parameter *parameter, long int line
     LinkValue *_init_ = NULL;
     setResultCore(result);
 
-    value = makeLinkValue(makeObject(inter, NULL,copyVarList(class_value->value->object.out_var, false, inter),
-                          setFatherCore(makeFatherValue(class_value))), father, inter);
-    setResultOperation(result, value);
+    {
+        FatherValue *father_value = setFatherCore(makeFatherValue(class_value));
+        VarList *new_var = copyVarList(class_value->value->object.out_var, false, inter);
+        Value *new_object = makeObject(inter, NULL, new_var, father_value);
+        value = makeLinkValue(new_object, father, inter);
+        setResultOperation(result, value);
+    }
 
     char *init_name = setStrVarName(inter->data.object_init, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     _init_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));

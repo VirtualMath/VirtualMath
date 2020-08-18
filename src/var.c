@@ -265,8 +265,8 @@ VarList *connectSafeVarListBack(VarList *base, VarList *back){
     return base;
 }
 
-VarList *makeObjectVarList(FatherValue *value, Inter *inter){
-    VarList *tmp = makeVarList(inter, true);
+VarList *makeObjectVarList(FatherValue *value, Inter *inter, VarList *base) {
+    VarList *tmp = base == NULL ? makeVarList(inter, true) : base;
     for (PASS; value != NULL; value = value->next) {
         VarList *new = copyVarList(value->value->value->object.var, false, inter);
         tmp = connectVarListBack(tmp, new);

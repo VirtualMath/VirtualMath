@@ -100,7 +100,11 @@ ResultType importFile(INTER_FUNCTIONSIG) {
         goto return_;
 
     freeResult(result);
-    import_value = makeLinkValue(makeObject(inter, new_object, copyVarList(var_list, false, inter), NULL), father, inter);
+    {
+        VarList *import_var = copyVarList(var_list, false, inter);
+        Value *import_obj = makeObject(inter, new_object, import_var, NULL);
+        import_value = makeLinkValue(import_obj, father, inter);
+    }
     if (st->u.import_file.as != NULL)
         assCore(st->u.import_file.as, import_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     else {
