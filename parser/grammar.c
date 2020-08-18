@@ -55,13 +55,13 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
                 delToken(pm);
             else  if(stop != MATHER_EOF){
                 if (global) {
-                    fprintf(stderr, "stop = %d\n", stop);
                     Token *tk = popNewToken(pm->tm);
                     freeToken(tk, true);
                     syntaxError(pm, command_list_error, command_token->line, 1, "ERROR from parserCommand list(get stop)");
                     freeToken(command_token, true);
                 }
                 else{
+                    printf("stop = %d\n", stop);
                     connectStatement(st, command_token->data.st);
                     freeToken(command_token, false);
                 }
@@ -447,16 +447,22 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
     Token *tmp = NULL;
     long int line = delToken(pm);
     parserOperation(CALLPASERSSIGNATURE);
-    if (!call_success(pm) || readBackToken(pm) != OPERATION && must_operation){
-        syntaxError(pm, syntax_error, line, 1, message);
-        goto return_;
+    if (!call_success(pm))
+        goto error;
+    else if (readBackToken(pm) == OPERATION){
+        tmp = popNewToken(pm->tm);
+        opt = tmp->data.st;
+        freeToken(tmp, false);
     }
-    tmp = popNewToken(pm->tm);
-    opt = tmp->data.st;
-    freeToken(tmp, false);
+    else if (must_operation)
+        goto error;
+
     st = callBack(opt, line, pm->file);
     addStatementToken(type, st, pm);
-    return_:
+    return;
+
+    error:
+    syntaxError(pm, syntax_error, line, 1, message);
     return;
 }
 
@@ -960,7 +966,6 @@ void parserCode(PASERSSIGNATURE) {
         goto error_;
 
     if (!checkToken(pm, MATHER_RC)) {
-        printf("tk = %d\n", readBackToken(pm));
         syntaxError(pm, syntax_error, line, 1, "Don't get the }");  // 使用{的行号
         goto error_;
     }
