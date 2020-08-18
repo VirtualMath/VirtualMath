@@ -81,9 +81,8 @@ LexMathers *makeMathers(int size){
 
 void freeMathers(LexMathers *mathers) {
     freeBase(mathers, return_);
-    for(int i=0;i < mathers->size; i++){
+    for(int i=0;i < mathers->size; i++)
         freeMather(mathers->mathers[i]);
-    }
     memFree(mathers->mathers);
     mathers->size = 0;
     memFree(mathers);

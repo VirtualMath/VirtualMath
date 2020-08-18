@@ -79,7 +79,7 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
     setResultCore(result);
 
     function_var = copyVarList(var_list, false, inter);
-    function_value = makeFunctionValue(st->u.set_function.function, st->u.set_function.parameter, function_var, inter);
+    function_value = makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, function_var, inter);
     tmp = makeLinkValue(function_value, father, inter);
     gc_addTmpLink(&tmp->gc_status);
     if (st->u.set_function.decoration != NULL){
@@ -110,7 +110,7 @@ ResultType setLambda(INTER_FUNCTIONSIG) {
 
     result->type = operation_return;
     function_var = copyVarList(var_list, false, inter);
-    function_value = makeFunctionValue(st->u.base_lambda.function, st->u.base_lambda.parameter, function_var, inter);
+    function_value = makeVMFunctionValue(st->u.base_lambda.function, st->u.base_lambda.parameter, function_var, inter);
     result->value = makeLinkValue(function_value, father, inter);
     gc_addTmpLink(&result->value->gc_status);
     return result->type;
@@ -119,8 +119,10 @@ ResultType setLambda(INTER_FUNCTIONSIG) {
 ResultType callBackCore(LinkValue *function_value, Parameter *parameter, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
-    if (function_value->value->type == function)
-        callFunction(function_value, parameter, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    if (function_value->value->type == function && function_value->value->data.function.type == vm_function)
+        callVMFunction(function_value, parameter, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    else if (function_value->value->type == function && function_value->value->data.function.type == c_function)
+        callCFunction(function_value, parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     else if (function_value->value->type == class)
         callClass(function_value, parameter, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     else{
@@ -195,7 +197,33 @@ Statement *getRunInfoStatement(Statement *funtion_st){  // TODO-szh 去除该函
     return funtion_st->info.node;
 }
 
-ResultType callFunction(LinkValue *function_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType callCFunction(LinkValue *function_value, Parameter *parameter, INTER_FUNCTIONSIG_NOT_ST){
+    VarList *function_var = NULL;
+    OfficialFunction of = NULL;
+    Argument *arg = NULL;
+    setResultCore(result);
+    gc_addTmpLink(&function_value->gc_status);
+    of = function_value->value->data.function.of;
+    function_var = function_value->value->object.out_var;
+    gc_freeze(inter, var_list, function_var, true);
+
+    gc_addTmpLink(&function_var->hashtable->gc_status);
+    arg = getArgument(parameter, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    gc_freeTmpLink(&function_var->hashtable->gc_status);
+    if (!run_continue(result))
+        goto return_;
+
+    freeResult(result);
+    of(CALL_OfficialFunction(function_value, arg, function_var, result, father));
+
+    return_:
+    freeArgument(arg, true);
+    gc_freeze(inter, var_list, function_var, false);
+    gc_freeTmpLink(&function_value->gc_status);
+    return result->type;
+}
+
+ResultType callVMFunction(LinkValue *function_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *function_var = NULL;
     Statement *funtion_st = NULL;
     bool yield_run = false;

@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     if (getArgs(argc, argv))
         goto args_error;
 
-    inter = makeInter(args.log_file);
+    inter = makeInter(args.log_file, NULL);
     for (int status=0; status == 0 && argv[optind] != NULL; optind++)
         status = runCodeBlock(argv[optind], inter);
     freeInter(inter, true);

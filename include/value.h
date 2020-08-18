@@ -43,8 +43,13 @@ struct Value{
             char *str;
         } str;
         struct Function{
+            enum{
+                c_function,
+                vm_function,
+            } type;
             struct Statement *function;
             struct Parameter *pt;
+            OfficialFunction of;
         } function;
         struct List{
             enum ListType{
@@ -126,7 +131,8 @@ Value *makeBoolValue(bool bool_num, Inter *inter);
 Value *makePassValue(Inter *inter);
 Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
-Value *makeFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
+Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
+Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter);
 Value *makeClassValue(VarList *var_list, Inter *inter, FatherValue *father);
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
 Value *makeDictValue(struct Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST);

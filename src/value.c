@@ -67,12 +67,25 @@ Value *makeStringValue(char *str, Inter *inter) {
     return tmp;
 }
 
-Value *makeFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
+Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
     Value *tmp;
     tmp = makeObject(inter, NULL, var_list, NULL);
     tmp->type = function;
+    tmp->data.function.type = vm_function;
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
+    tmp->data.function.of = NULL;
+    return tmp;
+}
+
+Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter) {
+    Value *tmp;
+    tmp = makeObject(inter, NULL, copyVarList(var_list, false, inter), NULL);
+    tmp->type = function;
+    tmp->data.function.type = c_function;
+    tmp->data.function.function = NULL;
+    tmp->data.function.pt = NULL;
+    tmp->data.function.of = of;
     return tmp;
 }
 

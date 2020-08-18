@@ -245,7 +245,7 @@ bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Stat
  * @param ass 设定赋值符号
  * @return
  */
-bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_list, bool is_dict, int sep,
+bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict, int sep,
                      int ass) {
     Parameter *new_pt = NULL;
     Token *tmp;
@@ -257,7 +257,8 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
         s_4,  // name_args模式
     } status;
 
-    lexEnter(pm, true);
+    if (enter)
+        lexEnter(pm, true);
     if (is_dict && !is_list)
         status = s_2;  // is_formal关闭对only_value的支持
     else
@@ -269,7 +270,6 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
             status = s_3;
         else if (!is_list && checkToken(pm, MATHER_POW))  // is_formal关闭对*args的支持
             status = s_4;
-
         parserPolynomial(CALLPASERSSIGNATURE);
         if (!call_success(pm))
             goto error_;
@@ -282,7 +282,6 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
             break;
         }
         tmp = popNewToken(pm->tm);
-
         int pt_type = value_par;
         if (status == s_1){
             if (!checkToken(pm, sep)){
@@ -337,14 +336,16 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool is_formal, bool is_li
         freeToken(tmp, false);
     }
     *pt = new_pt;
-    lexEnter(pm, false);
+    if (enter)
+        lexEnter(pm, false);
     return true;
 
     error_:
     freeToken(tmp, true);
     freeParameter(new_pt, true);
     *pt = NULL;
-    lexEnter(pm, false);
+    if (enter)
+        lexEnter(pm, false);
     return false;
 }
 

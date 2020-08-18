@@ -233,7 +233,8 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
         Value *function_value = NULL;
         LinkValue *tmp = NULL;
         function_var = copyVarList(var_list, false, inter);
-        function_value = makeFunctionValue(st->u.operation.right, st->u.operation.left->u.call_function.parameter, function_var, inter);
+        function_value = makeVMFunctionValue(st->u.operation.right, st->u.operation.left->u.call_function.parameter,
+                                             function_var, inter);
         tmp = makeLinkValue(function_value, father, inter);
         assCore(st->u.operation.left->u.call_function.function, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     }

@@ -28,7 +28,7 @@ void runCode(Statement *st, Inter *inter) {
     Result result;
     ResultType type;
     setResultCore(&result);
-    type = globalIterStatement(&result, NULL, inter, st);
+    type = globalIterStatement(&result, inter, st);
     if (type == error_return)
         printError(&result, inter, true);
     freeResult(&result);

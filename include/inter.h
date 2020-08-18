@@ -8,6 +8,7 @@ struct Inter{
     struct LinkValue *link_base;
     struct HashTable *hash_base;
     struct Var *base_var;
+    struct LinkValue *base_father;
 
     struct VarList *var_list;
     struct InterData{
@@ -26,7 +27,7 @@ struct Inter{
 typedef struct Inter Inter;
 typedef struct Statement Statement;
 
-Inter *makeInter(char *debug);
+Inter *makeInter(char *debug, struct LinkValue *father);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
 int runCodeBlock(char *code_file, Inter *inter);

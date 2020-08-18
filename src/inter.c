@@ -1,8 +1,9 @@
 #include "__virtualmath.h"
 
-Inter *makeInter(char *debug) {
+Inter *makeInter(char *debug, LinkValue *father) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
     Value *none_value = NULL;
+    LinkValue *base_father = NULL;
     setBaseInterData(tmp);
     tmp->base = NULL;
     tmp->link_base = NULL;
@@ -29,6 +30,12 @@ Inter *makeInter(char *debug) {
     }
     none_value = makeNoneValue(tmp);  // 注册None值
     gc_addStatementLink(&none_value->gc_status);
+
+    base_father = makeLinkValue(makeObject(tmp, copyVarList(tmp->var_list, false, tmp), NULL, NULL), father, tmp);
+    gc_addStatementLink(&base_father->gc_status);
+    tmp->base_father = base_father;
+
+    registeredBaseFunction(base_father, tmp);
     return tmp;
 }
 
@@ -58,6 +65,9 @@ void freeBaseInterData(struct Inter *inter){
 
 void freeInter(Inter *inter, bool show_gc) {
     freeBase(inter, return_);
+
+    gc_freeStatementLink(&inter->base_father->gc_status);
+    inter->base_father = NULL;
 
     freeVarList(inter->var_list);
     freeBaseInterData(inter);
@@ -89,6 +99,8 @@ void mergeInter(Inter *new, Inter *base){
     LinkValue **base_linkValue = NULL;
     HashTable **base_hash = NULL;
     Var **base_var = NULL;
+    gc_freeStatementLink(&new->base_father->gc_status);
+    new->base_father = NULL;
 
     for (base_value = &base->base; *base_value != NULL; base_value = &(*base_value)->gc_next)
             PASS;
@@ -168,4 +180,38 @@ void printHashTableGC(char *tag, Inter *inter){
         base = base->gc_next;
     }
     printf("printHashTableGC TAG : END\n");
+}
+
+void printToken(Token *tk) {
+    if (tk->token_type >= 0) {
+        char *tmp = tk->data.str, *second_tmp = tk->data.second_str;
+        if (!strcmp(tmp, "\n")) {
+            tmp = "\\n";
+        }
+        if (!strcmp(second_tmp, "\n")) {
+            second_tmp = "\\n";
+        }
+        if (tmp[0] == EOF) {
+            tmp = "(EOF)";
+        }
+        printf("<token str = ('%s','%s'), type = %d>", tmp, second_tmp, tk->token_type);
+    }
+    else{
+        printf("<token statement, type = %d>", tk->token_type);
+    }
+
+}
+
+void printTokenStream(TokenStream *ts) {
+    printf("token_list: ");
+    Token *tmp = ts->token_list;
+    int i = 0;
+    while (tmp != NULL){
+        if (i > 0)
+            printf("-");
+        printToken(tmp);
+        tmp = tmp->next;
+        i++;
+    }
+    printf("\n");
 }

@@ -61,7 +61,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     }
 
 
-    import_inter = makeInter(NULL);
+    import_inter = makeInter(NULL, father);
     pm = makeParserMessage(*file_dir);
     run_st = makeStatement(0, *file_dir);
     parserCommandList(pm, import_inter, true, run_st);
@@ -71,7 +71,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
         goto return_;
     }
 
-    globalIterStatement(result, father, import_inter, run_st);
+    globalIterStatement(result, import_inter, run_st);
     if (!run_continue(result)) {
         freeInter(import_inter, false);
         result->value = makeLinkValue(inter->base, father, inter);  // 重新设定none值

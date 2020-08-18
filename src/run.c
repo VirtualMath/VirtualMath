@@ -31,8 +31,6 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
             break;
         case operation:
             type = operationStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
-            if (run_continue_type(type))
-                printLinkValue(result->value, "operation result = ", "\n", inter->data.debug);
             break;
         case set_class:
             type = setClass(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
@@ -158,8 +156,9 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
  * @param inter
  * @return
  */
-ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *inter, Statement *st) {
-    LinkValue *father = makeLinkValue(makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL), base_father, inter);
+ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
+    LinkValue *father = inter->base_father;
+    gc_addTmpLink(&father->gc_status);
     Statement *base_st = NULL;
     VarList *var_list = NULL;
     enum ResultType type;
@@ -189,6 +188,7 @@ ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *in
     if (type != error_return && type != function_return)
         setResultOperationNone(result, inter, father);
     result->node = base_st;
+    gc_freeTmpLink(&father->gc_status);
     gc_run(inter, 1, 0, 0, var_list);
     return result->type;
 }
@@ -199,10 +199,8 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
     if (run_continue_type(type))
         return false;
-    else if (type != return_code && type != error_return) {
-        printf("type = %d\n", type);
+    else if (type != return_code && type != error_return)
         setResultErrorSt(result, inter, "ResultException", "Get Not Support Result", st, father, true);
-    }
     return true;
 }
 

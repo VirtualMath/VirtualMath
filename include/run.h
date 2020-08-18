@@ -15,7 +15,7 @@ typedef struct Parameter Parameter;
 typedef struct DecorationStatement DecorationStatement;
 typedef ResultType (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
 
-ResultType globalIterStatement(Result *result, LinkValue *base_father, Inter *inter, Statement *st);
+ResultType globalIterStatement(Result *result, Inter *inter, Statement *st);
 bool operationSafeInterStatement(INTER_FUNCTIONSIG);
 bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool functionSafeInterStatement(INTER_FUNCTIONSIG);
@@ -31,7 +31,8 @@ ResultType setLambda(INTER_FUNCTIONSIG);
 ResultType callBack(INTER_FUNCTIONSIG);
 ResultType callBackCore(LinkValue *function_value, Parameter *parameter, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType callClass(LinkValue *class_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType callFunction(LinkValue *function_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType callVMFunction(LinkValue *function_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType callCFunction(LinkValue *function_value, Parameter *parameter, INTER_FUNCTIONSIG_NOT_ST);
 ResultType setDecoration(DecorationStatement *ds, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info);
 ResultType getBaseValue(INTER_FUNCTIONSIG);
