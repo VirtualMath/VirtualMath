@@ -1,12 +1,12 @@
-#include "__virtualmath.h"
+#include "__ofunc.h"
 
 ResultType vm_print(OfficialFunctionSig){
     setResultBase(result, inter, father);
-    if (arg == NULL){
+    if (arg == NULL || arg->next == NULL){
         setResultError(result, inter, "ArgumentException", "Don't get any Argument for print", 0, "sys", father, true);
         return error_return;
     }
-    for (PASS; arg != NULL; arg = arg->next)
+    for (arg = arg->next->next; arg != NULL; arg = arg->next)
         printValue(arg->data.value->value, stdout);
     printf("\n");
     return result->type;

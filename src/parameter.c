@@ -444,17 +444,21 @@ Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) 
  * @return
  */
 ResultType setParameter(long int line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
+    Argument *self_tmp = makeValueArgument(function_father);
+    Argument *father_tmp = makeValueArgument(function_father->father);
     Argument *call = NULL;
     setResultCore(result);
     call = getArgument(call_base, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    self_tmp->next = father_tmp;
+    father_tmp->next = call;
     if (!run_continue(result)) {
         freeArgument(call, false);
         return result->type;
     }
 
     freeResult(result);
-    setParameterCore(line, file, call, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_father));
-    freeArgument(call, false);
+    setParameterCore(line, file, self_tmp, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_father));
+    freeArgument(self_tmp, false);
     return result->type;
 }
 

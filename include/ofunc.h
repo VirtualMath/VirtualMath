@@ -14,8 +14,7 @@ struct NameFunc{
 };
 typedef struct NameFunc NameFunc;
 
-void registeredFunctionCore(OfficialFunction of, char *name, struct LinkValue *father, INTER_FUNCTIONSIG_CORE);
-void iterNameFunc(NameFunc list[],struct LinkValue *father, INTER_FUNCTIONSIG_CORE);
+
 void registeredBaseFunction(struct LinkValue *father, Inter *inter);
 
 #endif //VIRTUALMATH_OFUNC_H

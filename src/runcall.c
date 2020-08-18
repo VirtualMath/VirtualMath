@@ -165,7 +165,7 @@ ResultType callClass(LinkValue *class_value, Parameter *parameter, long int line
     if (_init_ != NULL){
         Result _init_result;
         setResultCore(&_init_result);
-
+        _init_->father = value;
         gc_addTmpLink(&_init_->gc_status);
         callBackCore(_init_, parameter, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
         gc_freeTmpLink(&_init_->gc_status);
@@ -200,6 +200,8 @@ Statement *getRunInfoStatement(Statement *funtion_st){  // TODO-szh 去除该函
 ResultType callCFunction(LinkValue *function_value, Parameter *parameter, INTER_FUNCTIONSIG_NOT_ST){
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
+    Argument *self_tmp = makeValueArgument(function_value);
+    Argument *father_tmp = makeValueArgument(function_value->father);
     Argument *arg = NULL;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
@@ -209,15 +211,17 @@ ResultType callCFunction(LinkValue *function_value, Parameter *parameter, INTER_
 
     gc_addTmpLink(&function_var->hashtable->gc_status);
     arg = getArgument(parameter, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    self_tmp->next = father_tmp;
+    father_tmp->next = arg;
     gc_freeTmpLink(&function_var->hashtable->gc_status);
     if (!run_continue(result))
         goto return_;
 
     freeResult(result);
-    of(CALL_OfficialFunction(function_value, arg, function_var, result, father));
+    of(CALL_OfficialFunction(self_tmp, function_var, result, function_value));
 
     return_:
-    freeArgument(arg, true);
+    freeArgument(self_tmp, true);
     gc_freeze(inter, var_list, function_var, false);
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
