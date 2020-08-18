@@ -126,13 +126,12 @@ Statement *getRunInfoStatement(Statement *funtion_st){  // TODO-szh 去除该函
 ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
     setResultCore(result);
-    if (function_value->father != NULL)
-        tmp = makeValueArgument(function_value->father);
-    else{
+    if (function_value->father == NULL){
         setResultError(result, inter, "ArgumentException", "Don't get self", line, file, father, true);
         return error_return;
     }
-    tmp->next = makeValueArgument(function_value);
+    tmp = makeValueArgument(function_value);
+    tmp->next = makeValueArgument(function_value->father);
     tmp->next->next = *arg;
     *arg = tmp;
     setResultBase(result, inter, father);

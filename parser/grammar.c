@@ -960,6 +960,7 @@ void parserCode(PASERSSIGNATURE) {
         goto error_;
 
     if (!checkToken(pm, MATHER_RC)) {
+        printf("tk = %d\n", readBackToken(pm));
         syntaxError(pm, syntax_error, line, 1, "Don't get the }");  // 使用{的行号
         goto error_;
     }

@@ -3,9 +3,11 @@
 #include "__macro.h"
 #include "io.h"
 #include "object.h"
+#include "sys.h"
 
 struct Argument;
 struct VarList;
+struct FatherValue;
 typedef enum ResultType (*OfficialFunction)(OfficialFunctionSig);
 typedef void (*Registered)(RegisteredFunctionSig);
 

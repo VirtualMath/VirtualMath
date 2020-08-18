@@ -11,12 +11,8 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     if (!run_continue(result))
         goto error_;
 
-    freeResult(result);
-    class_father = setFather(call, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    class_father = setFather(call);
     freeArgument(call, true);
-    if (!run_continue(result))
-        goto error_;
-
     tmp = makeLinkValue(makeClassValue(copyVarList(var_list, false, inter), inter, class_father), father, inter);
     gc_addTmpLink(&tmp->gc_status);
 

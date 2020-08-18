@@ -70,6 +70,7 @@ Value *makeStringValue(char *str, Inter *inter) {
     return tmp;
 }
 
+
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
     Value *tmp;
     tmp = makeObject(inter, NULL, var_list, NULL);
@@ -285,7 +286,7 @@ void freeResultSafe(Result *ru){
     ru->error = NULL;
 }
 
-void printValue(Value *value, FILE *debug){
+void printValue(Value *value, FILE *debug, bool print_father) {
     switch (value->type){
         case number:
             fprintf(debug, "%"NUMBER_FORMAT"", value->data.num.num);
@@ -348,8 +349,11 @@ void printValue(Value *value, FILE *debug){
     }
     fprintf(debug, "(");
     printf("<%p>", value);
-//    for (FatherValue *fv = value->object.father; fv != NULL; fv = fv->next)
-//        printLinkValue(fv->value, " -> ", "", debug);
+    if (print_father)
+        for (FatherValue *fv = value->object.father; fv != NULL; fv = fv->next) {
+            printf(" -> ");
+            printValue(fv->value->value, debug, false);
+        }
     fprintf(debug, ")");
 
 }
@@ -363,7 +367,7 @@ void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
         fprintf(debug, " . ", NULL);
     }
     if (value->value != NULL)
-        printValue(value->value, debug);
+        printValue(value->value, debug, true);
     fprintf(debug, "%s", last);
 }
 
@@ -417,12 +421,20 @@ FatherValue *makeFatherValue(LinkValue *value){
     return tmp;
 }
 
-FatherValue *copyFatherValue(FatherValue *value){
+FatherValue *copyFatherValueCore(FatherValue *value){
     FatherValue *tmp;
     if (value == NULL)
         return NULL;
     tmp = makeFatherValue(value->value);
     return tmp;
+}
+
+FatherValue *copyFatherValue(FatherValue *value){
+    FatherValue *base = NULL;
+    FatherValue **tmp = &base;
+    for (PASS; value != NULL; value = value->next, tmp = &(*tmp)->next)
+        *tmp = copyFatherValueCore(value);
+    return base;
 }
 
 FatherValue *freeFatherValue(FatherValue *value){

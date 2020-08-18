@@ -7,7 +7,7 @@ ResultType vm_print(OfficialFunctionSig){
         return error_return;
     }
     for (arg = arg->next->next; arg != NULL; arg = arg->next)
-        printLinkValue(arg->data.value, "", "", stdout);
+        printValue(arg->data.value->value, stdout, true);
     printf("\n");
     return result->type;
 }

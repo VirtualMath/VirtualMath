@@ -2,6 +2,7 @@
 
 static Registered base_func_list[] = {registeredIOFunction,
                                       registeredObject,
+                                      registeredSysFunction,
                                       NULL};
 
 void registeredBaseFunction(struct LinkValue *father, Inter *inter){

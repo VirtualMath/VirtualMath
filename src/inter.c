@@ -158,7 +158,7 @@ void printValueGC(char *tag, Inter *inter){
         printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
         printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
         printf("value = ");
-        printValue(base, stdout);
+        printValue(base, stdout, true);
         printf("\n-------------------------------------------\n");
         base = base->gc_next;
     }

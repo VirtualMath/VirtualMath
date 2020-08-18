@@ -6,9 +6,13 @@ ResultType object_new_(OfficialFunctionSig){
     setResultCore(result);
 
     {
-        FatherValue *father_value = setFatherCore(makeFatherValue(arg->data.value));
-        VarList *new_var = copyVarList(arg->data.value->value->object.out_var, false, inter);
-        Value *new_object = makeObject(inter, NULL, new_var, father_value);
+        VarList *new_var = NULL;
+        Value *new_object = NULL;
+        Argument *father_arg = makeValueArgument(arg->next->data.value);
+        FatherValue *object_father = setFather(father_arg);
+        freeArgument(father_arg, true);
+        new_var = copyVarList(arg->next->data.value->value->object.out_var, false, inter);
+        new_object = makeObject(inter, NULL, new_var, object_father);
         value = makeLinkValue(new_object, father, inter);
         setResultOperation(result, value);
     }

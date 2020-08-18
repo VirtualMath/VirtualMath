@@ -216,7 +216,7 @@ ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUN
 
         value = result->value;
         freeResult(result);
-        assCore(function->data.name, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        assCore(function->data.name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
         if (!run_continue(result))
             goto return_;
     }
@@ -245,7 +245,7 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
             continue;
         }
         freeResult(result);
-        assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
         if (!run_continue(result))
             goto return_;
     }
@@ -279,7 +279,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
         get = true;
 
         if (function->type == kwargs_par){
-            value = makeLinkValue(makeDictValue(NULL, false, father, NULL, inter, var_list), father, inter);
+            value = makeLinkValue(makeDictValue(NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, NULL, father)), father, inter);
             value->value->data.dict.dict = var_list->hashtable;
             value->value->data.dict.size = max - *num;
             *status = true;
@@ -321,7 +321,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
 
         not_return:
         freeResult(result);
-        assCore(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
+        assCore(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, father));
 
         if (!run_continue(result)) {
             *function_ad = function;
@@ -356,7 +356,7 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
 
     for (PASS; call != NULL && function != NULL && (call->type == value_arg) && function->type != args_par; call = call->next, function = function->next){
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
-        assCore(name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
+        assCore(name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, father));
         if (!run_continue(result))
             goto return_;
         freeResult(result);
@@ -423,7 +423,7 @@ Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) 
     Argument *new_arg = NULL;
     freeResult(result);
 
-    iterParameter(call, &new_arg, is_dict, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    iterParameter(call, &new_arg, is_dict, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     return new_arg;
 }
 
@@ -448,7 +448,7 @@ ResultType setParameter(long int line, char *file, Parameter *call_base, Paramet
     Argument *father_tmp = makeValueArgument(function_father->father);
     Argument *call = NULL;
     setResultCore(result);
-    call = getArgument(call_base, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    call = getArgument(call_base, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     self_tmp->next = father_tmp;
     father_tmp->next = call;
     if (!run_continue(result)) {
@@ -457,7 +457,7 @@ ResultType setParameter(long int line, char *file, Parameter *call_base, Paramet
     }
 
     freeResult(result);
-    setParameterCore(line, file, self_tmp, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_father));
+    setParameterCore(line, file, self_tmp, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, function_father));
     freeArgument(self_tmp, false);
     return result->type;
 }
@@ -499,13 +499,13 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
         freeResult(result);
         switch (status) {
             case match_status: {
-                argumentToParameter(&call, &function, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+                argumentToParameter(&call, &function, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
                 returnResult(result);
                 break;
             }
             case default_status: {
                 NUMBER_TYPE num = 0;
-                defaultParameter(&function, &num, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
+                defaultParameter(&function, &num, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, father));
                 returnResult(result);
                 break;
             }
@@ -515,7 +515,7 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 bool dict_status = false;
                 VarList *tmp = pushVarList(var_list, inter);
 
-                argumentToVar(&call, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST (tmp, result, father));
+                argumentToVar(&call, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, father));
                 returnResult(result);
                 if (!run_continue(result)) {
                     popVarList(tmp);
@@ -523,7 +523,7 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 }
 
                 freeResult(result);
-                parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CALL_INTER_FUNCTIONSIG_NOT_ST (tmp, result, father));
+                parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, father));
                 if (!run_continue(result)) {
                     popVarList(tmp);
                     goto return_;
@@ -543,14 +543,14 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 else
                     freeResult(result);
 
-                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
+                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, father));
                 returnResult(result);
                 function = function->next;
                 break;
             }
             case space_kwargs:{
-                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, father, result, inter, var_list), father, inter);
-                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST (function_var, result, father));
+                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father)), father, inter);
+                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, father));
                 returnResult(result);
                 function = function->next;
                 break;
@@ -571,16 +571,13 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
     return result->type;
 }
 
-FatherValue *setFather(Argument *call, INTER_FUNCTIONSIG_NOT_ST) {
-    setResultCore(result);
-
+FatherValue *setFather(Argument *call) {
     FatherValue *father_tmp = NULL;
     for (Argument *tmp = call; tmp != NULL && tmp->type == value_arg; tmp = tmp->next)
         if (tmp->data.value->value->type == class) {
             father_tmp = connectFatherValue(father_tmp, makeFatherValue(tmp->data.value));
             father_tmp = connectFatherValue(father_tmp, copyFatherValue(tmp->data.value->value->object.father));
         }
-
     return setFatherCore(father_tmp);
 }
 

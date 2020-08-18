@@ -113,7 +113,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
             condition_value = result->value;
             freeResult(result);
             if (if_list->var != NULL) {
-                assCore(if_list->var, condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+                assCore(if_list->var, condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
                 if (!run_continue(result)){
                     set_result = false;
                     goto not_else;
@@ -252,7 +252,7 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         condition_value = result->value;
         freeResult(result);
         if (while_list->var != NULL){
-            assCore(while_list->var, condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+            assCore(while_list->var, condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
             if (!run_continue(result)){
                 set_result = false;
                 goto not_else;
@@ -414,7 +414,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             new = pushVarList(var_list, inter);
             enter_value = result->value;
             freeResult(result);
-            assCore(with_list->var, enter_value, CALL_INTER_FUNCTIONSIG_NOT_ST (new, result, father));
+            assCore(with_list->var, enter_value, CALL_INTER_FUNCTIONSIG_NOT_ST(new, result, father));
             if (!run_continue(result)) {
                 set_result = false;
                 popVarList(new);
@@ -563,7 +563,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     error_value = result->value;
     freeResult(result);
     if (except_list->var != NULL){
-        assCore(except_list->var, error_value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        assCore(except_list->var, error_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
         if (!run_continue(result)){
             set_result = false;
             goto not_else;

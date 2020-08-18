@@ -244,7 +244,7 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
         value = result->value;
 
         freeResult(result);
-        assCore(st->u.operation.left, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        assCore(st->u.operation.left, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     }
     return result->type;
 }
@@ -259,7 +259,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         Statement *tmp_st = makeBaseLinkValueStatement(value, name->line, name->code_file);
 
         pt = makeArgsParameter(tmp_st);
-        call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
         if (!run_continue(result)) {
             freeArgument(call, false);
             freeParameter(pt, true);
@@ -278,7 +278,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         freeParameter(pt, true);
     }
     else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
-        pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+        pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     else{
         char *str_name = NULL;
         int int_times = 0;
@@ -395,7 +395,7 @@ ResultType getList(INTER_FUNCTIONSIG) {
     Argument *at_tmp = NULL;
 
     setResultCore(result);
-    at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     at_tmp = at;
     if (!run_continue(result)){
         freeArgument(at_tmp, true);
@@ -414,7 +414,7 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     Argument *at_tmp = NULL;
 
     setResultCore(result);
-    at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, father));
+    at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     at_tmp = at;
     if (!run_continue(result)){
         freeArgument(at_tmp, false);
@@ -422,7 +422,7 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     }
 
     freeResult(result);
-    Value *tmp_value = makeDictValue(&at, true, father, result, inter, var_list);
+    Value *tmp_value = makeDictValue(&at, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     if (!run_continue(result)) {
         freeArgument(at_tmp, false);
         return result->type;
