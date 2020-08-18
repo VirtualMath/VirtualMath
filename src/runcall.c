@@ -27,6 +27,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     tmp->value->object.var->next = father_var;
     if (!run_continue(result))
         goto error_;
+
     freeResult(result);
     if (st->u.set_class.decoration != NULL){
         setDecoration(st->u.set_class.decoration, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
@@ -37,6 +38,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
         result->value = NULL;
         freeResult(result);
     }
+
     assCore(st->u.set_class.name, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     if (run_continue(result))
         setResult(result, inter, father);
@@ -149,39 +151,22 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, cha
 }
 
 ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *value = NULL;
-    LinkValue *_init_ = NULL;
+    LinkValue *_new_ = NULL;
     setResultCore(result);
 
-    {
-        FatherValue *father_value = setFatherCore(makeFatherValue(class_value));
-        VarList *new_var = copyVarList(class_value->value->object.out_var, false, inter);
-        Value *new_object = makeObject(inter, NULL, new_var, father_value);
-        value = makeLinkValue(new_object, father, inter);
-        setResultOperation(result, value);
-    }
-
-    char *init_name = setStrVarName(inter->data.object_init, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    _init_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+    char *init_name = setStrVarName(inter->data.object_new, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    _new_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(class_value->value->object.var));
     memFree(init_name);
 
-    if (_init_ != NULL){
-        Result _init_result;
-        setResultCore(&_init_result);
-        _init_->father = value;
-
-        gc_addTmpLink(&_init_->gc_status);
-        callBackCore(_init_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
-        gc_freeTmpLink(&_init_->gc_status);
-        if (!run_continue_type(_init_result.type)){
-            freeResult(result);
-            *result = _init_result;
-            goto return_;
-        }
-        freeResult(&_init_result);
+    if (_new_ != NULL){
+        _new_->father = class_value;
+        gc_addTmpLink(&_new_->gc_status);
+        callBackCore(_new_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        gc_freeTmpLink(&_new_->gc_status);
     }
+    else
+        setResultError(result, inter, "ClassException", "Don't find __new__", line, file, father, true);
 
-    return_:
     return result->type;
 }
 
@@ -200,7 +185,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
     gc_freeze(inter, var_list, function_var, true);
 
     freeResult(result);
-    of(CALL_OfficialFunction(arg, function_var, result, function_value));
+    of(CALL_OfficialFunction(arg, function_var, result, function_value->father));
 
     gc_freeze(inter, var_list, function_var, false);
     freeFunctionArgument(arg);
@@ -213,6 +198,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
 ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *function_var = NULL;
     Statement *funtion_st = NULL;
+    Parameter *func_pt = function_value->value->data.function.pt;
     bool yield_run = false;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
@@ -222,14 +208,13 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
 
     gc_freeze(inter, var_list, function_var, true);
 
-
     setFunctionArgument(&arg, function_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     if (!run_continue(result))
         goto return_;
 
     freeResult(result);
     gc_addTmpLink(&function_var->hashtable->gc_status);
-    setParameterCore(line, file, arg, function_value->value->data.function.pt, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_value));
+    setParameterCore(line, file, arg, func_pt, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, function_value->father));
     freeFunctionArgument(arg);
     gc_freeTmpLink(&function_var->hashtable->gc_status);
     if (!run_continue(result)) {
@@ -243,7 +228,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
     }
 
     freeResult(result);
-    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(funtion_st, function_var, result, function_value));
+    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(funtion_st, function_var, result, function_value->father));
     gc_freeze(inter, var_list, function_var, false);
 
     funtion_st = function_value->value->data.function.function;

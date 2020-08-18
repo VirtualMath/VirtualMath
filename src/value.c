@@ -348,8 +348,8 @@ void printValue(Value *value, FILE *debug){
     }
     fprintf(debug, "(");
     printf("<%p>", value);
-    for (FatherValue *fv = value->object.father; fv != NULL; fv = fv->next)
-        printLinkValue(fv->value, " -> ", "", debug);
+//    for (FatherValue *fv = value->object.father; fv != NULL; fv = fv->next)
+//        printLinkValue(fv->value, " -> ", "", debug);
     fprintf(debug, ")");
 
 }

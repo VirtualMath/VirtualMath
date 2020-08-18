@@ -54,6 +54,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_init = memStrcpy("__init__");
     inter->data.object_enter = memStrcpy("__enter__");
     inter->data.object_exit = memStrcpy("__exit__");
+    inter->data.object_new = memStrcpy("__new__");
 }
 
 void freeBaseInterData(struct Inter *inter){
@@ -65,6 +66,7 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_init);
     memFree(inter->data.object_enter);
     memFree(inter->data.object_exit);
+    memFree(inter->data.object_new);
 
     memFree(inter->data.log_dir);
     if (inter->data.log_dir != NULL) {
