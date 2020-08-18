@@ -1,27 +1,5 @@
 #include "__run.h"
 
-void newFunctionYield(Statement *funtion_st, Statement *node, VarList *new_var, Inter *inter){
-    new_var->next = NULL;
-    gc_freeze(inter, new_var, NULL, true);
-    funtion_st->info.var_list = new_var;
-    funtion_st->info.node = node->type == yield_code ? node->next : node;
-    funtion_st->info.have_info = true;
-}
-
-void updateFunctionYield(Statement *function_st, Statement *node){
-    function_st->info.node = node->type == yield_code ? node->next : node;
-    function_st->info.have_info = true;
-}
-
-void freeFunctionYield(Statement *function_st, Inter *inter){  // TODO-szh 去除该函数
-    function_st->info.var_list->next = NULL;
-    gc_freeze(inter, function_st->info.var_list, NULL, false);
-    freeVarList(function_st->info.var_list);
-    function_st->info.var_list = NULL;
-    function_st->info.have_info = false;
-    function_st->info.node = NULL;
-}
-
 ResultType setClass(INTER_FUNCTIONSIG) {
     Argument *call = NULL;
     LinkValue *tmp = NULL;
@@ -116,25 +94,6 @@ ResultType setLambda(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-ResultType callBackCore(LinkValue *function_value, Parameter *parameter, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    setResultCore(result);
-    gc_addTmpLink(&function_value->gc_status);
-    if (function_value->value->type == function && function_value->value->data.function.type == vm_function)
-        callVMFunction(function_value, parameter, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
-    else if (function_value->value->type == function && function_value->value->data.function.type == c_function)
-        callCFunction(function_value, parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
-    else if (function_value->value->type == class)
-        callClass(function_value, parameter, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
-    else{
-        setResultError(result, inter, "TypeException", "Object is not callable", line, file, father, true);
-        goto return_;
-    }
-    setResultError(result, inter, NULL, NULL, line, file, father, false);
-    return_:
-    gc_freeTmpLink(&function_value->gc_status);
-    return result->type;
-}
-
 ResultType callBack(INTER_FUNCTIONSIG) {
     LinkValue *function_value = NULL;
     setResultCore(result);
@@ -143,13 +102,53 @@ ResultType callBack(INTER_FUNCTIONSIG) {
     function_value = result->value;
     result->value = NULL;
     freeResult(result);
-    callBackCore(function_value, st->u.call_function.parameter, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+
+    callBackCorePt(function_value, st->u.call_function.parameter, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+
     gc_freeTmpLink(&function_value->gc_status);
     return_:
     return result->type;
 }
 
-ResultType callClass(LinkValue *class_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    Argument *arg = NULL;
+    setResultCore(result);
+    gc_addTmpLink(&function_value->gc_status);
+
+    arg = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    if (!run_continue(result))
+        goto return_;
+
+    freeResult(result);
+    callBackCore(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+
+    return_:
+    gc_freeTmpLink(&function_value->gc_status);
+    freeArgument(arg, true);
+    return result->type;
+}
+
+ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+    setResultCore(result);
+    gc_addTmpLink(&function_value->gc_status);
+    if (function_value->value->type == function && function_value->value->data.function.type == vm_function)
+        callVMFunction(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    else if (function_value->value->type == function && function_value->value->data.function.type == c_function)
+        callCFunction(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    else if (function_value->value->type == class)
+        callClass(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    else{
+        setResultError(result, inter, "TypeException", "Object is not callable", line, file, father, true);
+        goto return_;
+    }
+    setResultError(result, inter, NULL, NULL, line, file, father, false);
+
+    return_:
+    gc_freeTmpLink(&function_value->gc_status);
+    return result->type;
+}
+
+ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *value = NULL;
     LinkValue *_init_ = NULL;
     setResultCore(result);
@@ -170,10 +169,10 @@ ResultType callClass(LinkValue *class_value, Parameter *parameter, long int line
         Result _init_result;
         setResultCore(&_init_result);
         _init_->father = value;
-        gc_addTmpLink(&_init_->gc_status);
-        callBackCore(_init_, parameter, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
-        gc_freeTmpLink(&_init_->gc_status);
 
+        gc_addTmpLink(&_init_->gc_status);
+        callBackCore(_init_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
+        gc_freeTmpLink(&_init_->gc_status);
         if (!run_continue_type(_init_result.type)){
             freeResult(result);
             *result = _init_result;
@@ -186,52 +185,32 @@ ResultType callClass(LinkValue *class_value, Parameter *parameter, long int line
     return result->type;
 }
 
-bool popStatementVarList(Statement *funtion_st, VarList **function_var, VarList *out_var, Inter *inter){
-    bool yield_run;
-    if ((yield_run = funtion_st->info.have_info)) {
-        *function_var = funtion_st->info.var_list;
-        (*function_var)->next = out_var;
-    }
-    else
-        *function_var = pushVarList(out_var, inter);
-    return yield_run;
-}
-
-Statement *getRunInfoStatement(Statement *funtion_st){  // TODO-szh 去除该函数
-    return funtion_st->info.node;
-}
-
-ResultType callCFunction(LinkValue *function_value, Parameter *parameter, INTER_FUNCTIONSIG_NOT_ST){
+ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
-    Argument *self_tmp = makeValueArgument(function_value);
-    Argument *father_tmp = makeValueArgument(function_value->father);
-    Argument *arg = NULL;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
+
+    setFunctionArgument(&arg, function_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    if (!run_continue(result))
+        goto return_;
+
     of = function_value->value->data.function.of;
     function_var = function_value->value->object.out_var;
     gc_freeze(inter, var_list, function_var, true);
 
-    gc_addTmpLink(&function_var->hashtable->gc_status);
-    arg = getArgument(parameter, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
-    self_tmp->next = father_tmp;
-    father_tmp->next = arg;
-    gc_freeTmpLink(&function_var->hashtable->gc_status);
-    if (!run_continue(result))
-        goto return_;
-
     freeResult(result);
-    of(CALL_OfficialFunction(self_tmp, function_var, result, function_value));
+    of(CALL_OfficialFunction(arg, function_var, result, function_value));
+
+    gc_freeze(inter, var_list, function_var, false);
+    freeFunctionArgument(arg);
 
     return_:
-    freeArgument(self_tmp, true);
-    gc_freeze(inter, var_list, function_var, false);
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }
 
-ResultType callVMFunction(LinkValue *function_value, Parameter *parameter, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *function_var = NULL;
     Statement *funtion_st = NULL;
     bool yield_run = false;
@@ -242,9 +221,16 @@ ResultType callVMFunction(LinkValue *function_value, Parameter *parameter, long 
         funtion_st = getRunInfoStatement(funtion_st);
 
     gc_freeze(inter, var_list, function_var, true);
+
+
+    setFunctionArgument(&arg, function_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    if (!run_continue(result))
+        goto return_;
+
+    freeResult(result);
     gc_addTmpLink(&function_var->hashtable->gc_status);
-    setParameter(line, file, parameter, function_value->value->data.function.pt, function_var, function_value,
-                 CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    setParameterCore(line, file, arg, function_value->value->data.function.pt, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST (var_list, result, function_value));
+    freeFunctionArgument(arg);
     gc_freeTmpLink(&function_var->hashtable->gc_status);
     if (!run_continue(result)) {
         gc_freeze(inter, var_list, function_var, false);
@@ -255,27 +241,26 @@ ResultType callVMFunction(LinkValue *function_value, Parameter *parameter, long 
             popVarList(function_var);
         goto return_;
     }
+
     freeResult(result);
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(funtion_st, function_var, result, function_value));
-
     gc_freeze(inter, var_list, function_var, false);
+
     funtion_st = function_value->value->data.function.function;
-    if (yield_run) {
+    if (yield_run)
         if (result->type == yield_return){
             updateFunctionYield(funtion_st, result->node);
             result->type = operation_return;
         }
         else
             freeFunctionYield(funtion_st, inter);
-    }
-    else {
+    else
         if (result->type == yield_return){
             newFunctionYield(funtion_st, result->node, function_var, inter);
             result->type = operation_return;
         }
         else
             popVarList(function_var);
-    }
     return_:
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
@@ -293,12 +278,14 @@ ResultType setDecoration(DecorationStatement *ds, LinkValue *value, INTER_FUNCTI
         pt = makeValueParameter(makeBaseLinkValueStatement(value, ds->decoration->line, ds->decoration->code_file));
         decall = result->value;
         result->value = NULL;
+
         freeResult(result);
-        callBackCore(decall, pt, ds->decoration->line, ds->decoration->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        callBackCorePt(decall, pt, ds->decoration->line, ds->decoration->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
         gc_freeTmpLink(&decall->gc_status);
         freeParameter(pt, true);
         if (!run_continue(result))
             break;
+
         gc_freeTmpLink(&value->gc_status);
         value = result->value;
         gc_addTmpLink(&value->gc_status);

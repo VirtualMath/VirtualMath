@@ -2,7 +2,43 @@
 
 ResultType object_new_(OfficialFunctionSig){
     setResultBase(result, inter, father);
-    printf("object.__new__\n");
+//    LinkValue *value = NULL;
+//    LinkValue *_init_ = NULL;
+//    LinkValue *class_value = NULL;
+//    setResultCore(result);
+
+//    if (arg == NULL || arg->next == NULL)
+//        class_value = arg->next->data.value;
+//
+//    {
+//        FatherValue *father_value = setFatherCore(makeFatherValue(class_value));
+//        VarList *new_var = copyVarList(class_value->value->object.out_var, false, inter);
+//        Value *new_object = makeObject(inter, NULL, new_var, father_value);
+//        value = makeLinkValue(new_object, father, inter);
+//        setResultOperation(result, value);
+//    }
+//
+//    char *init_name = setStrVarName(inter->data.object_init, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+//    _init_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+//    memFree(init_name);
+//
+//    if (_init_ != NULL){
+//        Result _init_result;
+//        setResultCore(&_init_result);
+//        _init_->father = value;
+//        gc_addTmpLink(&_init_->gc_status);
+//        callBackCore(_init_, parameter, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
+//        gc_freeTmpLink(&_init_->gc_status);
+//
+//        if (!run_continue_type(_init_result.type)){
+//            freeResult(result);
+//            *result = _init_result;
+//            goto return_;
+//        }
+//        freeResult(&_init_result);
+//    }
+
+    return_:
     return result->type;
 }
 
