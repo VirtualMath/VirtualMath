@@ -318,7 +318,7 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
         pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
     else
         assCore(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
-    gc_freeze(inter, var_list, object, true);
+    gc_freeze(inter, var_list, object, false);
 
     freeResult(&left);
     return result->type;

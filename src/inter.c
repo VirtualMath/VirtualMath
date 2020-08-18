@@ -2,7 +2,6 @@
 
 Inter *makeInter(char *debug, LinkValue *father) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
-    Value *none_value = NULL;
     LinkValue *base_father = NULL;
     setBaseInterData(tmp);
     tmp->base = NULL;
@@ -28,8 +27,10 @@ Inter *makeInter(char *debug, LinkValue *father) {
         tmp->data.debug = stdout;
         tmp->data.error = stderr;
     }
-    none_value = makeNoneValue(tmp);  // 注册None值
-    gc_addStatementLink(&none_value->gc_status);
+
+    makeBaseObject(tmp);
+    tmp->data.none = makeNoneValue(tmp);
+    gc_addStatementLink(&tmp->data.none->gc_status);
 
     base_father = makeLinkValue(makeObject(tmp, copyVarList(tmp->var_list, false, tmp), NULL, NULL), father, tmp);
     gc_addStatementLink(&base_father->gc_status);
@@ -40,6 +41,8 @@ Inter *makeInter(char *debug, LinkValue *father) {
 }
 
 void setBaseInterData(struct Inter *inter){
+    inter->data.object = NULL;
+    inter->data.none = NULL;
     inter->data.var_str_prefix = memStrcpy("str_");
     inter->data.var_num_prefix = memStrcpy("num_");
     inter->data.var_defualt = memStrcpy("default_var");
@@ -49,6 +52,8 @@ void setBaseInterData(struct Inter *inter){
 }
 
 void freeBaseInterData(struct Inter *inter){
+    gc_freeStatementLink(&inter->data.none->gc_status);
+    gc_freeStatementLink(&inter->data.object->gc_status);
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
     memFree(inter->data.var_defualt);
@@ -99,8 +104,12 @@ void mergeInter(Inter *new, Inter *base){
     LinkValue **base_linkValue = NULL;
     HashTable **base_hash = NULL;
     Var **base_var = NULL;
+
     gc_freeStatementLink(&new->base_father->gc_status);
     new->base_father = NULL;
+
+    freeVarList(new->var_list);
+    freeBaseInterData(new);
 
     for (base_value = &base->base; *base_value != NULL; base_value = &(*base_value)->gc_next)
             PASS;
@@ -115,9 +124,6 @@ void mergeInter(Inter *new, Inter *base){
     *base_linkValue = new->link_base;
     *base_hash = new->hash_base;
     *base_var = new->base_var;
-
-    freeVarList(new->var_list);
-    freeBaseInterData(new);
     memFree(new);
 }
 

@@ -27,12 +27,12 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *
 
 Value *makeNoneValue(Inter *inter) {
     Value *tmp;
-    if (inter->base == NULL) {
+    if (inter->data.none == NULL) {
         tmp = makeObject(inter, NULL, NULL, NULL);
         tmp->type = none;
     }
     else
-        tmp = inter->base;
+        tmp = inter->data.none;
     return tmp;
 }
 

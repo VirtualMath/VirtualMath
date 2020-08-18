@@ -2,6 +2,7 @@
 #define VIRTUALMATH_OFUNC_H
 #include "__macro.h"
 #include "io.h"
+#include "object.h"
 
 struct Argument;
 struct VarList;
