@@ -169,6 +169,7 @@ ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char 
 ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
+    Argument *bak = arg;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
 
@@ -184,7 +185,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
     of(CALL_OfficialFunction(arg, function_var, result, function_value->father));
 
     gc_freeze(inter, var_list, function_var, false);
-    freeFunctionArgument(arg);
+    freeFunctionArgument(arg, bak);
 
     return_:
     gc_freeTmpLink(&function_value->gc_status);
@@ -194,6 +195,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
 ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *function_var = NULL;
     Statement *funtion_st = NULL;
+    Argument *bak = arg;
     Parameter *func_pt = function_value->value->data.function.pt;
     bool yield_run = false;
     setResultCore(result);
@@ -211,7 +213,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
     freeResult(result);
     gc_addTmpLink(&function_var->hashtable->gc_status);
     setParameterCore(line, file, arg, func_pt, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, function_value->father));
-    freeFunctionArgument(arg);
+    freeFunctionArgument(arg, bak);
     gc_freeTmpLink(&function_var->hashtable->gc_status);
     if (!run_continue(result)) {
         gc_freeze(inter, var_list, function_var, false);

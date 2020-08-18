@@ -131,14 +131,33 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long l
         return error_return;
     }
     tmp = makeValueArgument(function_value);
-    tmp->next = makeValueArgument(function_value->father);
-    tmp->next->next = *arg;
+    switch (function_value->value->data.function.function_data.pt_type) {
+        case static_:
+            tmp->next = *arg;
+            break;
+        case class_static_:
+            tmp->next = makeValueArgument(function_value->father);
+            tmp->next->next = *arg;
+            break;
+        case object_static_:
+            if (function_value->father->value->type == class)
+                tmp->next = *arg;
+            else {
+                tmp->next = makeValueArgument(function_value->father);
+                tmp->next->next = *arg;
+            }
+            break;
+    }
     *arg = tmp;
     setResultBase(result, inter, father);
     return result->type;
 }
 
-void freeFunctionArgument(Argument *arg){
-    arg->next->next = NULL;
+void freeFunctionArgument(Argument *arg, Argument *base) {
+    for (Argument *tmp = arg; tmp != NULL && tmp->next != NULL; tmp = tmp->next)
+        if (tmp->next == base) {
+            tmp->next = NULL;
+            break;
+        }
     freeArgument(arg, true);
 }

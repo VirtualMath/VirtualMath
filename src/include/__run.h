@@ -28,6 +28,6 @@ void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl
                         Inter *inter, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_);
 
 ResultType setFunctionArgument(struct Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-void freeFunctionArgument(struct Argument *arg);
+void freeFunctionArgument(Argument *arg, Argument *base);
 
 #endif //VIRTUALMATH___RUN_H

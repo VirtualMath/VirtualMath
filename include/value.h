@@ -50,6 +50,13 @@ struct Value{
             struct Statement *function;
             struct Parameter *pt;
             OfficialFunction of;
+            struct {
+                enum {
+                    static_,
+                    object_static_,
+                    class_static_,
+                } pt_type;
+            } function_data;
         } function;
         struct List{
             enum ListType{

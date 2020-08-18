@@ -71,6 +71,10 @@ Value *makeStringValue(char *str, Inter *inter) {
 }
 
 
+void setFunctionData(Value *value) {
+    value->data.function.function_data.pt_type = object_static_;
+}
+
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
     Value *tmp;
     tmp = makeObject(inter, NULL, var_list, NULL);
@@ -79,6 +83,7 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inte
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
     tmp->data.function.of = NULL;
+    setFunctionData(tmp);
     return tmp;
 }
 
@@ -90,6 +95,7 @@ Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter) 
     tmp->data.function.function = NULL;
     tmp->data.function.pt = NULL;
     tmp->data.function.of = of;
+    setFunctionData(tmp);
     return tmp;
 }
 

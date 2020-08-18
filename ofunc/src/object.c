@@ -45,13 +45,15 @@ ResultType object_new_(OfficialFunctionSig){
 void registeredObject(RegisteredFunctionSig){
     Value *object = inter->data.object;
     VarList *object_var = object->object.var;
-    NameFunc tmp[] = {{"__new__", object_new_}, {NULL, NULL}};
     LinkValue *name_ = NULL;
     char *name = NULL;
     gc_addTmpLink(&object->gc_status);
 
     object_var->next = inter->var_list;
-    iterNameFunc(tmp, father, CALL_INTER_FUNCTIONSIG_CORE(object_var));
+    {
+        LinkValue *new = registeredFunctionCore(object_new_, "__new__", father, CALL_INTER_FUNCTIONSIG_CORE(object_var));
+        new->value->data.function.function_data.pt_type = class_static_;
+    }
     object_var->next = NULL;
 
     name = setStrVarName("object", false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
