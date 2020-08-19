@@ -80,8 +80,8 @@ Value *makeStringValue(char *str, Inter *inter) {
 }
 
 
-static void setFunctionData(Value *value) {  // TODO-szh 内嵌到 inter 中
-    value->data.function.function_data.pt_type = object_static_;
+static void setFunctionData(Value *value, Inter *inter) {
+    value->data.function.function_data.pt_type = inter->data.default_pt_type;
 }
 
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
@@ -93,7 +93,7 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inte
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
     tmp->data.function.of = NULL;
-    setFunctionData(tmp);
+    setFunctionData(tmp, inter);
     return tmp;
 }
 
@@ -106,7 +106,7 @@ Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter) 
     tmp->data.function.function = NULL;
     tmp->data.function.pt = NULL;
     tmp->data.function.of = of;
-    setFunctionData(tmp);
+    setFunctionData(tmp, inter);
     return tmp;
 }
 
@@ -323,8 +323,7 @@ void printValue(Value *value, FILE *debug, bool print_father) {
             for (int i=0;i < value->data.list.size;i++){
                 if (i > 0)
                     fprintf(debug, ", ", NULL);
-
-                printLinkValue(value->data.list.list[i], "", "", debug);
+                printValue(value->data.list.list[i]->value, debug, false);
             }
             fprintf(debug, " ]", NULL);
             break;
@@ -338,9 +337,9 @@ void printValue(Value *value, FILE *debug, bool print_father) {
                         fprintf(debug, ", ", NULL);
                     else
                         print_comma = true;
-                    printLinkValue(tmp->name_, "", "", debug);
+                    printValue(tmp->name_->value, debug, false);
                     fprintf(debug, " ['%s'] : ", tmp->name);
-                    printLinkValue(tmp->value, "", "", debug);
+                    printValue(tmp->value->value, debug, false);
                 }
             }
             fprintf(debug, " }", NULL);

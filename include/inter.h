@@ -36,6 +36,7 @@ struct Inter{
         char *object_sub;
         char *object_mul;
         char *object_div;
+        int default_pt_type;
     } data;
 };
 

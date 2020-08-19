@@ -62,6 +62,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_sub = memStrcpy("__sub__");
     inter->data.object_mul = memStrcpy("__mul__");
     inter->data.object_div = memStrcpy("__div__");
+    inter->data.default_pt_type = free_;
 
 }
 

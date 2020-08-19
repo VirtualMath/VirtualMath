@@ -5,6 +5,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     LinkValue *tmp = NULL;
     FatherValue *class_father = NULL;
     VarList *father_var = NULL;
+    enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
     setResultCore(result);
 
     call = getArgument(st->u.set_class.father, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
@@ -19,7 +20,9 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     father_var = tmp->value->object.var->next;
     tmp->value->object.var->next = var_list;
     freeResult(result);
+    inter->data.default_pt_type = object_free_;
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_class.st, tmp->value->object.var, result, tmp));
+    inter->data.default_pt_type = pt_type_bak;
     tmp->value->object.var->next = father_var;
     if (!run_continue(result))
         goto error_;
