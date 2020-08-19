@@ -472,7 +472,9 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
         self_ass = 3,
         mul_par = 4,
         space_kwargs = 5,
-        error = -1,
+        error_to_less = -1,
+        error_to_more = -2,
+        error_kw = -3,
         finished = 0,
     } status = match_status;
     function = copyParameter(function_base);
@@ -482,9 +484,12 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
     while (true){
         if (call == NULL && function == NULL)
             status = finished;
-        else if ((call != NULL && (function == NULL || call->type == value_par && function->type == kwargs_par)) ||
-                 (call == NULL && function != NULL && function->type == value_par))
-            status = error;
+        else if (call != NULL && function == NULL)
+            status = error_to_less;
+        else if ((call == NULL && function->type == value_par))
+            status = error_to_more;
+        else if (call != NULL && call->type == value_par && function->type == kwargs_par)
+            status = error_kw;
         else if (call == NULL && function->type == name_par)  // 根据前面的条件, 已经决定function不会为NULL
             status = default_status;
         else if (call == NULL && function->type == kwargs_par)
@@ -530,10 +535,8 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 }
                 popVarList(tmp);
 
-                if (!dict_status && set_num > get_num) {
-                    freeResult(result);
-                    goto error_;
-                }
+                if (!dict_status && set_num > get_num)
+                    goto to_more;
                 break;
             }
             case mul_par: {
@@ -555,9 +558,15 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 function = function->next;
                 break;
             }
-            case error:
-            error_:  // Statement 处理
-                setResultError(result, inter, "ArgumentException", "Set Argument error", line, file, father, true);
+            case error_to_less:
+                setResultError(result, inter, "ArgumentException", "Too less argument", line, file, father, true);
+                goto return_;
+            case error_to_more:
+            to_more:
+                setResultError(result, inter, "ArgumentException", "Too more argument", line, file, father, true);
+                goto return_;
+            case error_kw:
+                setResultError(result, inter, "ArgumentException", "Value argument for double star", line, file, father, true);
                 goto return_;
             default:
                 goto break_;

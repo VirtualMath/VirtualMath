@@ -10,10 +10,20 @@ ResultType vm_super(OfficialFunctionSig){
     if (arg != NULL && arg->next != NULL){
         arg_father = arg->data.value->value;
         arg_child = arg->next->data.value->value;
+        if (arg_child == arg_father) {
+            if (arg_child->object.father != NULL){
+                result->value = copyLinkValue(arg_child->object.father->value, inter);
+                result->type = operation_return;
+                gc_addTmpLink(&result->value->gc_status);
+            } else
+                setResultError(result, inter, "SuperException", "Don't get next father", 0, "sys", father, true);
+            return result->type
+        }
     } else{
         setResultError(result, inter, "ArgumentException", "Don't get Enough Argument", 0, "sys", father, true);
         return error_return;
     }
+
     for (FatherValue *self_father = arg_child->object.father; self_father != NULL; self_father = self_father->next) {
         if (self_father->value->value == arg_father) {
             if (self_father->next != NULL)
