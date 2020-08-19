@@ -398,7 +398,7 @@ ResultType getList(INTER_FUNCTIONSIG) {
     at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     at_tmp = at;
     if (!run_continue(result)){
-        freeArgument(at_tmp, true);
+        freeArgument(at_tmp, false);
         return result->type;
     }
 

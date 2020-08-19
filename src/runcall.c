@@ -12,7 +12,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
         goto error_;
 
     class_father = setFather(call);
-    freeArgument(call, true);
+    freeArgument(call, false);
     tmp = makeLinkValue(makeClassValue(copyVarList(var_list, false, inter), inter, class_father), father, inter);
     gc_addTmpLink(&tmp->gc_status);
 
@@ -122,7 +122,7 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
 
     return_:
     gc_freeTmpLink(&function_value->gc_status);
-    freeArgument(arg, true);
+    freeArgument(arg, false);
     return result->type;
 }
 
@@ -150,7 +150,7 @@ ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char 
     LinkValue *_new_ = NULL;
     setResultCore(result);
 
-    char *init_name = setStrVarName(inter->data.object_new, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    char *init_name = setStrVarName(inter->data.object_new, false, inter);
     _new_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(class_value->value->object.var));
     memFree(init_name);
 

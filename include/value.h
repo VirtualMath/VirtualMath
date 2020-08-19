@@ -9,6 +9,9 @@ struct VarList;
 struct Argument;
 struct FatherValue;
 
+typedef enum ResultType (*OfficialFunction)(OfficialFunctionSig);
+typedef void (*Registered)(RegisteredFunctionSig);
+
 enum ValueAuthority{
     auto_aut,
     public_aut,
@@ -51,10 +54,13 @@ struct Value{
             struct Parameter *pt;
             OfficialFunction of;
             struct {
-                enum {
-                    static_,
-                    object_static_,
-                    class_static_,
+                enum FunctionPtType{
+                    free_,  // 不包含任何隐式传递的参数
+                    static_,  // 不包含self参数
+                    object_static_,  // self参数允许一切father
+                    class_static_,  // self参数不允许class
+                    object_free_,  // 同object_static_但不包含func参数
+                    class_free_,  // 同object_static_但不包含func参数
                 } pt_type;
             } function_data;
         } function;

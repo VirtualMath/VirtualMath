@@ -198,8 +198,11 @@ LinkValue *findFromVarList(char *name, NUMBER_TYPE times, bool del_var, INTER_FU
     NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
     for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
-    for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
-        tmp = findVar(name, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (del_var && var_list != NULL)
+        tmp = findVar(name, true, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    else
+        for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
+            tmp = findVar(name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     return tmp;
 }
 

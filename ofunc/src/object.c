@@ -4,31 +4,39 @@ ResultType object_new_(OfficialFunctionSig){
     LinkValue *value = NULL;
     LinkValue *_init_ = NULL;
     setResultCore(result);
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    int status = 1;
+    arg = parserValueArgument(ap, arg, &status, NULL);
+    if (status != 1){
+        setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", father, true);
+        return error_return;
+    }
 
     {
         VarList *new_var = NULL;
         Value *new_object = NULL;
-        Argument *father_arg = makeValueArgument(arg->next->data.value);
+        Argument *father_arg = makeValueArgument(ap[1].value);
         FatherValue *object_father = setFather(father_arg);
         freeArgument(father_arg, true);
-        new_var = copyVarList(arg->next->data.value->value->object.out_var, false, inter);
+        new_var = copyVarList(ap[1].value->value->object.out_var, false, inter);
         new_object = makeObject(inter, NULL, new_var, object_father);
         value = makeLinkValue(new_object, father, inter);
         setResultOperation(result, value);
     }
 
-    char *init_name = setStrVarName(inter->data.object_init, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    char *init_name = setStrVarName(inter->data.object_init, false, inter);
     _init_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
     memFree(init_name);
 
     if (_init_ != NULL){
         Result _init_result;
-        Argument *init_arg = arg->next->next;
         setResultCore(&_init_result);
         _init_->father = value;
 
         gc_addTmpLink(&_init_->gc_status);
-        callBackCore(_init_, init_arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
+        callBackCore(_init_, arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
         gc_freeTmpLink(&_init_->gc_status);
         if (!run_continue_type(_init_result.type)){
             freeResult(result);
@@ -47,16 +55,14 @@ void registeredObject(RegisteredFunctionSig){
     VarList *object_var = object->object.var;
     LinkValue *name_ = NULL;
     char *name = NULL;
+    NameFunc tmp[] = {{"__new__", object_new_, class_static_}, {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
 
     object_var->next = inter->var_list;
-    {
-        LinkValue *new = registeredFunctionCore(object_new_, "__new__", father, CALL_INTER_FUNCTIONSIG_CORE(object_var));
-        new->value->data.function.function_data.pt_type = class_static_;
-    }
+    iterNameFunc(tmp, father, CALL_INTER_FUNCTIONSIG_CORE(object_var));
     object_var->next = NULL;
 
-    name = setStrVarName("object", false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    name = setStrVarName("object", false, inter);
     name_ = makeLinkValue(makeStringValue(name, inter), father, inter);
     addFromVarList(name, name_, 0, makeLinkValue(object, father, inter), CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     memFree(name);

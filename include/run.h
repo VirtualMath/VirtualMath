@@ -3,6 +3,7 @@
 #include "__macro.h"
 
 enum StatementInfoStatus;
+struct Argument;
 typedef struct Result Result;
 typedef enum ResultType ResultType;
 typedef struct LinkValue LinkValue;

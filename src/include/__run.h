@@ -9,9 +9,9 @@
 #define writeLog_(...)
 #endif
 
-char *setStrVarName(char *old, bool free_old, INTER_FUNCTIONSIG_CORE);
-char *setNumVarName(NUMBER_TYPE num, INTER_FUNCTIONSIG_CORE);
-char *getNameFromValue(Value *value, INTER_FUNCTIONSIG_CORE);
+char *setStrVarName(char *old, bool free_old, struct Inter *inter);
+char *setNumVarName(NUMBER_TYPE num, struct Inter *inter);
+char *getNameFromValue(Value *value, struct Inter *inter);
 ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG);

@@ -382,8 +382,8 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             value = result->value;
             result->value = NULL;
 
-            enter_name = setStrVarName(inter->data.object_enter, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-            exit_name = setStrVarName(inter->data.object_exit, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            enter_name = setStrVarName(inter->data.object_enter, false, inter);
+            exit_name = setStrVarName(inter->data.object_exit, false, inter);
             _enter_ = findFromVarList(enter_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
             _exit_ = findFromVarList(exit_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
             memFree(enter_name);

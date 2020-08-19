@@ -109,7 +109,7 @@ ResultType importFile(INTER_FUNCTIONSIG) {
         assCore(st->u.import_file.as, import_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     else {
         char *name = splitDir(file_dir);
-        char *value_name = setStrVarName(name, false, inter, var_list);
+        char *value_name = setStrVarName(name, false, inter);
         addFromVarList(value_name, makeLinkValue(makeStringValue(value_name, inter), father, inter), 0, import_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         memFree(name);
         memFree(value_name);

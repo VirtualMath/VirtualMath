@@ -5,11 +5,11 @@
 #include "mem.h"
 #include "gc.h"
 #include "inter.h"
-#include "ofunc.h"
 #include "value.h"
 #include "var.h"
 #include "parameter.h"
 #include "statement.h"
+#include "ofunc.h"
 #include "run.h"
 #include "lexical.h"
 #include "token.h"
@@ -19,9 +19,10 @@
 #include "file.h"
 
 /* DEBUG */
-void printLinkValueGC(char *tag, Inter *inter);
-void printValueGC(char *tag, Inter *inter);
+void printGC(Inter *inter);
+void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link);
+void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link);
 void printVarGC(char *tag, Inter *inter);
-void printHashTableGC(char *tag, Inter *inter);
+void printHashTableGC(char *tag, Inter *inter, long *tmp_link);
 void printTokenStream(TokenStream *ts);
 #endif //VIRTUALMATH___VIRTUALMATH_H

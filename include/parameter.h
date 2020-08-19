@@ -35,8 +35,23 @@ struct Argument{
     struct Argument *next;
 };
 
+struct ArgumentParser{
+    struct LinkValue *value;
+    struct Argument *arg;
+    char *name;
+    enum ArgumentParserType{
+        only_value,
+        name_value,
+        only_name,
+    } type;
+    int must;
+    bool long_arg;
+    int c_count;
+};
+
 typedef struct Parameter Parameter;
 typedef struct Argument Argument;
+typedef struct ArgumentParser ArgumentParser;
 
 Argument *makeArgument(void);
 Argument *makeValueArgument(LinkValue *value);
@@ -77,4 +92,13 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
 FatherValue *setFatherCore(FatherValue *father_tmp);
 FatherValue *setFather(Argument *call);
 bool checkFormal(Parameter *pt);
+
+bool checkArgument(int c_value, int c_name, int type_value, int type_name, Argument *arg);
+Argument *parserValueArgument(ArgumentParser *ap, Argument *arg, int *status, ArgumentParser **bak);
+int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, INTER_FUNCTIONSIG_NOT_ST);
+int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NOT_ST);
+Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap);
+ArgumentParser *parserArgumentNameDefault(ArgumentParser *ap);
+ArgumentParser *parserArgumentValueDefault(ArgumentParser *ap);
+int parserArgumentVar(ArgumentParser *ap, Inter *inter, VarList *var_list);
 #endif //VIRTUALMATH_PARAMETER_H

@@ -8,15 +8,13 @@
 struct Argument;
 struct VarList;
 struct FatherValue;
-typedef enum ResultType (*OfficialFunction)(OfficialFunctionSig);
-typedef void (*Registered)(RegisteredFunctionSig);
 
 struct NameFunc{
     char *name;
     OfficialFunction of;
+    enum FunctionPtType type;
 };
 typedef struct NameFunc NameFunc;
-
 
 void registeredBaseFunction(struct LinkValue *father, Inter *inter);
 

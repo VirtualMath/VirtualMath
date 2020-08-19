@@ -3,7 +3,7 @@
 ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     LinkValue *value;
 
-    *name = setStrVarName(st->u.base_var.name, false, inter, var_list);
+    *name = setStrVarName(st->u.base_var.name, false, inter);
     *times = 0;
     if (st->u.base_var.times == NULL){
         *times = 0;
@@ -45,7 +45,7 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list, result, father)))
         return result->type;
 
-    *name = getNameFromValue(result->value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    *name = getNameFromValue(result->value->value, inter);
     result->type = operation_return;  // 执行 operationSafeInterStatement 的时候已经初始化 result
 
     return result->type;
@@ -59,28 +59,28 @@ ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     else{
         if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
             return result->type;
-        *name = getNameFromValue(result->value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        *name = getNameFromValue(result->value->value, inter);
         *times = 0;
     }
     return result->type;
 }
 
-char *setStrVarName(char *old, bool free_old, INTER_FUNCTIONSIG_CORE) {
+char *setStrVarName(char *old, bool free_old, Inter *inter) {
     return memStrcat(inter->data.var_str_prefix, old, false, free_old);
 }
 
-char *setNumVarName(NUMBER_TYPE num, INTER_FUNCTIONSIG_CORE) {
+char *setNumVarName(NUMBER_TYPE num, struct Inter *inter) {
     char name[50];
     snprintf(name, 50, "%"NUMBER_FORMAT, num);
     return memStrcat(inter->data.var_num_prefix, name, false, false);
 }
 
-char *getNameFromValue(Value *value, INTER_FUNCTIONSIG_CORE) {
+char *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
         case string:
-            return setStrVarName(value->data.str.str, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            return setStrVarName(value->data.str.str, false, inter);
         case number:
-            return setNumVarName(value->data.num.num, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            return setNumVarName(value->data.num.num, inter);
         default:
             return memStrcpy(inter->data.var_defualt);
     }
@@ -125,39 +125,60 @@ Statement *getRunInfoStatement(Statement *funtion_st){  // TODO-szh 去除该函
 
 ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
+    enum FunctionPtType pt_type = function_value->value->data.function.function_data.pt_type;
     setResultCore(result);
     if (function_value->father == NULL){
         setResultError(result, inter, "ArgumentException", "Don't get self", line, file, father, true);
         return error_return;
     }
-    tmp = makeValueArgument(function_value);
-    switch (function_value->value->data.function.function_data.pt_type) {
+
+    switch (pt_type) {
         case static_:
+            tmp = makeValueArgument(function_value);
             tmp->next = *arg;
+            *arg = tmp;
             break;
         case class_static_:
+            tmp = makeValueArgument(function_value);
             tmp->next = makeValueArgument(function_value->father);
             tmp->next->next = *arg;
+            *arg = tmp;
             break;
         case object_static_:
+            tmp = makeValueArgument(function_value);
             if (function_value->father->value->type == class)
                 tmp->next = *arg;
             else {
                 tmp->next = makeValueArgument(function_value->father);
                 tmp->next->next = *arg;
             }
+            *arg = tmp;
+            break;
+        case class_free_:
+            tmp = makeValueArgument(function_value->father);
+            tmp->next = *arg;
+            *arg = tmp;
+            break;
+        case object_free_:
+            if (function_value->father->value->type != class) {
+                tmp = makeValueArgument(function_value->father);
+                tmp->next = *arg;
+                *arg = tmp;
+            }
+            break;
+        default:
             break;
     }
-    *arg = tmp;
     setResultBase(result, inter, father);
     return result->type;
 }
 
 void freeFunctionArgument(Argument *arg, Argument *base) {
-    for (Argument *tmp = arg; tmp != NULL && tmp->next != NULL; tmp = tmp->next)
+    for (Argument *tmp = arg; tmp != NULL && tmp->next != NULL; tmp = tmp->next) {
         if (tmp->next == base) {
             tmp->next = NULL;
+            freeArgument(arg, true);
             break;
         }
-    freeArgument(arg, true);
+    }
 }

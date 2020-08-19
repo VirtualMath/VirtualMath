@@ -1,5 +1,7 @@
 #include "__run.h"
 
+static bool compareNumber(int a, int b, int type);
+
 #define returnResult(result) do{ \
 if (!run_continue(result)) { \
 goto return_; \
@@ -394,7 +396,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
                     gc_freeTmpLink(&value->gc_status);
                     goto return_;
                 }
-                char *name_str = getNameFromValue(result->value->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+                char *name_str = getNameFromValue(result->value->value, inter);
                 base = connectCharNameArgument(value, result->value, name_str, base);
                 memFree(name_str);
                 gc_freeTmpLink(&value->gc_status);
@@ -421,8 +423,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
 
 Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *new_arg = NULL;
-    freeResult(result);
-
+    setResultCore(result);
     iterParameter(call, &new_arg, is_dict, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     return new_arg;
 }
@@ -480,6 +481,8 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
     function = copyParameter(function_base);
     tmp_function = function;
     setResultCore(result);
+    gc_freeze(inter, function_var, NULL, true);
+    gc_freeze(inter, var_list, NULL, true);
 
     while (true){
         if (call == NULL && function == NULL)
@@ -518,22 +521,19 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 NUMBER_TYPE set_num = 0;
                 NUMBER_TYPE get_num = 0;
                 bool dict_status = false;
-                VarList *tmp = pushVarList(var_list, inter);
+                VarList *tmp = makeVarList(inter, true);
 
                 argumentToVar(&call, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, father));
-                returnResult(result);
                 if (!run_continue(result)) {
-                    popVarList(tmp);
+                    freeVarList(tmp);
                     goto return_;
                 }
 
                 freeResult(result);
                 parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, father));
-                if (!run_continue(result)) {
-                    popVarList(tmp);
+                freeVarList(tmp);
+                if (!run_continue(result))
                     goto return_;
-                }
-                popVarList(tmp);
 
                 if (!dict_status && set_num > get_num)
                     goto to_more;
@@ -541,11 +541,6 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
             }
             case mul_par: {
                 LinkValue *tmp = makeLinkValue(makeListValue(&call, inter, value_tuple), father, inter);
-                if (!run_continue(result))
-                    goto return_;
-                else
-                    freeResult(result);
-
                 assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, father));
                 returnResult(result);
                 function = function->next;
@@ -553,6 +548,9 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
             }
             case space_kwargs:{
                 LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father)), father, inter);
+                returnResult(result);
+                freeResult(result);
+
                 assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, father));
                 returnResult(result);
                 function = function->next;
@@ -576,6 +574,8 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
     setResult(result, inter, father);
 
     return_:
+    gc_freeze(inter, function_var, NULL, false);
+    gc_freeze(inter, var_list, NULL, false);
     freeParameter(tmp_function, true);
     return result->type;
 }
@@ -613,4 +613,189 @@ bool checkFormal(Parameter *pt) {
             return false;
     }
     return true;
+}
+
+/**
+ *
+ * @param c_value value_类型的参数的最大值
+ * @param c_name name_类型参数的最大值
+ * @param type_value c_value [<= < == > >=] c_value_
+ * @param type_name c_name [<= < == > >=] c_name_
+ * @param arg
+ * @return
+ */
+bool checkArgument(int c_value, int c_name, int type_value, int type_name, Argument *arg) {
+    int c_value_ = 0;
+    int c_name_ = 0;
+    for (PASS; arg != NULL; arg = arg->next){
+        if (arg->type == value_arg)
+            c_value_++;
+        else
+            c_name_++;
+    }
+    if ((c_value == -1 || compareNumber(c_value, c_value_, type_value)) && (c_name == -1 || compareNumber(c_name, c_name_, type_name)))
+        return true;
+    return false;
+}
+
+int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NOT_ST){
+    setResultCore(result);
+    if (ap->type != only_name){
+        ArgumentParser *bak = NULL;
+        int status = 1;
+        arg = parserValueArgument(ap, arg, &status, &bak);
+        if (status != 1){
+            setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", father, true);
+            return 0;
+        }
+        ap = bak;
+    }
+    if (ap->must != -1){
+        ArgumentParser *bak = NULL;
+        int status;
+
+        if (arg != NULL && arg->type != name_arg) {
+            setResultError(result, inter, "ArgumentException", "Too many Argument", 0, "sys", father, true);
+            return -6;
+        }
+
+        status = parserNameArgument(ap, arg, &bak, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        if (!run_continue(result))
+            return -1;
+        if (status == -3){
+            if (parserArgumentNameDefault(ap)->must != -1){
+                setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", father, true);
+                return -7;
+            }
+        }
+        else if (status == 0){
+            setResultError(result, inter, "ArgumentException", "Too many Argument", 0, "sys", father, true);
+            return -2;
+        } else if (status == -4){
+            setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", father, true);
+            return -3;
+        }
+    } else{
+        if (arg != NULL) {
+            setResultError(result, inter, "ArgumentException", "Too many Argument", 0, "sys", father, true);
+            return -4;
+        }
+    }
+    return 1;
+}
+
+Argument *parserValueArgument(ArgumentParser *ap, Argument *arg, int *status, ArgumentParser **bak){
+    *status = 1;
+    for (PASS; ap->must != -1 && (ap->type == only_value || ap->type == name_value); ap++){
+        if (arg == NULL || arg->name_type != value_arg) {  // 形参进入key=value模式
+            if ((ap = parserArgumentValueDefault(ap))->must != -1 && ap->type == only_value)  // 检查剩余的是否.must=1
+                *status = 0;  // 存在.must=1则返回 0
+            break;  // 正常情况返回 1
+        }
+        arg = parserArgumentValueCore(arg, ap);
+    }
+    if (bak != NULL)
+        *bak = ap;
+    return arg;
+}
+
+int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, INTER_FUNCTIONSIG_NOT_ST){
+    VarList *tmp = NULL;
+    NUMBER_TYPE set_num = 0;
+    NUMBER_TYPE get_num = 0;
+    int return_;
+    setResultCore(result);
+
+    gc_freeze(inter, var_list, NULL, true);
+    for (PASS; arg != NULL && arg->type != name_arg; arg = arg->next)
+            PASS;
+    if (arg == NULL) {
+        return_ = -3;  // 参数缺失
+        goto return_;
+    }
+
+    tmp = makeVarList(inter, true);
+    argumentToVar(&arg, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, father));
+    if (!run_continue(result)) {
+        return_ = -1;
+        goto return_;
+    }
+    setResultBase(result, inter, father);
+
+    for (PASS; ap->must != -1 && (ap->type == only_name || ap->type == name_value); ap++) {
+        int status = parserArgumentVar(ap, inter, tmp);
+        if (status == 1)
+            get_num ++;
+        else{
+            return_ = -2;  // 参数缺失
+            goto return_;
+        }
+    }
+    return_ = (get_num < set_num) ? 0 : ((get_num > set_num) ? -4 : 1);
+
+    return_:
+    freeVarList(tmp);
+    gc_freeze(inter, var_list, NULL, false);
+    if (bak != NULL)
+        *bak = ap;
+    return return_;
+}
+
+Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap){
+    int count = 1;
+    ap->arg = arg;
+    ap->value = arg->data.value;
+    arg = arg->next;
+    if (ap->long_arg)
+        for (PASS; arg != NULL && arg->type == value_arg; arg = arg->next, count++)
+                PASS;
+    ap->c_count = count;
+    return arg;
+}
+
+int parserArgumentVar(ArgumentParser *ap, Inter *inter, VarList *var_list){
+    char *str_name = setStrVarName(ap->name, false, inter);
+    LinkValue *value = findFromVarList(str_name, 0, true, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    memFree(str_name);
+    ap->value = value;
+    if (value != NULL)
+        return 1;
+    else if (ap->must)
+        return -1;
+    return 0;
+}
+
+ArgumentParser *parserArgumentValueDefault(ArgumentParser *ap){
+    for (PASS; ap->type == only_value && ap->must == 0; ap++) {
+        ap->arg = NULL;
+        ap->value = NULL;
+        ap->c_count = 0;
+    }
+    return ap;
+}
+
+ArgumentParser *parserArgumentNameDefault(ArgumentParser *ap){
+    for (PASS; ap->must == 0; ap++) {
+        ap->arg = NULL;
+        ap->value = NULL;
+        ap->c_count = 0;
+    }
+    return ap;
+}
+
+static bool compareNumber(int a, int b, int type){
+    switch (type) {
+        case -2:
+            return a <= b;
+        case -1:
+            return a < b;
+        case 0:
+            return a == b;
+        case 1:
+            return a > b;
+        case 2:
+            return a >= b;
+        default:
+            return false;
+    }
 }

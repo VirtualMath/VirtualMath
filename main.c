@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
 
 
 /** TODO-szh List
+ * argument 设定 tmp_link
  * __call__ 设定
  * __var__ 设定
  * 下标和切片
