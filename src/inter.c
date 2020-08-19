@@ -28,7 +28,7 @@ Inter *makeInter(char *debug, LinkValue *father) {
         tmp->data.error = stderr;
     }
 
-    makeBaseObject(tmp);
+    registeredFunctionName(tmp);
 
     tmp->data.none = makeNoneValue(tmp);
     gc_addStatementLink(&tmp->data.none->gc_status);
@@ -47,6 +47,9 @@ Inter *makeInter(char *debug, LinkValue *father) {
 
 void setBaseInterData(struct Inter *inter){
     inter->data.object = NULL;
+    inter->data.vobject = NULL;
+    inter->data.num = NULL;
+    inter->data.str = NULL;
     inter->data.none = NULL;
     inter->data.var_str_prefix = memStrcpy("str_");
     inter->data.var_num_prefix = memStrcpy("num_");
@@ -55,11 +58,23 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_enter = memStrcpy("__enter__");
     inter->data.object_exit = memStrcpy("__exit__");
     inter->data.object_new = memStrcpy("__new__");
+    inter->data.object_add = memStrcpy("__add__");
+    inter->data.object_sub = memStrcpy("__sub__");
+    inter->data.object_mul = memStrcpy("__mul__");
+    inter->data.object_div = memStrcpy("__div__");
+
 }
 
 void freeBaseInterData(struct Inter *inter){
-    gc_freeStatementLink(&inter->data.none->gc_status);
     gc_freeStatementLink(&inter->data.object->gc_status);
+    gc_freeStatementLink(&inter->data.vobject->gc_status);
+    gc_freeStatementLink(&inter->data.num->gc_status);
+    gc_freeStatementLink(&inter->data.str->gc_status);
+    gc_freeStatementLink(&inter->data.bool_->gc_status);
+    gc_freeStatementLink(&inter->data.function->gc_status);
+    gc_freeStatementLink(&inter->data.pass_->gc_status);
+    gc_freeStatementLink(&inter->data.list->gc_status);
+    gc_freeStatementLink(&inter->data.dict->gc_status);
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
     memFree(inter->data.var_defualt);
@@ -67,6 +82,10 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_enter);
     memFree(inter->data.object_exit);
     memFree(inter->data.object_new);
+    memFree(inter->data.object_add);
+    memFree(inter->data.object_sub);
+    memFree(inter->data.object_mul);
+    memFree(inter->data.object_div);
 
     memFree(inter->data.log_dir);
     if (inter->data.log_dir != NULL) {
@@ -160,8 +179,8 @@ void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     long st = 0;
     printf("%s\n", tag);
     while (base != NULL) {
-        tmp += base->gc_status.tmp_link;
-        st += base->gc_status.statement_link;
+        tmp += labs(base->gc_status.tmp_link);
+        st += labs(base->gc_status.statement_link);
         printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
         printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
         printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
@@ -184,8 +203,8 @@ void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     long st = 0;
     printf("%s\n", tag);
     while (base != NULL) {
-        tmp += base->gc_status.tmp_link;
-        st += base->gc_status.statement_link;
+        tmp += labs(base->gc_status.tmp_link);
+        st += labs(base->gc_status.statement_link);
         printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
         printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
         printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
@@ -225,7 +244,7 @@ void printHashTableGC(char *tag, Inter *inter, long *tmp_link) {
     long tmp = 0;
     printf("%s\n", tag);
     while (base != NULL) {
-        tmp += base->gc_status.tmp_link;
+        tmp += labs(base->gc_status.tmp_link);
         printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
         printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
         printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);

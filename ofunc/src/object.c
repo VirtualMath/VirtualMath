@@ -26,9 +26,7 @@ ResultType object_new_(OfficialFunctionSig){
         setResultOperation(result, value);
     }
 
-    char *init_name = setStrVarName(inter->data.object_init, false, inter);
-    _init_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
-    memFree(init_name);
+    _init_ = findAttributes(inter->data.object_init, false, value, inter);
 
     if (_init_ != NULL){
         Result _init_result;
@@ -51,21 +49,18 @@ ResultType object_new_(OfficialFunctionSig){
 }
 
 void registeredObject(RegisteredFunctionSig){
-    Value *object = inter->data.object;
-    VarList *object_var = object->object.var;
-    LinkValue *name_ = NULL;
-    char *name = NULL;
+    LinkValue *object = makeLinkValue(inter->data.object, inter->base_father, inter);
+    VarList *object_var = object->value->object.var;
+    VarList *object_backup = NULL;
     NameFunc tmp[] = {{"__new__", object_new_, class_static_}, {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
+    addStrVar("object", false, object, father, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
+    object_backup = object_var->next;
     object_var->next = inter->var_list;
-    iterNameFunc(tmp, father, CALL_INTER_FUNCTIONSIG_CORE(object_var));
-    object_var->next = NULL;
+    iterNameFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(object_var));
+    object_var->next = object_backup;
 
-    name = setStrVarName("object", false, inter);
-    name_ = makeLinkValue(makeStringValue(name, inter), father, inter);
-    addFromVarList(name, name_, 0, makeLinkValue(object, father, inter), CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    memFree(name);
     gc_freeTmpLink(&object->gc_status);
 }
 

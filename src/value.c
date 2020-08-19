@@ -6,9 +6,10 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *
     setGC(&tmp->gc_status);
     tmp->type = object_;
     tmp->gc_next = NULL;
-
     if (inter->data.object != NULL && father == NULL)
         father = makeFatherValue(makeLinkValue(inter->data.object, NULL, inter));
+    if (out_var == NULL && father != NULL)
+        out_var = copyVarList(father->value->value->object.out_var, false, inter);
     tmp->object.var = makeObjectVarList(father, inter, object);
     tmp->object.out_var = out_var;
     tmp->object.father = father;
@@ -40,44 +41,53 @@ Value *makeNoneValue(Inter *inter) {
 }
 
 Value *makeBoolValue(bool bool_num, Inter *inter) {
+    FatherValue *object_father = getFatherFromValue(inter->data.bool_, inter);
+    VarList *new_var = copyVarList(inter->data.bool_->object.out_var, false, inter);
     Value *tmp;
-    tmp = makeObject(inter, NULL, NULL, NULL);
+    tmp = makeObject(inter, NULL, new_var, object_father);
     tmp->type = bool_;
     tmp->data.bool_.bool_ = bool_num;
     return tmp;
 }
 
 Value *makePassValue(Inter *inter){
+    FatherValue *object_father = getFatherFromValue(inter->data.pass_, inter);
+    VarList *new_var = copyVarList(inter->data.pass_->object.out_var, false, inter);
     Value *tmp;
-    tmp = makeObject(inter, NULL, NULL, NULL);
+    tmp = makeObject(inter, NULL, new_var, object_father);
     tmp->type = pass_;
     return tmp;
 }
 
 Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
+    FatherValue *object_father = getFatherFromValue(inter->data.num, inter);
+    VarList *new_var = copyVarList(inter->data.num->object.out_var, false, inter);
     Value *tmp;
-    tmp = makeObject(inter, NULL, NULL, NULL);
+    tmp = makeObject(inter, NULL, new_var, object_father);
     tmp->type = number;
     tmp->data.num.num = num;
     return tmp;
 }
 
 Value *makeStringValue(char *str, Inter *inter) {
+    FatherValue *object_father = getFatherFromValue(inter->data.str, inter);
+    VarList *new_var = copyVarList(inter->data.str->object.out_var, false, inter);
     Value *tmp;
-    tmp = makeObject(inter, NULL, NULL, NULL);
+    tmp = makeObject(inter, NULL, new_var, object_father);
     tmp->type = string;
     tmp->data.str.str = memStrcpy(str);
     return tmp;
 }
 
 
-void setFunctionData(Value *value) {
+static void setFunctionData(Value *value) {  // TODO-szh 内嵌到 inter 中
     value->data.function.function_data.pt_type = object_static_;
 }
 
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
+    FatherValue *object_father = getFatherFromValue(inter->data.function, inter);
     Value *tmp;
-    tmp = makeObject(inter, NULL, var_list, NULL);
+    tmp = makeObject(inter, NULL, var_list, object_father);
     tmp->type = function;
     tmp->data.function.type = vm_function;
     tmp->data.function.function = copyStatement(st);
@@ -88,8 +98,9 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inte
 }
 
 Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter) {
+    FatherValue *object_father = getFatherFromValue(inter->data.function, inter);
     Value *tmp;
-    tmp = makeObject(inter, NULL, copyVarList(var_list, false, inter), NULL);
+    tmp = makeObject(inter, NULL, copyVarList(var_list, false, inter), object_father);
     tmp->type = function;
     tmp->data.function.type = c_function;
     tmp->data.function.function = NULL;
@@ -107,9 +118,11 @@ Value *makeClassValue(VarList *var_list, Inter *inter, FatherValue *father) {
 }
 
 Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
+    FatherValue *object_father = getFatherFromValue(inter->data.list, inter);
+    VarList *new_var = copyVarList(inter->data.list->object.out_var, false, inter);
     Value *tmp;
     Argument *at = *arg_ad;
-    tmp = makeObject(inter, NULL, NULL, NULL);
+    tmp = makeObject(inter, NULL, new_var, object_father);
     tmp->type = list;
     tmp->data.list.type = type;
     tmp->data.list.list = NULL;
@@ -124,8 +137,10 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
 }
 
 Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST) {
+    FatherValue *object_father = getFatherFromValue(inter->data.dict, inter);
+    VarList *new_var = copyVarList(inter->data.dict->object.out_var, false, inter);
     Value *tmp;
-    tmp = makeObject(inter, NULL, NULL, NULL);
+    tmp = makeObject(inter, NULL, new_var, object_father);
     tmp->data.dict.size = 0;
     tmp->type = dict;
     if (new_hash) {
@@ -146,11 +161,11 @@ void freeValue(Value **value) {
     Value *free_value = *value;
     freeBase(free_value, return_);
     for (VarList *tmp = free_value->object.var; tmp != NULL; tmp = freeVarList(tmp))
-            PASS;
+        PASS;
     for (VarList *tmp = free_value->object.out_var; tmp != NULL; tmp = freeVarList(tmp))
-            PASS;
+        PASS;
     for (struct FatherValue *tmp = free_value->object.father; tmp != NULL; tmp = freeFatherValue(tmp))
-            PASS;
+        PASS;
     switch (free_value->type) {
         case string:
             memFree(free_value->data.str.str);
@@ -470,6 +485,17 @@ FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back){
             last_node = &(*last_node)->next;
     *last_node = back;
     reutrn_: return base;
+}
+
+FatherValue *getFatherFromValue(Value *value, Inter *inter){
+    FatherValue *object_father = NULL;
+    LinkValue *num_father = makeLinkValue(value, inter->base_father, inter);
+    Argument *father_arg = makeValueArgument(num_father);
+    gc_addTmpLink(&num_father->gc_status);
+    object_father = setFather(father_arg);
+    freeArgument(father_arg, true);
+    gc_freeTmpLink(&num_father->gc_status);
+    return object_father;
 }
 
 /**

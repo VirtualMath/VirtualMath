@@ -754,9 +754,7 @@ Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap){
 }
 
 int parserArgumentVar(ArgumentParser *ap, Inter *inter, VarList *var_list){
-    char *str_name = setStrVarName(ap->name, false, inter);
-    LinkValue *value = findFromVarList(str_name, 0, true, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    memFree(str_name);
+    LinkValue *value = findStrVar(ap->name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     ap->value = value;
     if (value != NULL)
         return 1;

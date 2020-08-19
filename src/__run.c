@@ -174,11 +174,33 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long l
 }
 
 void freeFunctionArgument(Argument *arg, Argument *base) {
-    for (Argument *tmp = arg; tmp != NULL && tmp->next != NULL; tmp = tmp->next) {
+    for (Argument *tmp = arg; tmp != NULL; tmp = tmp->next) {
         if (tmp->next == base) {
             tmp->next = NULL;
             freeArgument(arg, true);
             break;
         }
     }
+}
+
+LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
+    LinkValue *tmp = NULL;
+    char *name_ = setStrVarName(name, free_old, inter);
+    tmp = findFromVarList(name_, 0, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    memFree(name_);
+    return tmp;
+}
+
+void addStrVar(char *name, bool free_old, LinkValue *value, LinkValue *father, INTER_FUNCTIONSIG_CORE){
+    char *var_name = setStrVarName(name, free_old, inter);
+    LinkValue *name_ = makeLinkValue(makeStringValue(var_name, inter), father, inter);
+    addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    memFree(var_name);
+}
+
+LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter) {
+    LinkValue *attr = findStrVar(name, free_old, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+    if (attr != NULL && attr->father->value != value->value && checkAttribution(value->value, attr->father->value))
+        attr->father = value;
+    return attr;
 }

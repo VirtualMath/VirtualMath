@@ -13,6 +13,14 @@ struct Inter{
     struct VarList *var_list;
     struct InterData{
         struct Value *object;
+        struct Value *vobject;
+        struct Value *num;
+        struct Value *str;
+        struct Value *bool_;
+        struct Value *pass_;
+        struct Value *list;
+        struct Value *dict;
+        struct Value *function;
         struct Value *none;
         FILE *debug;
         FILE *error;
@@ -24,6 +32,10 @@ struct Inter{
         char *object_new;
         char *object_enter;
         char *object_exit;
+        char *object_add;
+        char *object_sub;
+        char *object_mul;
+        char *object_div;
     } data;
 };
 

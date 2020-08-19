@@ -147,12 +147,8 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, cha
 }
 
 ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *_new_ = NULL;
+    LinkValue *_new_ = findAttributes(inter->data.object_new, false, class_value, inter);
     setResultCore(result);
-
-    char *init_name = setStrVarName(inter->data.object_new, false, inter);
-    _new_ = findFromVarList(init_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(class_value->value->object.var));
-    memFree(init_name);
 
     if (_new_ != NULL){
         _new_->father = class_value;

@@ -26,5 +26,4 @@
 #define CALL_OfficialFunction(arg, var_list, result, father) arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father)
 #define RegisteredFunctionSig struct LinkValue *father, INTER_FUNCTIONSIG_CORE
 #define CALL_RegisteredFunction(father, var_list) father, CALL_INTER_FUNCTIONSIG_CORE(var_list)
-
 #endif //VIRTUALMATH___MACRO_H

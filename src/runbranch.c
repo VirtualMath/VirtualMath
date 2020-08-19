@@ -377,18 +377,11 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             freeResult(result);
         } else {
             LinkValue *enter_value = NULL;
-            char *enter_name = NULL;
-            char *exit_name = NULL;
             value = result->value;
             result->value = NULL;
 
-            enter_name = setStrVarName(inter->data.object_enter, false, inter);
-            exit_name = setStrVarName(inter->data.object_exit, false, inter);
-            _enter_ = findFromVarList(enter_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
-            _exit_ = findFromVarList(exit_name, 0, false, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
-            memFree(enter_name);
-            memFree(exit_name);
-
+            _enter_ = findAttributes(inter->data.object_enter, false, value, inter);
+            _exit_ = findAttributes(inter->data.object_exit, false, value, inter);
             freeResult(result);
             if (_enter_ == NULL || _exit_ == NULL) {
                 gc_freeTmpLink(&value->gc_status);

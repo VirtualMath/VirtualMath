@@ -57,8 +57,8 @@ struct Value{
                 enum FunctionPtType{
                     free_,  // 不包含任何隐式传递的参数
                     static_,  // 不包含self参数
-                    object_static_,  // self参数允许一切father
-                    class_static_,  // self参数不允许class
+                    object_static_,  // self参数不允许class
+                    class_static_,  // self参数允许一切father
                     object_free_,  // 同object_static_但不包含func参数
                     class_free_,  // 同object_static_但不包含func参数
                 } pt_type;
@@ -177,4 +177,5 @@ FatherValue *freeFatherValue(FatherValue *value);
 FatherValue *connectFatherValue(FatherValue *base, FatherValue *back);
 FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back);
 bool checkAttribution(Value *self, Value *father);
+FatherValue *getFatherFromValue(Value *value, Inter *inter);
 #endif //VIRTUALMATH_VALUE_H

@@ -1,9 +1,7 @@
 #include "__run.h"
 
-ResultType addOperation(INTER_FUNCTIONSIG);
-ResultType subOperation(INTER_FUNCTIONSIG);
-ResultType mulOperation(INTER_FUNCTIONSIG);
-ResultType divOperation(INTER_FUNCTIONSIG);
+static bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG);
+static ResultType operationCore(INTER_FUNCTIONSIG, char *name);
 ResultType assOperation(INTER_FUNCTIONSIG);
 ResultType pointOperation(INTER_FUNCTIONSIG);
 ResultType blockOperation(INTER_FUNCTIONSIG);
@@ -19,16 +17,16 @@ ResultType operationStatement(INTER_FUNCTIONSIG) {
     setResultCore(result);
     switch (st->u.operation.OperationType) {
         case OPT_ADD:
-            addOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_add);
             break;
         case OPT_SUB:
-            subOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_sub);
             break;
         case OPT_MUL:
-            mulOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_mul);
             break;
         case OPT_DIV:
-            divOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_div);
             break;
         case OPT_ASS:
             assOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
@@ -46,115 +44,7 @@ ResultType operationStatement(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG){
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father)) || result->value->value->type == none)
-        return true;
-    *left = *result;
-    setResultCore(result);
-
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, father)) || result->value->value->type == none)
-        return true;
-    *right = *result;
-    return false;
-}
-
-ResultType addOperation(INTER_FUNCTIONSIG) {
-    Result left;
-    Result right;
-    setResultCore(&left);
-    setResultCore(&right);
-
-    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
-        return result->type;
-
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
-    if (left.value->value->type == number && right.value->value->type == number)
-        result->value->value = makeNumberValue(left.value->value->data.num.num + right.value->value->data.num.num, inter);
-    else if(left.value->value->type == string && right.value->value->type == string){
-        char *new_string = memStrcat(left.value->value->data.str.str, right.value->value->data.str.str, false, false);
-        result->value->value = makeStringValue(new_string, inter);
-        memFree(new_string);
-    }
-    else
-        setResultErrorSt(result, inter, "TypeException", "Get Not Support Value", st, father, true);
-
-    freeResult(&left);
-    freeResult(&right);
-    return result->type;
-}
-
-ResultType subOperation(INTER_FUNCTIONSIG) {
-    Result left;
-    Result right;
-    setResultCore(&left);
-    setResultCore(&right);
-
-    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
-        return result->type;
-
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
-    if (left.value->value->type == number && right.value->value->type == number)
-        result->value->value = makeNumberValue(left.value->value->data.num.num - right.value->value->data.num.num, inter);
-    else
-        setResultErrorSt(result, inter, "TypeException", "Get Not Support Value", st, father, true);
-
-    freeResult(&left);
-    freeResult(&right);
-    return result->type;
-}
-
-ResultType mulOperation(INTER_FUNCTIONSIG) {
-    Result left;
-    Result right;
-    setResultCore(&left);
-    setResultCore(&right);
-
-    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
-        return result->type;
-
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
-    if (left.value->value->type == number && right.value->value->type == number)
-        result->value->value = makeNumberValue(left.value->value->data.num.num * right.value->value->data.num.num, inter);
-    else if(left.value->value->type == number && right.value->value->type == string) {
-        Result tmp = left;
-        left = right;
-        right = tmp;
-        goto mul_str;
-    }
-    else if(left.value->value->type == string && right.value->value->type == number) mul_str: {
-        char *new_string = memStrcpySelf(left.value->value->data.str.str, right.value->value->data.num.num);
-        result->value->value = makeStringValue(new_string, inter);
-        memFree(new_string);
-    }
-    else
-        setResultErrorSt(result, inter, "TypeException", "Get Not Support Value", st, father, true);
-
-    freeResult(&left);
-    freeResult(&right);
-    return result->type;
-}
-
-ResultType divOperation(INTER_FUNCTIONSIG) {
-    Result left;
-    Result right;
-    setResultCore(&left);
-    setResultCore(&right);
-
-    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
-        return result->type;
-
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
-    if (left.value->value->type == number && right.value->value->type == number)
-        result->value->value = makeNumberValue(left.value->value->data.num.num / right.value->value->data.num.num, inter);
-    else
-        setResultErrorSt(result, inter, "TypeException", "Get Not Support Value", st, father, true);
-
-    freeResult(&left);
-    freeResult(&right);
-    return result->type;
-}
-
-ResultType blockOperation(INTER_FUNCTIONSIG) {  // TODO-szh 处理yield
+ResultType blockOperation(INTER_FUNCTIONSIG) {
     Statement *info_st = st->u.operation.left;
     bool yield_run;
     if ((yield_run = popStatementVarList(st, &var_list, var_list, inter)))
@@ -185,14 +75,14 @@ ResultType blockOperation(INTER_FUNCTIONSIG) {  // TODO-szh 处理yield
 
 ResultType pointOperation(INTER_FUNCTIONSIG) {
     LinkValue *left;
-
+    VarList *object = NULL;
+    VarList *out_var = NULL;
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father)) || result->value->value->type == none)
         return result->type;
-
     left = result->value;
+
     setResultCore(result);
-    VarList *object = left->value->object.var;
-    VarList *out_var = NULL;
+    object = left->value->object.var;
     for (out_var = object; out_var->next != NULL; out_var = out_var->next)
         PASS;
     out_var->next = left->value->object.out_var;
@@ -208,16 +98,9 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
         setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect", st,
                          father, true);
 
-    if (result->value->father->value != left->value && checkAttribution(left->value, result->value->father->value)) {
-        /**
-         * 若获得的值的father是left的father, 则将获得值的father调整为left (拷贝)
-         */
-        LinkValue *return_value = copyLinkValue(result->value, inter);
-        return_value->father = left;
-        gc_freeTmpLink(&result->value->gc_status);
-        gc_addTmpLink(&return_value->gc_status);
-        result->value = return_value;
-    }
+    if (result->value->father->value != left->value && checkAttribution(left->value, result->value->father->value))
+        result->value->father = left;
+
     return_:
     gc_freeze(inter, var_list, object, false);
     if (out_var != NULL)
@@ -282,12 +165,13 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
     else{
         char *str_name = NULL;
         int int_times = 0;
+        LinkValue *var_value = NULL;
         getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, father));
         if (!run_continue(result)) {
             memFree(str_name);
             return result->type;
         }
-        LinkValue *var_value = copyLinkValue(value, inter);
+        var_value = copyLinkValue(value, inter);
         if (var_value->aut == auto_aut)
             var_value->aut = name->aut;
         addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
@@ -457,5 +341,47 @@ ResultType setDefault(INTER_FUNCTIONSIG){
         var_list->default_var = connectDefaultVar(var_list->default_var, name, times);
         memFree(name);
     }
+    return result->type;
+}
+
+bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG){
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father)) || result->value->value->type == none)
+        return true;
+    *left = *result;
+    setResultCore(result);
+
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, father)) || result->value->value->type == none)
+        return true;
+    *right = *result;
+    setResultCore(result);
+    return false;
+}
+
+ResultType operationCore(INTER_FUNCTIONSIG, char *name) {
+    Result left;
+    Result right;
+    LinkValue *_func_ = NULL;
+    setResultCore(&left);
+    setResultCore(&right);
+
+    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+        return result->type;
+
+    _func_ = findAttributes(name, false, left.value, inter);
+    if (_func_ != NULL){
+        Argument *arg = makeValueArgument(right.value);
+        gc_addTmpLink(&_func_->gc_status);
+        callBackCore(_func_, arg, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        gc_freeTmpLink(&_func_->gc_status);
+        freeArgument(arg, true);
+    }
+    else {
+        char *message = memStrcat("Don't find ", name, false, false);
+        setResultErrorSt(result, inter, "TypeException", message, st, father, true);
+        memFree(message);
+    }
+
+    freeResult(&left);
+    freeResult(&right);
     return result->type;
 }
