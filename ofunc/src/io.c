@@ -5,17 +5,10 @@ ResultType vm_print(OfficialFunctionSig){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=true},
                            {.type=name_value, .name="end", .must=0, .value=NULL},
                            {.must=-1}};
-    {
-        int status;
-        status = parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
-            return result->type;
-        if (status != 1) {
-            setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", belong, true);
-            return error_return;
-        }
-        freeResult(result);
-    }
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!run_continue(result))
+        return result->type;
+    freeResult(result);
 
     arg = ap[0].arg;
     for (int i=0; i < ap[0].c_count; arg = arg->next,i++)

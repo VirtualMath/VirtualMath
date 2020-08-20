@@ -95,19 +95,41 @@ ResultType setLambda(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
+ResultType elementSlice(INTER_FUNCTIONSIG) {
+    LinkValue *element = NULL;
+    LinkValue *_func_ = NULL;
+    char *func_name = NULL;
+    setResultCore(result);
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.slice_.element, var_list, result, belong)))
+        return result->type;
+    element = result->value;
+    result->value = NULL;
+    freeResult(result);
+
+    func_name = st->u.slice_.type == SliceType_down_ ? inter->data.object_down : inter->data.object_slice;
+    _func_ = findAttributes(func_name, false, element, inter);
+    if (_func_ != NULL){
+        gc_addTmpLink(&_func_->gc_status);
+        callBackCorePt(_func_, st->u.slice_.index, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&_func_->gc_status);
+    }
+    else
+        setResultErrorSt(result, inter, "TypeException", "Don't find __down__/__slice__", st, belong, true);
+
+    gc_freeTmpLink(&element->gc_status);
+    return result->type;
+}
+
 ResultType callBack(INTER_FUNCTIONSIG) {
     LinkValue *function_value = NULL;
     setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.call_function.function, var_list, result, belong)))
-        goto return_;
+        return result->type;
     function_value = result->value;
     result->value = NULL;
     freeResult(result);
-
     callBackCorePt(function_value, st->u.call_function.parameter, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-
     gc_freeTmpLink(&function_value->gc_status);
-    return_:
     return result->type;
 }
 

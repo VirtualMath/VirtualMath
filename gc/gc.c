@@ -56,10 +56,10 @@ void gc_iterHashTable(HashTable *ht){
 void gc_iterVar(Var *var){
     if (var == NULL)
         return;
-    gc_addLink(&var->gc_status);
     if (gc_IterAlready(&var->gc_status))
         return;
     for (PASS; var != NULL; var = var->next){
+        gc_addLink(&var->gc_status);
         gc_iterLinkValue(var->name_);
         gc_iterLinkValue(var->value);
     }

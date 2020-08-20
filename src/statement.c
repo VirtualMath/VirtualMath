@@ -172,6 +172,15 @@ Statement *makeCallStatement(Statement *function, Parameter *pt) {
     return tmp;
 }
 
+Statement *makeSliceStatement(Statement *element, Parameter *index, enum SliceType type) {
+    Statement *tmp = makeStatement(element->line, element->code_file);
+    tmp->type = slice_;
+    tmp->u.slice_.element = element;
+    tmp->u.slice_.index = index;
+    tmp->u.slice_.type = type;
+    return tmp;
+}
+
 Statement *makeIfStatement(long int line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = if_branch;
@@ -368,6 +377,10 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.call_function.function);
                 freeParameter(st->u.call_function.parameter, true);
                 break;
+            case slice_:
+                freeStatement(st->u.slice_.element);
+                freeParameter(st->u.slice_.index, true);
+                break;
             case base_list:
                 freeParameter(st->u.base_list.list, true);
                 break;
@@ -520,6 +533,10 @@ Statement *copyStatementCore(Statement *st){
         case call_function:
             new->u.call_function.function = copyStatement(st->u.call_function.function);
             new->u.call_function.parameter = copyParameter(st->u.call_function.parameter);
+            break;
+        case slice_:
+            new->u.slice_.element = copyStatement(st->u.slice_.element);
+            new->u.slice_.index = copyParameter(st->u.slice_.index);
             break;
         case base_list:
             new->u.base_list.type = st->u.base_list.type;

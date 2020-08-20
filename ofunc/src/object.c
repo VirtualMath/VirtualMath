@@ -15,13 +15,9 @@ ResultType object_new_(OfficialFunctionSig){
     }
 
     {
-        VarList *new_var = NULL;
-        Value *new_object = NULL;
-        Argument *father_arg = makeValueArgument(ap[1].value);
-        Inherit *object_father = setFather(father_arg);
-        freeArgument(father_arg, true);
-        new_var = copyVarList(ap[1].value->value->object.out_var, false, inter);
-        new_object = makeObject(inter, NULL, new_var, object_father);
+        Inherit *object_father = getInheritFromValueCore(ap[1].value);
+        VarList *new_var = copyVarList(ap[1].value->value->object.out_var, false, inter);
+        Value *new_object = makeObject(inter, NULL, new_var, object_father);
         value = makeLinkValue(new_object, belong, inter);
         setResultOperation(result, value);
     }

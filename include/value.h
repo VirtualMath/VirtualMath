@@ -178,6 +178,7 @@ Inherit *connectInherit(Inherit *base, Inherit *back);
 Inherit *connectSafeInherit(Inherit *base, Inherit *back);
 bool checkAttribution(Value *self, Value *father);
 
+Inherit *getInheritFromValueCore(LinkValue *num_father);
 Inherit *getInheritFromValue(Value *value, Inter *inter);
 bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_list);
 bool needDel(Value *object_value, Inter *inter);

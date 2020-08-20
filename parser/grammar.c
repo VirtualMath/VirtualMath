@@ -1142,8 +1142,43 @@ int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
     return 1;
 }
 void parserCallBack(PASERSSIGNATURE){
-    return tailOperation(CALLPASERSSIGNATURE, parserPoint, tailCall, POINT, CALLBACK,
-            "point", "call back");
+    return tailOperation(CALLPASERSSIGNATURE, parserSlice, tailCall, SLICE, CALLBACK,
+            "slice", "call back");
+}
+
+int tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
+    Parameter *pt = NULL;
+    Token *tmp = NULL;
+    enum SliceType type;  // 0-slice  1-down
+    if (readBackToken(pm) != MATHER_LB)
+        return -1;
+    long int line = delToken(pm);
+
+    if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
+        PASS;
+    if (readBackToken(pm) == MATHER_COLON)
+        type = SliceType_slice_;
+    else
+        type = SliceType_down_;
+    line = tmp->line;
+    addToken_(pm ,tmp);
+
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, true, true, (type == SliceType_down_ ? MATHER_COMMA : MATHER_COLON), MATHER_ASSIGNMENT)) {
+        syntaxError(pm, syntax_error, line, 1, "Don't get slice element");
+        return 0;
+    }
+    if (!checkToken(pm, MATHER_RB)){
+        freeParameter(pt, true);
+        syntaxError(pm, syntax_error, line, 1, "Don't get ] from slice");
+        return 0;
+    }
+
+    *st = makeSliceStatement(left_token->data.st, pt, type);
+    return 1;
+}
+void parserSlice(PASERSSIGNATURE){
+    return tailOperation(CALLPASERSSIGNATURE, parserPoint, tailSlice, POINT, SLICE,
+                         "point", "slice");
 }
 
 /**

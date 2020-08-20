@@ -38,6 +38,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case set_function:
             type = setFunction(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
+        case slice_:
+            type = elementSlice(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+            break;
         case call_function:
             type = callBack(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;

@@ -160,6 +160,34 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         freeArgument(call, false);
         freeParameter(pt, true);
     }
+    else if (name->type == slice_ && name->u.slice_.type == SliceType_down_){
+        LinkValue *iter = NULL;
+        LinkValue *_down_assignment_ = NULL;
+        Parameter *pt = name->u.slice_.index;
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.slice_.element, var_list, result, belong)))
+            goto return_;
+        iter = result->value;
+        result->value = NULL;
+        freeResult(result);
+        _down_assignment_ = findAttributes("__down_assignment__", false, iter, inter);
+        if (_down_assignment_ != NULL){
+            Argument *arg = makeValueArgument(value);
+            gc_addTmpLink(&_down_assignment_->gc_status);
+            arg->next = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            if (!run_continue(result))
+                goto daerror_;
+
+            freeResult(result);
+            callBackCore(_down_assignment_, arg, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+            daerror_:
+            freeArgument(arg, true);
+            gc_freeTmpLink(&_down_assignment_->gc_status);
+        }
+        else
+            setResultErrorSt(result, inter, "TypeException", "Don't find __down_assignment__", name, belong, true);
+        gc_freeTmpLink(&iter->gc_status);
+    }
     else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
         pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else{

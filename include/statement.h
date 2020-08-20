@@ -18,6 +18,7 @@ struct Statement{
         set_function,
         set_class,
         call_function,
+        slice_,
         if_branch,
         while_branch,
         for_branch,
@@ -100,6 +101,14 @@ struct Statement{
             struct Statement *function;
             struct Parameter *parameter;
         } call_function;
+        struct {
+            struct Statement *element;
+            struct Parameter *index;
+            enum SliceType{
+                SliceType_down_,
+                SliceType_slice_,
+            } type;
+        } slice_;
         struct {
             struct StatementList *if_list;  // if elif
             struct Statement *else_list;  // else分支(无condition)
@@ -258,6 +267,7 @@ Statement *makeClassStatement(Statement *name, Statement *function, Parameter *p
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeLambdaStatement(Statement *function, Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
+Statement *makeSliceStatement(Statement *element, Parameter *index, enum SliceType type);
 Statement *makeIfStatement(long int line, char *file);
 Statement *makeWhileStatement(long int line, char *file);
 Statement *makeTryStatement(long int line, char *file);

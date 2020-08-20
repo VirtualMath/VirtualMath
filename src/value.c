@@ -486,9 +486,13 @@ Inherit *connectSafeInherit(Inherit *base, Inherit *back){
     reutrn_: return base;
 }
 
-Inherit *getInheritFromValue(Value *value, Inter *inter){  // TODO-szh set clas 和 __new__ 应用此函数
-    Inherit *object_father = NULL;
+Inherit *getInheritFromValue(Value *value, Inter *inter){
     LinkValue *num_father = makeLinkValue(value, inter->base_father, inter);
+    return getInheritFromValueCore(num_father);
+}
+
+Inherit *getInheritFromValueCore(LinkValue *num_father) {
+    Inherit *object_father;
     Argument *father_arg = makeValueArgument(num_father);
     gc_addTmpLink(&num_father->gc_status);
     object_father = setFather(father_arg);
@@ -498,7 +502,7 @@ Inherit *getInheritFromValue(Value *value, Inter *inter){  // TODO-szh set clas 
 }
 
 bool needDel(Value *object_value, Inter *inter) {
-    LinkValue *_del_ = checkStrVar("__del__", false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
+    LinkValue *_del_ = checkStrVar(inter->data.object_del, false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
     enum FunctionPtType type;
     if (_del_ == NULL)
         return false;
@@ -511,7 +515,7 @@ bool needDel(Value *object_value, Inter *inter) {
 }
 
 bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_list) {
-    LinkValue *_del_ = findStrVar("__del__", false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
+    LinkValue *_del_ = findStrVar(inter->data.object_del, false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
     setResultCore(result);
 
     if (_del_ != NULL){

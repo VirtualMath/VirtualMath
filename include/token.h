@@ -128,6 +128,7 @@
 #define GOTO -32
 #define LABEL -33
 #define DECORATION -34
+#define SLICE -35
 
 #define printTokenEnter(tk, debug, type, message) do{ \
 writeLog(debug, type, message, NULL); \

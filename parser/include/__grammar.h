@@ -31,6 +31,7 @@ void parserOperation(PASERSSIGNATURE);
 void parserPolynomial(PASERSSIGNATURE);
 void parserBaseValue(PASERSSIGNATURE);
 void parserCallBack(PASERSSIGNATURE);
+void parserSlice(PASERSSIGNATURE);
 void parserPoint(PASERSSIGNATURE);
 void parserFactor(PASERSSIGNATURE);
 void parserAssignment(PASERSSIGNATURE);

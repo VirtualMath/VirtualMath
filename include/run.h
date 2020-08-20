@@ -31,6 +31,7 @@ ResultType setClass(INTER_FUNCTIONSIG);
 ResultType setFunction(INTER_FUNCTIONSIG);
 ResultType setLambda(INTER_FUNCTIONSIG);
 ResultType callBack(INTER_FUNCTIONSIG);
+ResultType elementSlice(INTER_FUNCTIONSIG);
 
 ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);

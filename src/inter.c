@@ -62,6 +62,9 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_mul = memStrcpy("__mul__");
     inter->data.object_div = memStrcpy("__div__");
     inter->data.object_call = memStrcpy("__call__");
+    inter->data.object_del = memStrcpy("__del__");
+    inter->data.object_down = memStrcpy("__down__");
+    inter->data.object_slice = memStrcpy("__slice__");
     inter->data.default_pt_type = free_;
 
 }
@@ -89,6 +92,9 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_mul);
     memFree(inter->data.object_div);
     memFree(inter->data.object_call);
+    memFree(inter->data.object_del);
+    memFree(inter->data.object_down);
+    memFree(inter->data.object_slice);
 
     memFree(inter->data.log_dir);
     if (inter->data.log_dir != NULL) {

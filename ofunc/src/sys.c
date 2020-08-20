@@ -8,12 +8,10 @@ ResultType vm_super(OfficialFunctionSig){
                            {.type=name_value, .name="obj_", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
-    {
-        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
-            return result->type;
-        freeResult(result);
-    }
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!run_continue(result))
+        return result->type;
+    freeResult(result);
 
     arg_father = ap[0].value->value;
     arg_child = ap[1].value->value;
