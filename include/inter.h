@@ -27,7 +27,11 @@ struct Inter{
         char *log_dir;  // 记录log文件夹的位置
         char *var_str_prefix;
         char *var_num_prefix;
-        char *var_defualt;
+        char *var_bool_prefix;
+        char *var_none;
+        char *var_pass;
+        char *var_class_prefix;
+        char *var_object_prefix;
         char *object_init;
         char *object_new;
         char *object_call;
@@ -47,7 +51,7 @@ struct Inter{
 typedef struct Inter Inter;
 typedef struct Statement Statement;
 
-Inter *makeInter(char *debug, struct LinkValue *father);
+Inter *makeInter(char *debug, struct LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
 int runCodeBlock(char *code_file, Inter *inter);

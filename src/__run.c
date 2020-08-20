@@ -81,8 +81,33 @@ char *getNameFromValue(Value *value, struct Inter *inter) {
             return setStrVarName(value->data.str.str, false, inter);
         case number:
             return setNumVarName(value->data.num.num, inter);
-        default:
-            return memStrcpy(inter->data.var_defualt);
+        case bool_:
+            if (value->data.bool_.bool_)
+                return memStrcat(inter->data.var_bool_prefix, "true", false, false);
+            else
+                return memStrcat(inter->data.var_bool_prefix, "false", false, false);
+        case none:
+            return memStrcpy(inter->data.var_none);
+        case pass_:
+            return memStrcpy(inter->data.var_pass);
+        case class:{
+            size_t len = memStrlen(inter->data.var_class_prefix) + 20;
+            char *name = memString(len);
+            char *return_ = NULL;
+            snprintf(name, len, "%s%p", inter->data.var_class_prefix, value);
+            return_ = memStrcpy(name);
+            memFree(name);
+            return return_;
+        }
+        default:{
+            size_t len = memStrlen(inter->data.var_object_prefix) + 20;
+            char *name = memString(len);
+            char *return_ = NULL;
+            snprintf(name, len, "%s%p", inter->data.var_object_prefix, value);
+            return_ = memStrcpy(name);
+            memFree(name);
+            return return_;
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 #include "__virtualmath.h"
 
-Inter *makeInter(char *debug, LinkValue *father) {
+Inter *makeInter(char *debug, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
     LinkValue *base_father = NULL;
     setBaseInterData(tmp);
@@ -35,7 +35,7 @@ Inter *makeInter(char *debug, LinkValue *father) {
 
     {
         Value *global_belong = makeObject(tmp, copyVarList(tmp->var_list, false, tmp), NULL, NULL);
-        base_father = makeLinkValue(global_belong, father, tmp);
+        base_father = makeLinkValue(global_belong, belong, tmp);
         gc_addStatementLink(&base_father->gc_status);
         tmp->base_father = base_father;
     }
@@ -52,7 +52,11 @@ void setBaseInterData(struct Inter *inter){
     inter->data.none = NULL;
     inter->data.var_str_prefix = memStrcpy("str_");
     inter->data.var_num_prefix = memStrcpy("num_");
-    inter->data.var_defualt = memStrcpy("default_var");
+    inter->data.var_none = memStrcpy("none");
+    inter->data.var_pass = memStrcpy("ellipsis");
+    inter->data.var_bool_prefix = memStrcpy("bool_");
+    inter->data.var_class_prefix = memStrcpy("class_");
+    inter->data.var_object_prefix = memStrcpy("obj_");
     inter->data.object_init = memStrcpy("__init__");
     inter->data.object_enter = memStrcpy("__enter__");
     inter->data.object_exit = memStrcpy("__exit__");
@@ -66,7 +70,6 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_down = memStrcpy("__down__");
     inter->data.object_slice = memStrcpy("__slice__");
     inter->data.default_pt_type = free_;
-
 }
 
 void freeBaseInterData(struct Inter *inter){
@@ -82,7 +85,11 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.dict->gc_status);
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
-    memFree(inter->data.var_defualt);
+    memFree(inter->data.var_object_prefix);
+    memFree(inter->data.var_class_prefix);
+    memFree(inter->data.var_bool_prefix);
+    memFree(inter->data.var_pass);
+    memFree(inter->data.var_none);
     memFree(inter->data.object_init);
     memFree(inter->data.object_enter);
     memFree(inter->data.object_exit);
