@@ -7,11 +7,11 @@ ResultType vm_print(OfficialFunctionSig){
                            {.must=-1}};
     {
         int status;
-        status = parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        status = parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!run_continue(result))
             return result->type;
         if (status != 1) {
-            setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", father, true);
+            setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", belong, true);
             return error_return;
         }
         freeResult(result);
@@ -30,11 +30,11 @@ ResultType vm_print(OfficialFunctionSig){
     else
         printf("\n");
 
-    setResultBase(result, inter, father);
+    setResultBase(result, inter, belong);
     return result->type;
 }
 
 void registeredIOFunction(RegisteredFunctionSig){
     NameFunc tmp[] = {{"print", vm_print, free_}, {NULL, NULL}};
-    iterNameFunc(tmp, father, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    iterNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

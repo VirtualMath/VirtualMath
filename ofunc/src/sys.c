@@ -9,7 +9,7 @@ ResultType vm_super(OfficialFunctionSig){
                            {.must=-1}};
     setResultCore(result);
     {
-        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!run_continue(result))
             return result->type;
         freeResult(result);
@@ -18,16 +18,16 @@ ResultType vm_super(OfficialFunctionSig){
     arg_father = ap[0].value->value;
     arg_child = ap[1].value->value;
     if (arg_child == arg_father) {
-        if (arg_child->object.father != NULL){
-            result->value = copyLinkValue(arg_child->object.father->value, inter);
+        if (arg_child->object.inherit != NULL){
+            result->value = copyLinkValue(arg_child->object.inherit->value, inter);
             result->type = operation_return;
             gc_addTmpLink(&result->value->gc_status);
         } else
-            setResultError(result, inter, "SuperException", "Don't get next father", 0, "sys", father, true);
+            setResultError(result, inter, "SuperException", "Don't get next father", 0, "sys", belong, true);
         return result->type;
     }
 
-    for (FatherValue *self_father = arg_child->object.father; self_father != NULL; self_father = self_father->next) {
+    for (Inherit *self_father = arg_child->object.inherit; self_father != NULL; self_father = self_father->next) {
         if (self_father->value->value == arg_father) {
             if (self_father->next != NULL)
                 next_father = copyLinkValue(self_father->next->value, inter);
@@ -41,7 +41,7 @@ ResultType vm_super(OfficialFunctionSig){
         gc_addTmpLink(&result->value->gc_status);
     }
     else
-        setResultError(result, inter, "SuperException", "Don't get next father", 0, "sys", father, true);
+        setResultError(result, inter, "SuperException", "Don't get next father", 0, "sys", belong, true);
 
     return result->type;
 }
@@ -51,7 +51,7 @@ ResultType vm_setMethodCore(OfficialFunctionSig, enum FunctionPtType type){
     ArgumentParser ap[] = {{.type=name_value, .name="func", .must=1, .long_arg=false}, {.must=-1}};
     setResultCore(result);
     {
-        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!run_continue(result))
             return result->type;
         freeResult(result);
@@ -65,27 +65,27 @@ ResultType vm_setMethodCore(OfficialFunctionSig, enum FunctionPtType type){
 }
 
 ResultType vm_freemethod(OfficialFunctionSig){
-    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, father), free_);
+    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, belong), free_);
 }
 
 ResultType vm_staticmethod(OfficialFunctionSig){
-    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, father), static_);
+    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, belong), static_);
 }
 
 ResultType vm_classmethod(OfficialFunctionSig){
-    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, father), class_static_);
+    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, belong), class_static_);
 }
 
 ResultType vm_objectmethod(OfficialFunctionSig){
-    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, father), object_static_);
+    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, belong), object_static_);
 }
 
 ResultType vm_classfreemethod(OfficialFunctionSig){
-    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, father), class_free_);
+    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, belong), class_free_);
 }
 
 ResultType vm_objectfreemethod(OfficialFunctionSig){
-    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, father), object_free_);
+    return vm_setMethodCore(CALL_OfficialFunction(arg, var_list, result, belong), object_free_);
 }
 
 void registeredSysFunction(RegisteredFunctionSig){
@@ -97,5 +97,5 @@ void registeredSysFunction(RegisteredFunctionSig){
                       {"classmethod", vm_classfreemethod, free_},
                       {"objectmethod", vm_objectfreemethod, free_},
                       {NULL, NULL}};
-    iterNameFunc(tmp, father, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    iterNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

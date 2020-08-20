@@ -29,6 +29,7 @@ void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl
 ResultType setFunctionArgument(struct Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 void freeFunctionArgument(Argument *arg, Argument *base);
 LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
+LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 void addStrVar(char *name, bool free_old, LinkValue *value, LinkValue *father, INTER_FUNCTIONSIG_CORE);
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter);
 #endif //VIRTUALMATH___RUN_H

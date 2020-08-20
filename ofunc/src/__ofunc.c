@@ -1,8 +1,8 @@
 #include "__ofunc.h"
 
-LinkValue *registeredFunctionCore(OfficialFunction of, char *name, LinkValue *father, INTER_FUNCTIONSIG_CORE) {
-    LinkValue *value = makeLinkValue(makeCFunctionValue(of, var_list, inter), father, inter);
-    addStrVar(name, false, value, father, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+LinkValue *registeredFunctionCore(OfficialFunction of, char *name, LinkValue *belong, INTER_FUNCTIONSIG_CORE) {
+    LinkValue *value = makeLinkValue(makeCFunctionValue(of, var_list, inter), belong, inter);
+    addStrVar(name, false, value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     return value;
 }
 
@@ -13,11 +13,11 @@ void iterNameFunc(NameFunc list[], LinkValue *father, INTER_FUNCTIONSIG_CORE){
     }
 }
 
-Value *makeBaseChildClass(Value *father, Inter *inter) {
-    FatherValue *father_value = NULL;
+Value *makeBaseChildClass(Value *inherit, Inter *inter) {
+    Inherit *father_value = NULL;
     Value *num = NULL;
     {
-        LinkValue *father_ = makeLinkValue(father, inter->base_father, inter);
+        LinkValue *father_ = makeLinkValue(inherit, inter->base_father, inter);
         Argument *arg = makeValueArgument(father_);
         gc_addTmpLink(&father_->gc_status);
         father_value = setFather(arg);

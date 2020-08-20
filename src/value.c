@@ -1,18 +1,18 @@
 #include "__run.h"
 
-Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *father) {
+Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit) {
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
     setGC(&tmp->gc_status);
     tmp->type = object_;
     tmp->gc_next = NULL;
-    if (inter->data.object != NULL && father == NULL)
-        father = makeFatherValue(makeLinkValue(inter->data.object, NULL, inter));
-    if (out_var == NULL && father != NULL)
-        out_var = copyVarList(father->value->value->object.out_var, false, inter);
-    tmp->object.var = makeObjectVarList(father, inter, object);
+    if (inter->data.object != NULL && inherit == NULL)
+        inherit = makeInherit(makeLinkValue(inter->data.object, NULL, inter));
+    if (out_var == NULL && inherit != NULL)
+        out_var = copyVarList(inherit->value->value->object.out_var, false, inter);
+    tmp->object.var = makeObjectVarList(inherit, inter, object);
     tmp->object.out_var = out_var;
-    tmp->object.father = father;
+    tmp->object.inherit = inherit;
 
     if (list_tmp == NULL){
         inter->base = tmp;
@@ -41,7 +41,7 @@ Value *makeNoneValue(Inter *inter) {
 }
 
 Value *makeBoolValue(bool bool_num, Inter *inter) {
-    FatherValue *object_father = getFatherFromValue(inter->data.bool_, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.bool_, inter);
     VarList *new_var = copyVarList(inter->data.bool_->object.out_var, false, inter);
     Value *tmp;
     tmp = makeObject(inter, NULL, new_var, object_father);
@@ -51,7 +51,7 @@ Value *makeBoolValue(bool bool_num, Inter *inter) {
 }
 
 Value *makePassValue(Inter *inter){
-    FatherValue *object_father = getFatherFromValue(inter->data.pass_, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.pass_, inter);
     VarList *new_var = copyVarList(inter->data.pass_->object.out_var, false, inter);
     Value *tmp;
     tmp = makeObject(inter, NULL, new_var, object_father);
@@ -60,7 +60,7 @@ Value *makePassValue(Inter *inter){
 }
 
 Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
-    FatherValue *object_father = getFatherFromValue(inter->data.num, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.num, inter);
     VarList *new_var = copyVarList(inter->data.num->object.out_var, false, inter);
     Value *tmp;
     tmp = makeObject(inter, NULL, new_var, object_father);
@@ -70,7 +70,7 @@ Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
 }
 
 Value *makeStringValue(char *str, Inter *inter) {
-    FatherValue *object_father = getFatherFromValue(inter->data.str, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.str, inter);
     VarList *new_var = copyVarList(inter->data.str->object.out_var, false, inter);
     Value *tmp;
     tmp = makeObject(inter, NULL, new_var, object_father);
@@ -85,7 +85,7 @@ static void setFunctionData(Value *value, Inter *inter) {
 }
 
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
-    FatherValue *object_father = getFatherFromValue(inter->data.function, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.function, inter);
     Value *tmp;
     tmp = makeObject(inter, NULL, var_list, object_father);
     tmp->type = function;
@@ -98,7 +98,7 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inte
 }
 
 Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter) {
-    FatherValue *object_father = getFatherFromValue(inter->data.function, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.function, inter);
     Value *tmp;
     tmp = makeObject(inter, NULL, copyVarList(var_list, false, inter), object_father);
     tmp->type = function;
@@ -110,7 +110,7 @@ Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter) 
     return tmp;
 }
 
-Value *makeClassValue(VarList *var_list, Inter *inter, FatherValue *father) {
+Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
     Value *tmp;
     tmp = makeObject(inter, NULL, var_list, father);
     tmp->type = class;
@@ -118,7 +118,7 @@ Value *makeClassValue(VarList *var_list, Inter *inter, FatherValue *father) {
 }
 
 Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
-    FatherValue *object_father = getFatherFromValue(inter->data.list, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.list, inter);
     VarList *new_var = copyVarList(inter->data.list->object.out_var, false, inter);
     Value *tmp;
     Argument *at = *arg_ad;
@@ -137,7 +137,7 @@ Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
 }
 
 Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST) {
-    FatherValue *object_father = getFatherFromValue(inter->data.dict, inter);
+    Inherit *object_father = getInheritFromValue(inter->data.dict, inter);
     VarList *new_var = copyVarList(inter->data.dict->object.out_var, false, inter);
     Value *tmp;
     tmp = makeObject(inter, NULL, new_var, object_father);
@@ -148,7 +148,7 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST)
         gc_addTmpLink(&tmp->gc_status);
         tmp->data.dict.dict = hash->hashtable;
         freeResult(result);
-        argumentToVar(arg_ad, &tmp->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result, father));
+        argumentToVar(arg_ad, &tmp->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result, belong));
         popVarList(hash);
         gc_freeTmpLink(&tmp->gc_status);
     }
@@ -164,7 +164,7 @@ void freeValue(Value **value) {
         PASS;
     for (VarList *tmp = free_value->object.out_var; tmp != NULL; tmp = freeVarList(tmp))
         PASS;
-    for (struct FatherValue *tmp = free_value->object.father; tmp != NULL; tmp = freeFatherValue(tmp))
+    for (struct Inherit *tmp = free_value->object.inherit; tmp != NULL; tmp = freeInherit(tmp))
         PASS;
     switch (free_value->type) {
         case string:
@@ -190,13 +190,13 @@ void freeValue(Value **value) {
     return_: return;
 }
 
-LinkValue *makeLinkValue(Value *value, LinkValue *linkValue, Inter *inter){
+LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter){
     LinkValue *tmp;
     LinkValue *list_tmp = inter->link_base;
     tmp = memCalloc(1, sizeof(Value));
-    setGC(&tmp->gc_status);
-    tmp->father = linkValue;
+    tmp->belong = belong;
     tmp->value = value;
+    setGC(&tmp->gc_status);
     if (list_tmp == NULL){
         inter->link_base = tmp;
         tmp->gc_last = NULL;
@@ -230,7 +230,7 @@ LinkValue *copyLinkValue(LinkValue *value, Inter *inter) {
     LinkValue *tmp = NULL;
     if (value == NULL)
         return NULL;
-    tmp = makeLinkValue(value->value, value->father, inter);
+    tmp = makeLinkValue(value->value, value->belong, inter);
     tmp->aut = value->aut;
     return tmp;
 }
@@ -244,26 +244,26 @@ void setResultCore(Result *ru) {
     ru->node = NULL;
 }
 
-void setResult(Result *ru, Inter *inter, LinkValue *father) {
+void setResult(Result *ru, Inter *inter, LinkValue *belong) {
     freeResult(ru);
-    setResultBase(ru, inter, father);
+    setResultBase(ru, inter, belong);
 }
 
-void setResultBase(Result *ru, Inter *inter, LinkValue *father) {
+void setResultBase(Result *ru, Inter *inter, LinkValue *belong) {
     setResultCore(ru);
-    ru->value = makeLinkValue(makeNoneValue(inter), father, inter);
+    ru->value = makeLinkValue(makeNoneValue(inter), belong, inter);
     gc_addTmpLink(&ru->value->gc_status);
 }
 
-void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father, bool new) {
-    setResultError(ru, inter, error_type, error_message, st->line, st->code_file, father, new);
+void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *belong, bool new) {
+    setResultError(ru, inter, error_type, error_message, st->line, st->code_file, belong, new);
 }
 
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *father, bool new) {
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *belong, bool new) {
     if (!new && ru->type != error_return)
         return;
     if (new) {
-        setResult(ru, inter, father);
+        setResult(ru, inter, belong);
         ru->type = error_return;
     }
     else{
@@ -273,8 +273,8 @@ void setResultError(Result *ru, Inter *inter, char *error_type, char *error_mess
     ru->error = connectError(makeError(error_type, error_message, line, file), ru->error);
 }
 
-void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father) {
-    setResult(ru, inter, father);
+void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong) {
+    setResult(ru, inter, belong);
     ru->type = operation_return;
 }
 
@@ -370,7 +370,7 @@ void printValue(Value *value, FILE *debug, bool print_father) {
     fprintf(debug, "(");
     printf("<%p>", value);
     if (print_father)
-        for (FatherValue *fv = value->object.father; fv != NULL; fv = fv->next) {
+        for (Inherit *fv = value->object.inherit; fv != NULL; fv = fv->next) {
             printf(" -> ");
             printValue(fv->value->value, debug, false);
         }
@@ -382,8 +382,8 @@ void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
     if (value == NULL)
         return;
     fprintf(debug, "%s", first);
-    if (value->father != NULL) {
-        printLinkValue(value->father, "", "", debug);
+    if (value->belong != NULL) {
+        printLinkValue(value->belong, "", "", debug);
         fprintf(debug, " . ", NULL);
     }
     if (value->value != NULL)
@@ -433,61 +433,61 @@ inline bool isType(Value *value, enum ValueType type){
     return value->type == type;
 }
 
-FatherValue *makeFatherValue(LinkValue *value){
-    FatherValue *tmp;
-    tmp = memCalloc(1, sizeof(FatherValue));
+Inherit *makeInherit(LinkValue *value){
+    Inherit *tmp;
+    tmp = memCalloc(1, sizeof(Inherit));
     tmp->value = value;
     tmp->next = NULL;
     return tmp;
 }
 
-FatherValue *copyFatherValueCore(FatherValue *value){
-    FatherValue *tmp;
+Inherit *copyInheritCore(Inherit *value){
+    Inherit *tmp;
     if (value == NULL)
         return NULL;
-    tmp = makeFatherValue(value->value);
+    tmp = makeInherit(value->value);
     return tmp;
 }
 
-FatherValue *copyFatherValue(FatherValue *value){
-    FatherValue *base = NULL;
-    FatherValue **tmp = &base;
+Inherit *copyInherit(Inherit *value){
+    Inherit *base = NULL;
+    Inherit **tmp = &base;
     for (PASS; value != NULL; value = value->next, tmp = &(*tmp)->next)
-        *tmp = copyFatherValueCore(value);
+        *tmp = copyInheritCore(value);
     return base;
 }
 
-FatherValue *freeFatherValue(FatherValue *value){
+Inherit *freeInherit(Inherit *value){
     freeBase(value, error_);
-    FatherValue *next = value->next;
+    Inherit *next = value->next;
     memFree(value);
     return next;
     error_: return NULL;
 }
 
-FatherValue *connectFatherValue(FatherValue *base, FatherValue *back){
-    FatherValue **tmp = &base;
+Inherit *connectInherit(Inherit *base, Inherit *back){
+    Inherit **tmp = &base;
     for (PASS; *tmp != NULL; tmp = &(*tmp)->next)
         PASS;
     *tmp = back;
     return base;
 }
 
-FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back){
-    FatherValue **last_node = &base;
+Inherit *connectSafeInherit(Inherit *base, Inherit *back){
+    Inherit **last_node = &base;
     if (back == NULL)
         goto reutrn_;
     for (PASS; *last_node != NULL;)
         if ((*last_node)->value->value == back->value->value)
-            *last_node = freeFatherValue(*last_node);
+            *last_node = freeInherit(*last_node);
         else
             last_node = &(*last_node)->next;
     *last_node = back;
     reutrn_: return base;
 }
 
-FatherValue *getFatherFromValue(Value *value, Inter *inter){
-    FatherValue *object_father = NULL;
+Inherit *getInheritFromValue(Value *value, Inter *inter){  // TODO-szh set clas 和 __new__ 应用此函数
+    Inherit *object_father = NULL;
     LinkValue *num_father = makeLinkValue(value, inter->base_father, inter);
     Argument *father_arg = makeValueArgument(num_father);
     gc_addTmpLink(&num_father->gc_status);
@@ -497,6 +497,34 @@ FatherValue *getFatherFromValue(Value *value, Inter *inter){
     return object_father;
 }
 
+bool needDel(Value *object_value, Inter *inter) {
+    LinkValue *_del_ = checkStrVar("__del__", false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
+    enum FunctionPtType type;
+    if (_del_ == NULL)
+        return false;
+    type = _del_->value->data.function.function_data.pt_type;
+    if ((type == object_free_ || type == object_static_) && object_value->type == class)
+        return false;
+    if (_del_->belong == NULL || _del_->belong->value == object_value || checkAttribution(object_value, _del_->belong->value))
+        return true;
+    return false;
+}
+
+bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_list) {
+    LinkValue *_del_ = findStrVar("__del__", false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
+    setResultCore(result);
+
+    if (_del_ != NULL){
+        gc_addTmpLink(&_del_->gc_status);
+        if (_del_->belong == NULL || _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value))
+            _del_->belong = makeLinkValue(object_value, inter->base_father, inter);
+        callBackCore(_del_, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, inter->base_father));
+        gc_freeTmpLink(&_del_->gc_status);
+        return true;
+    } else
+        return false;
+}
+
 /**
  * 检查 father 是否为 self 的父亲
  * @param self
@@ -504,7 +532,7 @@ FatherValue *getFatherFromValue(Value *value, Inter *inter){
  * @return
  */
 bool checkAttribution(Value *self, Value *father){
-    for (FatherValue *self_father = self->object.father; self_father != NULL; self_father = self_father->next)
+    for (Inherit *self_father = self->object.inherit; self_father != NULL; self_father = self_father->next)
         if (self_father->value->value == father)
             return true;
     return false;

@@ -9,6 +9,7 @@ void setGC(GCStatus *gcs){
     resetGC(gcs);
     gcs->tmp_link = 0;
     gcs->statement_link = 0;
+    gcs->c_value = not_free;
 }
 
 void gc_addTmpLink(GCStatus *gcs){
@@ -38,7 +39,13 @@ bool gc_IterAlready(GCStatus *gcs){
 }
 
 bool gc_needFree(GCStatus *gcs){
-    if (gcs->statement_link == 0 && gcs->tmp_link == 0 && gcs->link == 0)
-        return true;
-    return false;
+    return (gcs->statement_link == 0 && gcs->tmp_link == 0 && gcs->link == 0);
+}
+
+void gc_resetValue(Value *value){
+    value->gc_status.c_value = not_free;
+}
+
+bool gc_needFreeValue(Value *value){
+    return (gc_needFree(&value->gc_status) && value->gc_status.c_value == need_free);
 }

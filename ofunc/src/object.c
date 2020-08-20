@@ -10,7 +10,7 @@ ResultType object_new_(OfficialFunctionSig){
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", father, true);
+        setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", belong, true);
         return error_return;
     }
 
@@ -18,11 +18,11 @@ ResultType object_new_(OfficialFunctionSig){
         VarList *new_var = NULL;
         Value *new_object = NULL;
         Argument *father_arg = makeValueArgument(ap[1].value);
-        FatherValue *object_father = setFather(father_arg);
+        Inherit *object_father = setFather(father_arg);
         freeArgument(father_arg, true);
         new_var = copyVarList(ap[1].value->value->object.out_var, false, inter);
         new_object = makeObject(inter, NULL, new_var, object_father);
-        value = makeLinkValue(new_object, father, inter);
+        value = makeLinkValue(new_object, belong, inter);
         setResultOperation(result, value);
     }
 
@@ -31,7 +31,7 @@ ResultType object_new_(OfficialFunctionSig){
     if (_init_ != NULL){
         Result _init_result;
         setResultCore(&_init_result);
-        _init_->father = value;
+        _init_->belong = value;
 
         gc_addTmpLink(&_init_->gc_status);
         callBackCore(_init_, arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
@@ -54,7 +54,7 @@ void registeredObject(RegisteredFunctionSig){
     VarList *object_backup = NULL;
     NameFunc tmp[] = {{"__new__", object_new_, class_static_}, {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("object", false, object, father, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("object", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
     object_backup = object_var->next;
     object_var->next = inter->var_list;

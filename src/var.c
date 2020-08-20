@@ -156,7 +156,7 @@ void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inte
             break;
         } else if (eqString((*base)->name, name)) {
             (*base)->value->value = value->value;
-            (*base)->value->father = value->father;
+            (*base)->value->belong = value->belong;
             break;
         }
     }
@@ -174,14 +174,14 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
 }
 
 
-LinkValue *findVar(char *name, bool del_var, INTER_FUNCTIONSIG_CORE) {
+LinkValue *findVar(char *name, int operating, INTER_FUNCTIONSIG_CORE) {  // TODO-szh int operating 使用枚举体
     LinkValue *tmp = NULL;
     HASH_INDEX index = time33(name);
 
     for (Var **base = &var_list->hashtable->hashtable[index]; *base != NULL; base = &(*base)->next){
         if (eqString((*base)->name, name)){
             tmp = (*base)->value;
-            if (del_var) {
+            if (operating == 1) {
                 Var *next = (*base)->next;
                 (*base)->next = NULL;
                 *base = next;
@@ -190,19 +190,27 @@ LinkValue *findVar(char *name, bool del_var, INTER_FUNCTIONSIG_CORE) {
         }
     }
     return_:
-    return copyLinkValue(tmp, inter);
+    return operating == 2 ? tmp : copyLinkValue(tmp, inter);
 }
 
-LinkValue *findFromVarList(char *name, NUMBER_TYPE times, bool del_var, INTER_FUNCTIONSIG_CORE) {
+/**
+ * @param name
+ * @param times
+ * @param operating 1-删除  2-读取  0-获取
+ * @param inter
+ * @param var_list
+ * @return
+ */
+LinkValue *findFromVarList(char *name, NUMBER_TYPE times, int operating, INTER_FUNCTIONSIG_CORE) {
     LinkValue *tmp = NULL;
     NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
     for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
-    if (del_var && var_list != NULL)
+    if (operating == 1 && var_list != NULL)
         tmp = findVar(name, true, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     else
         for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
-            tmp = findVar(name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            tmp = findVar(name, operating, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     return tmp;
 }
 
@@ -256,19 +264,7 @@ bool comparVarList(VarList *dest, VarList *src) {
     return false;
 }
 
-VarList *connectSafeVarListBack(VarList *base, VarList *back){
-    VarList **last_node = &base;
-    for (PASS; *last_node != NULL; ){
-        if ((*last_node)->hashtable == back->hashtable)
-            *last_node = freeVarList(*last_node);
-        else
-            last_node = &(*last_node)->next;
-    }
-    *last_node = back;
-    return base;
-}
-
-VarList *makeObjectVarList(FatherValue *value, Inter *inter, VarList *base) {
+VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base) {
     VarList *tmp = base == NULL ? makeVarList(inter, true) : base;
     for (PASS; value != NULL; value = value->next) {
         VarList *new = copyVarList(value->value->value->object.var, false, inter);

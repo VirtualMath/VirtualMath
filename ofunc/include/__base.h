@@ -4,7 +4,7 @@
 
 struct Inter;
 struct VarList;
-struct FatherValue;
+struct Inherit;
 struct LinkValue;
 struct Result;
 typedef enum ResultType ResultType;

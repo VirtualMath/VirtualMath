@@ -17,28 +17,28 @@ ResultType operationStatement(INTER_FUNCTIONSIG) {
     setResultCore(result);
     switch (st->u.operation.OperationType) {
         case OPT_ADD:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_add);
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_add);
             break;
         case OPT_SUB:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_sub);
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_sub);
             break;
         case OPT_MUL:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_mul);
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_mul);
             break;
         case OPT_DIV:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, father), inter->data.object_div);
+            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_div);
             break;
         case OPT_ASS:
-            assOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            assOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
         case OPT_POINT:
-            pointOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            pointOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
         case OPT_BLOCK:
-            blockOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+            blockOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
         default:
-            setResult(result, inter, father);
+            setResult(result, inter, belong);
             break;
     }
     return result->type;
@@ -49,7 +49,7 @@ ResultType blockOperation(INTER_FUNCTIONSIG) {
     bool yield_run;
     if ((yield_run = popStatementVarList(st, &var_list, var_list, inter)))
         info_st = st->info.node;
-    blockSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_st, var_list, result, father));
+    blockSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_st, var_list, result, belong));
     if (result->type == error_return)
         return result->type;
     else if (yield_run) {
@@ -77,7 +77,7 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     LinkValue *left;
     VarList *object = NULL;
     VarList *out_var = NULL;
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father)) || result->value->value->type == none)
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == none)
         return result->type;
     left = result->value;
 
@@ -93,13 +93,13 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
         goto return_;
     else if ((left->aut == public_aut || left->aut == auto_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut))
         setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as public", st,
-                         father, true);
+                         belong, true);
     else if ((left->aut == protect_aut) && (result->value->aut == private_aut))
         setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect", st,
-                         father, true);
+                         belong, true);
 
-    if (result->value->father->value != left->value && checkAttribution(left->value, result->value->father->value))
-        result->value->father = left;
+    if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))
+        result->value->belong = left;
 
     return_:
     gc_freeze(inter, var_list, object, false);
@@ -118,16 +118,16 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
         function_var = copyVarList(var_list, false, inter);
         function_value = makeVMFunctionValue(st->u.operation.right, st->u.operation.left->u.call_function.parameter,
                                              function_var, inter);
-        tmp = makeLinkValue(function_value, father, inter);
-        assCore(st->u.operation.left->u.call_function.function, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        tmp = makeLinkValue(function_value, belong, inter);
+        assCore(st->u.operation.left->u.call_function.function, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     else{
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, father)))
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)))
             return result->type;
         value = result->value;
 
         freeResult(result);
-        assCore(st->u.operation.left, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        assCore(st->u.operation.left, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     return result->type;
 }
@@ -142,7 +142,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         Statement *tmp_st = makeBaseLinkValueStatement(value, name->line, name->code_file);
 
         pt = makeArgsParameter(tmp_st);
-        call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!run_continue(result)) {
             freeArgument(call, false);
             freeParameter(pt, true);
@@ -150,10 +150,10 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         }
 
         freeResult(result);
-        setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (run_continue(result)){
             Argument *tmp = call;
-            LinkValue *new_value = makeLinkValue(makeListValue(&tmp, inter, value_tuple), father, inter);
+            LinkValue *new_value = makeLinkValue(makeListValue(&tmp, inter, value_tuple), belong, inter);
             freeResult(result);
             setResultOperation(result, new_value);
         }
@@ -161,12 +161,12 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
         freeParameter(pt, true);
     }
     else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
-        pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else{
         char *str_name = NULL;
         int int_times = 0;
         LinkValue *var_value = NULL;
-        getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, father));
+        getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
         if (!run_continue(result)) {
             memFree(str_name);
             return result->type;
@@ -191,7 +191,7 @@ ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
 ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
     Result left;
     VarList *object = NULL;
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.operation.left, var_list, result, father)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.operation.left, var_list, result, belong)))
         return result->type;
     left = *result;
     setResultCore(result);
@@ -199,9 +199,9 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     object = left.value->value->object.var;
     gc_freeze(inter, var_list, object, true);
     if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
-        pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
+        pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     else
-        assCore(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, father));
+        assCore(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     gc_freeze(inter, var_list, object, false);
 
     freeResult(&left);
@@ -213,7 +213,7 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     char *name = NULL;
 
     freeResult(result);
-    var_info(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+    var_info(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     if (!run_continue(result)) {
         memFree(name);
         return result->type;
@@ -221,22 +221,22 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 
     freeResult(result);
     result->type = operation_return;
-    result->value = findFromVarList(name, int_times, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    result->value = findFromVarList(name, int_times, 0, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (result->value == NULL) {
         char *info = memStrcat("Name Not Found: ", name, false, false);
-        setResultErrorSt(result, inter, "NameException", info, st, father, true);
+        setResultErrorSt(result, inter, "NameException", info, st, belong, true);
         memFree(info);
     }
     else if ((st->aut == public_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut)){
         setResultCore(result);
         char *info = memStrcat("Wrong Permissions: access variables as public ", name, false, false);
-        setResultErrorSt(result, inter, "PermissionsException", info, st, father, true);
+        setResultErrorSt(result, inter, "PermissionsException", info, st, belong, true);
         memFree(info);
     }
     else if ((st->aut == protect_aut) && (result->value->aut == private_aut)){
         setResultCore(result);
         char *info = memStrcat("Wrong Permissions: access variables as protect ", name, false, false);
-        setResultErrorSt(result, inter, "PermissionsException", info, st, father, true);
+        setResultErrorSt(result, inter, "PermissionsException", info, st, belong, true);
         memFree(info);
     }
     else
@@ -266,7 +266,7 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
             value = makeNoneValue(inter);
         else
             value = makeStringValue(st->u.base_value.str, inter);
-        result->value = makeLinkValue(value, father, inter);
+        result->value = makeLinkValue(value, belong, inter);
     }
 
     result->type = operation_return;
@@ -279,14 +279,14 @@ ResultType getList(INTER_FUNCTIONSIG) {
     Argument *at_tmp = NULL;
 
     setResultCore(result);
-    at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     at_tmp = at;
     if (!run_continue(result)){
         freeArgument(at_tmp, false);
         return result->type;
     }
 
-    LinkValue *value = makeLinkValue(makeListValue(&at, inter, st->u.base_list.type), father, inter);
+    LinkValue *value = makeLinkValue(makeListValue(&at, inter, st->u.base_list.type), belong, inter);
     setResultOperation(result, value);
     freeArgument(at_tmp, false);
 
@@ -298,7 +298,7 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     Argument *at_tmp = NULL;
 
     setResultCore(result);
-    at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     at_tmp = at;
     if (!run_continue(result)){
         freeArgument(at_tmp, false);
@@ -306,14 +306,14 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     }
 
     freeResult(result);
-    Value *tmp_value = makeDictValue(&at, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+    Value *tmp_value = makeDictValue(&at, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!run_continue(result)) {
         freeArgument(at_tmp, false);
         return result->type;
     }
 
     freeResult(result);
-    LinkValue *value = makeLinkValue(tmp_value, father, inter);
+    LinkValue *value = makeLinkValue(tmp_value, belong, inter);
     setResultOperation(result, value);
     freeArgument(at_tmp, false);
 
@@ -333,7 +333,7 @@ ResultType setDefault(INTER_FUNCTIONSIG){
         char *name = NULL;
         int times = 0;
         freeResult(result);
-        getVarInfo(&name, &times, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list, result, father));
+        getVarInfo(&name, &times, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list, result, belong));
         if (!run_continue(result))
             break;
         if (type != default_)
@@ -345,12 +345,12 @@ ResultType setDefault(INTER_FUNCTIONSIG){
 }
 
 bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG){
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, father)) || result->value->value->type == none)
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == none)
         return true;
     *left = *result;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, father)) || result->value->value->type == none)
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)) || result->value->value->type == none)
         return true;
     *right = *result;
     setResultCore(result);
@@ -364,20 +364,20 @@ ResultType operationCore(INTER_FUNCTIONSIG, char *name) {
     setResultCore(&left);
     setResultCore(&right);
 
-    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
         return result->type;
 
     _func_ = findAttributes(name, false, left.value, inter);
     if (_func_ != NULL){
         Argument *arg = makeValueArgument(right.value);
         gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, arg, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        callBackCore(_func_, arg, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
         freeArgument(arg, true);
     }
     else {
         char *message = memStrcat("Don't find ", name, false, false);
-        setResultErrorSt(result, inter, "TypeException", message, st, father, true);
+        setResultErrorSt(result, inter, "TypeException", message, st, belong, true);
         memFree(message);
     }
 

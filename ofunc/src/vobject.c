@@ -2,8 +2,8 @@
 
 typedef void (*base_opt)(LinkValue *, Result *, struct Inter *, Value *, Value *);
 
-void vobject_add_base(LinkValue *father, Result *result, struct Inter *inter, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
+void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, Value *left, Value *right) {
+    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
     if (left->type == number && right->type == number)
         result->value->value = makeNumberValue(left->data.num.num + right->data.num.num, inter);
     else if(left->type == string && right->type == string){
@@ -12,19 +12,19 @@ void vobject_add_base(LinkValue *father, Result *result, struct Inter *inter, Va
         memFree(new_string);
     }
     else
-        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", father, true);
+        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", belong, true);
 }
 
-void vobject_sub_base(LinkValue *father, Result *result, struct Inter *inter, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
+void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, Value *left, Value *right) {
+    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
     if (left->type == number && right->type == number)
         result->value->value = makeNumberValue(left->data.num.num - right->data.num.num, inter);
     else
-        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", father, true);
+        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", belong, true);
 }
 
-void vobject_mul_base(LinkValue *father, Result *result, struct Inter *inter, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
+void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Value *left, Value *right) {
+    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
     if (left->type == number && right->type == number)
         result->value->value = makeNumberValue(left->data.num.num * right->data.num.num, inter);
     else if(left->type == number && right->type == string) {
@@ -39,15 +39,15 @@ void vobject_mul_base(LinkValue *father, Result *result, struct Inter *inter, Va
         memFree(new_string);
     }
     else
-        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", father, true);
+        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", belong, true);
 }
 
-void vobject_div_base(LinkValue *father, Result *result, struct Inter *inter, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, father, inter));
+void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, Value *left, Value *right) {
+    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
     if (left->type == number && right->type == number)
         result->value->value = makeNumberValue(left->data.num.num / right->data.num.num, inter);
     else
-        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", father, true);
+        setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", belong, true);
 }
 
 ResultType vobject_opt_core(OfficialFunctionSig, base_opt func){
@@ -58,7 +58,7 @@ ResultType vobject_opt_core(OfficialFunctionSig, base_opt func){
                            {.must=-1}};
     setResultCore(result);
     {
-        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!run_continue(result))
             return result->type;
         freeResult(result);
@@ -67,25 +67,25 @@ ResultType vobject_opt_core(OfficialFunctionSig, base_opt func){
     left = ap[0].value->value;
     right = ap[1].value->value;
 
-    func(father, result, inter, left, right);
+    func(belong, result, inter, left, right);
 
     return result->type;
 }
 
 ResultType vobject_add(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, father), vobject_add_base);
+    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_add_base);
 }
 
 ResultType vobject_sub(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, father), vobject_sub_base);
+    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_sub_base);
 }
 
 ResultType vobject_mul(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, father), vobject_mul_base);
+    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_mul_base);
 }
 
 ResultType vobject_div(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, father), vobject_div_base);
+    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_div_base);
 }
 
 void registeredVObject(RegisteredFunctionSig){
@@ -98,7 +98,7 @@ void registeredVObject(RegisteredFunctionSig){
                       {"__div__", vobject_div, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("vobject", false, object, father, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("vobject", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
     object_backup = object_var->next;
     object_var->next = inter->var_list;

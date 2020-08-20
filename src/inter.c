@@ -34,9 +34,8 @@ Inter *makeInter(char *debug, LinkValue *father) {
     gc_addStatementLink(&tmp->data.none->gc_status);
 
     {
-        VarList *out_var = copyVarList(tmp->var_list, false, tmp);
-        Value *base_father_value = makeObject(tmp, out_var, NULL, NULL);
-        base_father = makeLinkValue(base_father_value, father, tmp);
+        Value *global_belong = makeObject(tmp, copyVarList(tmp->var_list, false, tmp), NULL, NULL);
+        base_father = makeLinkValue(global_belong, father, tmp);
         gc_addStatementLink(&base_father->gc_status);
         tmp->base_father = base_father;
     }
@@ -68,6 +67,7 @@ void setBaseInterData(struct Inter *inter){
 }
 
 void freeBaseInterData(struct Inter *inter){
+    gc_freeStatementLink(&inter->base_father->gc_status);
     gc_freeStatementLink(&inter->data.object->gc_status);
     gc_freeStatementLink(&inter->data.vobject->gc_status);
     gc_freeStatementLink(&inter->data.num->gc_status);
@@ -99,11 +99,7 @@ void freeBaseInterData(struct Inter *inter){
 
 void freeInter(Inter *inter, bool show_gc) {
     freeBase(inter, return_);
-
-    gc_freeStatementLink(&inter->base_father->gc_status);
-    inter->base_father = NULL;
-
-    freeVarList(inter->var_list);
+    gc_runDelAll(inter);
     freeBaseInterData(inter);
 
     if (show_gc && (printf("Enter '1' to show gc: "), getc(stdin) == '1')) {
@@ -111,7 +107,7 @@ void freeInter(Inter *inter, bool show_gc) {
         while (getc(stdin) != '\n')
             PASS;
     }
-
+    freeVarList(inter->var_list);
     while (inter->base != NULL)
         freeValue(&inter->base);
     while (inter->base_var != NULL)

@@ -89,8 +89,8 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
                         INTER_FUNCTIONSIG_NOT_ST);
 ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
 
-FatherValue *setFatherCore(FatherValue *father_tmp);
-FatherValue *setFather(Argument *call);
+Inherit *setFatherCore(Inherit *father_tmp);
+Inherit *setFather(Argument *call);
 bool checkFormal(Parameter *pt);
 
 bool checkArgument(int c_value, int c_name, int type_value, int type_name, Argument *arg);

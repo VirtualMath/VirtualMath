@@ -15,7 +15,7 @@
 
 struct Argument;
 struct VarList;
-struct FatherValue;
+struct Inherit;
 struct Inter;
 
 struct NameFunc{

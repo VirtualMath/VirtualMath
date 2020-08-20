@@ -9,17 +9,17 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
         *times = 0;
         goto not_times;
     }
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, father)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, belong, true);
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
     freeResult(result);
 
     not_times:
-    value = makeLinkValue(makeStringValue(st->u.base_var.name, inter), father, inter);
+    value = makeLinkValue(makeStringValue(st->u.base_var.name, inter), belong, inter);
     setResultOperation(result, value);
 
     return result->type;
@@ -32,17 +32,17 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
         *times = 0;
         goto not_times;
     }
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, father)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, father, true);
+        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, belong, true);
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
 
     freeResult(result);
     not_times:
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list, result, father)))
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list, result, belong)))
         return result->type;
 
     *name = getNameFromValue(result->value->value, inter);
@@ -53,11 +53,11 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
 
 ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (st->type == base_var)
-        getBaseVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+        getBaseVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     else if (st->type == base_svar)
-        getBaseSVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, father));
+        getBaseSVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     else{
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, father)))
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
             return result->type;
         *name = getNameFromValue(result->value->value, inter);
         *times = 0;
@@ -114,8 +114,8 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long l
     Argument *tmp = NULL;
     enum FunctionPtType pt_type = function_value->value->data.function.function_data.pt_type;
     setResultCore(result);
-    if (function_value->father == NULL){
-        setResultError(result, inter, "ArgumentException", "Don't get self", line, file, father, true);
+    if (function_value->belong == NULL){
+        setResultError(result, inter, "ArgumentException", "Don't get self", line, file, belong, true);
         return error_return;
     }
 
@@ -127,28 +127,28 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long l
             break;
         case class_static_:
             tmp = makeValueArgument(function_value);
-            tmp->next = makeValueArgument(function_value->father);
+            tmp->next = makeValueArgument(function_value->belong);
             tmp->next->next = *arg;
             *arg = tmp;
             break;
         case object_static_:
             tmp = makeValueArgument(function_value);
-            if (function_value->father->value->type == class)
+            if (function_value->belong->value->type == class)
                 tmp->next = *arg;
             else {
-                tmp->next = makeValueArgument(function_value->father);
+                tmp->next = makeValueArgument(function_value->belong);
                 tmp->next->next = *arg;
             }
             *arg = tmp;
             break;
         case class_free_:
-            tmp = makeValueArgument(function_value->father);
+            tmp = makeValueArgument(function_value->belong);
             tmp->next = *arg;
             *arg = tmp;
             break;
         case object_free_:
-            if (function_value->father->value->type != class) {
-                tmp = makeValueArgument(function_value->father);
+            if (function_value->belong->value->type != class) {
+                tmp = makeValueArgument(function_value->belong);
                 tmp->next = *arg;
                 *arg = tmp;
             }
@@ -156,7 +156,7 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long l
         default:
             break;
     }
-    setResultBase(result, inter, father);
+    setResultBase(result, inter, belong);
     return result->type;
 }
 
@@ -173,21 +173,29 @@ void freeFunctionArgument(Argument *arg, Argument *base) {
 LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     LinkValue *tmp = NULL;
     char *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    tmp = findFromVarList(name_, 0, 0, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(name_);
     return tmp;
 }
 
-void addStrVar(char *name, bool free_old, LinkValue *value, LinkValue *father, INTER_FUNCTIONSIG_CORE){
+LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
+    LinkValue *tmp = NULL;
+    char *name_ = setStrVarName(name, free_old, inter);
+    tmp = findFromVarList(name_, 0, 2, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    memFree(name_);
+    return tmp;
+}
+
+void addStrVar(char *name, bool free_old, LinkValue *value, LinkValue *belong, INTER_FUNCTIONSIG_CORE){
     char *var_name = setStrVarName(name, free_old, inter);
-    LinkValue *name_ = makeLinkValue(makeStringValue(var_name, inter), father, inter);
+    LinkValue *name_ = makeLinkValue(makeStringValue(var_name, inter), belong, inter);
     addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(var_name);
 }
 
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter) {
     LinkValue *attr = findStrVar(name, free_old, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
-    if (attr != NULL && attr->father->value != value->value && checkAttribution(value->value, attr->father->value))
-        attr->father = value;
+    if (attr != NULL && (attr->belong == NULL || attr->belong->value != value->value && checkAttribution(value->value, attr->belong->value)))
+        attr->belong = value;
     return attr;
 }

@@ -5,12 +5,12 @@ void gc_iterLinkValue(LinkValue *value){
         return;
     gc_addLink(&value->gc_status);
     if (!gc_IterAlready(&value->gc_status)){
-        gc_iterLinkValue(value->father);
+        gc_iterLinkValue(value->belong);
         gc_iterValue(value->value);
     }
 }
 
-void gc_fatherValue(FatherValue *value){
+void gc_fatherValue(Inherit *value){
     for (PASS; value != NULL; value = value->next)
         gc_iterLinkValue(value->value);
 }
@@ -23,7 +23,8 @@ void gc_iterValue(Value *value){
         return;
     gc_varList(value->object.var);
     gc_varList(value->object.out_var);
-    gc_fatherValue(value->object.father);
+    gc_fatherValue(value->object.inherit);
+    gc_resetValue(value);
     switch (value->type) {
         case list:
             for (int i=0;i < value->data.list.size;i++)
@@ -96,10 +97,55 @@ void gc_checkBase(Inter *inter){
             gc_iterVar(var_base);
 }
 
+void gc_checkDel(Inter *inter){
+    for (Value *value = inter->base; value != NULL; value = value->gc_next)
+        if (!gc_needFree(&value->gc_status))
+            gc_resetValue(value);
+        else if (value->gc_status.c_value == not_free){
+            if (needDel(value, inter)){
+                gc_iterValue(value);
+                value->gc_status.c_value = run_del;
+            }
+            else
+                value->gc_status.c_value = need_free;
+        }
+}
+
+void gc_runDelAll(Inter *inter){
+    Result result;
+    setResultCore(&result);
+    for (Value *value = inter->base; value != NULL; value = value->gc_next) {
+        freeResult(&result);
+        gc_addTmpLink(&value->gc_status);
+        if (needDel(value, inter)) {
+            callDel(value, &result, inter, inter->var_list);
+            if (!run_continue_type(result.type))
+                printError(&result, inter, true);
+        }
+        gc_freeTmpLink(&value->gc_status);
+    }
+}
+
+void gc_runDel(Inter *inter, VarList *var_list){
+    Result result;
+    setResultCore(&result);
+    for (Value *value = inter->base; value != NULL; value = value->gc_next) {
+        freeResult(&result);
+        if (value->gc_status.c_value == run_del) {
+            gc_addTmpLink(&value->gc_status);
+            callDel(value, &result, inter, var_list);
+            if (!run_continue_type(result.type))
+                printError(&result, inter, true);
+            gc_freeTmpLink(&value->gc_status);
+            value->gc_status.c_value = need_free;
+        }
+    }
+}
+
 void gc_freeBase(Inter *inter){
 #if START_GC
     for (Value **value_base = &inter->base; *value_base != NULL;)
-        if (gc_needFree(&(*value_base)->gc_status))
+        if (gc_needFreeValue(*value_base))
             freeValue(value_base);
         else
             value_base = &(*value_base)->gc_next;
@@ -124,7 +170,7 @@ void gc_freeBase(Inter *inter){
 #endif
 }
 
-void gc_run(Inter *inter, int var_list, int link_value, int value, ...){
+void gc_run(Inter *inter, VarList *run_var, int var_list, int link_value, int value, ...){
 #if START_GC
     gc_resetBase(inter);
     va_list arg;
@@ -143,6 +189,8 @@ void gc_run(Inter *inter, int var_list, int link_value, int value, ...){
     }
     va_end(arg);
     gc_checkBase(inter);
+    gc_checkDel(inter);
     gc_freeBase(inter);
+    gc_runDel(inter, run_var);
 #endif
 }

@@ -6,7 +6,7 @@ void registeredDict(RegisteredFunctionSig){
 //    VarList *object_backup = NULL;
 //    NameFunc tmp[] = {{NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("dict", false, object, father, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("dict", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
 //    object_backup = object_var->next;
 //    object_var->next = inter->var_list;

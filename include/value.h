@@ -7,7 +7,7 @@
 
 struct VarList;
 struct Argument;
-struct FatherValue;
+struct Inherit;
 
 typedef enum ResultType (*OfficialFunction)(OfficialFunctionSig);
 typedef void (*Registered)(RegisteredFunctionSig);
@@ -36,7 +36,7 @@ struct Value{
     struct {
         struct VarList *var;
         struct VarList *out_var;
-        struct FatherValue *father;
+        struct Inherit *inherit;
     } object;
     union data{
         struct Number{
@@ -88,7 +88,7 @@ struct LinkValue{
     struct GCStatus gc_status;
     enum ValueAuthority aut;
     struct Value *value;
-    struct LinkValue *father;
+    struct LinkValue *belong;
     struct LinkValue *gc_next;
     struct LinkValue *gc_last;
 };
@@ -121,9 +121,9 @@ struct Error{
     struct Error *next;
 };
 
-struct FatherValue{
+struct Inherit{
     struct LinkValue *value;
-    struct FatherValue *next;
+    struct Inherit *next;
 };
 
 typedef struct Inter Inter;
@@ -131,12 +131,12 @@ typedef struct Value Value;
 typedef struct LinkValue LinkValue;
 typedef struct Result Result;
 typedef struct Error Error;
-typedef struct FatherValue FatherValue;
+typedef struct Inherit Inherit;
 typedef enum ResultType ResultType;
 
-Value *makeObject(Inter *inter, VarList *object, VarList *out_var, FatherValue *father);
+Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit);
 void freeValue(Value **Value);
-LinkValue *makeLinkValue(Value *value, LinkValue *linkValue,Inter *inter);
+LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter);
 void freeLinkValue(LinkValue **value);
 LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *makeNoneValue(Inter *inter);
@@ -146,16 +146,16 @@ Value *makeNumberValue(long num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
 Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter);
-Value *makeClassValue(VarList *var_list, Inter *inter, FatherValue *father);
+Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father);
 Value *makeListValue(struct Argument **arg_ad, Inter *inter, enum ListType type);
 Value *makeDictValue(struct Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST);
 
 void setResultCore(Result *ru);
-void setResult(Result *ru, Inter *inter, LinkValue *father);
-void setResultBase(Result *ru, Inter *inter, LinkValue *father);
-void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *father, bool new);
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *father, bool new);
-void setResultOperationNone(Result *ru, Inter *inter, LinkValue *father);
+void setResult(Result *ru, Inter *inter, LinkValue *belong);
+void setResultBase(Result *ru, Inter *inter, LinkValue *belong);
+void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *belong, bool new);
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *belong, bool new);
+void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong);
 void setResultOperation(Result *ru, LinkValue *value);
 void setResultOperationBase(Result *ru, LinkValue *value);
 void freeResult(Result *ru);
@@ -171,11 +171,14 @@ void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug);
 
 bool isType(Value *value, enum ValueType type);
 
-FatherValue *makeFatherValue(LinkValue *value);
-FatherValue *copyFatherValue(FatherValue *value);
-FatherValue *freeFatherValue(FatherValue *value);
-FatherValue *connectFatherValue(FatherValue *base, FatherValue *back);
-FatherValue *connectSafeFatherValue(FatherValue *base, FatherValue *back);
+Inherit *makeInherit(LinkValue *value);
+Inherit *copyInherit(Inherit *value);
+Inherit *freeInherit(Inherit *value);
+Inherit *connectInherit(Inherit *base, Inherit *back);
+Inherit *connectSafeInherit(Inherit *base, Inherit *back);
 bool checkAttribution(Value *self, Value *father);
-FatherValue *getFatherFromValue(Value *value, Inter *inter);
+
+Inherit *getInheritFromValue(Value *value, Inter *inter);
+bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_list);
+bool needDel(Value *object_value, Inter *inter);
 #endif //VIRTUALMATH_VALUE_H

@@ -5,8 +5,8 @@
 #include "__run.h"
 
 
-LinkValue *registeredFunctionCore(OfficialFunction of, char *name, struct LinkValue *father, INTER_FUNCTIONSIG_CORE);
+LinkValue *registeredFunctionCore(OfficialFunction of, char *name, struct LinkValue *belong, INTER_FUNCTIONSIG_CORE);
 void iterNameFunc(NameFunc list[],struct LinkValue *father, INTER_FUNCTIONSIG_CORE);
-Value *makeBaseChildClass(Value *father, Inter *inter);
+Value *makeBaseChildClass(Value *inherit, Inter *inter);
 
 #endif //VIRTUALMATH___OFUNC_H

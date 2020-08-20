@@ -47,8 +47,8 @@ VarList *makeVarList(Inter *inter, bool make_hash);
 VarList *freeVarList(VarList *vl);
 
 HASH_INDEX time33(char *key);
-LinkValue *findVar(char *name, bool del_var, INTER_FUNCTIONSIG_CORE);
-LinkValue *findFromVarList(char *name, NUMBER_TYPE times, bool del_var, INTER_FUNCTIONSIG_CORE);
+LinkValue *findVar(char *name, int operating, INTER_FUNCTIONSIG_CORE);
+LinkValue *findFromVarList(char *name, NUMBER_TYPE times, int operating, INTER_FUNCTIONSIG_CORE);
 void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CORE);
 void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
 void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *value, INTER_FUNCTIONSIG_CORE);
@@ -59,8 +59,7 @@ VarList *copyVarListCore(VarList *base, Inter *inter);
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter);
 VarList *connectVarListBack(VarList *base, VarList *back);
 bool comparVarList(VarList *dest, VarList *src);
-VarList *connectSafeVarListBack(VarList *base, VarList *back);
-VarList *makeObjectVarList(FatherValue *value, Inter *inter, VarList *base);
+VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base);
 
 NUMBER_TYPE findDefault(DefaultVar *base, char *name);
 DefaultVar *connectDefaultVar(DefaultVar *base, char *name, NUMBER_TYPE times);
