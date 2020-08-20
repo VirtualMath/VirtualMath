@@ -138,13 +138,10 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, cha
         callCFunction(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     else if (function_value->value->type == class)
         callClass(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
-    else{
-        setResultError(result, inter, "TypeException", "Object is not callable", line, file, father, true);
-        goto return_;
-    }
+    else
+        callObject(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
     setResultError(result, inter, NULL, NULL, line, file, father, false);
 
-    return_:
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }
@@ -154,13 +151,27 @@ ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char 
     setResultCore(result);
 
     if (_new_ != NULL){
-        _new_->father = class_value;
         gc_addTmpLink(&_new_->gc_status);
         callBackCore(_new_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
         gc_freeTmpLink(&_new_->gc_status);
     }
     else
         setResultError(result, inter, "ClassException", "Don't find __new__", line, file, father, true);
+
+    return result->type;
+}
+
+ResultType callObject(LinkValue *object_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    LinkValue *_call_ = findAttributes(inter->data.object_call, false, object_value, inter);
+    setResultCore(result);
+
+    if (_call_ != NULL){
+        gc_addTmpLink(&_call_->gc_status);
+        callBackCore(_call_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, father));
+        gc_freeTmpLink(&_call_->gc_status);
+    }
+    else
+        setResultError(result, inter, "TypeException", "Object is not callable", line, file, father, true);
 
     return result->type;
 }
@@ -201,7 +212,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
     gc_addTmpLink(&function_value->gc_status);
     funtion_st = function_value->value->data.function.function;
     if ((yield_run = popStatementVarList(funtion_st, &function_var, function_value->value->object.out_var, inter)))
-        funtion_st = getRunInfoStatement(funtion_st);
+        funtion_st = funtion_st->info.node;
 
     gc_freeze(inter, var_list, function_var, true);
 
@@ -218,7 +229,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
         gc_freeze(inter, var_list, function_var, false);
         funtion_st = function_value->value->data.function.function;
         if (yield_run)
-            freeFunctionYield(funtion_st, inter);
+            freeRunInfo(funtion_st);
         else
             popVarList(function_var);
         goto return_;
@@ -235,7 +246,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
             result->type = operation_return;
         }
         else
-            freeFunctionYield(funtion_st, inter);
+            freeRunInfo(funtion_st);
     else
         if (result->type == yield_return){
             newFunctionYield(funtion_st, result->node, function_var, inter);

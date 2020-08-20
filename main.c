@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
  * argument 设定 tmp_link
  * __call__ 设定
  * __var__ 设定
+ * __del__ 设定
  * 下标和切片
  * 官方函数
  * 官方类

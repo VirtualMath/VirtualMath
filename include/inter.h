@@ -30,6 +30,7 @@ struct Inter{
         char *var_defualt;
         char *object_init;
         char *object_new;
+        char *object_call;
         char *object_enter;
         char *object_exit;
         char *object_add;

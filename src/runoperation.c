@@ -58,7 +58,7 @@ ResultType blockOperation(INTER_FUNCTIONSIG) {
             result->type = operation_return;
         }
         else
-            freeFunctionYield(st, inter);
+            freeRunInfo(st);
     }
     else {
         if (result->type == yield_return){

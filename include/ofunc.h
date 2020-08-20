@@ -16,6 +16,7 @@
 struct Argument;
 struct VarList;
 struct FatherValue;
+struct Inter;
 
 struct NameFunc{
     char *name;

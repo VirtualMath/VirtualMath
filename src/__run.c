@@ -110,19 +110,6 @@ void updateFunctionYield(Statement *function_st, Statement *node){
     function_st->info.have_info = true;
 }
 
-void freeFunctionYield(Statement *function_st, Inter *inter){  // TODO-szh 去除该函数
-    function_st->info.var_list->next = NULL;
-    gc_freeze(inter, function_st->info.var_list, NULL, false);
-    freeVarList(function_st->info.var_list);
-    function_st->info.var_list = NULL;
-    function_st->info.have_info = false;
-    function_st->info.node = NULL;
-}
-
-Statement *getRunInfoStatement(Statement *funtion_st){  // TODO-szh 去除该函数
-    return funtion_st->info.node;
-}
-
 ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
     enum FunctionPtType pt_type = function_value->value->data.function.function_data.pt_type;

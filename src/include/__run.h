@@ -21,7 +21,6 @@ bool popStatementVarList(Statement *funtion_st, VarList **function_var, VarList 
 
 void newFunctionYield(Statement *funtion_st, Statement *node, VarList *new_var, Inter *inter);
 void updateFunctionYield(Statement *function_st, Statement *node);
-void freeFunctionYield(Statement *function_st, Inter *inter);
 
 void updateBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status);
 void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
