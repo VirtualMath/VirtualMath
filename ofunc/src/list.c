@@ -147,6 +147,30 @@ ResultType list_down(OfficialFunctionSig){
     return result->type;
 }
 
+ResultType list_iter(OfficialFunctionSig){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!run_continue(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != list){
+        setResultError(result, inter, "TypeException", "Don't get a list", 0, "sys", belong, true);
+        return error_return;
+    }
+    {
+        Argument *list_iter_arg = makeValueArgument(ap[0].value);
+        LinkValue *iter_list = makeLinkValue(inter->data.list_iter, inter->base_father, inter);
+        gc_addTmpLink(&iter_list->gc_status);
+        callBackCore(iter_list, list_iter_arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&iter_list->gc_status);
+        freeArgument(list_iter_arg, true);
+    }
+    return result->type;
+}
+
 void registeredList(RegisteredFunctionSig){
     LinkValue *object = makeLinkValue(inter->data.list, inter->base_father, inter);
     VarList *object_var = object->value->object.var;
@@ -154,6 +178,7 @@ void registeredList(RegisteredFunctionSig){
     NameFunc tmp[] = {{"__down__", list_down, object_free_},
                       {"__slice__", list_slice, object_free_},
                       {"__down_assignment__", list_down_assignment, object_free_},
+                      {"__iter__", list_iter, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("list", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

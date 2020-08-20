@@ -49,6 +49,7 @@ ResultType setDefault(INTER_FUNCTIONSIG);
 
 ResultType ifBranch(INTER_FUNCTIONSIG);
 ResultType whileBranch(INTER_FUNCTIONSIG);
+ResultType forBranch(INTER_FUNCTIONSIG);
 ResultType withBranch(INTER_FUNCTIONSIG);
 ResultType tryBranch(INTER_FUNCTIONSIG);
 ResultType breakCycle(INTER_FUNCTIONSIG);

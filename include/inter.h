@@ -22,6 +22,7 @@ struct Inter{
         struct Value *dict;
         struct Value *function;
         struct Value *none;
+        struct Value *list_iter;
         FILE *debug;
         FILE *error;
         char *log_dir;  // 记录log文件夹的位置

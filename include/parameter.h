@@ -75,7 +75,7 @@ Parameter *connectNameParameter(struct Statement *value, struct Statement *name,
 Parameter *connectArgsParameter(struct Statement *st, Parameter *base);
 Parameter *connectKwargsParameter(struct Statement *st, Parameter *base);
 void freeParameter(Parameter *pt, bool free_st);
-Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE);
+Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE);
 
 ResultType setParameterCore(long int line, char *file, Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
@@ -93,7 +93,6 @@ Inherit *setFatherCore(Inherit *father_tmp);
 Inherit *setFather(Argument *call);
 bool checkFormal(Parameter *pt);
 
-bool checkArgument(int c_value, int c_name, int type_value, int type_name, Argument *arg);
 Argument *parserValueArgument(ArgumentParser *ap, Argument *arg, int *status, ArgumentParser **bak);
 int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, INTER_FUNCTIONSIG_NOT_ST);
 int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NOT_ST);

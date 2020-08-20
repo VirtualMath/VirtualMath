@@ -224,3 +224,49 @@ LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *in
         attr->belong = value;
     return attr;
 }
+
+void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belong, Inter *inter){
+    addStrVar(name, free_old, value, belong, inter, belong->value->object.var);
+}
+
+ResultType elementDownOne(LinkValue *element, LinkValue *index, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    LinkValue *_func_ = NULL;
+    setResultCore(result);
+    gc_addTmpLink(&element->gc_status);
+    gc_addTmpLink(&index->gc_status);
+
+    _func_ = findAttributes(inter->data.object_down, false, element, inter);
+    if (_func_ != NULL){
+        Argument *arg = NULL;
+        gc_addTmpLink(&_func_->gc_status);
+        arg = makeValueArgument(index);
+        callBackCore(_func_,arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&_func_->gc_status);
+        freeArgument(arg, true);
+    }
+    else
+        setResultError(result, inter, "TypeException", "Don't find __down__", line, file, belong, true);
+
+    gc_freeTmpLink(&element->gc_status);
+    gc_freeTmpLink(&index->gc_status);
+    return result->type;
+}
+
+ResultType getIter(LinkValue *value, int status, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    LinkValue *_func_ = NULL;
+    setResultCore(result);
+    if (status == 1)
+        _func_ = findAttributes("__iter__", false, value, inter);
+    else
+        _func_ = findAttributes("__next__", false, value, inter);
+
+    if (_func_ != NULL){
+        gc_addTmpLink(&_func_->gc_status);
+        callBackCore(_func_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&_func_->gc_status);
+    }
+    else
+        setResultError(result, inter, "IterException", "Object Not Iterable", line, file, belong, true);
+
+    return result->type;
+}

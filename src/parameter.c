@@ -1,6 +1,5 @@
 #include "__run.h"
 
-static bool compareNumber(int a, int b, int type);
 
 #define returnResult(result) do{ \
 if (!run_continue(result)) { \
@@ -182,10 +181,26 @@ void freeParameter(Parameter *pt, bool free_st) {
     }
 }
 
-Argument *listToArgument(LinkValue *list_value, INTER_FUNCTIONSIG_CORE){
+Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     Argument *at = NULL;
-    for (int i=0;i<list_value->value->data.list.size;i++)
-        at = connectValueArgument(list_value->value->data.list.list[i], at);
+    LinkValue *iter = NULL;
+    setResultCore(result);
+    getIter(list_value, 1, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!run_continue(result))
+        return NULL;
+    iter = result->value;
+    result->value = NULL;
+    while (true) {
+        freeResult(result);
+        getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!run_continue(result)) {
+            freeResult(result);
+            break;
+        }
+        at = connectValueArgument(result->value, at);
+    }
+    gc_freeTmpLink(&iter->gc_status);
+    setResult(result, inter, belong);
     return at;
 }
 
@@ -405,7 +420,13 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
                 base = connectStatementNameArgument(result->value, call->data.name, base);
         }
         else if (call->type == args_par){
-            Argument *tmp_at = listToArgument(result->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            LinkValue *start = NULL;
+            Argument *tmp_at = NULL;
+            start = result->value;
+            result->value = NULL;
+            freeResult(result);
+            tmp_at = listToArgument(start, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            gc_freeTmpLink(&start->gc_status);
             base = connectArgument(tmp_at, base);
         }
         else if (call->type == kwargs_par){
@@ -615,29 +636,6 @@ bool checkFormal(Parameter *pt) {
     return true;
 }
 
-/**
- *
- * @param c_value value_类型的参数的最大值
- * @param c_name name_类型参数的最大值
- * @param type_value c_value [<= < == > >=] c_value_
- * @param type_name c_name [<= < == > >=] c_name_
- * @param arg
- * @return
- */
-bool checkArgument(int c_value, int c_name, int type_value, int type_name, Argument *arg) {
-    int c_value_ = 0;
-    int c_name_ = 0;
-    for (PASS; arg != NULL; arg = arg->next){
-        if (arg->type == value_arg)
-            c_value_++;
-        else
-            c_name_++;
-    }
-    if ((c_value == -1 || compareNumber(c_value, c_value_, type_value)) && (c_name == -1 || compareNumber(c_name, c_name_, type_name)))
-        return true;
-    return false;
-}
-
 int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NOT_ST){
     setResultCore(result);
     if (ap->type != only_name){
@@ -779,21 +777,4 @@ ArgumentParser *parserArgumentNameDefault(ArgumentParser *ap){
         ap->c_count = 0;
     }
     return ap;
-}
-
-static bool compareNumber(int a, int b, int type){
-    switch (type) {
-        case -2:
-            return a <= b;
-        case -1:
-            return a < b;
-        case 0:
-            return a == b;
-        case 1:
-            return a > b;
-        case 2:
-            return a >= b;
-        default:
-            return false;
-    }
 }

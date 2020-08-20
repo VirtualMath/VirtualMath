@@ -20,6 +20,7 @@ void setRunInfo(Statement *st){
     st->info.branch.with_.value = NULL;
     st->info.branch.with_._exit_ = NULL;
     st->info.branch.with_._enter_ = NULL;
+    st->info.branch.for_.iter = NULL;
 }
 
 void freeRunInfo(Statement *st) {
@@ -33,6 +34,8 @@ void freeRunInfo(Statement *st) {
         gc_freeTmpLink(&st->info.branch.with_._exit_->gc_status);
     if (st->info.branch.with_._enter_ != NULL)
         gc_freeTmpLink(&st->info.branch.with_._enter_->gc_status);
+    if (st->info.branch.for_.iter != NULL)
+        gc_freeTmpLink(&st->info.branch.for_.iter->gc_status);
     setRunInfo(st);
 }
 
@@ -178,6 +181,17 @@ Statement *makeSliceStatement(Statement *element, Parameter *index, enum SliceTy
     tmp->u.slice_.element = element;
     tmp->u.slice_.index = index;
     tmp->u.slice_.type = type;
+    return tmp;
+}
+
+Statement *makeForStatement(long int line, char *file) {
+    Statement *tmp = makeStatement(line, file);
+    tmp->type = for_branch;
+    tmp->u.for_branch.after_do = NULL;
+    tmp->u.for_branch.first_do = NULL;
+    tmp->u.for_branch.for_list = NULL;
+    tmp->u.for_branch.else_list = NULL;
+    tmp->u.for_branch.finally = NULL;
     return tmp;
 }
 
@@ -401,8 +415,8 @@ void freeStatement(Statement *st){
                 break;
             case for_branch:
                 freeStatementList(st->u.for_branch.for_list);
-                freeStatement(st->u.for_branch.var);
-                freeStatement(st->u.for_branch.iter);
+                freeStatement(st->u.for_branch.after_do);
+                freeStatement(st->u.for_branch.first_do);
                 freeStatement(st->u.for_branch.else_list);
                 freeStatement(st->u.for_branch.finally);
                 break;
@@ -560,8 +574,8 @@ Statement *copyStatementCore(Statement *st){
             break;
         case for_branch:
             new->u.for_branch.for_list = copyStatementList(st->u.for_branch.for_list);
-            new->u.for_branch.var = copyStatement(st->u.for_branch.var);
-            new->u.for_branch.iter = copyStatement(st->u.for_branch.iter);
+            new->u.for_branch.after_do = copyStatement(st->u.for_branch.after_do);
+            new->u.for_branch.first_do = copyStatement(st->u.for_branch.first_do);
             new->u.for_branch.else_list = copyStatement(st->u.for_branch.else_list);
             new->u.for_branch.finally = copyStatement(st->u.for_branch.finally);
             break;

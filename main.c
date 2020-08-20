@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
 
 
 /** TODO-szh List
+ * 赋值权限认证
  * 官方函数
  * 官方类
  * for 循环

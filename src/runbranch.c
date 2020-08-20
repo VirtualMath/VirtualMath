@@ -56,6 +56,13 @@ void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl
 
 }
 
+void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
+                        Inter *inter, LinkValue *iter){
+    newBranchYield(branch_st, node, sl_node, new_var, status, inter);
+    branch_st->info.branch.for_.iter = iter;
+
+}
+
 void updateBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status){
     branch_st->info.node = node->type == yield_code ? node->next : node;
     branch_st->info.branch.sl_node = sl_node;
@@ -320,6 +327,184 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
             newBranchYield(st, result->node, while_list, var_list, result_from, inter);
         else
             var_list = popVarList(var_list);
+    if (set_result)
+        setResult(result, inter, belong);
+    return result->type;
+}
+
+ResultType forBranch(INTER_FUNCTIONSIG) {
+    StatementList *for_list = st->u.for_branch.for_list;
+    Statement *first = st->u.for_branch.first_do;
+    Statement *after = st->u.for_branch.after_do;
+    Statement *else_st = st->u.for_branch.else_list;
+    Statement *finally = st->u.for_branch.finally;
+    LinkValue *iter = NULL;
+    Statement *info_vl = NULL;
+    Statement *after_vl = NULL;
+    bool set_result = true;
+    bool is_break = false;
+    bool do_while = st->u.while_branch.type == do_while_;
+    int yield_run = false;
+    enum StatementInfoStatus result_from = info_vl_branch;
+
+    Result finally_tmp;
+    setResultCore(result);
+    setResultCore(&finally_tmp);
+
+    yield_run = popStatementVarList(st, &var_list, var_list, inter);
+    if (yield_run && st->info.branch.status == info_first_do)
+        first = st->info.node;
+    else if (yield_run && st->info.branch.status == info_vl_branch){
+        first = NULL;
+        info_vl = st->info.node;
+        iter = st->info.branch.for_.iter;
+        goto do_for;
+    }
+    else if (yield_run && st->info.branch.status == info_after_do){
+        first = NULL;
+        after_vl = st->info.node;
+        iter = st->info.branch.for_.iter;
+        goto do_for;
+    }
+    else if (yield_run && st->info.branch.status == info_else_branch){
+        else_st = st->info.node;
+        goto run_else;
+    }
+    else if (yield_run && st->info.branch.status == info_finally_branch){
+        finally = st->info.node;
+        goto not_else;
+    }
+
+    if (first != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(first, var_list, result, belong))) {
+        result_from = info_first_do;
+        set_result = false;
+    }
+    else if (first != NULL)
+        freeResult(result);
+
+    {
+        LinkValue *tmp = NULL;  // TODD-szh 要释放
+        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(for_list->condition, var_list, result, belong))){
+            set_result = false;
+            goto not_else;
+        }
+        tmp = result->value;
+        result->value = NULL;
+        freeResult(result);
+
+        getIter(tmp, 1, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&tmp->gc_status);
+        if (!run_continue(result)) {
+            set_result = false;
+            goto not_else;
+        }
+        iter = result->value;
+        result->value = NULL;
+    }
+
+    do_for:
+    while (!is_break){
+        Statement *for_st = for_list->code;
+        Statement *after_st = after;
+        freeResult(result);
+        if (info_vl != NULL){
+            for_st = info_vl;
+            info_vl = NULL;
+            goto do_for_st;
+        }
+        else if (after_vl != NULL){
+            after_st = after_vl;
+            after_vl = NULL;
+            goto do_after;
+        }
+
+        {
+            LinkValue *element = NULL;
+            getIter(iter, 0, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            if (!run_continue(result)) {
+                freeResult(result);
+                break;
+            }
+            element = result->value;
+            result->value = NULL;
+            freeResult(result);
+            assCore(for_list->var, element, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            gc_freeTmpLink(&element->gc_status);
+            if (!run_continue(result)){
+                set_result = false;
+                goto not_else;
+            }
+            freeResult(result);
+        }
+
+        do_for_st:
+        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(for_st, var_list, result, belong))){
+            result_from = info_vl_branch;
+            set_result = false;
+            goto not_else;
+        }
+        else if (result->type == break_return)
+            is_break = true;
+
+        freeResult(result);
+        if (after_st == NULL)
+            continue;
+        do_after:
+        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(after_st, var_list, result, belong))){
+            result_from = info_after_do;
+            set_result = false;
+            goto not_else;
+        }
+        else if (result->type == break_return) {
+            freeResult(result);
+            goto not_else;
+        }
+        freeResult(result);
+    }
+
+    run_else:
+    if (!is_break && else_st != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, belong))) {
+        result_from = info_else_branch;
+        set_result = false;
+    }
+    else
+        freeResult(result);
+
+    not_else:
+    if (finally != NULL && cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(finally, var_list, &finally_tmp, belong))){
+        if (!set_result)
+            freeResult(result);
+        set_result = false;
+        result_from = info_finally_branch;
+        *result = finally_tmp;
+    }
+    else
+        freeResult(&finally_tmp);
+
+    if (yield_run) {
+        if (result->type == yield_return)
+            if (result_from == info_finally_branch) {
+                freeRunInfo(st);
+                newBranchYield(st, result->node, for_list, var_list, result_from, inter);
+            } else
+                updateBranchYield(st, result->node, for_list, result_from);
+        else
+            freeRunInfo(st);
+        iter = NULL;
+    } else {
+        if (result->type == yield_return)
+            if (result_from == info_finally_branch)
+                newBranchYield(st, result->node, for_list, var_list, result_from, inter);
+            else {
+                newForBranchYield(st, result->node, for_list, var_list, result_from, inter, iter);
+                iter = NULL;
+            }
+        else {
+            popVarList(var_list);
+        }
+    }
+    if (iter != NULL)
+        gc_freeTmpLink(&iter->gc_status);
     if (set_result)
         setResult(result, inter, belong);
     return result->type;

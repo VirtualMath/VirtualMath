@@ -25,6 +25,8 @@ void updateFunctionYield(Statement *function_st, Statement *node);
 void updateBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status);
 void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
                         Inter *inter, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_);
+void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
+                       Inter *inter, LinkValue *iter);
 
 ResultType setFunctionArgument(struct Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 void freeFunctionArgument(Argument *arg, Argument *base);
@@ -32,4 +34,7 @@ LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 void addStrVar(char *name, bool free_old, LinkValue *value, LinkValue *father, INTER_FUNCTIONSIG_CORE);
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter);
+void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belong, Inter *inter);
+ResultType elementDownOne(LinkValue *element, LinkValue *index, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType getIter(LinkValue *value, int status, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH___RUN_H

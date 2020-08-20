@@ -123,6 +123,9 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_IF :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call if\n");
             break;
+        case MATHER_FOR :
+            status = commandCallBack_(CALLPASERSSIGNATURE, parserFor, FOR_BRANCH, &st, "Command: call for\n");
+            break;
         case MATHER_WHILE :
             status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Command: call while\n");
             break;
@@ -491,9 +494,14 @@ void parserDo(PASERSSIGNATURE){
                 break;
             }
             case MATHER_WHILE:
-                if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a if code after do"))
+                if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a while code after do"))
                     goto error_;
                 st->u.while_branch.first = do_code;
+                break;
+            case MATHER_FOR:
+                if (!callChildStatement(CALLPASERSSIGNATURE, parserFor, FOR_BRANCH, &st, "Don't get a for code after do"))
+                    goto error_;
+                st->u.for_branch.first_do = do_code;
                 break;
             case MATHER_DO: {
                 long int tmp_line = delToken(pm);
@@ -525,6 +533,88 @@ void parserDo(PASERSSIGNATURE){
     error_:
     freeStatement(do_code);
     freeStatement(st);
+    return;
+}
+
+void parserFor(PASERSSIGNATURE){
+    Statement *st = NULL;
+    Statement *else_st = NULL;
+    Statement *finally_st = NULL;
+    Statement *do_st = NULL;
+    StatementList *sl = NULL;
+    long int line = delToken(pm);
+    {
+        Statement *code_tmp = NULL, *var_tmp = NULL, *iter_tmp = NULL;
+        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &var_tmp, "Don't get a for var"))
+            goto error_;
+        if (!checkToken(pm, MATHER_IN)){
+            freeStatement(var_tmp);
+            syntaxError(pm, syntax_error, line, 1, "Don't get in after for");
+            goto error_;
+        }
+        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &iter_tmp, "Don't get a for condition")) {
+            freeStatement(var_tmp);
+            goto error_;
+        }
+        if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a for code", line)) {
+            freeStatement(iter_tmp);
+            freeStatement(var_tmp);
+            goto error_;
+        }
+        sl = makeStatementList(iter_tmp, var_tmp, code_tmp, for_b);
+    }
+
+    again:
+    switch (readBackToken(pm)) {
+        case MATHER_DO: {
+            if (do_st != NULL || else_st != NULL)
+                goto default_;
+            long int tmp_line = delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &do_st, "Don't get a for...do code", tmp_line))
+                goto error_;
+            goto again;
+        }
+        case MATHER_ELSE: {
+            long int tmp_line = delToken(pm);
+            if (else_st != NULL) {
+                syntaxError(pm, syntax_error, tmp_line, 1, "get else after else\n");
+                goto error_;
+            }
+            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a for...else code", tmp_line))
+                goto error_;
+            goto again;
+        }
+        case MATHER_FINALLY: {
+            long int tmp_line = delToken(pm);
+            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a for...finally code", tmp_line))
+                goto error_;
+            break;
+        }
+        case MATHER_ENTER:
+            delToken(pm);
+            goto again;
+        case MATHER_SEMICOLON:
+            break;
+        default: {
+            default_:
+            addLexToken(pm, MATHER_ENTER);
+            break;
+        }
+    }
+
+    st = makeForStatement(line, pm->file);
+    st->u.for_branch.for_list = sl;
+    st->u.for_branch.else_list = else_st;
+    st->u.for_branch.finally = finally_st;
+    st->u.for_branch.after_do = do_st;
+    addStatementToken(FOR_BRANCH, st, pm);
+    return;
+
+    error_:
+    freeStatement(else_st);
+    freeStatement(finally_st);
+    freeStatement(do_st);
+    freeStatementList(sl);
     return;
 }
 

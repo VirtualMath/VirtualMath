@@ -50,6 +50,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.num = NULL;
     inter->data.str = NULL;
     inter->data.none = NULL;
+    inter->data.list_iter = NULL;
     inter->data.var_str_prefix = memStrcpy("str_");
     inter->data.var_num_prefix = memStrcpy("num_");
     inter->data.var_none = memStrcpy("none");
@@ -83,6 +84,8 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.pass_->gc_status);
     gc_freeStatementLink(&inter->data.list->gc_status);
     gc_freeStatementLink(&inter->data.dict->gc_status);
+    gc_freeStatementLink(&inter->data.list_iter->gc_status);
+    gc_freeStatementLink(&inter->data.none->gc_status);
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
     memFree(inter->data.var_object_prefix);
@@ -165,23 +168,24 @@ void mergeInter(Inter *new, Inter *base){
 /* ***********************DEBUG 专用函数*********************************** */
 
 void printGC(Inter *inter){
-    long int st_lv = 0;
-    long int tmp_lv = 0;
-    long int st_v = 0;
-    long int tmp_v = 0;
-    long int tmp_h = 0;
-    printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter, &tmp_lv, &st_lv);
-    printValueGC("\nprintValueGC TAG : freeInter", inter, &tmp_v, &st_v);
+    long int lv_st = 0;
+    long int lv_tmp = 0;
+    long int v_st = 0;
+    long int v_tmp = 0;
+    long int h_tmp = 0;
+    printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter, &lv_tmp, &lv_st);
+    printValueGC("\nprintValueGC TAG : freeInter", inter, &v_tmp, &v_st);
     printVarGC("\nprintVarGC TAG : freeInter", inter);
-    printHashTableGC("\nprintHashTableGC TAG : freeInter", inter, &tmp_h);
+    printHashTableGC("\nprintHashTableGC TAG : freeInter", inter, &h_tmp);
     printf("\n");
-    printf("linkvalue tmp link   = %ld\n", tmp_lv);
-    printf("linkvalue tmp link   = %ld\n", tmp_v);
-    printf("hashtable tmp link   = %ld\n", tmp_h);
-    printf("statement tmp link   = %ld\n", st_lv);
-    printf("statement tmp link   = %ld\n", st_v);
-    printf("      tmp link count = %ld\n", tmp_lv + tmp_v + tmp_h);
-    printf("statement link count = %ld\n", st_lv + st_v);
+
+    printf("linkvalue tmp       link = %ld\n", lv_tmp);
+    printf("linkvalue statement link = %ld\n", lv_st);
+    printf("    value tmp       link = %ld\n", v_tmp);
+    printf("    value statement link = %ld\n", v_st);
+    printf("hashtable tmp       link = %ld\n", h_tmp);
+    printf("      tmp link     count = %ld\n", lv_tmp + v_tmp + h_tmp);
+    printf("statement link     count = %ld\n", lv_st + v_st);
 
 }
 
@@ -193,11 +197,13 @@ void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     while (base != NULL) {
         tmp += labs(base->gc_status.tmp_link);
         st += labs(base->gc_status.statement_link);
-        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
-        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
-        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
-        printLinkValue(base, "value = ", "\n", stdout);
-        printf("-------------------------------------------\n");
+        if (base->gc_status.tmp_link != 0 || base->gc_status.statement_link != 0) {
+            printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+            printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+            printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+            printLinkValue(base, "value = ", "\n", stdout);
+            printf("-------------------------------------------\n");
+        }
         base = base->gc_next;
     }
     printf("tmp link = %ld\n", tmp);
@@ -205,8 +211,9 @@ void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     printf("printLinkValueGC TAG : END\n");
     if (tmp_link != NULL)
         *tmp_link = tmp;
-    if (st_link != NULL)
-        *st_link = tmp;
+    if (st_link != NULL) {
+        *st_link = st;
+    }
 }
 
 void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
@@ -217,12 +224,14 @@ void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     while (base != NULL) {
         tmp += labs(base->gc_status.tmp_link);
         st += labs(base->gc_status.statement_link);
-        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
-        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
-        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
-        printf("value = ");
-        printValue(base, stdout, true);
-        printf("\n-------------------------------------------\n");
+        if (base->gc_status.tmp_link != 0 || base->gc_status.statement_link != 0) {
+            printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+            printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+            printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+            printf("value = ");
+            printValue(base, stdout, true);
+            printf("\n-------------------------------------------\n");
+        }
         base = base->gc_next;
     }
     printf("tmp link = %ld\n", tmp);
@@ -231,21 +240,25 @@ void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     if (tmp_link != NULL)
         *tmp_link = tmp;
     if (st_link != NULL)
-        *st_link = tmp;
+        *st_link = st;
 }
 
 void printVarGC(char *tag, Inter *inter){
     Var *base = inter->base_var;
     printf("%s\n", tag);
     while (base != NULL) {
-        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
-        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
-        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
-        printf("value :\n");
-        printLinkValue(base->name_, "name_: ", "\n", stdout);
-        printLinkValue(base->value, "value_: ", "\n", stdout);
+        if (base->gc_status.tmp_link != 0) {
+            printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+            printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+            printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+        }
+
         printf("str_name = %s\n", base->name);
-        printf("-------------------------------------------\n");
+        printf("name = ");
+        printValue(base->name_->value,stdout, false);
+        printf("\nvalue = ");
+        printValue(base->value->value,stdout, false);
+        printf("\n-------------------------------------------\n");
         base = base->gc_next;
     }
     printf("printVarGC TAG : END\n");
@@ -257,10 +270,12 @@ void printHashTableGC(char *tag, Inter *inter, long *tmp_link) {
     printf("%s\n", tag);
     while (base != NULL) {
         tmp += labs(base->gc_status.tmp_link);
-        printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
-        printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
-        printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
-        printf("-------------------------------------------\n");
+        if (base->gc_status.tmp_link != 0) {
+            printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
+            printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
+            printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+            printf("-------------------------------------------\n");
+        }
         base = base->gc_next;
     }
     printf("tmp link = %ld\n", tmp);
@@ -272,20 +287,16 @@ void printHashTableGC(char *tag, Inter *inter, long *tmp_link) {
 void printToken(Token *tk) {
     if (tk->token_type >= 0) {
         char *tmp = tk->data.str, *second_tmp = tk->data.second_str;
-        if (!strcmp(tmp, "\n")) {
+        if (!strcmp(tmp, "\n"))
             tmp = "\\n";
-        }
-        if (!strcmp(second_tmp, "\n")) {
+        if (!strcmp(second_tmp, "\n"))
             second_tmp = "\\n";
-        }
-        if (tmp[0] == EOF) {
+        if (tmp[0] == EOF)
             tmp = "(EOF)";
-        }
         printf("<token str = ('%s','%s'), type = %d>", tmp, second_tmp, tk->token_type);
     }
-    else{
+    else
         printf("<token statement, type = %d>", tk->token_type);
-    }
 
 }
 

@@ -38,7 +38,8 @@ ResultType object_new_(OfficialFunctionSig){
             goto return_;
         }
         freeResult(&_init_result);
-    }
+    } else if (arg != NULL)
+        setResultError(result, inter, "ArgumentException", "Too many Exception", 0, "sys", belong, true);
 
     return_:
     return result->type;

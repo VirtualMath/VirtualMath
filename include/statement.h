@@ -126,9 +126,9 @@ struct Statement{
             struct Statement *finally;
         } while_branch;
         struct {
-            struct Statement *var;  // first do
-            struct Statement *iter;  // after do
             struct StatementList *for_list;  // for循环体
+            struct Statement *first_do;
+            struct Statement *after_do;
             struct Statement *else_list;  // else分支(无condition)
             struct Statement *finally;
         } for_branch;
@@ -216,6 +216,9 @@ struct Statement{
                 LinkValue *_exit_;
                 LinkValue *_enter_;
             } with_;
+            struct{
+                LinkValue *iter;
+            } for_;
         } branch;
     } info;
     long int line;
@@ -229,6 +232,7 @@ struct StatementList{
         do_b,
         while_b,
         except_b,
+        for_b,
     } type;
     struct Statement *condition;
     struct Statement *var;
@@ -268,6 +272,7 @@ Statement *makeFunctionStatement(Statement *name, Statement *function, struct Pa
 Statement *makeLambdaStatement(Statement *function, Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeSliceStatement(Statement *element, Parameter *index, enum SliceType type);
+Statement *makeForStatement(long int line, char *file);
 Statement *makeIfStatement(long int line, char *file);
 Statement *makeWhileStatement(long int line, char *file);
 Statement *makeTryStatement(long int line, char *file);
