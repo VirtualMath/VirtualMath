@@ -998,10 +998,8 @@ void parserDef(PASERSSIGNATURE){
                             "Don't get a function/class name"))
         goto error_;
 
-    if (!checkToken(pm, MATHER_LP)) {
-        syntaxError(pm, syntax_error, line, 1, "Don't get a function/class ( before parameter");
-        goto error_;
-    }
+    if (!checkToken(pm, MATHER_LP))
+        goto get_code;
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
         lexEnter(pm, false);
         syntaxError(pm, syntax_error, line, 1, "Don't get a function/class parameter");
@@ -1011,6 +1009,7 @@ void parserDef(PASERSSIGNATURE){
         syntaxError(pm, syntax_error, line, 1, "Don't get a function/class ) after parameter");
         goto error_;
     }
+    get_code:
     if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a function code", line)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get a function code");
         goto error_;
