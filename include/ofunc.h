@@ -13,6 +13,7 @@
 #include "dict.h"
 #include "function.h"
 #include "listiter.h"
+#include "dictiter.h"
 
 struct Argument;
 struct VarList;

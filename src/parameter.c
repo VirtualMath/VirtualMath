@@ -204,12 +204,42 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUN
     return at;
 }
 
-Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE){
+Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *at = NULL;
-    Var *tmp = NULL;
-    for (int i = 0; i < MAX_SIZE; i++)
-        for (tmp = dict_value->value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next)
-            at = connectCharNameArgument(tmp->value, tmp->name_, tmp->name, at);
+    LinkValue *iter = NULL;
+    setResultCore(result);
+    getIter(dict_value, 1, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!run_continue(result))
+        return NULL;
+    iter = result->value;
+    result->value = NULL;
+    while (true) {
+        LinkValue *name_ = NULL;
+        char *name = NULL;
+
+        freeResult(result);
+        getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!run_continue(result)) {
+            freeResult(result);
+            break;
+        }
+        name_ = result->value;
+        result->value = NULL;
+        freeResult(result);
+
+        elementDownOne(iter, name_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!run_continue(result)) {
+            gc_freeTmpLink(&name_->gc_status);
+            goto return_;
+        }
+        name = getNameFromValue(name_->value, inter);
+        at = connectCharNameArgument(result->value, name_, name, at);
+        gc_freeTmpLink(&name_->gc_status);
+        memFree(name);
+    }
+    setResult(result, inter, belong);
+    return_:
+    gc_freeTmpLink(&iter->gc_status);
     return at;
 }
 
@@ -430,7 +460,13 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
             base = connectArgument(tmp_at, base);
         }
         else if (call->type == kwargs_par){
-            Argument *tmp_at = dictToArgument(result->value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            LinkValue *start = NULL;
+            Argument *tmp_at = NULL;
+            start = result->value;
+            result->value = NULL;
+            freeResult(result);
+            tmp_at = dictToArgument(start, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            gc_freeTmpLink(&start->gc_status);
             base = connectArgument(tmp_at, base);
         }
         freeResult(result);

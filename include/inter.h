@@ -23,6 +23,7 @@ struct Inter{
         struct Value *function;
         struct Value *none;
         struct Value *list_iter;
+        struct Value *dict_iter;
         FILE *debug;
         FILE *error;
         char *log_dir;  // 记录log文件夹的位置
@@ -45,6 +46,8 @@ struct Inter{
         char *object_del;
         char *object_down;
         char *object_slice;
+        char *object_iter;
+        char *object_next;
         int default_pt_type;
     } data;
 };

@@ -76,7 +76,7 @@ Parameter *connectArgsParameter(struct Statement *st, Parameter *base);
 Parameter *connectKwargsParameter(struct Statement *st, Parameter *base);
 void freeParameter(Parameter *pt, bool free_st);
 Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-Argument *dictToArgument(LinkValue *dict_value, INTER_FUNCTIONSIG_CORE);
+Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 
 ResultType setParameterCore(long int line, char *file, Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
 ResultType setParameter(long int line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST);

@@ -12,6 +12,7 @@ static Registered base_func_list[] = {registeredIOFunction,
                                       registeredDict,
                                       registeredList,
                                       registeredListIter,
+                                      registeredDictIter,
                                       NULL};
 
 void registeredBaseFunction(struct LinkValue *father, Inter *inter){
@@ -30,4 +31,5 @@ void registeredFunctionName(Inter *inter){
     makeBaseDict(inter);
     makeBaseList(inter);
     makeBaseListIter(inter);
+    makeBaseDictIter(inter);
 }

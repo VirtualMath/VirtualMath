@@ -256,9 +256,9 @@ ResultType getIter(LinkValue *value, int status, long int line, char *file, INTE
     LinkValue *_func_ = NULL;
     setResultCore(result);
     if (status == 1)
-        _func_ = findAttributes("__iter__", false, value, inter);
+        _func_ = findAttributes(inter->data.object_iter, false, value, inter);
     else
-        _func_ = findAttributes("__next__", false, value, inter);
+        _func_ = findAttributes(inter->data.object_next, false, value, inter);
 
     if (_func_ != NULL){
         gc_addTmpLink(&_func_->gc_status);

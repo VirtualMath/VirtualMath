@@ -162,9 +162,9 @@ void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inte
     }
 }
 
-void addVar(char *name, LinkValue *value, LinkValue *name_, INTER_FUNCTIONSIG_CORE) {
+void addVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht) {
     HASH_INDEX index = time33(name);
-    addVarCore(&var_list->hashtable->hashtable[index], name, value, name_, inter);
+    addVarCore(&ht->hashtable[index], name, value, name_, inter);
 }
 
 void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
@@ -174,11 +174,11 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
 }
 
 
-LinkValue *findVar(char *name, int operating, INTER_FUNCTIONSIG_CORE) {  // TODO-szh int operating 使用枚举体
+LinkValue *findVar(char *name, int operating, Inter *inter, HashTable *ht) {  // TODO-szh int operating 使用枚举体
     LinkValue *tmp = NULL;
     HASH_INDEX index = time33(name);
 
-    for (Var **base = &var_list->hashtable->hashtable[index]; *base != NULL; base = &(*base)->next){
+    for (Var **base = &ht->hashtable[index]; *base != NULL; base = &(*base)->next){
         if (eqString((*base)->name, name)){
             tmp = (*base)->value;
             if (operating == 1) {
@@ -207,10 +207,10 @@ LinkValue *findFromVarList(char *name, NUMBER_TYPE times, int operating, INTER_F
     for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     if (operating == 1 && var_list != NULL)
-        tmp = findVar(name, true, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        tmp = findVar(name, true, inter, var_list->hashtable);
     else
         for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
-            tmp = findVar(name, operating, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            tmp = findVar(name, operating, inter, var_list->hashtable);
     return tmp;
 }
 
@@ -218,7 +218,7 @@ void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *
     NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
     for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
-    addVar(name, value, name_, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    addVar(name, value, name_, inter, var_list->hashtable);
 }
 
 VarList *pushVarList(VarList *base, Inter *inter){

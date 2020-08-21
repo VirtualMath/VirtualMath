@@ -70,6 +70,8 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_del = memStrcpy("__del__");
     inter->data.object_down = memStrcpy("__down__");
     inter->data.object_slice = memStrcpy("__slice__");
+    inter->data.object_iter = memStrcpy("__iter__");
+    inter->data.object_next = memStrcpy("__next__");
     inter->data.default_pt_type = free_;
 }
 
@@ -85,6 +87,7 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.list->gc_status);
     gc_freeStatementLink(&inter->data.dict->gc_status);
     gc_freeStatementLink(&inter->data.list_iter->gc_status);
+    gc_freeStatementLink(&inter->data.dict_iter->gc_status);
     gc_freeStatementLink(&inter->data.none->gc_status);
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
@@ -105,6 +108,8 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_del);
     memFree(inter->data.object_down);
     memFree(inter->data.object_slice);
+    memFree(inter->data.object_iter);
+    memFree(inter->data.object_next);
 
     memFree(inter->data.log_dir);
     if (inter->data.log_dir != NULL) {
