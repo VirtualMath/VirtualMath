@@ -89,7 +89,12 @@ ResultType setLambda(INTER_FUNCTIONSIG) {
 
     result->type = operation_return;
     function_var = copyVarList(var_list, false, inter);
-    function_value = makeVMFunctionValue(st->u.base_lambda.function, st->u.base_lambda.parameter, function_var, inter);
+    {
+        Statement *resunt_st = makeReturnStatement(st->u.base_lambda.function, st->line, st->code_file);
+        function_value = makeVMFunctionValue(resunt_st, st->u.base_lambda.parameter, function_var, inter);
+        resunt_st->u.return_code.value = NULL;
+        freeStatement(resunt_st);
+    }
     result->value = makeLinkValue(function_value, belong, inter);
     gc_addTmpLink(&result->value->gc_status);
     return result->type;
