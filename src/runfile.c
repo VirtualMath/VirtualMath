@@ -106,7 +106,7 @@ ResultType importFile(INTER_FUNCTIONSIG) {
         import_value = makeLinkValue(import_obj, belong, inter);
     }
     if (st->u.import_file.as != NULL)
-        assCore(st->u.import_file.as, import_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.import_file.as, import_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
         addStrVar(splitDir(file_dir), true, import_value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     setResult(result, inter, belong);

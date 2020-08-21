@@ -233,7 +233,7 @@ ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUN
 
         value = result->value;
         freeResult(result);
-        assCore(function->data.name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(function->data.name, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!run_continue(result))
             goto return_;
     }
@@ -262,7 +262,7 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
             continue;
         }
         freeResult(result);
-        assCore(call->data.name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(call->data.name, call->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!run_continue(result))
             goto return_;
     }
@@ -338,7 +338,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
 
         not_return:
         freeResult(result);
-        assCore(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+        assCore(name, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
 
         if (!run_continue(result)) {
             *function_ad = function;
@@ -373,7 +373,7 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
 
     for (PASS; call != NULL && function != NULL && (call->type == value_arg) && function->type != args_par; call = call->next, function = function->next){
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
-        assCore(name, call->data.value, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+        assCore(name, call->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
         if (!run_continue(result))
             goto return_;
         freeResult(result);
@@ -562,7 +562,7 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
             }
             case mul_par: {
                 LinkValue *tmp = makeLinkValue(makeListValue(&call, inter, value_tuple), belong, inter);
-                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                assCore(function->data.value, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
                 returnResult(result);
                 function = function->next;
                 break;
@@ -572,7 +572,7 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 returnResult(result);
                 freeResult(result);
 
-                assCore(function->data.value, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                assCore(function->data.value, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
                 returnResult(result);
                 function = function->next;
                 break;

@@ -116,10 +116,14 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
         Value *function_value = NULL;
         LinkValue *tmp = NULL;
         function_var = copyVarList(var_list, false, inter);
-        function_value = makeVMFunctionValue(st->u.operation.right, st->u.operation.left->u.call_function.parameter,
-                                             function_var, inter);
+        {
+            Statement *return_st = makeReturnStatement(st->u.operation.right, st->line, st->code_file);
+            function_value = makeVMFunctionValue(return_st, st->u.operation.left->u.call_function.parameter, function_var, inter);
+            return_st->u.return_code.value = NULL;
+            freeStatement(return_st);
+        }
         tmp = makeLinkValue(function_value, belong, inter);
-        assCore(st->u.operation.left->u.call_function.function, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.operation.left->u.call_function.function, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     else{
         if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)))
@@ -127,92 +131,126 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
         value = result->value;
 
         freeResult(result);
-        assCore(st->u.operation.left, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.operation.left, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     return result->type;
 }
 
-ResultType assCore(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST){
+ResultType assCore(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCTIONSIG_NOT_ST){
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
-    if (name->type == base_list && name->u.base_list.type == value_tuple){
-        Parameter *pt = NULL;
-        Argument *call = NULL;
-        Statement *tmp_st = makeBaseLinkValueStatement(value, name->line, name->code_file);
-
-        pt = makeArgsParameter(tmp_st);
-        call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result)) {
-            freeArgument(call, false);
-            freeParameter(pt, true);
-            goto return_;
-        }
-
-        freeResult(result);
-        setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (run_continue(result)){
-            Argument *tmp = call;
-            LinkValue *new_value = makeLinkValue(makeListValue(&tmp, inter, value_tuple), belong, inter);
-            freeResult(result);
-            setResultOperation(result, new_value);
-        }
-        freeArgument(call, false);
-        freeParameter(pt, true);
-    }
-    else if (name->type == slice_ && name->u.slice_.type == SliceType_down_){
-        LinkValue *iter = NULL;
-        LinkValue *_down_assignment_ = NULL;
-        Parameter *pt = name->u.slice_.index;
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.slice_.element, var_list, result, belong)))
-            goto return_;
-        iter = result->value;
-        result->value = NULL;
-        freeResult(result);
-        _down_assignment_ = findAttributes("__down_assignment__", false, iter, inter);
-        if (_down_assignment_ != NULL){
-            Argument *arg = makeValueArgument(value);
-            gc_addTmpLink(&_down_assignment_->gc_status);
-            arg->next = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            if (!run_continue(result))
-                goto daerror_;
-
-            freeResult(result);
-            callBackCore(_down_assignment_, arg, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-
-            daerror_:
-            freeArgument(arg, true);
-            gc_freeTmpLink(&_down_assignment_->gc_status);
-        }
-        else
-            setResultErrorSt(result, inter, "TypeException", "Don't find __down_assignment__", name, belong, true);
-        gc_freeTmpLink(&iter->gc_status);
-    }
+    if (name->type == base_list && name->u.base_list.type == value_tuple)
+        listAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else if (name->type == slice_ && name->u.slice_.type == SliceType_down_)
+        downAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
         pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else{
-        char *str_name = NULL;
-        int int_times = 0;
-        LinkValue *var_value = NULL;
-        getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
-        if (!run_continue(result)) {
-            memFree(str_name);
-            return result->type;
-        }
-        var_value = copyLinkValue(value, inter);
-        if (var_value->aut == auto_aut)
-            var_value->aut = name->aut;
-        addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        memFree(str_name);
-        freeResult(result);
+    else
+        varAss(name, value, check_aut, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
-        result->type = operation_return;
-        result->value = value;
-        gc_addTmpLink(&result->value->gc_status);
+    gc_freeTmpLink(&value->gc_status);
+    return result->type;
+}
+
+ResultType varAss(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
+    char *str_name = NULL;
+    int int_times = 0;
+    LinkValue *var_value = NULL;
+    getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
+    if (!run_continue(result)) {
+        memFree(str_name);
+        return result->type;
     }
+    var_value = copyLinkValue(value, inter);
+    if (name->aut != auto_aut)
+        var_value->aut = name->aut;
+    if (check_aut) {
+        LinkValue *tmp = findFromVarList(str_name, int_times, 2, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        if (tmp != NULL) {
+            if ((value->aut == public_aut || value->aut == auto_aut) && (tmp->aut != public_aut && tmp->aut != auto_aut)) {
+                setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as public",
+                                 name, belong, true);
+                goto return_;
+            }
+            else if ((value->aut == protect_aut) && (tmp->aut == private_aut)) {
+                setResultErrorSt(result, inter, "PermissionsException",
+                                 "Wrong Permissions: access variables as protect", name, belong, true);
+                goto return_;
+            }
+            else
+                goto set_var;
+        } else
+            set_var: addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    } else {
+        if (name->aut != auto_aut) {
+            LinkValue *tmp = findFromVarList(str_name, int_times, 2, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            if (tmp != NULL)
+                tmp->aut = name->aut;
+        }
+        addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    }
+    freeResult(result);
+    result->type = operation_return;
+    result->value = value;
+    gc_addTmpLink(&result->value->gc_status);
 
     return_:
-    gc_freeTmpLink(&value->gc_status);
+    memFree(str_name);
+    return result->type;
+}
+
+ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
+    Parameter *pt = NULL;
+    Argument *call = NULL;
+    Statement *tmp_st = makeBaseLinkValueStatement(value, name->line, name->code_file);
+
+    pt = makeArgsParameter(tmp_st);
+    call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!run_continue(result))
+        goto return_;
+
+    freeResult(result);
+    setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (run_continue(result)){
+        Argument *tmp = call;
+        LinkValue *new_value = makeLinkValue(makeListValue(&tmp, inter, value_tuple), belong, inter);
+        freeResult(result);
+        setResultOperation(result, new_value);
+    }
+    return_:
+    freeArgument(call, false);
+    freeParameter(pt, true);
+    return result->type;
+}
+
+ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
+    LinkValue *iter = NULL;
+    LinkValue *_down_assignment_ = NULL;
+    Parameter *pt = name->u.slice_.index;
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.slice_.element, var_list, result, belong)))
+        return result->type;
+    iter = result->value;
+    result->value = NULL;
+    freeResult(result);
+    _down_assignment_ = findAttributes("__down_assignment__", false, iter, inter);
+    if (_down_assignment_ != NULL){
+        Argument *arg = makeValueArgument(value);
+        gc_addTmpLink(&_down_assignment_->gc_status);
+        arg->next = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!run_continue(result))
+            goto daerror_;
+
+        freeResult(result);
+        callBackCore(_down_assignment_, arg, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+        daerror_:
+        freeArgument(arg, true);
+        gc_freeTmpLink(&_down_assignment_->gc_status);
+    }
+    else
+        setResultErrorSt(result, inter, "TypeException", "Don't find __down_assignment__", name, belong, true);
+    gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
 
@@ -229,7 +267,7 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
         pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     else
-        assCore(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
+        assCore(name->u.operation.right, value, true, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     gc_freeze(inter, var_list, object, false);
 
     freeResult(&left);

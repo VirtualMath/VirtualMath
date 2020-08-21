@@ -38,7 +38,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
         freeResult(result);
     }
 
-    assCore(st->u.set_class.name, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    assCore(st->u.set_class.name, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (run_continue(result))
         setResult(result, inter, belong);
 
@@ -70,7 +70,7 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
         result->value = NULL;
         freeResult(result);
     }
-    assCore(st->u.set_function.name, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    assCore(st->u.set_function.name, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!run_continue(result))
         goto error_;
     setResult(result, inter, belong);
