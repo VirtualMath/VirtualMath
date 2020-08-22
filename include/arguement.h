@@ -2,8 +2,8 @@
 #define VIRTUALMATH_ARGUEMENT_H
 
 struct Args{
-    char *log_file;
-    bool stdout_inter;
+    char *error_file;
+    char *out_file;
 } args;
 
 typedef struct Args Args;

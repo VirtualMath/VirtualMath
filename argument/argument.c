@@ -1,12 +1,12 @@
 #include "__virtualmath.h"
 
 static const struct option long_option[]={
-        {"stdout",no_argument,NULL,'s'},
-        {"log",required_argument,NULL,'l'},
+        {"log-err",required_argument,NULL,'o'},
+        {"log-out",required_argument,NULL,'e'},
         {NULL,0,NULL,0}
 };
 
-static const char *short_option = "sl:";
+static const char *short_option = "o:e:";
 
 /**
  * 参数设置, args是全局结构体, 保存全局的参数设置
@@ -16,8 +16,8 @@ static const char *short_option = "sl:";
  */
 int getArgs(const int argc, char **argv)
 {
-    args.log_file = NULL;
-    args.stdout_inter = false;
+    args.out_file = NULL;
+    args.error_file = false;
     opterr = false;
     int opt;
     while((opt=getopt_long(argc, argv, short_option ,long_option,NULL))!=-1)
@@ -26,11 +26,11 @@ int getArgs(const int argc, char **argv)
         {
             case 0:
                 break;
-            case 'l':
-                args.log_file = memStrcpy(optarg);
+            case 'o':
+                args.out_file = memStrcpy(optarg);
                 break;
-            case 's':
-                args.stdout_inter = true;
+            case 'e':
+                args.error_file = memStrcpy(optarg);
                 break;
             case '?':
                 fprintf(stderr, "[Error]: get not success args : -%c\n", (char)optopt);
@@ -46,5 +46,6 @@ int getArgs(const int argc, char **argv)
  * 释放args的成员而不包括其本身
  */
 void freeArgs(void){
-    memFree(args.log_file);
+    memFree(args.out_file);
+    memFree(args.error_file);
 }

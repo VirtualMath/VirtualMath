@@ -61,7 +61,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     }
 
 
-    import_inter = makeInter(NULL, belong);
+    import_inter = makeInter(NULL, NULL, belong);
     pm = makeParserMessage(*file_dir);
     run_st = makeStatement(0, *file_dir);
     parserCommandList(pm, import_inter, true, run_st);

@@ -12,6 +12,10 @@ struct Inter{
 
     struct VarList *var_list;
     struct InterData{
+        FILE *inter_stdout;
+        FILE *inter_stderr;
+        bool log_dir;
+
         struct Value *object;
         struct Value *vobject;
         struct Value *num;
@@ -24,9 +28,7 @@ struct Inter{
         struct Value *none;
         struct Value *list_iter;
         struct Value *dict_iter;
-        FILE *debug;
-        FILE *error;
-        char *log_dir;  // 记录log文件夹的位置
+
         char *var_str_prefix;
         char *var_num_prefix;
         char *var_bool_prefix;
@@ -55,7 +57,7 @@ struct Inter{
 typedef struct Inter Inter;
 typedef struct Statement Statement;
 
-Inter *makeInter(char *debug, struct LinkValue *belong);
+Inter *makeInter(char *out, char *error_, struct LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
 int runCodeBlock(char *code_file, Inter *inter);

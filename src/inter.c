@@ -1,6 +1,6 @@
 #include "__virtualmath.h"
 
-Inter *makeInter(char *debug, LinkValue *belong) {
+Inter *makeInter(char *out, char *error_, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
     LinkValue *base_father = NULL;
     setBaseInterData(tmp);
@@ -10,22 +10,16 @@ Inter *makeInter(char *debug, LinkValue *belong) {
     tmp->base_var = NULL;
 
     tmp->var_list = makeVarList(tmp, true);
-    tmp->data.log_dir = memStrcpy(debug);
 
-    if (debug != NULL && !args.stdout_inter){
-#ifdef __unix__
-        char *debug_dir = memStrcat(debug, "/inter.log", false, false), *error_dir = memStrcat(debug, "/inter_error.log", false, false);
-#else // __unix__
-        char *debug_dir = memStrcat(debug, "\inter.log", false, false), *error_dir = memStrcat(debug, "\inter_error.log", false, false);
-#endif // __unix__
-        tmp->data.debug = fopen(debug_dir, "w");
-        tmp->data.error = fopen(error_dir, "w");
-        memFree(debug_dir);
-        memFree(error_dir);
+    if (out != NULL && error_ != NULL){
+        tmp->data.inter_stdout = fopen(out, "w");
+        tmp->data.inter_stderr = fopen(error_, "w");
+        tmp->data.log_dir = true;
     }
     else {
-        tmp->data.debug = stdout;
-        tmp->data.error = stderr;
+        tmp->data.inter_stdout = stdout;
+        tmp->data.inter_stderr = stderr;
+        tmp->data.log_dir = false;
     }
 
     registeredFunctionName(tmp);
@@ -111,10 +105,9 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_iter);
     memFree(inter->data.object_next);
 
-    memFree(inter->data.log_dir);
-    if (inter->data.log_dir != NULL) {
-        fclose(inter->data.debug);
-        fclose(inter->data.error);
+    if (inter->data.log_dir) {
+        fclose(inter->data.inter_stdout);
+        fclose(inter->data.inter_stderr);
     }
 }
 
@@ -122,12 +115,13 @@ void freeInter(Inter *inter, bool show_gc) {
     freeBase(inter, return_);
     gc_runDelAll(inter);
     freeBaseInterData(inter);
-
+#if DEBUG
     if (show_gc && (printf("Enter '1' to show gc: "), getc(stdin) == '1')) {
         printGC(inter);
         while (getc(stdin) != '\n')
             PASS;
     }
+#endif
     freeVarList(inter->var_list);
     while (inter->base != NULL)
         freeValue(&inter->base);
@@ -170,6 +164,7 @@ void mergeInter(Inter *new, Inter *base){
     memFree(new);
 }
 
+#if DEBUG == 1
 /* ***********************DEBUG 专用函数*********************************** */
 
 void printGC(Inter *inter){
@@ -318,3 +313,4 @@ void printTokenStream(TokenStream *ts) {
     }
     printf("\n");
 }
+#endif

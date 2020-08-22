@@ -313,13 +313,16 @@ void printValue(Value *value, FILE *debug, bool print_father) {
             fprintf(debug, "%"NUMBER_FORMAT"", value->data.num.num);
             break;
         case string:
-            fprintf(debug, "'%s'", value->data.str.str);
+            fprintf(debug, "%s", value->data.str.str);
             break;
         case function:
-            fprintf(debug, "function");
+            if (print_father)
+                fprintf(debug, "function");
+            else
+                fprintf(debug, "(function on %p)", value);
             break;
         case list:
-            fprintf(debug, "list on size : %d  [ ", (int)value->data.list.size);
+            fprintf(debug, "[");
             for (int i=0;i < value->data.list.size;i++){
                 if (i > 0)
                     fprintf(debug, ", ", NULL);
@@ -330,7 +333,7 @@ void printValue(Value *value, FILE *debug, bool print_father) {
         case dict: {
             Var *tmp = NULL;
             bool print_comma = false;
-            fprintf(debug, "dict size : %d  { ", (int) value->data.dict.size);
+            fprintf(debug, "{");
             for (int i = 0; i < MAX_SIZE; i++) {
                 for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
                     if (print_comma)
@@ -346,13 +349,19 @@ void printValue(Value *value, FILE *debug, bool print_father) {
             break;
         }
         case none:
-            fprintf(debug, "<None>", NULL);
+            fprintf(debug, "(null)", NULL);
             break;
         case class:
-            fprintf(debug, "class");
+            if (print_father)
+                fprintf(debug, "class");
+            else
+                fprintf(debug, "(class on %p)", value);
             break;
         case object_:
-            fprintf(debug, "object");
+            if (print_father)
+                fprintf(debug, "object");
+            else
+                fprintf(debug, "(object on %p)", value);
             break;
         case bool_:
             if (value->data.bool_.bool_)
@@ -364,17 +373,18 @@ void printValue(Value *value, FILE *debug, bool print_father) {
             fprintf(debug, "...");
             break;
         default:
-            fprintf(debug, "unknow");
+            fprintf(debug, "unknown");
             break;
     }
-    fprintf(debug, "(");
-    printf("<%p>", value);
-    if (print_father)
+    if (print_father){
+        fprintf(debug, "(");
+        printf("<%p>", value);
         for (Inherit *fv = value->object.inherit; fv != NULL; fv = fv->next) {
             printf(" -> ");
             printValue(fv->value->value, debug, false);
         }
-    fprintf(debug, ")");
+        fprintf(debug, ")");
+    }
 
 }
 
@@ -421,9 +431,9 @@ void freeError(Result *base){
 void printError(Result *result, Inter *inter, bool free) {
     for (Error *base = result->error; base != NULL; base = base->next){
         if (base->next != NULL)
-            fprintf(inter->data.error, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", base->line, base->file, base);
+            fprintf(inter->data.inter_stderr, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", base->line, base->file, base);
         else
-            fprintf(inter->data.error, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
+            fprintf(inter->data.inter_stderr, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
     }
     if (free)
         freeError(result);
