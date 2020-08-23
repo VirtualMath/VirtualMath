@@ -4,6 +4,7 @@
 
 struct LexFile{
     FILE *file;
+    bool is_std;  // 是否位stdin
     struct LexFileBack{
         bool is_back;
         int p;

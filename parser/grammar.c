@@ -2,7 +2,7 @@
 
 ParserMessage *makeParserMessage(char *file_dir) {
     ParserMessage *tmp = memCalloc(1, sizeof(ParserMessage));
-    tmp->file = file_dir;
+    tmp->file = memStrcpy(file_dir == NULL ? "stdin" : file_dir);
     tmp->tm = makeTokenMessage(file_dir);
     tmp->status = success;
     tmp->status_message = NULL;
@@ -13,6 +13,7 @@ void freeParserMessage(ParserMessage *pm, bool self) {
     freeBase(pm, return_);
     freeTokenMessage(pm->tm, true, true);
     memFree(pm->status_message);
+    memFree(pm->file);
     if (self)
         memFree(pm);
     return_:
@@ -29,12 +30,13 @@ void freeParserMessage(ParserMessage *pm, bool self) {
  * | parserCommand MATHER_SEMICOLON
  * | parserCommand MATHER_EOF
  */
-void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
+void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st) {
     int token_type;
+    bool should_break = false;
     char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
     int save_enter = pm->tm->file->filter_data.enter;
     pm->tm->file->filter_data.enter = 0;
-    while (true){
+    while (!should_break){
         token_type = readBackToken(pm);
         if (token_type == MATHER_EOF){
             delToken(pm);
@@ -51,7 +53,12 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
                 goto return_;
 
             stop = readBackToken(pm);
-            if (stop == MATHER_ENTER || stop == MATHER_SEMICOLON)
+            if (stop == MATHER_ENTER) {
+                delToken(pm);
+                if (is_one)
+                    should_break = true;
+            }
+            else if (stop == MATHER_SEMICOLON)
                 delToken(pm);
             else  if(stop != MATHER_EOF){
                 if (global) {
@@ -61,7 +68,6 @@ void parserCommandList(PASERSSIGNATURE, bool global, Statement *st) {
                     freeToken(command_token, true);
                 }
                 else{
-                    printf("stop = %d\n", stop);
                     connectStatement(st, command_token->data.st);
                     freeToken(command_token, false);
                 }
@@ -1050,7 +1056,7 @@ void parserCode(PASERSSIGNATURE) {
         if (!checkToken(pm, MATHER_ENTER))
             goto return_;
     }
-    parserCommandList(CALLPASERSSIGNATURE, false, st);
+    parserCommandList(CALLPASERSSIGNATURE, false, false, st);
     if (!call_success(pm))
         goto error_;
 

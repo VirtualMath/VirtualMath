@@ -1,6 +1,7 @@
 #ifndef VIRTUALMATH_ARGUEMENT_H
 #define VIRTUALMATH_ARGUEMENT_H
 
+extern char *HelloString;
 struct Args{
     char *error_file;
     char *out_file;

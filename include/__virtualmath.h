@@ -18,8 +18,7 @@
 #include "arguement.h"
 #include "file.h"
 
-#define DEBUG 0
-
+#define DEBUG 1
 #if DEBUG
 /* DEBUG */
 void printGC(Inter *inter);

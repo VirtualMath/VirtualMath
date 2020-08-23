@@ -1,5 +1,13 @@
 #include "__virtualmath.h"
 
+char *HelloString = "Welcome To VirtualMath ("__TIME__", "__DATE__") \n"
+#ifdef __linux__
+                    "On Linux\n"
+#else
+                    "On windows"
+#endif
+                    "VirtualMath Command Line Mode\n";
+
 static const struct option long_option[]={
         {"log-err",required_argument,NULL,'o'},
         {"log-out",required_argument,NULL,'e'},

@@ -14,7 +14,7 @@ struct Inter{
     struct InterData{
         FILE *inter_stdout;
         FILE *inter_stderr;
-        bool log_dir;
+        bool is_std;
 
         struct Value *object;
         struct Value *vobject;
@@ -56,12 +56,14 @@ struct Inter{
 
 typedef struct Inter Inter;
 typedef struct Statement Statement;
+typedef enum ResultType ResultType;
 
 Inter *makeInter(char *out, char *error_, struct LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
-int runCodeBlock(char *code_file, Inter *inter);
-void runParser(char *code_file, Inter *inter, Statement **st);
-void runCode(Statement *st, Inter *inter);
+ResultType runCodeBlock(char *code_file, Inter *inter);
+ResultType runCodeStdin(Inter *inter);
+void runParser(char *code_file, Inter *inter, bool is_one, Statement **st);
+ResultType runCode(Statement *st, Inter *inter);
 void mergeInter(Inter *new, Inter *base);
 #endif //VIRTUALMATH_INTER_H

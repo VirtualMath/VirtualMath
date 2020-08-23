@@ -14,12 +14,12 @@ Inter *makeInter(char *out, char *error_, LinkValue *belong) {
     if (out != NULL && error_ != NULL){
         tmp->data.inter_stdout = fopen(out, "w");
         tmp->data.inter_stderr = fopen(error_, "w");
-        tmp->data.log_dir = true;
+        tmp->data.is_std = true;
     }
     else {
         tmp->data.inter_stdout = stdout;
         tmp->data.inter_stderr = stderr;
-        tmp->data.log_dir = false;
+        tmp->data.is_std = false;
     }
 
     registeredFunctionName(tmp);
@@ -105,7 +105,7 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_iter);
     memFree(inter->data.object_next);
 
-    if (inter->data.log_dir) {
+    if (inter->data.is_std) {
         fclose(inter->data.inter_stdout);
         fclose(inter->data.inter_stderr);
     }

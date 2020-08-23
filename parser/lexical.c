@@ -10,7 +10,7 @@ int readChar(LexFile *file){
     if (file->back.is_back)
         file->back.is_back = false;
     else
-        file->back.p = fgetc(file->file);
+        file->back.p = getc(file->file);
     if (file->back.p == '\n')
         file->line++;
     return file->back.p;
@@ -28,7 +28,11 @@ void backChar(LexFile *file){
 
 LexFile *makeLexFile(char *dir){
     LexFile *tmp = memCalloc(1, sizeof(LexFile));
-    tmp->file = fopen(dir, "r");
+    tmp->is_std = (bool)(dir == NULL);
+    if (tmp->is_std)
+        tmp->file = stdin;
+    else
+        tmp->file = fopen(dir, "r");
     tmp->back.is_back = false;
     tmp->back.p = EOF;
     tmp->line = 1;
@@ -38,7 +42,8 @@ LexFile *makeLexFile(char *dir){
 
 void freeLexFile(LexFile *file) {
     freeBase(file, return_);
-    fclose(file->file);
+    if (!file->is_std)
+        fclose(file->file);
     memFree(file);
     return_:
     return;
@@ -73,9 +78,8 @@ LexMathers *makeMathers(int size){
     LexMathers *tmp = memCalloc(1, sizeof(LexMathers));
     tmp->size = size;
     tmp->mathers = (struct LexMather**)memCalloc(size, sizeof(LexMather*));
-    for(int i=0;i < size; i++){
+    for(int i=0;i < size; i++)
         tmp->mathers[i] = makeMather();
-    }
     return tmp;
 }
 

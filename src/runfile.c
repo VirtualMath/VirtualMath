@@ -24,7 +24,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
 
     new_st = makeStatement(0, file_dir);
     pm = makeParserMessage(file_dir);
-    parserCommandList(pm, inter, true, new_st);
+    parserCommandList(pm, inter, true, false, new_st);
     if (pm->status != success){
         setResultErrorSt(result, inter, "IncludeSyntaxException", pm->status_message, st, belong, true);
         goto return_;
@@ -62,9 +62,13 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
 
 
     import_inter = makeInter(NULL, NULL, belong);
+    import_inter->data.inter_stdout = inter->data.inter_stdout;
+    import_inter->data.inter_stderr = inter->data.inter_stderr;
+    import_inter->data.is_std = true;
+
     pm = makeParserMessage(*file_dir);
     run_st = makeStatement(0, *file_dir);
-    parserCommandList(pm, import_inter, true, run_st);
+    parserCommandList(pm, import_inter, true, false, run_st);
     if (pm->status != success) {
         freeInter(import_inter, false);
         setResultErrorSt(result, inter, "ImportSyntaxException", pm->status_message, st, belong, true);

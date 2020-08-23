@@ -11,8 +11,14 @@ int main(int argc, char *argv[]) {
         goto args_error;
 
     inter = makeInter(args.out_file, args.error_file, NULL);
-    for (int status=0; status == 0 && argv[optind] != NULL; optind++)
+    for (ResultType status = not_return; status != error_return && argv[optind] != NULL; optind++)
         status = runCodeBlock(argv[optind], inter);
+    printf("%s", HelloString);
+    while (1){
+        runCodeStdin(inter);
+        if (ferror(stdin) || feof(stdin))
+            break;
+    }
     freeInter(inter, true);
 
     args_error: freeArgs();

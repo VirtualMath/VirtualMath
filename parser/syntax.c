@@ -147,6 +147,16 @@ void charMather(int p, LexMather *mather, int dest_p){
         mather->status = LEXMATHER_MISTAKE;
 }
 
+void aCharMather(int p, LexMather *mather, int dest_p) {
+    if (p == dest_p && mather->status == LEXMATHER_START){
+        mather->str = memStrCharcpy(mather->str, 1, true, true, p);
+        mather->len ++;
+        mather->status = LEXMATHER_END_1;
+    }
+    else
+        mather->status = LEXMATHER_MISTAKE;
+}
+
 /**
  * 匹配空白符号
  * @param p
@@ -234,13 +244,13 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
     while (status == -1){
         int p = readChar(file);
         numberMather(p ,mathers->mathers[MATHER_NUMBER]);
-        stringMather(p ,mathers->mathers[MATHER_STRING]);
         varMather(p ,mathers->mathers[MATHER_VAR]);
         spaceMather(p ,mathers->mathers[MATHER_SPACE]);
-        commentMather(p ,mathers->mathers[MATHER_COMMENT]);
-        backslashMather(p ,mathers->mathers[MATHER_NOTENTER]);
+        stringMather(p, mathers->mathers[MATHER_STRING]);
+        backslashMather(p, mathers->mathers[MATHER_NOTENTER]);
+        commentMather(p, mathers->mathers[MATHER_COMMENT]);
         charMatherMacro(MATHER_EOF, EOF);
-        charMatherMacro(MATHER_ENTER, '\n');
+        aCharMather(p, mathers->mathers[MATHER_ENTER], '\n');
 
         strMatherMacro(MATHER_IF, "if");  // 条件判断
         strMatherMacro(MATHER_ELIF, "elif");  // 条件循环
@@ -331,17 +341,16 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
 
         status = checkoutMather(mathers, MATHER_MAX);
     }
-    backChar(file);
+    if (status != MATHER_ENTER)
+        backChar(file);
     return status;
 }
 
 int lexFilter(LexFile *file, int status){
     if (status == MATHER_SPACE || status == MATHER_NOTENTER || status == MATHER_COMMENT)
         return -1;
-    if (file->filter_data.enter != 0 && status == MATHER_ENTER) {
-        printf("TAG A\n");
+    if (file->filter_data.enter != 0 && status == MATHER_ENTER)
         return -1;
-    }
     return status;
 }
 
@@ -364,6 +373,7 @@ Token *getToken(LexFile *file, LexMathers *mathers) {
         goto return_;
     }
     tmp = makeLexToken(filter, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
+
     return_:
     return tmp;
 }
