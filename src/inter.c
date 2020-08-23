@@ -11,15 +11,28 @@ Inter *makeInter(char *out, char *error_, LinkValue *belong) {
 
     tmp->var_list = makeVarList(tmp, true);
 
-    if (out != NULL && error_ != NULL){
+    if (out) {
         tmp->data.inter_stdout = fopen(out, "w");
-        tmp->data.inter_stderr = fopen(error_, "w");
-        tmp->data.is_std = true;
+        tmp->data.is_stdout = false;
+        if (tmp->data.inter_stdout == NULL)
+            goto set_stdout;
     }
     else {
+        set_stdout:
         tmp->data.inter_stdout = stdout;
+        tmp->data.is_stdout = true;
+    }
+
+    if (error_) {
+        tmp->data.inter_stdout = fopen(error_, "w");
+        tmp->data.is_stderr = false;
+        if (tmp->data.inter_stdout == NULL)
+            goto set_error_;
+    }
+    else {
+        set_error_:
         tmp->data.inter_stderr = stderr;
-        tmp->data.is_std = false;
+        tmp->data.is_stderr = true;
     }
 
     registeredFunctionName(tmp);
@@ -105,10 +118,10 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_iter);
     memFree(inter->data.object_next);
 
-    if (inter->data.is_std) {
+    if (!inter->data.is_stdout)
         fclose(inter->data.inter_stdout);
+    if (!inter->data.inter_stderr)
         fclose(inter->data.inter_stderr);
-    }
 }
 
 void freeInter(Inter *inter, bool show_gc) {

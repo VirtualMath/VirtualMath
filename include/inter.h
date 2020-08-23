@@ -14,7 +14,8 @@ struct Inter{
     struct InterData{
         FILE *inter_stdout;
         FILE *inter_stderr;
-        bool is_std;
+        bool is_stdout;
+        bool is_stderr;
 
         struct Value *object;
         struct Value *vobject;

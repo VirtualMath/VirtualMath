@@ -64,7 +64,8 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     import_inter = makeInter(NULL, NULL, belong);
     import_inter->data.inter_stdout = inter->data.inter_stdout;
     import_inter->data.inter_stderr = inter->data.inter_stderr;
-    import_inter->data.is_std = true;
+    import_inter->data.is_stdout = true;
+    import_inter->data.is_stderr = true;
 
     pm = makeParserMessage(*file_dir);
     run_st = makeStatement(0, *file_dir);
