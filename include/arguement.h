@@ -5,6 +5,7 @@ extern char *HelloString;
 struct Args{
     char *error_file;
     char *out_file;
+    bool run_commandLine;
 } args;
 
 typedef struct Args Args;

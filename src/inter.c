@@ -129,7 +129,7 @@ void freeInter(Inter *inter, bool show_gc) {
     gc_runDelAll(inter);
     freeBaseInterData(inter);
 #if DEBUG
-    if (show_gc && (printf("Enter '1' to show gc: "), getc(stdin) == '1')) {
+    if (show_gc && (printf("\nEnter '1' to show gc: "), getc(stdin) == '1')) {
         printGC(inter);
         while (getc(stdin) != '\n')
             PASS;
