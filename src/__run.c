@@ -198,7 +198,7 @@ void freeFunctionArgument(Argument *arg, Argument *base) {
 LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     LinkValue *tmp = NULL;
     char *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, 0, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    tmp = findFromVarList(name_, 0, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(name_);
     return tmp;
 }
@@ -206,7 +206,7 @@ LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
 LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     LinkValue *tmp = NULL;
     char *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, 2, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    tmp = findFromVarList(name_, 0, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(name_);
     return tmp;
 }

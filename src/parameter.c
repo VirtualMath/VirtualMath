@@ -342,7 +342,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
         }
 
         freeResult(result);
-        value = findFromVarList(str_name, int_times, 1, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        value = findFromVarList(str_name, int_times, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         memFree(str_name);
 
         if(value == NULL) {

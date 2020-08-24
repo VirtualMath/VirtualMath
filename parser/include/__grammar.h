@@ -48,9 +48,7 @@ void syntaxError(ParserMessage *pm, int status,long int line , int num, ...);
 int readBackToken(ParserMessage *pm);
 bool checkToken(ParserMessage *pm, int type);
 
-bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st,
-                         char *log_message, bool must_operation, char *error_message);
-bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message);
+bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, bool must_operation, char *error_message);
 
 bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int line);
 bool callParserAs(PASERSSIGNATURE, Statement **st,char *message);
@@ -62,8 +60,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
 
 void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                   int call_type, int self_type, char *call_name, char *self_name, bool is_right);
-void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type, int self_type,
-                   char *call_name, char *self_name);
+void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type, int self_type);
 
 void lexEnter(ParserMessage *pm, bool lock);
 

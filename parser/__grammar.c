@@ -44,7 +44,7 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
 
         callBack(CALLPASERSSIGNATURE);  // 获得右值
         if (!call_success(pm) || readBackToken(pm) != call_type){  // 若非正确数值
-            syntaxError(pm, syntax_error, line, 3, "ERROR from ", self_name, "(get right)");
+            syntaxError(pm, syntax_error, line, 5, "ERROR from ", self_name, "(get right ", call_name, ")");
             freeToken(left_token, true);
             freeStatement(st);
             goto return_;
@@ -69,7 +69,7 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
  * @param self_name 输出值名称(log)
  */
 inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type,
-                          int self_type, char *call_name, char *self_name){
+                          int self_type){
     while(true){
         Token *left_token = NULL;
         struct Statement *st = NULL;
@@ -149,8 +149,7 @@ bool checkToken(ParserMessage *pm, int type){
     return true;
 }
 
-bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st,
-                         char *log_message, bool must_operation, char *error_message) {
+bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, bool must_operation, char *error_message) {
     Token *tmp_token = NULL;
     *st = NULL;
     parserControl(CALLPASERSSIGNATURE, callBack, type, must_operation, error_message);
@@ -161,11 +160,6 @@ bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type
     freeToken(tmp_token, false);
     return true;
 }
-
-inline bool commandCallBack_(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message){
-    return callChildStatement(CALLPASERSSIGNATURE, callBack, type, st, NULL);
-}
-
 bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int line) {
     Token *tmp;
     *st = NULL;

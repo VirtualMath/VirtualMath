@@ -32,10 +32,17 @@ struct VarList{
     struct VarList *next;
 };
 
+enum VarOperation {
+    get_var,
+    read_var,
+    del_var,
+};
+
 typedef struct Var Var;
 typedef struct HashTable HashTable;
 typedef struct DefaultVar DefaultVar;
 typedef struct VarList VarList;
+typedef enum VarOperation VarOperation;
 
 Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter);
 void freeVar(Var **var);
@@ -47,8 +54,8 @@ VarList *makeVarList(Inter *inter, bool make_hash);
 VarList *freeVarList(VarList *vl);
 
 HASH_INDEX time33(char *key);
-LinkValue *findVar(char *name, int operating, Inter *inter, HashTable *ht);
-LinkValue *findFromVarList(char *name, NUMBER_TYPE times, int operating, INTER_FUNCTIONSIG_CORE);
+LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *ht);
+LinkValue *findFromVarList(char *name, NUMBER_TYPE times, VarOperation operating, INTER_FUNCTIONSIG_CORE);
 void addVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht);
 void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
 void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *value, INTER_FUNCTIONSIG_CORE);

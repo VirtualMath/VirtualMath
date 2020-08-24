@@ -103,81 +103,72 @@ void parserCommand(PASERSSIGNATURE){
     token_type = readBackToken(pm);
     switch (token_type) {
         case MATHER_AT :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserDecoration, DECORATION, &st, "Command: call decoration\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserDecoration, DECORATION, &st, NULL);
             break;
         case MATHER_NONLOCAL :
         case MATHER_GLOBAL :
         case MATHER_DEFAULT :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserVarControl, VARCONTROL, &st, "Command: call var control\n");  // TODO-szh 取消message
+            status = callChildStatement(CALLPASERSSIGNATURE, parserVarControl, VARCONTROL, &st, NULL);
             break;
         case MATHER_CLASS :
         case MATHER_DEF :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Command: call def/class\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, NULL);
             break;
         case MATHER_GOTO :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserGoto, GOTO, &st, "Command: call goto\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserGoto, GOTO, &st, NULL);
             break;
         case MATHER_LABEL :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserLabel, LABEL, &st, "Command: call label\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserLabel, LABEL, &st, NULL);
             break;
         case MATHER_DO :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserDo, DO_BRANCH, &st, "Command: call do\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserDo, DO_BRANCH, &st, NULL);
             break;
         case MATHER_WITH :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserWith, WITH_BRANCH, &st, "Command: call with\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserWith, WITH_BRANCH, &st, NULL);
             break;
         case MATHER_IF :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Command: call if\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, NULL);
             break;
         case MATHER_FOR :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserFor, FOR_BRANCH, &st, "Command: call for\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserFor, FOR_BRANCH, &st, NULL);
             break;
         case MATHER_WHILE :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Command: call while\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, NULL);
             break;
         case MATHER_TRY :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st, "Command: call try\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st, NULL);
             break;
         case MATHER_BREAK :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st,
-                                         "Command: call break\n", false, NULL);
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st, false, NULL);
             break;
         case MATHER_CONTINUE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeContinueStatement, CONTINUE, &st,
-                                         "Command: call continue\n", false, NULL);
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeContinueStatement, CONTINUE, &st, false, NULL);
             break;
         case MATHER_RESTART :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRestartStatement, RESTART, &st,
-                                         "Command: call restart\n", false, NULL);
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRestartStatement, RESTART, &st, false, NULL);
             break;
         case MATHER_REGO :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRegoStatement, REGO, &st,
-                                         "Command: call rego\n", false, NULL);
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRegoStatement, REGO, &st, false, NULL);
             break;
         case MATHER_RETURN :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN, &st,
-                                         "Command: call return\n", false, NULL);
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN, &st, false, NULL);
             break;
         case MATHER_YIELD :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeYieldStatement, YIELD, &st,
-                                         "Command: call yield\n", false, NULL);
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeYieldStatement, YIELD, &st, false, NULL);
             break;
         case MATHER_RAISE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE, &st,
-                                         "Command: call raise\n", false, NULL);
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE, &st, false, NULL);
         case MATHER_ASSERT :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeAssertStatement, ASSERT, &st,
-                                         "Command: call assert\n", true,
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeAssertStatement, ASSERT, &st, true,
                                          "parserAssert: Don't get conditions after assert");
             break;
         case MATHER_INCLUDE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeIncludeStatement, INCLUDE, &st,
-                                         "Command: call include\n", true,
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeIncludeStatement, INCLUDE, &st, true,
                                          "parserInclude: Don't get file after include");
             break;
         case MATHER_FROM :
         case MATHER_IMPORT :
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserImport, IMPORT, &st, "Command: call import\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserImport, IMPORT, &st, NULL);
             break;
         case MATHER_STRING:
         case MATHER_NUMBER:
@@ -190,8 +181,7 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_PROTECT:
         case MATHER_PRIVATE:
         case MATHER_PUBLIC:
-            status = commandCallBack_(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st,
-                                      "Command: call operation\n");
+            status = callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st, NULL);
             break;
         default:
             status = false;
@@ -1237,8 +1227,7 @@ int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
     return 1;
 }
 void parserCallBack(PASERSSIGNATURE){
-    return tailOperation(CALLPASERSSIGNATURE, parserSlice, tailCall, SLICE, CALLBACK,
-            "slice", "call back");
+    return tailOperation(CALLPASERSSIGNATURE, parserSlice, tailCall, SLICE, CALLBACK);
 }
 
 int tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
@@ -1272,8 +1261,7 @@ int tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
     return 1;
 }
 void parserSlice(PASERSSIGNATURE){
-    return tailOperation(CALLPASERSSIGNATURE, parserPoint, tailSlice, POINT, SLICE,
-                         "point", "slice");
+    return tailOperation(CALLPASERSSIGNATURE, parserPoint, tailSlice, POINT, SLICE);
 }
 
 /**
@@ -1330,170 +1318,190 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
 void parserBaseValue(PASERSSIGNATURE){
     Token *value_token = popNewToken(pm->tm);
     Statement *st = NULL;
-    if (MATHER_NUMBER == value_token->token_type){
-        Statement *tmp = NULL;
-        tmp = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
-        if (*value_token->data.second_str == NUL)
-            st = tmp;
-        else{
-            Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line, pm->file);
-            st = makeCallStatement(sencod_var, makeValueParameter(tmp));
-        }
-    }
-    else if (MATHER_STRING == value_token->token_type){
-        Value *tmp_value = makeStringValue(value_token->data.str, inter);
-        Statement *tmp = NULL;
-        tmp = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
-        if (*value_token->data.second_str == NUL)
-            st = tmp;
-        else{
-            Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line, pm->file);
-            st = makeCallStatement(sencod_var, makeValueParameter(tmp));
-        }
-    }
-    else if (MATHER_TRUE == value_token->token_type)
-        st = makeBaseValueStatement(bool_true, value_token->line, pm->file);
-    else if (MATHER_FALSE == value_token->token_type)
-        st = makeBaseValueStatement(bool_false, value_token->line, pm->file);
-    else if (MATHER_NULL == value_token->token_type)
-        st = makeBaseValueStatement(null_value, value_token->line, pm->file);
-    else if (MATHER_PASSVALUE == value_token->token_type)
-        st = makeBaseValueStatement(pass_value, value_token->line, pm->file);
-    else if (MATHER_LAMBDA == value_token->token_type){
-        Parameter *pt = NULL;
-        Statement *lambda_st = NULL;
-        if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
-            freeToken(value_token, true);
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a lambda parameter");
-            goto return_;
-        }
-        if (!checkToken(pm, MATHER_COLON)){
-            lambda_st = makeStatement(value_token->line, pm->file);
-            goto not_lambda_st;
-        }
-        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &lambda_st, "Don't get a lambda operation")){
-            freeToken(value_token, true);
-            goto return_;
-        }
-        not_lambda_st:
-        st = makeLambdaStatement(lambda_st, pt);
-    }
-    else if (MATHER_VAR == value_token->token_type)
-        st = makeBaseVarStatement(value_token->data.str, NULL, value_token->line, pm->file);
-    else if (MATHER_SVAR == value_token->token_type){
-        Statement *svar_st = NULL;
-        if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)){
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
-            freeToken(value_token, true);
-            goto return_;
-        }
-        st = makeBaseSVarStatement(svar_st, NULL);
-    }
-    else if (MATHER_LB == value_token->token_type){
-        int tmp;
-        Statement *tmp_st = NULL;
-        lexEnter(pm, true);
-        tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
-        lexEnter(pm, false);
-        if (tmp == 0){
-            freeToken(value_token, true);
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
-            goto return_;
-        }
-        else if(tmp == -1){
-            freeToken(value_token, true);
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ] from list/var");
-            goto return_;  // 优化goto return freeToken
-        }
-        if (MATHER_VAR == readBackToken(pm)){
-            Token *var_token;
-            var_token = popNewToken(pm->tm);
-            st = makeBaseVarStatement(var_token->data.str, tmp_st, var_token->line, pm->file);
-            freeToken(var_token, false);
-        }
-        else{
-            if (tmp_st == NULL)
-                st = makeTupleStatement(NULL, value_list, value_token->line, pm->file);
-            else if (tmp_st->type == base_list && tmp_st->u.base_list.type == value_tuple){
-                tmp_st->u.base_list.type = value_list;
-                st = tmp_st;
+    switch (value_token->token_type) {
+        case MATHER_NUMBER : {
+            Statement *tmp = NULL;
+            tmp = makeBaseStrValueStatement(value_token->data.str, number_str, value_token->line, pm->file);
+            if (*value_token->data.second_str == NUL)
+                st = tmp;
+            else {
+                Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line,
+                                                             pm->file);
+                st = makeCallStatement(sencod_var, makeValueParameter(tmp));
             }
-            else
-                st = makeTupleStatement(makeValueParameter(tmp_st), value_list, value_token->token_type, pm->file);
+            break;
         }
-    }
-    else if (MATHER_LP == value_token->token_type){
-        int tmp;
-        lexEnter(pm, true);
-        tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
-        lexEnter(pm, false);
-        if (tmp == 0){
-            freeToken(value_token, true);
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
+
+        case MATHER_STRING:{
+            Value *tmp_value = makeStringValue(value_token->data.str, inter);
+            Statement *tmp = NULL;
+            tmp = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
+            if (*value_token->data.second_str == NUL)
+                st = tmp;
+            else {
+                Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line,
+                                                             pm->file);
+                st = makeCallStatement(sencod_var, makeValueParameter(tmp));
+            }
+            break;
+        }
+        case MATHER_TRUE:
+            st = makeBaseValueStatement(bool_true, value_token->line, pm->file);
+            break;
+        case MATHER_FALSE:
+            st = makeBaseValueStatement(bool_false, value_token->line, pm->file);
+            break;
+        case MATHER_NULL:
+            st = makeBaseValueStatement(null_value, value_token->line, pm->file);
+            break;
+        case MATHER_PASSVALUE:
+            st = makeBaseValueStatement(pass_value, value_token->line, pm->file);
+            break;
+        case MATHER_LAMBDA:  {
+            Parameter *pt = NULL;
+            Statement *lambda_st = NULL;
+            if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, true, false, false, MATHER_COMMA,
+                                 MATHER_ASSIGNMENT)) {
+                freeToken(value_token, true);
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a lambda parameter");
+                goto return_;
+            }
+            if (!checkToken(pm, MATHER_COLON)) {
+                lambda_st = makeStatement(value_token->line, pm->file);
+                goto not_lambda_st;
+            }
+            if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &lambda_st,
+                                    "Don't get a lambda operation")) {
+                freeToken(value_token, true);
+                goto return_;
+            }
+            not_lambda_st:
+            st = makeLambdaStatement(lambda_st, pt);
+            break;
+        }
+        case MATHER_VAR:
+            st = makeBaseVarStatement(value_token->data.str, NULL, value_token->line, pm->file);
+            break;
+        case MATHER_SVAR: {
+            Statement *svar_st = NULL;
+            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)) {
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
+                freeToken(value_token, true);
+                goto return_;
+            }
+            st = makeBaseSVarStatement(svar_st, NULL);
+            break;
+        }
+        case MATHER_LB: {
+            int tmp;
+            Statement *tmp_st = NULL;
+            lexEnter(pm, true);
+            tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
+            lexEnter(pm, false);
+            if (tmp == 0) {
+                freeToken(value_token, true);
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
+                goto return_;
+            } else if (tmp == -1) {
+                freeToken(value_token, true);
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ] from list/var");
+                goto return_;  // 优化goto return freeToken
+            }
+            if (MATHER_VAR == readBackToken(pm)) {
+                Token *var_token;
+                var_token = popNewToken(pm->tm);
+                st = makeBaseVarStatement(var_token->data.str, tmp_st, var_token->line, pm->file);
+                freeToken(var_token, false);
+            } else {
+                if (tmp_st == NULL)
+                    st = makeTupleStatement(NULL, value_list, value_token->line, pm->file);
+                else if (tmp_st->type == base_list && tmp_st->u.base_list.type == value_tuple) {
+                    tmp_st->u.base_list.type = value_list;
+                    st = tmp_st;
+                } else
+                    st = makeTupleStatement(makeValueParameter(tmp_st), value_list, value_token->token_type, pm->file);
+            }
+            break;
+        }
+        case MATHER_LP: {
+            int tmp;
+            lexEnter(pm, true);
+            tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
+            lexEnter(pm, false);
+            if (tmp == 0) {
+                freeToken(value_token, true);
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get operation from Base Value");
+                goto return_;
+            } else if (tmp == -1) {
+                freeToken(value_token, true);
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ) from Base Value");
+                goto return_;
+            }
+            break;
+        }
+        case MATHER_LC: {
+            Parameter *pt = NULL;
+            int parser_status;
+            parser_status = parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, true, MATHER_COMMA,
+                                            MATHER_COLON);
+            if (!parser_status) {
+                freeToken(value_token, true);
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");
+                goto return_;
+            }
+            if (!checkToken(pm, MATHER_RC)) {
+                freeToken(value_token, true);
+                freeParameter(pt, true);
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a } after dict");
+                goto return_;
+            }
+            st = makeBaseDictStatement(pt, value_token->line, pm->file);
+            break;
+        }
+        case MATHER_BLOCK: {
+            Statement *block = NULL;
+            if (!callParserCode(CALLPASERSSIGNATURE, &block, "Don't get a while code", value_token->line)) {
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get block command");
+                freeToken(value_token, true);
+                goto return_;
+            }
+            st = makeOperationStatement(OPT_BLOCK, block, NULL);
+            break;
+        }
+        case MATHER_PRIVATE:
+        case MATHER_PROTECT:
+        case MATHER_PUBLIC: {
+            if (MATHER_COLON != readBackToken(pm)) {
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a : after aut token");
+                freeToken(value_token, true);
+                goto return_;
+            }
+            delToken(pm);
+            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st,
+                                    "Don't get Base Value after aut token")) {
+                freeToken(value_token, true);
+                goto return_;
+            }
+            switch (value_token->token_type) {
+                case MATHER_PROTECT:
+                    st->aut = protect_aut;
+                    break;
+                case MATHER_PRIVATE:
+                    st->aut = private_aut;
+                    break;
+                case MATHER_PUBLIC:
+                    st->aut = public_aut;
+                    break;
+            }
+            break;
+        }
+        default:{
+            backToken_(pm, value_token);
             goto return_;
         }
-        else if(tmp == -1){
-            freeToken(value_token, true);
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ) from Base Value");
-            goto return_;
-        }
-    }
-    else if (MATHER_LC == value_token->token_type){
-        Parameter *pt = NULL;
-        int parser_status;
-        parser_status = parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, true, MATHER_COMMA, MATHER_COLON);
-        if (!parser_status) {
-            freeToken(value_token, true);
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");
-            goto return_;
-        }
-        if (!checkToken(pm, MATHER_RC)) {
-            freeToken(value_token, true);
-            freeParameter(pt, true);
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a } after dict");
-            goto return_;
-        }
-        st = makeBaseDictStatement(pt, value_token->line, pm->file);
-    }
-    else if (MATHER_BLOCK == value_token->token_type){
-        Statement *block = NULL;
-        if (!callParserCode(CALLPASERSSIGNATURE, &block, "Don't get a while code", value_token->line)) {
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get block command");
-            freeToken(value_token, true);
-            goto return_;
-        }
-        st = makeOperationStatement(OPT_BLOCK, block, NULL);
-    }
-    else if (MATHER_PROTECT == value_token->token_type || MATHER_PRIVATE == value_token->token_type || MATHER_PUBLIC == value_token->token_type){
-        if (MATHER_COLON != readBackToken(pm)){
-            syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a : after aut token");
-            freeToken(value_token, true);
-            goto return_;
-        }
-        delToken(pm);
-        if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st, "Don't get Base Value after aut token")){
-            freeToken(value_token, true);
-            goto return_;
-        }
-        switch (value_token->token_type) {
-            case MATHER_PROTECT:
-                st->aut = protect_aut;
-                break;
-            case MATHER_PRIVATE:
-                st->aut = private_aut;
-                break;
-            case MATHER_PUBLIC:
-                st->aut = public_aut;
-                break;
-        }
-    }
-    else{
-        backToken_(pm, value_token);
-        goto return_;
     }
     freeToken(value_token, false);
     addStatementToken(BASEVALUE, st, pm);
 
-    return_:
-    return;
+    return_: return;
 }

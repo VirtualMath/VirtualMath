@@ -174,14 +174,14 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
 }
 
 
-LinkValue *findVar(char *name, int operating, Inter *inter, HashTable *ht) {  // TODO-szh int operating 使用枚举体
+LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *ht) {
     LinkValue *tmp = NULL;
     HASH_INDEX index = time33(name);
 
     for (Var **base = &ht->hashtable[index]; *base != NULL; base = &(*base)->next){
         if (eqString((*base)->name, name)){
             tmp = (*base)->value;
-            if (operating == 1) {
+            if (operating == del_var) {
                 Var *next = (*base)->next;
                 (*base)->next = NULL;
                 *base = next;
@@ -189,24 +189,23 @@ LinkValue *findVar(char *name, int operating, Inter *inter, HashTable *ht) {  //
             goto return_;
         }
     }
-    return_:
-    return operating == 2 ? tmp : copyLinkValue(tmp, inter);
+    return_: return operating == get_var ? copyLinkValue(tmp, inter) : tmp;
 }
 
 /**
  * @param name
  * @param times
- * @param operating 1-删除  2-读取  0-获取
+ * @param operating read_var-不复制读取 get_var-复制读取 del_var-删除且返回(不复制)
  * @param inter
  * @param var_list
  * @return
  */
-LinkValue *findFromVarList(char *name, NUMBER_TYPE times, int operating, INTER_FUNCTIONSIG_CORE) {
+LinkValue *findFromVarList(char *name, NUMBER_TYPE times, VarOperation operating, INTER_FUNCTIONSIG_CORE) {
     LinkValue *tmp = NULL;
     NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
     for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
-    if (operating == 1 && var_list != NULL)
+    if (operating == del_var && var_list != NULL)
         tmp = findVar(name, true, inter, var_list->hashtable);
     else
         for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)

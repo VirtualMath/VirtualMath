@@ -166,7 +166,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCT
     if (name->aut != auto_aut)
         var_value->aut = name->aut;
     if (check_aut) {
-        LinkValue *tmp = findFromVarList(str_name, int_times, 2, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (tmp != NULL) {
             if ((value->aut == public_aut || value->aut == auto_aut) && (tmp->aut != public_aut && tmp->aut != auto_aut)) {
                 setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as public",
@@ -184,7 +184,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCT
             set_var: addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     } else {
         if (name->aut != auto_aut) {
-            LinkValue *tmp = findFromVarList(str_name, int_times, 2, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
             if (tmp != NULL)
                 tmp->aut = name->aut;
         }
@@ -287,7 +287,7 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 
     freeResult(result);
     result->type = operation_return;
-    result->value = findFromVarList(name, int_times, 0, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    result->value = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (result->value == NULL) {
         char *info = memStrcat("Name Not Found: ", name, false, false);
         setResultErrorSt(result, inter, "NameException", info, st, belong, true);
@@ -318,20 +318,26 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
         result->value = st->u.base_value.value;
     else {
         Value *value = NULL;
-        if (st->u.base_value.type == number_str) {
-            char *stop = NULL;
-            value = makeNumberValue(strtol(st->u.base_value.str, &stop, 10), inter);
+        switch (st->u.base_value.type){
+            case number_str:
+                value = makeNumberValue(strtol(st->u.base_value.str, NULL, 10), inter);
+                break;
+            case bool_true:
+                value = makeBoolValue(true, inter);
+                break;
+            case bool_false:
+                value = makeBoolValue(false, inter);
+                break;
+            case pass_value:
+                value = makePassValue(inter);
+                break;
+            case null_value:
+                value = makeNoneValue(inter);
+                break;
+            default:
+                value = makeStringValue(st->u.base_value.str, inter);
+                break;
         }
-        else if (st->u.base_value.type == bool_true)
-            value = makeBoolValue(true, inter);
-        else if (st->u.base_value.type == bool_false)
-            value = makeBoolValue(false, inter);
-        else if (st->u.base_value.type == pass_value)
-            value = makePassValue(inter);
-        else if (st->u.base_value.type == null_value)
-            value = makeNoneValue(inter);
-        else
-            value = makeStringValue(st->u.base_value.str, inter);
         result->value = makeLinkValue(value, belong, inter);
     }
 
