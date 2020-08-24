@@ -44,10 +44,33 @@ ResultType vm_printCore(OFFICAL_FUNCTIONSIG, int type){
     return result->type;
 }
 
+ResultType vm_input(OFFICAL_FUNCTIONSIG){
+    setResultCore(result);
+    ArgumentParser ap[] = {{.type=name_value, .name="message", .must=0, .value=NULL},
+                           {.must=-1}};
+    char *str = memStrcpy("\0");
+    int ch;
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value != NULL)
+        printValue(ap[0].value->value, inter->data.inter_stdout, false);
+
+    while ((ch = fgetc(inter->data.inter_stdin)) != '\n' && ch != EOF)
+        str = memStrCharcpy(str, 1, true, true, ch);
+
+    setResultOperationBase(result, makeLinkValue(makeStringValue(str, inter), belong, inter));
+    memFree(str);
+    return result->type;
+}
+
 void registeredIOFunction(REGISTERED_FUNCTIONSIG){
     NameFunc tmp[] = {{"print", vm_print, free_},
                       {"print_link", vm_printLink, free_},
                       {"print_all", vm_printAll, free_},
+                      {"input", vm_input, free_},
                       {NULL, NULL}};
     iterNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

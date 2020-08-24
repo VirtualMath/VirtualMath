@@ -14,8 +14,10 @@ struct Inter{
     struct InterData{
         FILE *inter_stdout;
         FILE *inter_stderr;
+        FILE *inter_stdin;
         bool is_stdout;
         bool is_stderr;
+        bool is_stdin;
 
         struct Value *object;
         struct Value *vobject;
@@ -77,7 +79,7 @@ typedef struct Inter Inter;
 typedef struct Statement Statement;
 typedef enum ResultType ResultType;
 
-Inter *makeInter(char *out, char *error_, struct LinkValue *belong);
+Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
 ResultType runCodeBlock(char *code_file, Inter *inter);

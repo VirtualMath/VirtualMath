@@ -1,6 +1,6 @@
 #include "__virtualmath.h"
 
-Inter *makeInter(char *out, char *error_, LinkValue *belong) {
+Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
     LinkValue *base_father = NULL;
     setBaseInterData(tmp);
@@ -11,7 +11,7 @@ Inter *makeInter(char *out, char *error_, LinkValue *belong) {
 
     tmp->var_list = makeVarList(tmp, true);
 
-    if (out) {
+    if (out != NULL) {
         tmp->data.inter_stdout = fopen(out, "w");
         tmp->data.is_stdout = false;
         if (tmp->data.inter_stdout == NULL)
@@ -23,7 +23,7 @@ Inter *makeInter(char *out, char *error_, LinkValue *belong) {
         tmp->data.is_stdout = true;
     }
 
-    if (error_) {
+    if (error_ != NULL) {
         tmp->data.inter_stdout = fopen(error_, "w");
         tmp->data.is_stderr = false;
         if (tmp->data.inter_stdout == NULL)
@@ -33,6 +33,18 @@ Inter *makeInter(char *out, char *error_, LinkValue *belong) {
         set_error_:
         tmp->data.inter_stderr = stderr;
         tmp->data.is_stderr = true;
+    }
+
+    if (in != NULL) {
+        tmp->data.inter_stdin = fopen(in, "r");
+        tmp->data.is_stdin = false;
+        if (tmp->data.inter_stdin == NULL)
+            goto set_stdin_;
+    }
+    else {
+        set_stdin_:
+        tmp->data.inter_stdin = stdin;
+        tmp->data.is_stdin = true;
     }
 
     registeredFunctionName(tmp);
@@ -141,6 +153,8 @@ void freeBaseInterData(struct Inter *inter){
         fclose(inter->data.inter_stdout);
     if (!inter->data.is_stderr)
         fclose(inter->data.inter_stderr);
+    if (!inter->data.is_stdin)
+        fclose(inter->data.inter_stdin);
 }
 
 void freeInter(Inter *inter, bool show_gc) {

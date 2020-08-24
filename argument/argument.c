@@ -9,13 +9,14 @@ char *HelloString = "Welcome To VirtualMath ("__TIME__", "__DATE__") \n"
                     "VirtualMath Command Line Mode\n";
 
 static const struct option long_option[]={
-        {"log-err",required_argument,NULL,'o'},
-        {"log-out",required_argument,NULL,'e'},
+        {"stderr",required_argument,NULL,'o'},
+        {"stdout",required_argument,NULL,'e'},
+        {"stdin",required_argument,NULL,'i'},
         {"not-run-cl",required_argument,NULL,'n'},
         {NULL,0,NULL,0}
 };
 
-static const char *short_option = "o:e:n";
+static const char *short_option = "o:e:i:n";
 
 /**
  * 参数设置, args是全局结构体, 保存全局的参数设置
@@ -27,6 +28,7 @@ int getArgs(const int argc, char **argv)
 {
     args.out_file = NULL;
     args.error_file = NULL;
+    args.in_file = NULL;
     args.run_commandLine = true;
     opterr = true;
     int opt;
@@ -41,6 +43,9 @@ int getArgs(const int argc, char **argv)
                 break;
             case 'e':
                 args.error_file = memStrcpy(optarg);
+                break;
+            case 'i':
+                args.in_file = memStrcpy(optarg);
                 break;
             case 'n':
                 args.run_commandLine = false;
@@ -61,4 +66,5 @@ int getArgs(const int argc, char **argv)
 void freeArgs(void){
     memFree(args.out_file);
     memFree(args.error_file);
+    memFree(args.in_file);
 }

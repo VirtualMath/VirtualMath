@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
     if (getArgs(argc, argv))
         goto args_error;
-    inter = makeInter(args.out_file, args.error_file, NULL);
+    inter = makeInter(args.out_file, args.error_file, args.in_file, NULL);
 
     ctrlCUseJmp = true;
     signal(SIGINT, signalStop);

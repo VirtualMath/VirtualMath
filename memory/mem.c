@@ -43,13 +43,14 @@ char *memStrcpy(const char *const str){
 
 char *memStrCharcpy(char *str, size_t nsize, bool free_old, bool write, ...) {  // 复制str到新的空间，nszie是要扩展的大小。该函数支持让str=NULL，则变为单纯的memString
     char *tmp = memString(memStrlen(str) + nsize);
-    if (str != NULL)
+    size_t base_len = memStrlen(str);
+    if (base_len != 0)
         strcpy(tmp, str);
     if (write){
         va_list argp;
         va_start(argp, write);
         for (int i = 0; i < nsize; i++)
-            tmp[memStrlen(str) + i] = (char)va_arg(argp, int);
+            tmp[base_len + i] = (char)va_arg(argp, int);
         va_end(argp);
     }
     if (free_old)
