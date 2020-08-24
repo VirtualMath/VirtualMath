@@ -134,6 +134,61 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
+ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    char *repo = NULL;
+    Value *value = NULL;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+    value = ap[0].value->value;
+
+    switch (value->type){
+        case number: {
+            char str[30] = {};
+            snprintf(str, 30, "%lld", value->data.num.num);
+            repo = memStrcpy(str);
+            break;
+        }
+        case string:
+            repo = memStrcpy(value->data.str.str);
+            break;
+        case function: {
+            char str[30] = {};
+            snprintf(str, 30, "(function on %p)", value);
+            repo = memStrcpy(str);
+            break;
+        }
+        case none:
+            repo = memStrcpy("(null)");
+            break;
+        case class: {
+            char str[30] = {};
+            snprintf(str, 30, "(class on %p)", value);
+            repo = memStrcpy(str);
+            break;
+        }
+        case bool_:
+            if (value->data.bool_.bool_)
+                repo = memStrcpy("true");
+            else
+                repo = memStrcpy("false");
+            break;
+        case pass_:
+            repo = memStrcpy("...");
+            break;
+        default:
+            setResultError(E_TypeException, "vobject.__repo__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            return error_return;
+    }
+    setResultOperationBase(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
+    memFree(repo);
+    return result->type;
+}
+
 void registeredVObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.vobject, inter->base_father, inter);
     NameFunc tmp[] = {{"__add__", vobject_add, object_free_},
@@ -141,6 +196,7 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
                       {"__mul__", vobject_mul, object_free_},
                       {"__div__", vobject_div, object_free_},
                       {"__bool__", vobject_bool, object_free_},
+                      {"__repo__", vobject_repo, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("vobject", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

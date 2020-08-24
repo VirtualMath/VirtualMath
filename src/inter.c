@@ -276,7 +276,7 @@ void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
             printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
             printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
             printf("value = ");
-            printValue(base, stdout, true);
+            printValue(base, stdout, true, true);
             printf("\n-------------------------------------------\n");
         }
         base = base->gc_next;
@@ -302,9 +302,9 @@ void printVarGC(char *tag, Inter *inter){
 
         printf("str_name = %s\n", base->name);
         printf("name = ");
-        printValue(base->name_->value,stdout, false);
+        printValue(base->name_->value, stdout, false, true);
         printf("\nvalue = ");
-        printValue(base->value->value,stdout, false);
+        printValue(base->value->value, stdout, false, true);
         printf("\n-------------------------------------------\n");
         base = base->gc_next;
     }

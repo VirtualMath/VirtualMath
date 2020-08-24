@@ -185,7 +185,7 @@ void freeError(Result *base);
 Error *connectError(Error *new, Error *base);
 void printError(Result *result, Inter *inter, bool free);
 
-void printValue(Value *value, FILE *debug, bool print_father);
+void printValue(Value *value, FILE *debug, bool print_father, bool print_in);
 void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug);
 
 bool isType(Value *value, enum ValueType type);

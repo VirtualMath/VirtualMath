@@ -391,7 +391,7 @@ void freeResultSafe(Result *ru){
     ru->error = NULL;
 }
 
-void printValue(Value *value, FILE *debug, bool print_father) {
+void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
     switch (value->type){
         case number:
             fprintf(debug, "%lld", value->data.num.num);
@@ -406,32 +406,37 @@ void printValue(Value *value, FILE *debug, bool print_father) {
                 fprintf(debug, "(function on %p)", value);
             break;
         case list:
-            fprintf(debug, "[");
-            for (int i=0;i < value->data.list.size;i++){
-                if (i > 0)
-                    fprintf(debug, ", ", NULL);
-                printValue(value->data.list.list[i]->value, debug, false);
-            }
-            fprintf(debug, " ]", NULL);
-            break;
-        case dict: {
-            Var *tmp = NULL;
-            bool print_comma = false;
-            fprintf(debug, "{");
-            for (int i = 0; i < MAX_SIZE; i++) {
-                for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
-                    if (print_comma)
+            if (print_in){
+                fprintf(debug, "[");
+                for (int i = 0; i < value->data.list.size; i++) {
+                    if (i > 0)
                         fprintf(debug, ", ", NULL);
-                    else
-                        print_comma = true;
-                    printValue(tmp->name_->value, debug, false);
-                    fprintf(debug, " ['%s'] : ", tmp->name);
-                    printValue(tmp->value->value, debug, false);
+                    printValue(value->data.list.list[i]->value, debug, false, false);
                 }
-            }
-            fprintf(debug, " }", NULL);
+                fprintf(debug, " ]", NULL);
+            } else
+                fprintf(debug, "[list]", NULL);
             break;
-        }
+        case dict:
+            if (print_in){
+                Var *tmp = NULL;
+                bool print_comma = false;
+                fprintf(debug, "{");
+                for (int i = 0; i < MAX_SIZE; i++) {
+                    for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
+                        if (print_comma)
+                            fprintf(debug, ", ", NULL);
+                        else
+                            print_comma = true;
+                        printValue(tmp->name_->value, debug, false, false);
+                        fprintf(debug, " ['%s'] : ", tmp->name);
+                        printValue(tmp->value->value, debug, false, false);
+                    }
+                }
+                fprintf(debug, " }", NULL);
+            } else
+                fprintf(debug, "[dict]", NULL);
+            break;
         case none:
             fprintf(debug, "(null)", NULL);
             break;
@@ -465,7 +470,7 @@ void printValue(Value *value, FILE *debug, bool print_father) {
         printf("<%p>", value);
         for (Inherit *fv = value->object.inherit; fv != NULL; fv = fv->next) {
             printf(" -> ");
-            printValue(fv->value->value, debug, false);
+            printValue(fv->value->value, debug, false, false);
         }
         fprintf(debug, ")");
     }
@@ -481,7 +486,7 @@ void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
         fprintf(debug, " . ", NULL);
     }
     if (value->value != NULL)
-        printValue(value->value, debug, true);
+        printValue(value->value, debug, true, true);
     fprintf(debug, "%s", last);
 }
 

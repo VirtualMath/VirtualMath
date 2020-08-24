@@ -38,4 +38,5 @@ void newObjectSetting(LinkValue *name, LinkValue *belong, Inter *inter);
 ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+char *getRepo(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH___RUN_H

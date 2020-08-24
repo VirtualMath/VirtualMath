@@ -296,3 +296,24 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
         setResultError(E_TypeException, "Object does not support __bool__ function", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return false;
 }
+
+char *getRepo(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+    LinkValue *_repo_ = findAttributes("__repo__", false, value, inter);
+    setResultCore(result);
+    if (_repo_ != NULL){
+        gc_addTmpLink(&_repo_->gc_status);
+        callBackCore(_repo_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&_repo_->gc_status);
+
+        if (!CHECK_RESULT(result))
+            return NULL;
+        else if (result->value->value->type != string){
+            setResultError(E_TypeException, "__repo__ function should return str type data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            return NULL;
+        }
+        return result->value->value->data.str.str;
+    }
+    else
+        setResultError(E_TypeException, "list.__repo__ gets unsupported data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    return NULL;
+}

@@ -5,7 +5,6 @@ ResultType object_new_(OFFICAL_FUNCTIONSIG){
     LinkValue *_init_ = NULL;
     setResultCore(result);
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
@@ -15,8 +14,8 @@ ResultType object_new_(OFFICAL_FUNCTIONSIG){
     }
 
     {
-        Inherit *object_father = getInheritFromValueCore(ap[1].value);
-        VarList *new_var = copyVarList(ap[1].value->value->object.out_var, false, inter);
+        Inherit *object_father = getInheritFromValueCore(ap[0].value);
+        VarList *new_var = copyVarList(ap[0].value->value->object.out_var, false, inter);
         Value *new_object = makeObject(inter, NULL, new_var, object_father);
         value = makeLinkValue(new_object, belong, inter);
         setResultOperation(result, value);
@@ -45,9 +44,25 @@ ResultType object_new_(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
+ResultType object_repo_(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    char repo[200] = {};
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+    snprintf(repo, 200, "(object on %p)", ap[0].value->value);
+    setResultOperationBase(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
+    return result->type;
+}
+
 void registeredObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.object, inter->base_father, inter);
-    NameFunc tmp[] = {{"__new__", object_new_, class_static_}, {NULL, NULL}};
+    NameFunc tmp[] = {{"__new__", object_new_, class_free_},
+                      {"__repo__", object_repo_, object_free_},
+                      {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("object", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
