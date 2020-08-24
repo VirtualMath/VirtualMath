@@ -44,8 +44,10 @@ void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Va
 
 void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, Value *left, Value *right) {
     setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
-    if (left->type == number && right->type == number)
-        result->value->value = makeNumberValue(left->data.num.num / right->data.num.num, inter);
+    if (left->type == number && right->type == number) {
+        lldiv_t div_result = lldiv(left->data.num.num, right->data.num.num);
+        result->value->value = makeNumberValue(div_result.quot, inter);
+    }
     else
         setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", belong, true);
 }
