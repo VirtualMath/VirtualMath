@@ -31,7 +31,9 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     }
 
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result, belong));
-    if (!CHECK_RESULT(result))
+    if (result->type == yield_return)
+        setResult(result, inter, belong);
+    else if (!CHECK_RESULT(result))
         setResultErrorSt(E_BaseException, NULL, false, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:

@@ -58,9 +58,11 @@ struct Value{
                     free_,  // 不包含任何隐式传递的参数
                     static_,  // 不包含self参数
                     object_static_,  // self参数不允许class
-                    class_static_,  // self参数允许一切father
+                    class_static_,  // self参数允许一切，但转换为类
+                    all_static_, // self参数允许一切
                     object_free_,  // 同object_static_但不包含func参数
                     class_free_,  // 同object_static_但不包含func参数
+                    all_free_,
                 } pt_type;
             } function_data;
         } function;

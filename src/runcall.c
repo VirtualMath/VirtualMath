@@ -29,7 +29,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
         tmp->value->object.var->next = var_backup;
         inter->data.default_pt_type = pt_type_bak;
 
-        if (!CHECK_RESULT(result))
+        if (result->type != yield_return && !CHECK_RESULT(result))
             goto error_;
         freeResult(result);
     }
@@ -227,7 +227,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
     of(CALL_OFFICAL_FUNCTION(arg, function_var, result, function_value->belong));
     if (result->type == function_return)
         result->type = operation_return;
-    else if (result->type != operation_return)
+    else if (result->type != operation_return && result->type != error_return)
         setResult(result, inter, function_value->belong);
 
     gc_freeze(inter, var_list, function_var, false);

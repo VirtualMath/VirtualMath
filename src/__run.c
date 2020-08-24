@@ -152,6 +152,20 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
             break;
         case class_static_:
             tmp = makeValueArgument(function_value);
+            if (function_value->belong->value->type == class)
+                tmp->next = makeValueArgument(function_value->belong);
+            else if (function_value->value->object.inherit->value != NULL)
+                tmp->next = makeValueArgument(function_value->belong->value->object.inherit->value);
+            else {
+                tmp->next = *arg;
+                *arg = tmp;
+                break;
+            }
+            tmp->next->next = *arg;
+            *arg = tmp;
+            break;
+        case all_static_:
+            tmp = makeValueArgument(function_value);
             tmp->next = makeValueArgument(function_value->belong);
             tmp->next->next = *arg;
             *arg = tmp;
@@ -167,7 +181,12 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
             *arg = tmp;
             break;
         case class_free_:
-            tmp = makeValueArgument(function_value->belong);
+            if (function_value->belong->value->type == class)
+                tmp = makeValueArgument(function_value->belong);
+            else if (function_value->value->object.inherit->value != NULL)
+                tmp = makeValueArgument(function_value->belong->value->object.inherit->value);
+            else
+                break;
             tmp->next = *arg;
             *arg = tmp;
             break;
@@ -177,6 +196,11 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
                 tmp->next = *arg;
                 *arg = tmp;
             }
+            break;
+        case all_free_:
+            tmp = makeValueArgument(function_value->belong);
+            tmp->next = *arg;
+            *arg = tmp;
             break;
         default:
             break;
@@ -303,9 +327,11 @@ char *getRepo(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST
     LinkValue *_repo_ = findAttributes(inter->data.object_repo, false, value, inter);
     setResultCore(result);
     if (_repo_ != NULL){
+        gc_addTmpLink(&value->gc_status);
         gc_addTmpLink(&_repo_->gc_status);
         callBackCore(_repo_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_repo_->gc_status);
+        gc_freeTmpLink(&value->gc_status);
 
         if (!CHECK_RESULT(result))
             return NULL;

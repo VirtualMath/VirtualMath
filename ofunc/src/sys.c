@@ -86,6 +86,14 @@ ResultType vm_objectfreemethod(OFFICAL_FUNCTIONSIG){
     return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), object_free_);
 }
 
+ResultType vm_allfreemethod(OFFICAL_FUNCTIONSIG){
+    return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), all_free_);
+}
+
+ResultType vm_allstaticmethod(OFFICAL_FUNCTIONSIG){
+    return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), all_static_);
+}
+
 void registeredSysFunction(REGISTERED_FUNCTIONSIG){
     NameFunc tmp[] = {{"super", vm_super, free_},
                       {"freemethod", vm_freemethod, free_},
@@ -94,6 +102,8 @@ void registeredSysFunction(REGISTERED_FUNCTIONSIG){
                       {"staticobjectmethod", vm_objectmethod, free_},
                       {"classmethod", vm_classfreemethod, free_},
                       {"objectmethod", vm_objectfreemethod, free_},
+                      {"simplemethod", vm_allfreemethod, free_},
+                      {"simplestaticmethod", vm_allstaticmethod, free_},
                       {NULL, NULL}};
     iterNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }
