@@ -80,6 +80,7 @@ struct Inter{
         char *object_message;
         char *object_down_assignment;
         char *object_str;
+        char *object_slice_assignment;
         int default_pt_type;
     } data;
 };

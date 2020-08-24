@@ -141,7 +141,7 @@ ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setti
 
     if (name->type == base_list && name->u.base_list.type == value_tuple)
         listAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (name->type == slice_ && name->u.slice_.type == SliceType_down_)
+    else if (name->type == slice_)
         downAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
         pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -229,30 +229,33 @@ ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
 
 ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *iter = NULL;
-    LinkValue *_down_assignment_ = NULL;
+    LinkValue *_func_ = NULL;
     Parameter *pt = name->u.slice_.index;
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.slice_.element, var_list, result, belong)))
         return result->type;
     iter = result->value;
     result->value = NULL;
     freeResult(result);
-    _down_assignment_ = findAttributes(inter->data.object_down_assignment, false, iter, inter);
-    if (_down_assignment_ != NULL){
+    if (name->u.slice_.type == SliceType_down_)
+        _func_ = findAttributes(inter->data.object_down_assignment, false, iter, inter);
+    else
+        _func_ = findAttributes(inter->data.object_slice_assignment, false, iter, inter);
+    if (_func_ != NULL){
         Argument *arg = makeValueArgument(value);
-        gc_addTmpLink(&_down_assignment_->gc_status);
+        gc_addTmpLink(&_func_->gc_status);
         arg->next = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto daerror_;
 
         freeResult(result);
-        callBackCore(_down_assignment_, arg, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
         daerror_:
         freeArgument(arg, true);
-        gc_freeTmpLink(&_down_assignment_->gc_status);
+        gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultErrorSt(E_TypeException, "Don't find __down_assignment__", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, "Don't find __down_assignment__/__slice_assignment__", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }

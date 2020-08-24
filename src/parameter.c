@@ -193,14 +193,20 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUN
     while (true) {
         freeResult(result);
         getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!CHECK_RESULT(result)) {
+        if (is_iterStop(result->value, inter)){
             freeResult(result);
             break;
         }
+        else if (!CHECK_RESULT(result)) {  // TODO-szh 处理迭代其的result 通过getIter找到迭代器
+            freeArgument(at, true);
+            at = NULL;
+            goto return_;
+        }
         at = connectValueArgument(result->value, at);
     }
-    gc_freeTmpLink(&iter->gc_status);
     setResult(result, inter, belong);
+    return_:
+    gc_freeTmpLink(&iter->gc_status);
     return at;
 }
 
@@ -219,9 +225,14 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
 
         freeResult(result);
         getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!CHECK_RESULT(result)) {
+        if (is_iterStop(result->value, inter)){
             freeResult(result);
             break;
+        }
+        else if (!CHECK_RESULT(result)) {
+            freeArgument(at, true);
+            at = NULL;
+            goto return_;
         }
         name_ = result->value;
         result->value = NULL;
@@ -230,6 +241,8 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
         elementDownOne(iter, name_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result)) {
             gc_freeTmpLink(&name_->gc_status);
+            freeArgument(at, true);
+            at = NULL;
             goto return_;
         }
         name = getNameFromValue(name_->value, inter);
@@ -456,6 +469,8 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
             freeResult(result);
             tmp_at = listToArgument(start, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             gc_freeTmpLink(&start->gc_status);
+            if (!CHECK_RESULT(result))
+                goto return_;
             base = connectArgument(tmp_at, base);
         }
         else if (call->type == kwargs_par){
@@ -466,6 +481,8 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
             freeResult(result);
             tmp_at = dictToArgument(start, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             gc_freeTmpLink(&start->gc_status);
+            if (!CHECK_RESULT(result))
+                goto return_;
             base = connectArgument(tmp_at, base);
         }
         freeResult(result);

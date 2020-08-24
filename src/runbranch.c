@@ -420,7 +420,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             LinkValue *element = NULL;
             getIter(iter, 0, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result)) {
-                if (result->value->value == inter->data.iterstop_exc || checkAttribution(result->value->value, inter->data.iterstop_exc)){
+                if (is_iterStop(result->value, inter)){
                     freeResult(result);
                     break;
                 } else {

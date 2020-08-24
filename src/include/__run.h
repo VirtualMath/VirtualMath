@@ -39,4 +39,5 @@ ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char
 ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+bool is_iterStop(LinkValue *value, Inter *inter);
 #endif //VIRTUALMATH___RUN_H

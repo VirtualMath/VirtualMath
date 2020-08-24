@@ -345,3 +345,7 @@ char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_
         setResultError(E_TypeException, "__repo__/__str__ gets unsupported data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return NULL;
 }
+
+bool is_iterStop(LinkValue *value, Inter *inter){
+    return value->value == inter->data.iterstop_exc || checkAttribution(value->value, inter->data.iterstop_exc);
+}

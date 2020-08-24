@@ -53,6 +53,77 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
+ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=false},
+                           {.must=-1}};
+    vnum size;
+    vnum first;
+    vnum second;
+    vnum stride;
+    LinkValue *iter_obj = NULL;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != list) {
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+    size = ap[0].value->value->data.list.size;
+    getIter(ap[1].value, 1, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    iter_obj = result->value;
+    result->value = NULL;
+    freeResult(result);
+
+    first = 0;
+    second = size;
+    stride = 1;
+    for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
+        if (ap[i + 2].value != NULL && ap[i + 2].value->value->type == number)
+            *(list[i]) = ap[i + 2].value->value->data.num.num;
+        else if (ap[i + 2].value != NULL && ap[i + 2].value->value->type != none) {
+            setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            goto return_;
+        }
+    }
+
+    if (!checkSlice(&first, &second, &stride, size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        goto return_;
+
+    {
+        for (long i = first; i < second; i += stride) {
+            freeResult(result);
+            getIter(iter_obj, 0, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            if (is_iterStop(result->value, inter)){
+                setResultError(E_TypeException, "Iter Object Too Short", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                goto return_;
+            }
+            else if (!CHECK_RESULT(result))
+                goto return_;
+            ap[0].value->value->data.list.list[i] = result->value;
+        }
+        freeResult(result);
+        getIter(iter_obj, 0, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (CHECK_RESULT(result)) {
+            setResultError(E_TypeException, "Iter Object Too Long", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            goto return_;
+        } else if (!is_iterStop(result->value, inter))
+            goto return_;
+    }
+    setResult(result, inter, belong);
+    return_:
+    gc_freeTmpLink(&iter_obj->gc_status);
+    return result->type;
+}
+
 ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -219,6 +290,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
     {
         LinkValue *object = makeLinkValue(inter->data.list, inter->base_father, inter);
         NameFunc tmp[] = {{inter->data.object_down_assignment, list_down_assignment, object_free_},
+                          {inter->data.object_slice_assignment, list_slice_assignment, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addStrVar("list", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
