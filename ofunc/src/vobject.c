@@ -92,8 +92,6 @@ ResultType vobject_div(OFFICAL_FUNCTIONSIG){
 
 void registeredVObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.vobject, inter->base_father, inter);
-    VarList *object_var = object->value->object.var;
-    VarList *object_backup = NULL;
     NameFunc tmp[] = {{"__add__", vobject_add, object_free_},
                       {"__sub__", vobject_sub, object_free_},
                       {"__mul__", vobject_mul, object_free_},
@@ -101,12 +99,7 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("vobject", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-
-    object_backup = object_var->next;
-    object_var->next = inter->var_list;
-    iterNameFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(object_var));
-    object_var->next = object_backup;
-
+    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

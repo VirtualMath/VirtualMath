@@ -103,6 +103,7 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.bool_->gc_status);
     gc_freeStatementLink(&inter->data.function->gc_status);
     gc_freeStatementLink(&inter->data.pass_->gc_status);
+    gc_freeStatementLink(&inter->data.tuple->gc_status);
     gc_freeStatementLink(&inter->data.list->gc_status);
     gc_freeStatementLink(&inter->data.dict->gc_status);
     gc_freeStatementLink(&inter->data.list_iter->gc_status);

@@ -13,6 +13,22 @@ void iterNameFunc(NameFunc list[], LinkValue *father, INTER_FUNCTIONSIG_CORE){
     }
 }
 
+void iterClassFunc(NameFunc list[], LinkValue *father, INTER_FUNCTIONSIG_CORE){
+    VarList *object_backup = father->value->object.var->next;
+    VarList *object_var = father->value->object.var;
+    enum FunctionPtType bak = inter->data.default_pt_type;
+    object_var->next = var_list;
+    inter->data.default_pt_type = object_free_;
+    gc_freeze(inter, object_backup, NULL, true);
+    for (PASS; list->of != NULL; list++) {
+        LinkValue *value = registeredFunctionCore(list->of, list->name, father, CALL_INTER_FUNCTIONSIG_CORE(object_var));
+        value->value->data.function.function_data.pt_type = list->type;
+    }
+    gc_freeze(inter, object_backup, NULL, false);
+    object_var->next = object_backup;
+    inter->data.default_pt_type = bak;
+}
+
 Value *makeBaseChildClass(Value *inherit, Inter *inter) {
     Inherit *father_value = NULL;
     Value *num = NULL;

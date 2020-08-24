@@ -7,6 +7,7 @@
 
 LinkValue *registeredFunctionCore(OfficialFunction of, char *name, struct LinkValue *belong, INTER_FUNCTIONSIG_CORE);
 void iterNameFunc(NameFunc list[],struct LinkValue *father, INTER_FUNCTIONSIG_CORE);
+void iterClassFunc(NameFunc list[], LinkValue *father, INTER_FUNCTIONSIG_CORE);
 Value *makeBaseChildClass(Value *inherit, Inter *inter);
 
 #endif //VIRTUALMATH___OFUNC_H

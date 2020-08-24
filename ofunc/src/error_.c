@@ -47,18 +47,11 @@ void registeredExcIter(REGISTERED_FUNCTIONSIG){
                    {NULL, NULL}};
     {
         LinkValue *object = makeLinkValue(inter->data.base_exc, inter->base_father, inter);
-        VarList *object_var = object->value->object.var;
-        VarList *object_backup = NULL;
         NameFunc tmp[] = {{"__init__", base_exception_init, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addStrVar("BaseException", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-
-        object_backup = object_var->next;
-        object_var->next = inter->var_list;
-        iterNameFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(object_var));
-        object_var->next = object_backup;  // TODO-szh 操作内嵌到 iterNameFunc
-
+        iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
         gc_freeTmpLink(&object->gc_status);
     }
     for (int i=0; setList[i].name != NULL; i++)

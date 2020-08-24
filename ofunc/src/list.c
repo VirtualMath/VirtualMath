@@ -172,26 +172,34 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredList(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.list, inter->base_father, inter);
-    VarList *object_var = object->value->object.var;
-    VarList *object_backup = NULL;
-    NameFunc tmp[] = {{"__down__", list_down, object_free_},
-                      {"__slice__", list_slice, object_free_},
-                      {"__down_assignment__", list_down_assignment, object_free_},
-                      {"__iter__", list_iter, object_free_},
-                      {NULL, NULL}};
-    gc_addTmpLink(&object->gc_status);
-    addStrVar("list", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    object_backup = object_var->next;
-    object_var->next = inter->var_list;
-    iterNameFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(object_var));
-    object_var->next = object_backup;
+    {
+        LinkValue *object = makeLinkValue(inter->data.tuple, inter->base_father, inter);
+        NameFunc tmp[] = {{"__down__", list_down, object_free_},
+                          {"__slice__", list_slice, object_free_},
+                          {"__iter__", list_iter, object_free_},
+                          {NULL, NULL}};
+        gc_addTmpLink(&object->gc_status);
+        addStrVar("tuple", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+        iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+        gc_freeTmpLink(&object->gc_status);
+    }
 
-    gc_freeTmpLink(&object->gc_status);
+    {
+        LinkValue *object = makeLinkValue(inter->data.list, inter->base_father, inter);
+        NameFunc tmp[] = {{"__down_assignment__", list_down_assignment, object_free_},
+                          {NULL, NULL}};
+        gc_addTmpLink(&object->gc_status);
+        addStrVar("list", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+        iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+        gc_freeTmpLink(&object->gc_status);
+    }
 }
 
 void makeBaseList(Inter *inter){
-    Value *list = makeBaseChildClass(inter->data.vobject, inter);
+    Value *tuple = makeBaseChildClass(inter->data.vobject, inter);
+    Value *list = makeBaseChildClass(tuple, inter);
+    gc_addStatementLink(&tuple->gc_status);
     gc_addStatementLink(&list->gc_status);
+    inter->data.tuple = tuple;
     inter->data.list = list;
 }

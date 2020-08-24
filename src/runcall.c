@@ -3,31 +3,36 @@
 ResultType setClass(INTER_FUNCTIONSIG) {
     Argument *call = NULL;
     LinkValue *tmp = NULL;
-    Inherit *class_belong = NULL;
-    VarList *belong_var = NULL;
-    enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
+    Inherit *class_inherit = NULL;
     setResultCore(result);
 
     call = getArgument(st->u.set_class.father, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto error_;
 
-    class_belong = setFather(call);
+    class_inherit = setFather(call);
     freeArgument(call, false);
-    tmp = makeLinkValue(makeClassValue(copyVarList(var_list, false, inter), inter, class_belong), belong, inter);
+    tmp = makeLinkValue(makeClassValue(copyVarList(var_list, false, inter), inter, class_inherit), belong, inter);
     gc_addTmpLink(&tmp->gc_status);
 
-    belong_var = tmp->value->object.var->next;
-    tmp->value->object.var->next = var_list;
     freeResult(result);
-    inter->data.default_pt_type = object_free_;
-    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_class.st, tmp->value->object.var, result, tmp));
-    inter->data.default_pt_type = pt_type_bak;
-    tmp->value->object.var->next = belong_var;
-    if (!CHECK_RESULT(result))
-        goto error_;
+    {
+        enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
+        VarList *var_backup = tmp->value->object.var->next;
+        inter->data.default_pt_type = object_free_;
+        tmp->value->object.var->next = var_list;
 
-    freeResult(result);
+        gc_freeze(inter, var_backup, NULL, true);
+        functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_class.st, tmp->value->object.var, result, tmp));
+        gc_freeze(inter, var_backup, NULL, false);
+
+        tmp->value->object.var->next = var_backup;
+        inter->data.default_pt_type = pt_type_bak;
+
+        if (!CHECK_RESULT(result))
+            goto error_;
+        freeResult(result);
+    }
     if (st->u.set_class.decoration != NULL){
         setDecoration(st->u.set_class.decoration, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))

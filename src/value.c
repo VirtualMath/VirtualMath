@@ -118,10 +118,18 @@ Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
 }
 
 Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
-    Inherit *object_father = getInheritFromValue(inter->data.list, inter);
-    VarList *new_var = copyVarList(inter->data.list->object.out_var, false, inter);
+    Inherit *object_father = NULL;
+    VarList *new_var = NULL;
     Value *tmp;
     Argument *at = *arg_ad;
+    if (type == value_list) {
+        object_father = getInheritFromValue(inter->data.list, inter);
+        new_var = copyVarList(inter->data.list->object.out_var, false, inter);
+    }
+    else {
+        object_father = getInheritFromValue(inter->data.tuple, inter);
+        new_var = copyVarList(inter->data.tuple->object.out_var, false, inter);
+    }
     tmp = makeObject(inter, NULL, new_var, object_father);
     tmp->type = list;
     tmp->data.list.type = type;

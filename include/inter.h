@@ -25,6 +25,7 @@ struct Inter{
         struct Value *str;
         struct Value *bool_;
         struct Value *pass_;
+        struct Value *tuple;
         struct Value *list;
         struct Value *dict;
         struct Value *function;
