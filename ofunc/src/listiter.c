@@ -11,7 +11,7 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[1].value->value->type != list){
-        setResultError(result, inter, "TypeException", "Don't get a list to listiter", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't get a list to listiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -33,14 +33,14 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     list_ = findAttributes("__list", false, ap[0].value, inter);
     index = findAttributes("__index", false, ap[0].value, inter);
     if (list_->value->type != list || index->value->type != number){
-        setResultError(result, inter, "TypeException", "Don't get a list to listiter", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't get a list to listiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
     freeResult(result);
     elementDownOne(list_, index, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
-        setResultError(result, inter, "StopIterException", "Stop Iter", 0, "sys", belong, true);
+        setResultError(E_StopIterException, "Stop Iter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else {
         index->value->data.num.num ++;
         addAttributes("__index", false, index, ap[0].value, inter);
@@ -56,7 +56,7 @@ void registeredListIter(REGISTERED_FUNCTIONSIG){
                       {"__next__", listiter_next, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("listiter", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("listiter", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
     object_backup = object_var->next;
     object_var->next = inter->var_list;

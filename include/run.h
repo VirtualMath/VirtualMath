@@ -68,7 +68,7 @@ ResultType fromImportFile(INTER_FUNCTIONSIG);
 
 ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
-ResultType assCore(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCTIONSIG_NOT_ST);
+ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST);
 ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
-ResultType varAss(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCTIONSIG_NOT_ST);
+ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH_RUN_H

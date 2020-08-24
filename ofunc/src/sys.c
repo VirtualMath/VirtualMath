@@ -21,7 +21,7 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
             result->type = operation_return;
             gc_addTmpLink(&result->value->gc_status);
         } else
-            setResultError(result, inter, "SuperException", "Don't get next father", 0, "sys", belong, true);
+            setResultError(E_SuperException, "Don't get next father", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
 
@@ -39,7 +39,7 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
         gc_addTmpLink(&result->value->gc_status);
     }
     else
-        setResultError(result, inter, "SuperException", "Don't get next father", 0, "sys", belong, true);
+        setResultError(E_SuperException, "Don't get next father", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }

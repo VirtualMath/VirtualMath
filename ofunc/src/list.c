@@ -43,10 +43,10 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
     first = first < 0 ? first + size : first;
     second = second < 0 ? second + size : second;
     if (second > size || first >= size){
-        setResultError(result, inter, "IndexException", "Index too max", 0, "sys", belong, true);
+        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     } else if (first < 0 || second <= 0){
-        setResultError(result, inter, "IndexException", "Index too small", 0, "sys", belong, true);
+        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -57,7 +57,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
         second = tmp;
     }
     if (stride == 0 || first > second){
-        setResultError(result, inter, "StrideException", "Stride Error", 0, "sys", belong, true);
+        setResultError(E_StrideException, "Stride Error", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -77,7 +77,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
     return result->type;
 
     type_error:
-    setResultError(result, inter, "TypeException", "Get Not Support Type", 0, "sys", belong, true);
+    setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return error_return;
 }
 
@@ -95,7 +95,7 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != list || ap[2].value->value->type != number){
-        setResultError(result, inter, "TypeException", "Get Not Support Type", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     size = ap[0].value->value->data.list.size;
@@ -103,10 +103,10 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     if (index < 0)
         index = size + index;
     if (index >= size){
-        setResultError(result, inter, "IndexException", "Index too max", 0, "sys", belong, true);
+        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     } else if (index < 0){
-        setResultError(result, inter, "IndexException", "Index too small", 0, "sys", belong, true);
+        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     ap[0].value->value->data.list.list[index] = ap[1].value;
@@ -128,7 +128,7 @@ ResultType list_down(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != list || ap[1].value->value->type != number){
-        setResultError(result, inter, "TypeException", "Get Not Support Type", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     size = ap[0].value->value->data.list.size;
@@ -136,10 +136,10 @@ ResultType list_down(OFFICAL_FUNCTIONSIG){
     if (index < 0)
         index = size + index;
     if (index >= size){
-        setResultError(result, inter, "IndexException", "Index too max", 0, "sys", belong, true);
+        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     } else if (index < 0){
-        setResultError(result, inter, "IndexException", "Index too small", 0, "sys", belong, true);
+        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     element = ap[0].value->value->data.list.list[index];
@@ -157,7 +157,7 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != list){
-        setResultError(result, inter, "TypeException", "Don't get a list", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't get a list", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
@@ -181,7 +181,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
                       {"__iter__", list_iter, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("list", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("list", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     object_backup = object_var->next;
     object_var->next = inter->var_list;
     iterNameFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(object_var));

@@ -12,7 +12,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[1].value->value->type != dict){
-        setResultError(result, inter, "TypeException", "Don't get a dict to dictiter", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't get a dict to dictiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
@@ -21,7 +21,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         LinkValue *listiter_class = NULL;
 
         if (keys == NULL){
-            setResultError(result, inter, "TypeExcepyion", "Don't Find keys", 0, "sys", belong, true);
+            setResultError(E_TypeException, "Don't Find keys", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
         }
 
@@ -73,13 +73,13 @@ ResultType dictiter_next(OFFICAL_FUNCTIONSIG){
         return result->type;
     list_ = findAttributes("__list", false, ap[0].value, inter);
     if (list_ == NULL){
-        setResultError(result, inter, "TypeException", "Don't get a list to listiter from dictiter", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't get a list to listiter from dictiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
     list_next = findAttributes(inter->data.object_next, false, list_, inter);
     if (list_next == NULL){
-        setResultError(result, inter, "TypeException", "Don't find __next__", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't find __next__", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -98,7 +98,7 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
         return result->type;
     dict_ = findAttributes("__dict", false, ap[0].value, inter);
     if (dict_->value->type != dict){
-        setResultError(result, inter, "TypeException", "Don't get a dict to dictiter", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't get a dict to dictiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -116,7 +116,7 @@ void registeredDictIter(REGISTERED_FUNCTIONSIG){
                       {"__down__", dictiter_down, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("dictiter", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("dictiter", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
     object_backup = object_var->next;
     object_var->next = inter->var_list;

@@ -92,11 +92,9 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     if (!CHECK_RESULT(result))
         goto return_;
     else if ((left->aut == public_aut || left->aut == auto_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut))
-        setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as public", st,
-                         belong, true);
+        setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as public", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if ((left->aut == protect_aut) && (result->value->aut == private_aut))
-        setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect", st,
-                         belong, true);
+        setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as protect", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))
         result->value->belong = left;
@@ -123,7 +121,7 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
             freeStatement(return_st);
         }
         tmp = makeLinkValue(function_value, belong, inter);
-        assCore(st->u.operation.left->u.call_function.function, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.operation.left->u.call_function.function, tmp, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     else{
         if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)))
@@ -131,12 +129,13 @@ ResultType assOperation(INTER_FUNCTIONSIG) {
         value = result->value;
 
         freeResult(result);
-        assCore(st->u.operation.left, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.operation.left, value, false, false,
+                CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     return result->type;
 }
 
-ResultType assCore(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCTIONSIG_NOT_ST){
+ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST) {
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
@@ -147,13 +146,19 @@ ResultType assCore(Statement *name, LinkValue *value, bool check_aut, INTER_FUNC
     else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
         pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
-        varAss(name, value, check_aut, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        varAss(name, value, check_aut, setting, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     gc_freeTmpLink(&value->gc_status);
     return result->type;
 }
 
-ResultType varAss(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
+void varAssCore(char *name, LinkValue *name_, vnum times, LinkValue *value, bool setting, INTER_FUNCTIONSIG_CORE) {
+    addFromVarList(name, name_, times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (setting)
+        newObjectSetting(name_, value, inter);
+}
+
+ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST) {
     char *str_name = NULL;
     int int_times = 0;
     LinkValue *var_value = NULL;
@@ -169,26 +174,24 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCT
         LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (tmp != NULL) {
             if ((value->aut == public_aut || value->aut == auto_aut) && (tmp->aut != public_aut && tmp->aut != auto_aut)) {
-                setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as public",
-                                 name, belong, true);
+                setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as public", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             }
             else if ((value->aut == protect_aut) && (tmp->aut == private_aut)) {
-                setResultErrorSt(result, inter, "PermissionsException",
-                                 "Wrong Permissions: access variables as protect", name, belong, true);
+                setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as protect", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             }
             else
-                goto set_var;
+                varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         } else
-            set_var: addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     } else {
         if (name->aut != auto_aut) {
             LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
             if (tmp != NULL)
                 tmp->aut = name->aut;
         }
-        addFromVarList(str_name, result->value, int_times, var_value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     }
     freeResult(result);
     result->type = operation_return;
@@ -233,7 +236,7 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     iter = result->value;
     result->value = NULL;
     freeResult(result);
-    _down_assignment_ = findAttributes("__down_assignment__", false, iter, inter);
+    _down_assignment_ = findAttributes("__down_assignment__", false, iter, inter);  // TODO-szh __down_assignment__
     if (_down_assignment_ != NULL){
         Argument *arg = makeValueArgument(value);
         gc_addTmpLink(&_down_assignment_->gc_status);
@@ -249,7 +252,7 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
         gc_freeTmpLink(&_down_assignment_->gc_status);
     }
     else
-        setResultErrorSt(result, inter, "TypeException", "Don't find __down_assignment__", name, belong, true);
+        setResultErrorSt(E_TypeException, "Don't find __down_assignment__", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
@@ -267,7 +270,7 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
         pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     else
-        assCore(name->u.operation.right, value, true, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
+        assCore(name->u.operation.right, value, true, false, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     gc_freeze(inter, var_list, object, false);
 
     freeResult(&left);
@@ -290,19 +293,19 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     result->value = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (result->value == NULL) {
         char *info = memStrcat("Name Not Found: ", name, false, false);
-        setResultErrorSt(result, inter, "NameException", info, st, belong, true);
+        setResultErrorSt(E_NameExceptiom, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(info);
     }
     else if ((st->aut == public_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut)){
         setResultCore(result);
         char *info = memStrcat("Wrong Permissions: access variables as public ", name, false, false);
-        setResultErrorSt(result, inter, "PermissionsException", info, st, belong, true);
+        setResultErrorSt(E_PermissionsException, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(info);
     }
     else if ((st->aut == protect_aut) && (result->value->aut == private_aut)){
         setResultCore(result);
         char *info = memStrcat("Wrong Permissions: access variables as protect ", name, false, false);
-        setResultErrorSt(result, inter, "PermissionsException", info, st, belong, true);
+        setResultErrorSt(E_PermissionsException, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(info);
     }
     else
@@ -449,7 +452,7 @@ ResultType operationCore(INTER_FUNCTIONSIG, char *name) {
     }
     else {
         char *message = memStrcat("Don't find ", name, false, false);
-        setResultErrorSt(result, inter, "TypeException", message, st, belong, true);
+        setResultErrorSt(E_TypeException, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(message);
     }
 

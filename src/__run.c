@@ -12,7 +12,7 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, belong, true);
+        setResultErrorSt(E_TypeException, "Don't get a number value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -35,7 +35,7 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, belong, true);
+        setResultErrorSt(E_TypeException, "Don't get a number value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -140,7 +140,7 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
     enum FunctionPtType pt_type = function_value->value->data.function.function_data.pt_type;
     setResultCore(result);
     if (function_value->belong == NULL){
-        setResultError(result, inter, "ArgumentException", "Don't get self", line, file, belong, true);
+        setResultError(E_ArgumentException, "Don't get self", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -211,10 +211,12 @@ LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     return tmp;
 }
 
-void addStrVar(char *name, bool free_old, LinkValue *value, LinkValue *belong, INTER_FUNCTIONSIG_CORE){
+void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, LinkValue *belong, INTER_FUNCTIONSIG_CORE){
     char *var_name = setStrVarName(name, free_old, inter);
-    LinkValue *name_ = makeLinkValue(makeStringValue(var_name, inter), belong, inter);
+    LinkValue *name_ = makeLinkValue(makeStringValue(name, inter), belong, inter);
     addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (setting)
+        newObjectSetting(name_, value, inter);
     memFree(var_name);
 }
 
@@ -225,9 +227,17 @@ LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *in
     return attr;
 }
 
-void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belong, Inter *inter){
-    addStrVar(name, free_old, value, belong, inter, belong->value->object.var);
+void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belong, Inter *inter) {
+    addStrVar(name, free_old, false, value, belong, inter, belong->value->object.var);
 }
+
+void newObjectSetting(LinkValue *name, LinkValue *belong, Inter *inter) {
+    addAttributes("__name__", false, name, belong, inter);
+    addAttributes("__self__", false, belong, belong, inter);
+    if (belong->value->object.inherit != NULL)
+        addAttributes("__father__", false, belong->value->object.inherit->value, belong, inter);
+}
+
 
 ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_func_ = NULL;
@@ -245,7 +255,7 @@ ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char
         freeArgument(arg, true);
     }
     else
-        setResultError(result, inter, "TypeException", "Don't find __down__", line, file, belong, true);
+        setResultError(E_TypeException, "Don't find __down__", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     gc_freeTmpLink(&element->gc_status);
     gc_freeTmpLink(&index->gc_status);
@@ -266,7 +276,7 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultError(result, inter, "IterException", "Object Not Iterable", line, file, belong, true);
+        setResultError(E_TypeException, "Object Not Iterable", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }

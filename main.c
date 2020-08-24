@@ -1,24 +1,28 @@
 #include "__virtualmath.h"
 
-jmp_buf ctrl_c;
-bool set_ctrl_c = false;
-void sighandler(int signum);
+jmp_buf ctrlC_ENV;
+bool ctrlCUseJmp = false;
+void signalStop(int signum);
 
 int main(int argc, char *argv[]) {
     Inter *inter = NULL;
-    if (getArgs(argc, argv))
-        goto args_error;
-
-    inter = makeInter(args.out_file, args.error_file, NULL);
-
-    if (setjmp(ctrl_c) == -1 || setjmp(memVirtualMath_Env) == -1) {
-        freeArgs();
-        freeInter(inter, true);
+    memVirtualMathUseJmp = true;
+    if (setjmp(memVirtualMath_Env) == -1){
+        fprintf(stderr, "ERROR: Fatal memory error encountered, May be caused by insufficient memory!\n");
         return 1;
     }
-    memVirtualMathUseJmp = true;
-    set_ctrl_c = true;
-    signal(SIGINT, sighandler);
+
+    if (getArgs(argc, argv))
+        goto args_error;
+    inter = makeInter(args.out_file, args.error_file, NULL);
+
+    ctrlCUseJmp = true;
+    signal(SIGINT, signalStop);
+    if (setjmp(ctrlC_ENV) == -1) {
+        freeArgs();
+        freeInter(inter, true);
+        return 2;
+    }
 
     for (ResultType status = not_return; status != error_return && argv[optind] != NULL; optind++)
         status = runCodeBlock(argv[optind], inter);
@@ -37,9 +41,9 @@ int main(int argc, char *argv[]) {
 }
 
 
-void sighandler(int signum) {
-    if (set_ctrl_c)
-        longjmp(ctrl_c, -1);
+void signalStop(int signum) {
+    if (ctrlCUseJmp)
+        longjmp(ctrlC_ENV, -1);
     else
         exit(1);
 }

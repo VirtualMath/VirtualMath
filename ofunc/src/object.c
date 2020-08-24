@@ -10,7 +10,7 @@ ResultType object_new_(OFFICAL_FUNCTIONSIG){
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", belong, true);
+        setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -39,7 +39,7 @@ ResultType object_new_(OFFICAL_FUNCTIONSIG){
         }
         freeResult(&_init_result);
     } else if (arg != NULL)
-        setResultError(result, inter, "ArgumentException", "Too many Exception", 0, "sys", belong, true);
+        setResultError(E_ArgumentException, "Too many Exception", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:
     return result->type;
@@ -51,7 +51,7 @@ void registeredObject(REGISTERED_FUNCTIONSIG){
     VarList *object_backup = NULL;
     NameFunc tmp[] = {{"__new__", object_new_, class_static_}, {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("object", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("object", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
     object_backup = object_var->next;
     object_var->next = inter->var_list;

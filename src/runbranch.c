@@ -2,7 +2,7 @@
 
 static bool checkNumber(INTER_FUNCTIONSIG){
     if (!isType(result->value->value, number)) {
-        setResultErrorSt(result, inter, "TypeException", "Don't get a number value", st, belong, true);
+        setResultErrorSt(E_TypeException, "Don't get a number value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;
@@ -10,7 +10,7 @@ static bool checkNumber(INTER_FUNCTIONSIG){
 
 static bool checkString(INTER_FUNCTIONSIG){
     if (!isType(result->value->value, string)) {
-        setResultErrorSt(result, inter, "TypeException", "Don't get a string value", st, belong, true);
+        setResultErrorSt(E_TypeException, "Don't get a string value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;
@@ -120,7 +120,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
             condition_value = result->value;
             freeResult(result);
             if (if_list->var != NULL) {
-                assCore(if_list->var, condition_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                assCore(if_list->var, condition_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 if (!CHECK_RESULT(result)){
                     set_result = false;
                     goto not_else;
@@ -259,7 +259,7 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         condition_value = result->value;
         freeResult(result);
         if (while_list->var != NULL){
-            assCore(while_list->var, condition_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            assCore(while_list->var, condition_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result)){
                 set_result = false;
                 goto not_else;
@@ -422,13 +422,18 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             LinkValue *element = NULL;
             getIter(iter, 0, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result)) {
-                freeResult(result);
-                break;
+                if (result->value->value == inter->data.iterstop_exc || checkAttribution(result->value->value, inter->data.iterstop_exc)){
+                    freeResult(result);
+                    break;
+                } else {
+                    set_result = false;
+                    goto not_else;
+                }
             }
             element = result->value;
             result->value = NULL;
             freeResult(result);
-            assCore(for_list->var, element, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            assCore(for_list->var, element, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             gc_freeTmpLink(&element->gc_status);
             if (!CHECK_RESULT(result)){
                 set_result = false;
@@ -575,7 +580,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
                 _enter_ = NULL;
                 _exit_ = NULL;
                 value = NULL;
-                setResultErrorSt(result, inter, "EnterException", "Get Not Support Value to Enter with", st, belong, true);
+                setResultErrorSt(E_TypeException, "Get Not Support Value to Enter with", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 set_result = false;
                 goto run_finally;
             }
@@ -594,7 +599,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             new = pushVarList(var_list, inter);
             enter_value = result->value;
             freeResult(result);
-            assCore(with_list->var, enter_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(new, result, belong));
+            assCore(with_list->var, enter_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(new, result, belong));
             if (!CHECK_RESULT(result)) {
                 set_result = false;
                 popVarList(new);
@@ -743,7 +748,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     error_value = result->value;
     freeResult(result);
     if (except_list->var != NULL){
-        assCore(except_list->var, error_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(except_list->var, error_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result)){
             set_result = false;
             goto not_else;
@@ -940,7 +945,7 @@ ResultType assertCode(INTER_FUNCTIONSIG){
     if (checkBool(result->value->value))
         setResult(result, inter, belong);
     else
-        setResultErrorSt(result, inter, "AssertException", "Raise by user", st, belong, true);
+        setResultErrorSt(E_AssertException, "Assertion check error", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -989,7 +994,7 @@ ResultType runLabel(INTER_FUNCTIONSIG) {
     freeResult(result);
     var_list = pushVarList(var_list, inter);
     if (st->u.label_.as != NULL)
-        assCore(st->u.label_.as, goto_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.label_.as, goto_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&goto_value->gc_status);
     if (st->u.label_.as != NULL && !CHECK_RESULT(result))
         goto return_;

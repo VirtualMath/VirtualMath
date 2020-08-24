@@ -2,7 +2,7 @@
 
 LinkValue *registeredFunctionCore(OfficialFunction of, char *name, LinkValue *belong, INTER_FUNCTIONSIG_CORE) {
     LinkValue *value = makeLinkValue(makeCFunctionValue(of, var_list, inter), belong, inter);
-    addStrVar(name, false, value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    addStrVar(name, false, true, value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     return value;
 }
 

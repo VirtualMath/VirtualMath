@@ -38,7 +38,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
         freeResult(result);
     }
 
-    assCore(st->u.set_class.name, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    assCore(st->u.set_class.name, tmp, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (CHECK_RESULT(result))
         setResult(result, inter, belong);
 
@@ -47,7 +47,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
 
     error_:
     gc_freeTmpLink(&tmp->gc_status);
-    setResultErrorSt(result, inter, NULL, NULL, st, belong, false);
+    setResultErrorSt(E_BaseException, NULL, false, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -70,7 +70,7 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
         result->value = NULL;
         freeResult(result);
     }
-    assCore(st->u.set_function.name, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    assCore(st->u.set_function.name, tmp, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto error_;
     setResult(result, inter, belong);
@@ -119,7 +119,7 @@ ResultType elementSlice(INTER_FUNCTIONSIG) {
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultErrorSt(result, inter, "TypeException", "Don't find __down__/__slice__", st, belong, true);
+        setResultErrorSt(E_TypeException, "Don't find __down__/__slice__", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     gc_freeTmpLink(&element->gc_status);
     return result->type;
@@ -167,7 +167,7 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, ch
         callClass(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
         callObject(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    setResultError(result, inter, NULL, NULL, line, file, belong, false);
+    setResultError(E_BaseException, NULL, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
@@ -183,7 +183,7 @@ ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *fi
         gc_freeTmpLink(&_new_->gc_status);
     }
     else
-        setResultError(result, inter, "ClassException", "Don't find __new__", line, file, belong, true);
+        setResultError(E_TypeException, "Don't find __new__", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }
@@ -198,7 +198,7 @@ ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *
         gc_freeTmpLink(&_call_->gc_status);
     }
     else
-        setResultError(result, inter, "TypeException", "Object is not callable", line, file, belong, true);
+        setResultError(E_TypeException, "Object is not callable", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }

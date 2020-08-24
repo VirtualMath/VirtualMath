@@ -10,7 +10,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
         return result->type;
 
     if (!isType(result->value->value, string)){
-        setResultErrorSt(result, inter, "TypeException", "Don't get a string value", st, belong, true);
+        setResultErrorSt(E_TypeException, "Don't get a string value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -18,7 +18,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     freeResult(result);
 
     if (checkFile(file_dir) != 1){
-        setResultErrorSt(result, inter, "IncludeFileException", "File is not readable", st, belong, true);
+        setResultErrorSt(E_IncludeException, "File is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -26,13 +26,13 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     pm = makeParserMessage(file_dir);
     parserCommandList(pm, inter, true, false, new_st);
     if (pm->status != success){
-        setResultErrorSt(result, inter, "IncludeSyntaxException", pm->status_message, st, belong, true);
+        setResultErrorSt(E_IncludeException, pm->status_message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result, belong));
     if (!CHECK_RESULT(result))
-        setResultErrorSt(result, inter, NULL, NULL, st, belong, false);
+        setResultErrorSt(E_BaseException, NULL, false, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:
     freeStatement(new_st);
@@ -49,14 +49,14 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
         goto return_;
 
     if (!isType(result->value->value, string)) {
-        setResultErrorSt(result, inter, "TypeException", "Don't get a string value", st, belong, true);
+        setResultErrorSt(E_ImportException, "Don't get a string value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
     *file_dir = result->value->value->data.str.str;
     freeResult(result);
     if (checkFile(*file_dir) != 1) {
-        setResultErrorSt(result, inter, "ImportFileException", "File is not readable", st, belong, true);
+        setResultErrorSt(E_ImportException, "File is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -72,7 +72,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     parserCommandList(pm, import_inter, true, false, run_st);
     if (pm->status != success) {
         freeInter(import_inter, false);
-        setResultErrorSt(result, inter, "ImportSyntaxException", pm->status_message, st, belong, true);
+        setResultErrorSt(E_TypeException, pm->status_message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -80,7 +80,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     if (!CHECK_RESULT(result)) {
         freeInter(import_inter, false);
         result->value = makeLinkValue(inter->base, belong, inter);  // 重新设定none值
-        setResultErrorSt(result, inter, NULL, NULL, st, belong, false);
+        setResultErrorSt(E_BaseException, NULL, false, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -111,9 +111,9 @@ ResultType importFile(INTER_FUNCTIONSIG) {
         import_value = makeLinkValue(import_obj, belong, inter);
     }
     if (st->u.import_file.as != NULL)
-        assCore(st->u.import_file.as, import_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.import_file.as, import_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
-        addStrVar(splitDir(file_dir), true, import_value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        addStrVar(splitDir(file_dir), true, true, import_value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     setResult(result, inter, belong);
 
     return_:

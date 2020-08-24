@@ -96,6 +96,25 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.list_iter->gc_status);
     gc_freeStatementLink(&inter->data.dict_iter->gc_status);
     gc_freeStatementLink(&inter->data.none->gc_status);
+
+    gc_freeStatementLink(&inter->data.base_exc->gc_status);
+    gc_freeStatementLink(&inter->data.exc->gc_status);
+    gc_freeStatementLink(&inter->data.type_exc->gc_status);
+    gc_freeStatementLink(&inter->data.arg_exc->gc_status);
+    gc_freeStatementLink(&inter->data.per_exc->gc_status);
+    gc_freeStatementLink(&inter->data.result_exc->gc_status);
+    gc_freeStatementLink(&inter->data.goto_exc->gc_status);
+    gc_freeStatementLink(&inter->data.name_exc->gc_status);
+    gc_freeStatementLink(&inter->data.assert_exc->gc_status);
+
+    gc_freeStatementLink(&inter->data.key_exc->gc_status);
+    gc_freeStatementLink(&inter->data.index_exc->gc_status);
+    gc_freeStatementLink(&inter->data.stride_exc->gc_status);
+    gc_freeStatementLink(&inter->data.iterstop_exc->gc_status);
+    gc_freeStatementLink(&inter->data.super_exc->gc_status);
+    gc_freeStatementLink(&inter->data.import_exc->gc_status);
+    gc_freeStatementLink(&inter->data.include_exp->gc_status);
+
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
     memFree(inter->data.var_object_prefix);
@@ -120,7 +139,7 @@ void freeBaseInterData(struct Inter *inter){
 
     if (!inter->data.is_stdout)
         fclose(inter->data.inter_stdout);
-    if (!inter->data.inter_stderr)
+    if (!inter->data.is_stderr)
         fclose(inter->data.inter_stderr);
 }
 
@@ -162,13 +181,13 @@ void mergeInter(Inter *new, Inter *base){
     freeBaseInterData(new);
 
     for (base_value = &base->base; *base_value != NULL; base_value = &(*base_value)->gc_next)
-            PASS;
+        PASS;
     for (base_linkValue = &base->link_base; *base_linkValue != NULL; base_linkValue = &(*base_linkValue)->gc_next)
-            PASS;
+        PASS;
     for (base_hash = &base->hash_base; *base_hash != NULL; base_hash = &(*base_hash)->gc_next)
-            PASS;
+        PASS;
     for (base_var = &base->base_var; *base_var != NULL; base_var = &(*base_var)->gc_next)
-            PASS;
+        PASS;
 
     *base_value = new->base;
     *base_linkValue = new->link_base;

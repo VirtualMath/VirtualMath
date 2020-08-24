@@ -30,6 +30,24 @@ struct Inter{
         struct Value *list_iter;
         struct Value *dict_iter;
 
+        struct Value *base_exc;
+        struct Value *exc;
+        struct Value *type_exc;
+        struct Value *arg_exc;
+        struct Value *per_exc;
+        struct Value *name_exc;
+        struct Value *goto_exc;
+        struct Value *result_exc;
+        struct Value *assert_exc;
+
+        struct Value *key_exc;
+        struct Value *index_exc;
+        struct Value *stride_exc;
+        struct Value *super_exc;
+        struct Value *iterstop_exc;
+        struct Value *import_exc;
+        struct Value *include_exp;
+
         char *var_str_prefix;
         char *var_num_prefix;
         char *var_bool_prefix;

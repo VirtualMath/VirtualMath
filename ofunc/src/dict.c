@@ -13,7 +13,7 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != dict){
-        setResultError(result, inter, "TypeException", "Get Not Support Type", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     name = getNameFromValue(ap[1].value->value, inter);
@@ -22,7 +22,7 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
     if (element != NULL)
         setResultOperationBase(result, copyLinkValue(element, inter));
     else
-        setResultError(result, inter, "KeyException", "Key Not Found", 0, "sys", belong, true);
+        setResultError(E_KeyException, "Key Not Found", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -38,7 +38,7 @@ ResultType dict_keys(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[0].value->value->type != dict){
-        setResultError(result, inter, "TypeException", "Get Not Support Type", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     for (int index=0; index < MAX_SIZE; index++){
@@ -63,7 +63,7 @@ ResultType dict_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != dict){
-        setResultError(result, inter, "TypeException", "Don't get a dict", 0, "sys", belong, true);
+        setResultError(E_TypeException, "Don't get a dict", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
@@ -86,7 +86,7 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
                       {"__iter__", dict_iter, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("dict", false, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addStrVar("dict", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 
     object_backup = object_var->next;
     object_var->next = inter->var_list;

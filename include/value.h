@@ -70,7 +70,7 @@ struct Value{
                 value_list,
             } type;
             struct LinkValue **list;
-            vnum size;  // TODO-szh typedef NUMBER_TYPE
+            vnum size;
         } list;
         struct Dict{
             struct HashTable *dict;
@@ -126,12 +126,32 @@ struct Inherit{
     struct Inherit *next;
 };
 
+enum BaseErrorType{
+    E_BaseException,
+    E_Exception,
+    E_TypeException,
+    E_ArgumentException,
+    E_PermissionsException,
+    E_GotoException,
+    E_ResultException,
+    E_NameExceptiom,
+    E_AssertException,
+    E_KeyException,
+    E_IndexException,
+    E_StrideException,
+    E_StopIterException,
+    E_SuperException,
+    E_ImportException,
+    E_IncludeException,
+};
+
 typedef struct Value Value;
 typedef struct LinkValue LinkValue;
 typedef struct Result Result;
 typedef struct Error Error;
 typedef struct Inherit Inherit;
 typedef enum ResultType ResultType;
+typedef enum BaseErrorType BaseErrorType;
 
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit);
 void freeValue(Value **Value);
@@ -152,8 +172,8 @@ Value *makeDictValue(struct Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_
 void setResultCore(Result *ru);
 void setResult(Result *ru, Inter *inter, LinkValue *belong);
 void setResultBase(Result *ru, Inter *inter, LinkValue *belong);
-void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *belong, bool new);
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, fline line, char *file, LinkValue *belong, bool new);
+void setResultErrorSt(BaseErrorType type, char *error_message, bool new, INTER_FUNCTIONSIG);
+void setResultError(BaseErrorType type, char *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST);
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong);
 void setResultOperation(Result *ru, LinkValue *value);
 void setResultOperationBase(Result *ru, LinkValue *value);

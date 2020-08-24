@@ -134,7 +134,7 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
             if (type == goto_return && result->times == 0){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
-                    setResultErrorSt(result, inter, "GotoException", "Don't find label", st, belong, true);
+                    setResultErrorSt(E_GotoException, "Don't find label", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                     type = error_return;
                     break;
                 }
@@ -175,7 +175,7 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
             if (type == goto_return){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
-                    setResultErrorSt(result, inter, "GotoException", "Don't find label", st, belong, true);
+                    setResultErrorSt(E_GotoException, "Don't find label", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                     type = error_return;
                     break;
                 }
@@ -206,7 +206,7 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
     if (RUN_TYPE(type))
         return false;
     else if (type != return_code && type != error_return)
-        setResultErrorSt(result, inter, "ResultException", "Get Not Support Result", st, belong, true);
+        setResultErrorSt(E_ResultException, "Get Not Support Result", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return true;
 }
 

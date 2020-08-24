@@ -255,22 +255,98 @@ void setResultBase(Result *ru, Inter *inter, LinkValue *belong) {
     gc_addTmpLink(&ru->value->gc_status);
 }
 
-void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *belong, bool new) {
-    setResultError(ru, inter, error_type, error_message, st->line, st->code_file, belong, new);
+void setResultErrorSt(BaseErrorType type, char *error_message, bool new, Statement *st, INTER_FUNCTIONSIG_NOT_ST) {
+    setResultError(type, error_message, st->line, st->code_file, new, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, fline line, char *file, LinkValue *belong, bool new) {
-    if (!new && ru->type != error_return)
+Value *findBaseError(BaseErrorType type, Inter *inter){
+    switch (type) {
+        case E_BaseException:
+            return inter->data.base_exc;
+        case E_Exception:
+            return inter->data.exc;
+        case E_TypeException:
+            return inter->data.type_exc;
+        case E_ArgumentException:
+            return inter->data.arg_exc;
+        case E_PermissionsException:
+            return inter->data.per_exc;
+        case E_GotoException:
+            return inter->data.goto_exc;
+        case E_ResultException:
+            return inter->data.result_exc;
+        case E_NameExceptiom:
+            return inter->data.name_exc;
+        case E_AssertException:
+            return inter->data.assert_exc;
+        case E_IndexException:
+            return inter->data.index_exc;
+        case E_KeyException:
+            return inter->data.key_exc;
+        case E_StrideException:
+            return inter->data.stride_exc;
+        case E_StopIterException:
+            return inter->data.iterstop_exc;
+        case E_SuperException:
+            return inter->data.super_exc;
+        case E_ImportException:
+            return inter->data.import_exc;
+        case E_IncludeException:
+            return inter->data.include_exp;
+        default:
+            return NULL;
+    }
+}
+
+char *getErrorInfo(LinkValue *exc, int type, Inter *inter){
+    char *str_name = type == 1 ? "__name__" : "__message__";
+    LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
+    if (_info_ != NULL && _info_->value->type == string)
+        return memStrcpy(_info_->value->data.str.str);
+    else
+        return type == 1 ? memStrcpy("Error Type: Unknown") : memStrcpy("Error Message: Unknown");
+}
+
+void callException(LinkValue *exc, char *message, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    LinkValue *_new_ = findAttributes(inter->data.object_new, false, exc, inter);
+    char *type = NULL;
+    char *error_message = NULL;
+    setResultCore(result);
+    gc_addTmpLink(&exc->gc_status);
+
+    if (_new_ != NULL){
+        Argument *arg = makeValueArgument(makeLinkValue(makeStringValue(message, inter), belong, inter));
+        gc_addTmpLink(&_new_->gc_status);
+        callBackCore(_new_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&_new_->gc_status);
+        freeArgument(arg, true);
+        type = getErrorInfo(result->value, 1, inter);
+        error_message = getErrorInfo(result->value, 2, inter);
+    }
+    else {
+        result->value = exc;
+        gc_addTmpLink(&result->value->gc_status);
+    }
+
+    result->type = error_return;
+    result->error = connectError(makeError(type, error_message, line, file), result->error);
+    memFree(type);
+    memFree(error_message);
+    gc_freeTmpLink(&exc->gc_status);
+}
+
+void setResultError(BaseErrorType type, char *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST) {
+    if (!new && result->type != error_return)
         return;
     if (new) {
-        setResult(ru, inter, belong);
-        ru->type = error_return;
+        Value *exc = findBaseError(type, inter);
+        if (exc == NULL)
+            exc = inter->data.base_exc;
+        freeResult(result);
+        callException(makeLinkValue(exc, belong, inter), error_message, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
-    else{
-        error_type = NULL;
-        error_message = NULL;
-    }
-    ru->error = connectError(makeError(error_type, error_message, line, file), ru->error);
+    else
+        result->error = connectError(makeError(NULL, NULL, line, file), result->error);
 }
 
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong) {

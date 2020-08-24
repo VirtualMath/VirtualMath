@@ -263,7 +263,7 @@ ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSI
 
         value = result->value;
         freeResult(result);
-        assCore(function->data.name, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(function->data.name, value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
     }
@@ -292,7 +292,7 @@ ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST
             continue;
         }
         freeResult(result);
-        assCore(call->data.name, call->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(call->data.name, call->data.value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
     }
@@ -351,24 +351,23 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
                 value = result->value;
                 goto not_return;
             }
-            setResultErrorSt(result, inter, "ArgumentException", "Too less Argument", name, belong, true);
+            setResultErrorSt(E_ArgumentException, "Too less Argument", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto reutnr_;
         }
         else if ((name->aut == public_aut || name->aut == auto_aut) && (value->aut != public_aut && value->aut != auto_aut)) {
-            setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access Argument as public",
-                             name,
-                             belong, true);
+            setResultErrorSt(E_PermissionsException, "Wrong Permissions: access Argument as public", true,
+                             name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto reutnr_;
         }
         else if ((name->aut == protect_aut) && (value->aut == private_aut)) {
-            setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as protect",
-                             name, belong, true);
+            setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as protect", true,
+                             name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto reutnr_;
         }
 
         not_return:
         freeResult(result);
-        assCore(name, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+        assCore(name, value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
 
         if (!CHECK_RESULT(result)) {
             *function_ad = function;
@@ -403,7 +402,7 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
 
     for (PASS; call != NULL && function != NULL && (call->type == value_arg) && function->type != args_par; call = call->next, function = function->next){
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
-        assCore(name, call->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+        assCore(name, call->data.value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
         freeResult(result);
@@ -598,7 +597,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
             }
             case mul_par: {
                 LinkValue *tmp = makeLinkValue(makeListValue(&call, inter, value_tuple), belong, inter);
-                assCore(function->data.value, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                assCore(function->data.value, tmp, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
                 returnResult(result);
                 function = function->next;
                 break;
@@ -608,20 +607,20 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 returnResult(result);
                 freeResult(result);
 
-                assCore(function->data.value, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                assCore(function->data.value, tmp, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
                 returnResult(result);
                 function = function->next;
                 break;
             }
             case error_to_less:
-                setResultError(result, inter, "ArgumentException", "Too less argument", line, file, belong, true);
+                setResultError(E_ArgumentException, "Too less argument", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             case error_to_more:
             to_more:
-                setResultError(result, inter, "ArgumentException", "Too more argument", line, file, belong, true);
+                setResultError(E_ArgumentException, "Too more argument", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             case error_kw:
-                setResultError(result, inter, "ArgumentException", "Value argument for double star", line, file, belong, true);
+                setResultError(E_ArgumentException, "Value argument for double star", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             default:
                 goto break_;
@@ -679,7 +678,7 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
         int status = 1;
         arg = parserValueArgument(ap, arg, &status, &bak);
         if (status != 1){
-            setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", belong, true);
+            setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return 0;
         }
         ap = bak;
@@ -689,7 +688,7 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
         int status;
 
         if (arg != NULL && arg->type != name_arg) {
-            setResultError(result, inter, "ArgumentException", "Too many Argument", 0, "sys", belong, true);
+            setResultError(E_ArgumentException, "Too many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -6;
         }
 
@@ -698,20 +697,20 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
             return -1;
         if (status == -3){
             if (parserArgumentNameDefault(ap)->must != -1){
-                setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", belong, true);
+                setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 return -7;
             }
         }
         else if (status == 0){
-            setResultError(result, inter, "ArgumentException", "Too many Argument", 0, "sys", belong, true);
+            setResultError(E_ArgumentException, "Too many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -2;
         } else if (status == -4){
-            setResultError(result, inter, "ArgumentException", "Too less Argument", 0, "sys", belong, true);
+            setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -3;
         }
     } else{
         if (arg != NULL) {
-            setResultError(result, inter, "ArgumentException", "Too many Argument", 0, "sys", belong, true);
+            setResultError(E_ArgumentException, "Too many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -4;
         }
     }
