@@ -723,59 +723,76 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     else if (yield_run && st->info.branch.status == info_else_branch){
         try = NULL;
         else_st = st->info.node;
-        goto not_except;
+        goto run_else;
     }
     else if (yield_run && st->info.branch.status == info_finally_branch){
         try = NULL;
         else_st = NULL;
         finally = st->info.node;
-        goto not_else;
+        goto run_finally;
     }
 
-    if (try == NULL || !tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(try, var_list, result, belong))){
-        freeResult(result);
-        goto not_except;
-    }
-    if (result->type == yield_return)
-        goto not_else;
-
-    if (except_list == NULL) {
-        set_result = false;
-        result_from = info_first_do;
-        goto not_else;
-    }
-
-    error_value = result->value;
-    freeResult(result);
-    if (except_list->var != NULL){
-        assCore(except_list->var, error_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!CHECK_RESULT(result)){
-            set_result = false;
-            goto not_else;
+    if (try != NULL && !tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(try, var_list, result, belong))){
+        if (result->type == yield_return) {
+            result_from = info_first_do;
+            goto run_finally;
         }
         freeResult(result);
-    }
 
-    run_except:
-    if (info_vl == NULL)
+        run_else:
+        if (else_st != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, belong))) {
+            set_result = false;
+            result_from = info_else_branch;
+        }
+        else
+            freeResult(result);
+    } else if (try != NULL) {
+        if (except_list == NULL) {
+            set_result = false;
+            result_from = info_first_do;
+            goto run_finally;
+        }
+
+        error_value = result->value;
+        result->value = NULL;
+        for (PASS; except_list != NULL; except_list = except_list->next) {
+            LinkValue *tmp = NULL;
+            if (except_list->condition == NULL)
+                break;
+            freeResult(result);
+            if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(except_list->condition, var_list, result, belong))) {
+                set_result = false;
+                goto run_finally;
+            }
+            if (result->value->value == error_value->value || checkAttribution(error_value->value, result->value->value))
+                break;
+        }
+        if (except_list == NULL) {
+            gc_freeTmpLink(&error_value->gc_status);
+            goto run_finally;
+        }
+        freeResult(result);
+        if (except_list->var != NULL) {
+            assCore(except_list->var, error_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            if (!CHECK_RESULT(result)) {
+                set_result = false;
+                goto run_finally;
+            }
+            freeResult(result);
+        }
+        gc_freeTmpLink(&error_value->gc_status);
         info_vl = except_list->code;
-    if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_vl, var_list, result, belong))) {
-        result_from = info_vl_branch;
-        set_result = false;
-    }
-    else
-        freeResult(result);
-    goto not_else;
 
-    not_except:
-    if (else_st != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, belong))) {
-        set_result = false;
-        result_from = info_else_branch;
-    }
-    else
+        run_except:
         freeResult(result);
+        if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_vl, var_list, result, belong))) {
+            result_from = info_vl_branch;
+            set_result = false;
+        } else
+            freeResult(result);
+    }
 
-    not_else:
+    run_finally:
     if (finally != NULL && tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(finally, var_list, &finally_tmp, belong))){
         if (!set_result)
             freeResult(result);
