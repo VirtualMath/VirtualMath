@@ -84,6 +84,17 @@ static void setFunctionData(Value *value, Inter *inter) {
     value->data.function.function_data.pt_type = inter->data.default_pt_type;
 }
 
+Value *makeVMFunctionFromValue(Value *value, LinkValue *return_value, fline line, char *file, Inter *inter) {
+    Statement *st = makeReturnStatement(makeBaseLinkValueStatement(return_value, line, file), line, file);
+    value->type = function;
+    value->data.function.type = vm_function;
+    value->data.function.function = st;
+    value->data.function.pt = NULL;
+    value->data.function.of = NULL;
+    setFunctionData(value, inter);
+    return value;
+}
+
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
     Inherit *object_father = getInheritFromValue(inter->data.function, inter);
     Value *tmp;

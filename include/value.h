@@ -165,6 +165,7 @@ Value *makeBoolValue(bool bool_num, Inter *inter);
 Value *makePassValue(Inter *inter);
 Value *makeNumberValue(vnum num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
+Value *makeVMFunctionFromValue(Value *value, LinkValue *return_value, fline line, char *file, Inter *inter);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
 Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter);
 Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father);
