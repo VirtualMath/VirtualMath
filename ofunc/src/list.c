@@ -6,60 +6,36 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
                            {.type=only_value, .must=0, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
-    long size;
-    long first;
-    long second;
-    long stride;
+    vnum size;
+    vnum first;
+    vnum second;
+    vnum stride;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != list)
-        goto type_error;
+    if (ap[0].value->value->type != list) {
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
     size = ap[0].value->value->data.list.size;
-    if (ap[1].value == NULL || ap[1].value->value->type == none)
-        first = 0;
-    else if (ap[1].value->value->type == number)
-        first = ap[1].value->value->data.num.num;
-    else
-        goto type_error;
 
-    if (ap[2].value == NULL || ap[2].value->value->type == none)
-        second = size;
-    else if (ap[2].value->value->type == number)
-        second = ap[2].value->value->data.num.num;
-    else
-        goto type_error;
-
-    if (ap[3].value == NULL || ap[3].value->value->type == none)
-        stride = 1;
-    else if (ap[3].value->value->type == number)
-        stride = ap[3].value->value->data.num.num;
-    else
-        goto type_error;
-
-    first = first < 0 ? first + size : first;
-    second = second < 0 ? second + size : second;
-    if (second > size || first >= size){
-        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
-    } else if (first < 0 || second <= 0){
-        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+    first = 0;
+    second = size;
+    stride = 1;
+    for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == number)
+            *(list[i]) = ap[i + 1].value->value->data.num.num;
+        else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
+            setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            return error_return;
+        }
     }
 
-    if (stride < 0){
-        long tmp = first;
-        stride = -stride;
-        first = second;
-        second = tmp;
-    }
-    if (stride == 0 || first > second){
-        setResultError(E_StrideException, "Stride Error", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
-    }
+    if (!checkSlice(&first, &second, &stride, size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        return result->type;
 
     {
         Argument *new_list = NULL;
@@ -75,10 +51,6 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
         freeArgument(back_up, true);
     }
     return result->type;
-
-    type_error:
-    setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    return error_return;
 }
 
 ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
@@ -86,8 +58,8 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    long size;
-    long index;
+    vnum size;
+    vnum index;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -118,8 +90,8 @@ ResultType list_down(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    long size;
-    long index;
+    vnum size;
+    vnum index;
     LinkValue *element = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -133,15 +105,8 @@ ResultType list_down(OFFICAL_FUNCTIONSIG){
     }
     size = ap[0].value->value->data.list.size;
     index = ap[1].value->value->data.num.num;
-    if (index < 0)
-        index = size + index;
-    if (index >= size){
-        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
-    } else if (index < 0){
-        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
-    }
+    if (!checkIndex(&index, &size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        return result->type;
     element = ap[0].value->value->data.list.list[index];
     setResultOperationBase(result, copyLinkValue(element, inter));
     return result->type;
