@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-void registeredStr(RegisteredFunctionSig){
+void registeredStr(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.str, inter->base_father, inter);
 //    VarList *object_var = object->value->object.var;
 //    VarList *object_backup = NULL;

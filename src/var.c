@@ -30,7 +30,7 @@ Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
 
 void freeVar(Var **var) {
     Var *free_value = *var;
-    freeBase(free_value, return_);
+    FREE_BASE(free_value, return_);
     memFree(free_value->name);
 
     if ((*var)->gc_next != NULL)
@@ -67,7 +67,7 @@ HashTable *makeHashTable(Inter *inter) {
 
 void freeHashTable(HashTable **value) {
     HashTable *free_value = *value;
-    freeBase(free_value, return_);
+    FREE_BASE(free_value, return_);
     memFree(free_value->hashtable);
 
     if ((*value)->gc_next != NULL)
@@ -91,7 +91,7 @@ VarList *makeVarList(Inter *inter, bool make_hash) {
 
 VarList *freeVarList(VarList *vl) {
     VarList *next_var = NULL;
-    freeBase(vl, return_);
+    FREE_BASE(vl, return_);
     next_var = vl->next;
     for (PASS; vl->default_var != NULL; vl->default_var = freeDefaultVar(vl->default_var))
         PASS;
@@ -100,7 +100,7 @@ VarList *freeVarList(VarList *vl) {
     return next_var;
 }
 
-DefaultVar *makeDefaultVar(char *name, NUMBER_TYPE times) {
+DefaultVar *makeDefaultVar(char *name, vnum times) {
     DefaultVar *tmp;
     tmp = memCalloc(1, sizeof(DefaultVar));
     tmp->name = memStrcpy(name);
@@ -116,7 +116,7 @@ DefaultVar *freeDefaultVar(DefaultVar *dv) {
     return next;
 }
 
-DefaultVar *connectDefaultVar(DefaultVar *base, char *name, NUMBER_TYPE times) {
+DefaultVar *connectDefaultVar(DefaultVar *base, char *name, vnum times) {
     for (DefaultVar **tmp = &base; PASS; tmp = &(*tmp)->next){
         if (*tmp == NULL){
             *tmp = makeDefaultVar(name, times);
@@ -130,7 +130,7 @@ DefaultVar *connectDefaultVar(DefaultVar *base, char *name, NUMBER_TYPE times) {
     return base;
 }
 
-NUMBER_TYPE findDefault(DefaultVar *base, char *name) {
+vnum findDefault(DefaultVar *base, char *name) {
     for (DefaultVar **tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
         if (eqString((*tmp)->name, name))
             return (*tmp)->times;
@@ -142,11 +142,11 @@ NUMBER_TYPE findDefault(DefaultVar *base, char *name) {
  * @param key
  * @return
  */
-HASH_INDEX time33(char *key){ // hash function
-    HASH_INDEX hash = 5381;
+vhashn time33(char *key){ // hash function
+    vhashn hash = 5381;
     while(*key)
-        hash += (hash << (HASH_INDEX)5) + (*key++);
-    return (hash & (HASH_INDEX)0x7FFFFFFF) % MAX_SIZE;
+        hash += (hash << (vhashn)5) + (*key++);
+    return (hash & (vhashn)0x7FFFFFFF) % MAX_SIZE;
 }
 
 void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
@@ -163,7 +163,7 @@ void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inte
 }
 
 void addVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht) {
-    HASH_INDEX index = time33(name);
+    vhashn index = time33(name);
     addVarCore(&ht->hashtable[index], name, value, name_, inter);
 }
 
@@ -176,7 +176,7 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
 
 LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *ht) {
     LinkValue *tmp = NULL;
-    HASH_INDEX index = time33(name);
+    vhashn index = time33(name);
 
     for (Var **base = &ht->hashtable[index]; *base != NULL; base = &(*base)->next){
         if (eqString((*base)->name, name)){
@@ -200,10 +200,10 @@ LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *
  * @param var_list
  * @return
  */
-LinkValue *findFromVarList(char *name, NUMBER_TYPE times, VarOperation operating, INTER_FUNCTIONSIG_CORE) {
+LinkValue *findFromVarList(char *name, vnum times, VarOperation operating, INTER_FUNCTIONSIG_CORE) {
     LinkValue *tmp = NULL;
-    NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
-    for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
+    vnum base = findDefault(var_list->default_var, name) + times;
+    for (vnum i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     if (operating == del_var && var_list != NULL)
         tmp = findVar(name, true, inter, var_list->hashtable);
@@ -213,9 +213,9 @@ LinkValue *findFromVarList(char *name, NUMBER_TYPE times, VarOperation operating
     return tmp;
 }
 
-void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *value, INTER_FUNCTIONSIG_CORE) {
-    NUMBER_TYPE base = findDefault(var_list->default_var, name) + times;
-    for (NUMBER_TYPE i = 0; i < base && var_list->next != NULL; i++)
+void addFromVarList(char *name, LinkValue *name_, vnum times, LinkValue *value, INTER_FUNCTIONSIG_CORE) {
+    vnum base = findDefault(var_list->default_var, name) + times;
+    for (vnum i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     addVar(name, value, name_, inter, var_list->hashtable);
 }

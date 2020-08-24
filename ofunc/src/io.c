@@ -1,25 +1,25 @@
 #include "__ofunc.h"
-ResultType vm_printCore(OfficialFunctionSig, int type);
+ResultType vm_printCore(OFFICAL_FUNCTIONSIG, int type);
 
-ResultType vm_print(OfficialFunctionSig){
-    return vm_printCore(CALL_OfficialFunction(arg, var_list, result, belong), 2);
+ResultType vm_print(OFFICAL_FUNCTIONSIG){
+    return vm_printCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), 2);
 }
 
-ResultType vm_printAll(OfficialFunctionSig){
-    return vm_printCore(CALL_OfficialFunction(arg, var_list, result, belong), 1);
+ResultType vm_printAll(OFFICAL_FUNCTIONSIG){
+    return vm_printCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), 1);
 }
 
-ResultType vm_printLink(OfficialFunctionSig){
-    return vm_printCore(CALL_OfficialFunction(arg, var_list, result, belong), 0);
+ResultType vm_printLink(OFFICAL_FUNCTIONSIG){
+    return vm_printCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), 0);
 }
 
-ResultType vm_printCore(OfficialFunctionSig, int type){
+ResultType vm_printCore(OFFICAL_FUNCTIONSIG, int type){
     setResultCore(result);
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=true},
                            {.type=name_value, .name="end", .must=0, .value=NULL},
                            {.must=-1}};
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
@@ -44,7 +44,7 @@ ResultType vm_printCore(OfficialFunctionSig, int type){
     return result->type;
 }
 
-void registeredIOFunction(RegisteredFunctionSig){
+void registeredIOFunction(REGISTERED_FUNCTIONSIG){
     NameFunc tmp[] = {{"print", vm_print, free_},
                       {"print_link", vm_printLink, free_},
                       {"print_all", vm_printAll, free_},

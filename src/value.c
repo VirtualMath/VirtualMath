@@ -59,7 +59,7 @@ Value *makePassValue(Inter *inter){
     return tmp;
 }
 
-Value *makeNumberValue(NUMBER_TYPE num, Inter *inter) {
+Value *makeNumberValue(vnum num, Inter *inter) {
     Inherit *object_father = getInheritFromValue(inter->data.num, inter);
     VarList *new_var = copyVarList(inter->data.num->object.out_var, false, inter);
     Value *tmp;
@@ -159,7 +159,7 @@ Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST)
 
 void freeValue(Value **value) {
     Value *free_value = *value;
-    freeBase(free_value, return_);
+    FREE_BASE(free_value, return_);
     for (VarList *tmp = free_value->object.var; tmp != NULL; tmp = freeVarList(tmp))
         PASS;
     for (VarList *tmp = free_value->object.out_var; tmp != NULL; tmp = freeVarList(tmp))
@@ -216,7 +216,7 @@ LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter){
 
 void freeLinkValue(LinkValue **value) {
     LinkValue *free_value = *value;
-    freeBase(free_value, return_);
+    FREE_BASE(free_value, return_);
 
     if ((*value)->gc_next != NULL)
         (*value)->gc_next->gc_last = (*value)->gc_last;
@@ -259,7 +259,7 @@ void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_me
     setResultError(ru, inter, error_type, error_message, st->line, st->code_file, belong, new);
 }
 
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *belong, bool new) {
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, fline line, char *file, LinkValue *belong, bool new) {
     if (!new && ru->type != error_return)
         return;
     if (new) {
@@ -310,7 +310,7 @@ void freeResultSafe(Result *ru){
 void printValue(Value *value, FILE *debug, bool print_father) {
     switch (value->type){
         case number:
-            fprintf(debug, "%"NUMBER_FORMAT"", value->data.num.num);
+            fprintf(debug, "%lld", value->data.num.num);
             break;
         case string:
             fprintf(debug, "%s", value->data.str.str);
@@ -401,7 +401,7 @@ void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
     fprintf(debug, "%s", last);
 }
 
-Error *makeError(char *type, char *message, long int line, char *file) {
+Error *makeError(char *type, char *message, fline line, char *file) {
     Error *tmp = memCalloc(1, sizeof(Error));
     tmp->line = line;
     tmp->type = memStrcpy(type);
@@ -431,9 +431,9 @@ void freeError(Result *base){
 void printError(Result *result, Inter *inter, bool free) {
     for (Error *base = result->error; base != NULL; base = base->next){
         if (base->next != NULL)
-            fprintf(inter->data.inter_stderr, "Error Backtracking:  On Line: %ld In file: %s Error ID: %p\n", base->line, base->file, base);
+            fprintf(inter->data.inter_stderr, "Error Backtracking:  On Line: %lld In file: %s Error ID: %p\n", base->line, base->file, base);
         else
-            fprintf(inter->data.inter_stderr, "%s\n%s\nOn Line: %ld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
+            fprintf(inter->data.inter_stderr, "%s\n%s\nOn Line: %lld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
     }
     if (free)
         freeError(result);
@@ -468,7 +468,7 @@ Inherit *copyInherit(Inherit *value){
 }
 
 Inherit *freeInherit(Inherit *value){
-    freeBase(value, error_);
+    FREE_BASE(value, error_);
     Inherit *next = value->next;
     memFree(value);
     return next;

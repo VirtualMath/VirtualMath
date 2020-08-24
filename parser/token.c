@@ -1,4 +1,4 @@
-#include "__token.h"
+#include "__virtualmath.h"
 
 Token *makeToken(long int line) {
     Token *tmp = memCalloc(1, sizeof(Token));
@@ -28,7 +28,7 @@ Token *makeStatementToken(int type, struct Statement *st){
 
 long freeToken(Token *tk, bool free_st) {
     long int line = 0;
-    freeBase(tk, return_);
+    FREE_BASE(tk, return_);
     line = tk->line;
     memFree(tk->data.str);
     memFree(tk->data.second_str);
@@ -47,7 +47,7 @@ TokenStream *makeTokenStream(){
 }
 
 void freeToekStream(TokenStream *ts, bool free_st) {
-    freeBase(ts, return_);
+    FREE_BASE(ts, return_);
     for (Token *tmp = ts->token_list, *tmp_next=NULL; tmp != NULL; tmp = tmp_next){
         tmp_next = tmp->next;
         freeToken(tmp, free_st);

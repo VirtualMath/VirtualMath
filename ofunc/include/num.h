@@ -2,6 +2,6 @@
 #define VIRTUALMATH_NUM_H
 #include "__macro.h"
 
-void registeredNum(RegisteredFunctionSig);
+void registeredNum(REGISTERED_FUNCTIONSIG);
 void makeBaseNum(Inter *inter);
 #endif //VIRTUALMATH_NUM_H

@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType object_new_(OfficialFunctionSig){
+ResultType object_new_(OFFICAL_FUNCTIONSIG){
     LinkValue *value = NULL;
     LinkValue *_init_ = NULL;
     setResultCore(result);
@@ -32,7 +32,7 @@ ResultType object_new_(OfficialFunctionSig){
         gc_addTmpLink(&_init_->gc_status);
         callBackCore(_init_, arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
         gc_freeTmpLink(&_init_->gc_status);
-        if (!run_continue_type(_init_result.type)){
+        if (!RUN_TYPE(_init_result.type)){
             freeResult(result);
             *result = _init_result;
             goto return_;
@@ -45,7 +45,7 @@ ResultType object_new_(OfficialFunctionSig){
     return result->type;
 }
 
-void registeredObject(RegisteredFunctionSig){
+void registeredObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.object, inter->base_father, inter);
     VarList *object_var = object->value->object.var;
     VarList *object_backup = NULL;

@@ -10,7 +10,7 @@ ParserMessage *makeParserMessage(char *file_dir) {
 }
 
 void freeParserMessage(ParserMessage *pm, bool self) {
-    freeBase(pm, return_);
+    FREE_BASE(pm, return_);
     freeTokenMessage(pm->tm, true, true);
     memFree(pm->status_message);
     memFree(pm->file);
@@ -632,7 +632,7 @@ void parserWith(PASERSSIGNATURE){
         goto error_;
     if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a with code", line))
         goto error_;
-    sl = makeConnectStatementList(sl, condition_tmp, var_tmp, code_tmp, if_b);
+    sl = connectStatementList(sl, makeStatementList(condition_tmp, var_tmp, code_tmp, with_b));
     condition_tmp = NULL;
     var_tmp = NULL;
     code_tmp = NULL;
@@ -725,7 +725,7 @@ void parserIf(PASERSSIGNATURE){
                 freeStatement(var_tmp);
                 goto error_;
             }
-            sl = makeConnectStatementList(sl, condition_tmp, var_tmp, code_tmp, if_b);
+            sl = connectStatementList(sl, makeStatementList(condition_tmp, var_tmp, code_tmp, if_b));
             goto again;
         }
         case MATHER_DO: {
@@ -735,7 +735,7 @@ void parserIf(PASERSSIGNATURE){
             long int tmp_line = delToken(pm);
             if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if...do code", tmp_line))
                 goto error_;
-            sl = makeConnectStatementList(sl, NULL, NULL, code_tmp, do_b);
+            sl = connectStatementList(sl, makeStatementList(NULL, NULL, code_tmp, do_b));
             goto again;
         }
         case MATHER_ELSE: {
@@ -927,7 +927,7 @@ void parserTry(PASERSSIGNATURE){
                 freeStatement(var_tmp);
                 goto error_;
             }
-            sl = makeConnectStatementList(sl, condition_tmp, var_tmp, code_tmp, except_b);
+            sl = connectStatementList(sl, makeStatementList(condition_tmp, var_tmp, code_tmp, except_b));
             goto again;
         }
         case MATHER_ELSE: {

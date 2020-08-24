@@ -131,15 +131,9 @@
 #define SLICE -35
 #define FOR_BRANCH -36
 
-#define printTokenEnter(tk, debug, type, message) do{ \
-writeLog(debug, type, message, NULL); \
-printToken(tk, debug, type); \
-writeLog(debug, type, "\n", NULL); \
-} while(0)
-
 struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配
-    long int line;
+    fline line;
     struct TokenData{
         char *str;
         char *second_str;  // 针对123.4j这种形式设定的，其中second_str存储j
@@ -150,7 +144,7 @@ struct Token{
 
 struct TokenStream{
     struct Token *token_list;  // 提前存储token的列表
-    int size;
+    unsigned size;
 };
 
 struct TokenMessage{

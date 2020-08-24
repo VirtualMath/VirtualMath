@@ -50,7 +50,7 @@ void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         setResultError(result, inter, "TypeException", "Get Not Support Value", 0, "sys", belong, true);
 }
 
-ResultType vobject_opt_core(OfficialFunctionSig, base_opt func){
+ResultType vobject_opt_core(OFFICAL_FUNCTIONSIG, base_opt func){
     Value *left = NULL;
     Value *right = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -59,7 +59,7 @@ ResultType vobject_opt_core(OfficialFunctionSig, base_opt func){
     setResultCore(result);
     {
         parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             return result->type;
         freeResult(result);
     }
@@ -72,23 +72,23 @@ ResultType vobject_opt_core(OfficialFunctionSig, base_opt func){
     return result->type;
 }
 
-ResultType vobject_add(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_add_base);
+ResultType vobject_add(OFFICAL_FUNCTIONSIG){
+    return vobject_opt_core(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), vobject_add_base);
 }
 
-ResultType vobject_sub(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_sub_base);
+ResultType vobject_sub(OFFICAL_FUNCTIONSIG){
+    return vobject_opt_core(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), vobject_sub_base);
 }
 
-ResultType vobject_mul(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_mul_base);
+ResultType vobject_mul(OFFICAL_FUNCTIONSIG){
+    return vobject_opt_core(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), vobject_mul_base);
 }
 
-ResultType vobject_div(OfficialFunctionSig){
-    return vobject_opt_core(CALL_OfficialFunction(arg, var_list, result, belong), vobject_div_base);
+ResultType vobject_div(OFFICAL_FUNCTIONSIG){
+    return vobject_opt_core(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), vobject_div_base);
 }
 
-void registeredVObject(RegisteredFunctionSig){
+void registeredVObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.vobject, inter->base_father, inter);
     VarList *object_var = object->value->object.var;
     VarList *object_backup = NULL;

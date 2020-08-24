@@ -10,7 +10,7 @@
 #endif
 
 char *setStrVarName(char *old, bool free_old, struct Inter *inter);
-char *setNumVarName(NUMBER_TYPE num, struct Inter *inter);
+char *setNumVarName(vnum num, struct Inter *inter);
 char *getNameFromValue(Value *value, struct Inter *inter);
 ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
 ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG);
@@ -28,13 +28,13 @@ void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl
 void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
                        Inter *inter, LinkValue *iter);
 
-ResultType setFunctionArgument(struct Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setFunctionArgument(struct Argument **arg, LinkValue *function_value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 void freeFunctionArgument(Argument *arg, Argument *base);
 LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 void addStrVar(char *name, bool free_old, LinkValue *value, LinkValue *father, INTER_FUNCTIONSIG_CORE);
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter);
 void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belong, Inter *inter);
-ResultType elementDownOne(LinkValue *element, LinkValue *index, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType getIter(LinkValue *value, int status, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH___RUN_H

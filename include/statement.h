@@ -2,8 +2,6 @@
 #define VIRTUALMATH_STATEMENT_H
 #include "__macro.h"
 
-#define makeConnectStatementList(base, condition, var, code, type) connectStatementList(base, makeStatementList(condition, var, code, type))
-
 struct Statement{
     enum ValueAuthority aut;
     enum StatementType{
@@ -221,7 +219,7 @@ struct Statement{
             } for_;
         } branch;
     } info;
-    long int line;
+    fline line;
     char *code_file;
     struct Statement *next;
 };
@@ -233,6 +231,7 @@ struct StatementList{
         while_b,
         except_b,
         for_b,
+        with_b,
     } type;
     struct Statement *condition;
     struct Statement *var;
@@ -291,7 +290,7 @@ Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt
 Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir, enum DefaultType type);
 Statement *makeLabelStatement(Statement *var, Statement *command, char *label, long int line, char *file_dir);
 Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, long int line, char *file_dir);
-struct Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token *right, enum OperationType type, bool is_right);
+Token *setOperationFromToken(Statement **st_ad, Token *left, Token *right, enum OperationType type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);
 StatementList *connectStatementList(StatementList *base, StatementList *new);

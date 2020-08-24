@@ -121,7 +121,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
             freeResult(result);
             if (if_list->var != NULL) {
                 assCore(if_list->var, condition_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                if (!run_continue(result)){
+                if (!CHECK_RESULT(result)){
                     set_result = false;
                     goto not_else;
                 }
@@ -260,7 +260,7 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         freeResult(result);
         if (while_list->var != NULL){
             assCore(while_list->var, condition_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            if (!run_continue(result)){
+            if (!CHECK_RESULT(result)){
                 set_result = false;
                 goto not_else;
             }
@@ -394,7 +394,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
 
         getIter(tmp, 1, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&tmp->gc_status);
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             set_result = false;
             goto not_else;
         }
@@ -421,7 +421,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
         {
             LinkValue *element = NULL;
             getIter(iter, 0, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            if (!run_continue(result)) {
+            if (!CHECK_RESULT(result)) {
                 freeResult(result);
                 break;
             }
@@ -430,7 +430,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             freeResult(result);
             assCore(for_list->var, element, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             gc_freeTmpLink(&element->gc_status);
-            if (!run_continue(result)){
+            if (!CHECK_RESULT(result)){
                 set_result = false;
                 goto not_else;
             }
@@ -583,7 +583,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             gc_addTmpLink(&_enter_->gc_status);
             gc_addTmpLink(&_exit_->gc_status);
             callBackCore(_enter_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
-            if (!run_continue(result)) {
+            if (!CHECK_RESULT(result)) {
                 set_result = false;
                 gc_freeTmpLink(&value->gc_status);
                 gc_freeTmpLink(&_enter_->gc_status);
@@ -595,7 +595,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             enter_value = result->value;
             freeResult(result);
             assCore(with_list->var, enter_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(new, result, belong));
-            if (!run_continue(result)) {
+            if (!CHECK_RESULT(result)) {
                 set_result = false;
                 popVarList(new);
                 gc_freeTmpLink(&value->gc_status);
@@ -633,7 +633,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
 
     if (_exit_ != NULL) {
         callBackCore(_exit_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
-        if (!run_continue_type(exit_tmp.type)) {
+        if (!RUN_TYPE(exit_tmp.type)) {
             if (!set_result)
                 freeResult(result);
             set_result = false;
@@ -744,7 +744,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     freeResult(result);
     if (except_list->var != NULL){
         assCore(except_list->var, error_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result)){
+        if (!CHECK_RESULT(result)){
             set_result = false;
             goto not_else;
         }
@@ -991,7 +991,7 @@ ResultType runLabel(INTER_FUNCTIONSIG) {
     if (st->u.label_.as != NULL)
         assCore(st->u.label_.as, goto_value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&goto_value->gc_status);
-    if (st->u.label_.as != NULL && !run_continue(result))
+    if (st->u.label_.as != NULL && !CHECK_RESULT(result))
         goto return_;
 
     freeResult(result);

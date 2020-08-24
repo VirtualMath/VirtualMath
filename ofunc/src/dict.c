@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType dict_down(OfficialFunctionSig){
+ResultType dict_down(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -8,7 +8,7 @@ ResultType dict_down(OfficialFunctionSig){
     LinkValue *element = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
@@ -26,7 +26,7 @@ ResultType dict_down(OfficialFunctionSig){
     return result->type;
 }
 
-ResultType dict_keys(OfficialFunctionSig){
+ResultType dict_keys(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     Argument *list = NULL;
@@ -34,7 +34,7 @@ ResultType dict_keys(OfficialFunctionSig){
     LinkValue *element = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
     if (ap[0].value->value->type != dict){
@@ -53,12 +53,12 @@ ResultType dict_keys(OfficialFunctionSig){
     return result->type;
 }
 
-ResultType dict_iter(OfficialFunctionSig){
+ResultType dict_iter(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
@@ -77,7 +77,7 @@ ResultType dict_iter(OfficialFunctionSig){
     return result->type;
 }
 
-void registeredDict(RegisteredFunctionSig){
+void registeredDict(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.dict, inter->base_father, inter);
     VarList *object_var = object->value->object.var;
     VarList *object_backup = NULL;

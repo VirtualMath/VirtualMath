@@ -1,7 +1,7 @@
 #ifndef VIRTUALMATH_VAR_H
 #define VIRTUALMATH_VAR_H
 
-#define MAX_SIZE (1024)
+#define MAX_SIZE (8)
 
 struct Var{
     GCStatus gc_status;
@@ -22,7 +22,7 @@ struct HashTable{
 
 struct DefaultVar{
     char *name;
-    NUMBER_TYPE times;
+    vnum times;
     struct DefaultVar *next;
 };
 
@@ -53,12 +53,12 @@ void freeHashTable(HashTable **value);
 VarList *makeVarList(Inter *inter, bool make_hash);
 VarList *freeVarList(VarList *vl);
 
-HASH_INDEX time33(char *key);
+vhashn time33(char *key);
 LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *ht);
-LinkValue *findFromVarList(char *name, NUMBER_TYPE times, VarOperation operating, INTER_FUNCTIONSIG_CORE);
+LinkValue *findFromVarList(char *name, vnum times, VarOperation operating, INTER_FUNCTIONSIG_CORE);
 void addVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht);
 void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
-void addFromVarList(char *name, LinkValue *name_, NUMBER_TYPE times, LinkValue *value, INTER_FUNCTIONSIG_CORE);
+void addFromVarList(char *name, LinkValue *name_, vnum times, LinkValue *value, INTER_FUNCTIONSIG_CORE);
 
 VarList *pushVarList(VarList *base, Inter *inter);
 VarList *popVarList(VarList *base);
@@ -68,9 +68,9 @@ VarList *connectVarListBack(VarList *base, VarList *back);
 bool comparVarList(VarList *dest, VarList *src);
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base);
 
-NUMBER_TYPE findDefault(DefaultVar *base, char *name);
-DefaultVar *connectDefaultVar(DefaultVar *base, char *name, NUMBER_TYPE times);
+vnum findDefault(DefaultVar *base, char *name);
+DefaultVar *connectDefaultVar(DefaultVar *base, char *name, vnum times);
 DefaultVar *freeDefaultVar(DefaultVar *dv);
-DefaultVar *makeDefaultVar(char *name, NUMBER_TYPE times);
+DefaultVar *makeDefaultVar(char *name, vnum times);
 
 #endif //VIRTUALMATH_VAR_H

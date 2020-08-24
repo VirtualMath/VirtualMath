@@ -2,8 +2,6 @@
 #define VIRTUALMATH_RUN_H
 #include "__macro.h"
 
-enum StatementInfoStatus;
-struct Argument;
 typedef struct Result Result;
 typedef enum ResultType ResultType;
 typedef struct LinkValue LinkValue;
@@ -15,6 +13,7 @@ typedef struct VarList VarList;
 typedef struct Parameter Parameter;
 typedef struct Argument Argument;
 typedef struct DecorationStatement DecorationStatement;
+
 typedef ResultType (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
 
 ResultType globalIterStatement(Result *result, Inter *inter, Statement *st);
@@ -33,10 +32,10 @@ ResultType setLambda(INTER_FUNCTIONSIG);
 ResultType callBack(INTER_FUNCTIONSIG);
 ResultType elementSlice(INTER_FUNCTIONSIG);
 
-ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType callObject(LinkValue *object_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 

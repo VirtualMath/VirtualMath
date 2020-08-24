@@ -103,7 +103,7 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
             break;
     }
 
-    if (run_continue_type(type) && result->value->aut == auto_aut)
+    if (RUN_TYPE(type) && result->value->aut == auto_aut)
         result->value->aut = st->aut;
     result->node = st;
     gc_run(inter, var_list, 1, 0, 0, var_list);
@@ -139,11 +139,11 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
                     break;
                 }
                 type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
-                if (!run_continue_type(type))
+                if (!RUN_TYPE(type))
                     break;
                 base_st = label_st->next;
             }
-            else if (!run_continue_type(type))
+            else if (!RUN_TYPE(type))
                 break;
             else
                 base_st = base_st->next;
@@ -180,11 +180,11 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
                     break;
                 }
                 type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
-                if (!run_continue_type(type))
+                if (!RUN_TYPE(type))
                     break;
                 base_st = label_st->next;
             }
-            else if (!run_continue_type(type))
+            else if (!RUN_TYPE(type))
                 break;
             else
                 base_st = base_st->next;
@@ -203,7 +203,7 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
 bool operationSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
-    if (run_continue_type(type))
+    if (RUN_TYPE(type))
         return false;
     else if (type != return_code && type != error_return)
         setResultErrorSt(result, inter, "ResultException", "Get Not Support Result", st, belong, true);
@@ -213,7 +213,7 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
 bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
-    if (run_continue_type(type))
+    if (RUN_TYPE(type))
         return false;
     if (type == rego_return){
         result->times--;
@@ -228,7 +228,7 @@ bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG){
 bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
-    if (run_continue_type(type))
+    if (RUN_TYPE(type))
         return false;
     if (type == break_return || type == continue_return){
         result->times--;
@@ -243,7 +243,7 @@ bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
-    if (run_continue_type(type))
+    if (RUN_TYPE(type))
         return false;
     if (type == restart_return || type == goto_return)
         result->times--;

@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-void registeredEllipisis(RegisteredFunctionSig){
+void registeredEllipisis(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.pass_, inter->base_father, inter);
 //    VarList *object_var = object->value->object.var;
 //    VarList *object_backup = NULL;

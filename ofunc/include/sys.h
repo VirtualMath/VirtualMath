@@ -3,5 +3,5 @@
 #include "__macro.h"
 
 
-void registeredSysFunction(RegisteredFunctionSig);
+void registeredSysFunction(REGISTERED_FUNCTIONSIG);
 #endif //VIRTUALMATH_SYS_H

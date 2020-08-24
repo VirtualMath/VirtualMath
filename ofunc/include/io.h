@@ -2,5 +2,5 @@
 #define VIRTUALMATH_IO_H
 #include "__base.h"
 
-void registeredIOFunction(RegisteredFunctionSig);
+void registeredIOFunction(REGISTERED_FUNCTIONSIG);
 #endif //VIRTUALMATH_IO_H

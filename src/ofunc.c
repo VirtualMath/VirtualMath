@@ -17,7 +17,7 @@ static Registered base_func_list[] = {registeredIOFunction,
 
 void registeredBaseFunction(struct LinkValue *father, Inter *inter){
     for (Registered *list = base_func_list; *list != NULL; list++)
-        (*list)(CALL_RegisteredFunction(father, inter->var_list));
+        (*list)(CALL_REGISTERED_FUNCTION(father, inter->var_list));
 }
 
 void registeredFunctionName(Inter *inter){

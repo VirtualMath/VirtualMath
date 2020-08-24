@@ -1,13 +1,13 @@
 #include "__ofunc.h"
 
-ResultType listiter_init(OfficialFunctionSig){
+ResultType listiter_init(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name="list_", .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *index = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
     if (ap[1].value->value->type != list){
@@ -21,14 +21,14 @@ ResultType listiter_init(OfficialFunctionSig){
     return result->type;
 }
 
-ResultType listiter_next(OfficialFunctionSig){
+ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *list_ = NULL;
     LinkValue *index = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     list_ = findAttributes("__list", false, ap[0].value, inter);
     index = findAttributes("__index", false, ap[0].value, inter);
@@ -39,7 +39,7 @@ ResultType listiter_next(OfficialFunctionSig){
 
     freeResult(result);
     elementDownOne(list_, index, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         setResultError(result, inter, "StopIterException", "Stop Iter", 0, "sys", belong, true);
     else {
         index->value->data.num.num ++;
@@ -48,7 +48,7 @@ ResultType listiter_next(OfficialFunctionSig){
     return result->type;
 }
 
-void registeredListIter(RegisteredFunctionSig){
+void registeredListIter(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.list_iter, inter->base_father, inter);
     VarList *object_var = object->value->object.var;
     VarList *object_backup = NULL;

@@ -125,7 +125,7 @@ void freeBaseInterData(struct Inter *inter){
 }
 
 void freeInter(Inter *inter, bool show_gc) {
-    freeBase(inter, return_);
+    FREE_BASE(inter, return_);
     gc_runDelAll(inter);
     freeBaseInterData(inter);
 #if DEBUG

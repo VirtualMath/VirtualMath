@@ -41,7 +41,7 @@ LexFile *makeLexFile(char *dir){
 }
 
 void freeLexFile(LexFile *file) {
-    freeBase(file, return_);
+    FREE_BASE(file, return_);
     if (!file->is_std)
         fclose(file->file);
     memFree(file);
@@ -84,7 +84,7 @@ LexMathers *makeMathers(int size){
 }
 
 void freeMathers(LexMathers *mathers) {
-    freeBase(mathers, return_);
+    FREE_BASE(mathers, return_);
     for(int i=0;i < mathers->size; i++)
         freeMather(mathers->mathers[i]);
     memFree(mathers->mathers);

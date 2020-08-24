@@ -1,7 +1,13 @@
 #ifndef VIRTUALMATH_GC_H
 #define VIRTUALMATH_GC_H
-
 #define START_GC true
+
+struct Inter;
+struct Value;
+struct LinkValue;
+struct HashTable;
+struct Var;
+struct VarList;
 
 struct GCStatus{
     long int tmp_link;  // tmp link的次数
@@ -16,13 +22,6 @@ struct GCStatus{
 };
 
 typedef struct GCStatus GCStatus;
-struct Inter;
-struct Value;
-struct LinkValue;
-struct HashTable;
-struct Var;
-struct VarList;
-
 
 void resetGC(GCStatus *gcs);
 void setGC(GCStatus *gcs);

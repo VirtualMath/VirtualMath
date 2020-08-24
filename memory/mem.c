@@ -78,7 +78,7 @@ char *memStrcat(char *first, char *second, bool free_first, bool free_last) {
     return new;
 }
 
-char *memStrcpySelf(char *str, NUMBER_TYPE times){
+char *memStrcpySelf(char *str, long times){
     bool need_free = false;
     char *new_str = NULL;
     if (times < 0){
@@ -86,7 +86,7 @@ char *memStrcpySelf(char *str, NUMBER_TYPE times){
         times = -times;
         need_free = true;
     }
-    for (NUMBER_TYPE i=0; i < times; i++)
+    for (long i=0; i < times; i++)
         new_str = memStrcat(new_str, str, true, false);
     if (need_free)
         memFree(str);

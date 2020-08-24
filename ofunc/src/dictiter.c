@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType dictiter_init(OfficialFunctionSig){
+ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name="dict_", .must=1, .long_arg=false},
                            {.must=-1}};
@@ -8,7 +8,7 @@ ResultType dictiter_init(OfficialFunctionSig){
     LinkValue *list_iter = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
     if (ap[1].value->value->type != dict){
@@ -29,7 +29,7 @@ ResultType dictiter_init(OfficialFunctionSig){
         freeResult(result);
         callBackCore(keys, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&keys->gc_status);
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             return error_return;
         }
         list = result->value;
@@ -43,7 +43,7 @@ ResultType dictiter_init(OfficialFunctionSig){
         callBackCore(listiter_class, list_arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(list_arg, true);
 
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             gc_freeTmpLink(&listiter_class->gc_status);
             gc_freeTmpLink(&list->gc_status);
             return error_return;
@@ -62,14 +62,14 @@ ResultType dictiter_init(OfficialFunctionSig){
     return result->type;
 }
 
-ResultType dictiter_next(OfficialFunctionSig){
+ResultType dictiter_next(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *list_ = NULL;
     LinkValue *list_next = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     list_ = findAttributes("__list", false, ap[0].value, inter);
     if (list_ == NULL){
@@ -87,14 +87,14 @@ ResultType dictiter_next(OfficialFunctionSig){
     return result->type;
 }
 
-ResultType dictiter_down(OfficialFunctionSig){
+ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *dict_ = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     dict_ = findAttributes("__dict", false, ap[0].value, inter);
     if (dict_->value->type != dict){
@@ -107,7 +107,7 @@ ResultType dictiter_down(OfficialFunctionSig){
     return result->type;
 }
 
-void registeredDictIter(RegisteredFunctionSig){
+void registeredDictIter(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.dict_iter, inter->base_father, inter);
     VarList *object_var = object->value->object.var;
     VarList *object_backup = NULL;

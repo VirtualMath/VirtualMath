@@ -78,15 +78,15 @@ void freeParameter(Parameter *pt, bool free_st);
 Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 
-ResultType setParameterCore(long int line, char *file, Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
-ResultType setParameter(long int line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setParameter(fline line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST);
 ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTER_FUNCTIONSIG_NOT_ST);
 Argument *getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST);
 
-ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG_NOT_ST);
-ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG_NOT_ST);
-ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMBER_TYPE *num, NUMBER_TYPE max, bool *status,
-                        INTER_FUNCTIONSIG_NOT_ST);
+ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST);
+ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST);
+ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum *num, vnum max, bool *status,
+                            INTER_FUNCTIONSIG_NOT_ST);
 ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
 
 Inherit *setFatherCore(Inherit *father_tmp);

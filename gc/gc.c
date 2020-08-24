@@ -119,7 +119,7 @@ void gc_runDelAll(Inter *inter){
         gc_addTmpLink(&value->gc_status);
         if (needDel(value, inter)) {
             callDel(value, &result, inter, inter->var_list);
-            if (!run_continue_type(result.type))
+            if (!RUN_TYPE(result.type))
                 printError(&result, inter, true);
         }
         gc_freeTmpLink(&value->gc_status);
@@ -134,7 +134,7 @@ void gc_runDel(Inter *inter, VarList *var_list){
         if (value->gc_status.c_value == run_del) {
             gc_addTmpLink(&value->gc_status);
             callDel(value, &result, inter, var_list);
-            if (!run_continue_type(result.type))
+            if (!RUN_TYPE(result.type))
                 printError(&result, inter, true);
             gc_freeTmpLink(&value->gc_status);
             value->gc_status.c_value = need_free;

@@ -349,7 +349,7 @@ void connectStatement(Statement *base, Statement *new){
 
 void freeStatement(Statement *st){
     Statement *next_tmp = NULL;
-    freeBase(st, return_);
+    FREE_BASE(st, return_);
     for (PASS; st != NULL; st = next_tmp){
         next_tmp = st->next;
         switch (st->type) {

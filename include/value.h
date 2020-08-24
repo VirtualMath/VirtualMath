@@ -7,10 +7,10 @@
 
 struct VarList;
 struct Argument;
-struct Inherit;
+struct Inter;
 
-typedef enum ResultType (*OfficialFunction)(OfficialFunctionSig);
-typedef void (*Registered)(RegisteredFunctionSig);
+typedef enum ResultType (*OfficialFunction)(OFFICAL_FUNCTIONSIG);
+typedef void (*Registered)(REGISTERED_FUNCTIONSIG);
 
 enum ValueAuthority{
     auto_aut,
@@ -40,7 +40,7 @@ struct Value{
     } object;
     union data{
         struct Number{
-            NUMBER_TYPE num;
+            vnum num;
         } num;
         struct String{
             char *str;
@@ -70,11 +70,11 @@ struct Value{
                 value_list,
             } type;
             struct LinkValue **list;
-            NUMBER_TYPE size;  // TODO-szh typedef NUMBER_TYPE
+            vnum size;  // TODO-szh typedef NUMBER_TYPE
         } list;
         struct Dict{
             struct HashTable *dict;
-            NUMBER_TYPE size;
+            vnum size;
         } dict;
         struct Bool{
             bool bool_;
@@ -109,7 +109,7 @@ struct Result{
     char *label;
     struct LinkValue *value;
     struct Error *error;
-    int times;
+    vnum times;
     struct Statement *node;
 };
 
@@ -117,7 +117,7 @@ struct Error{
     char *type;
     char *messgae;
     char *file;
-    long int line;
+    fline line;
     struct Error *next;
 };
 
@@ -126,7 +126,6 @@ struct Inherit{
     struct Inherit *next;
 };
 
-typedef struct Inter Inter;
 typedef struct Value Value;
 typedef struct LinkValue LinkValue;
 typedef struct Result Result;
@@ -142,7 +141,7 @@ LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *makeNoneValue(Inter *inter);
 Value *makeBoolValue(bool bool_num, Inter *inter);
 Value *makePassValue(Inter *inter);
-Value *makeNumberValue(long num, Inter *inter);
+Value *makeNumberValue(vnum num, Inter *inter);
 Value *makeStringValue(char *str, Inter *inter);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, struct VarList *var_list, Inter *inter);
 Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter);
@@ -154,14 +153,14 @@ void setResultCore(Result *ru);
 void setResult(Result *ru, Inter *inter, LinkValue *belong);
 void setResultBase(Result *ru, Inter *inter, LinkValue *belong);
 void setResultErrorSt(Result *ru, Inter *inter, char *error_type, char *error_message, Statement *st, LinkValue *belong, bool new);
-void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, long int line, char *file, LinkValue *belong, bool new);
+void setResultError(Result *ru, Inter *inter, char *error_type, char *error_message, fline line, char *file, LinkValue *belong, bool new);
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong);
 void setResultOperation(Result *ru, LinkValue *value);
 void setResultOperationBase(Result *ru, LinkValue *value);
 void freeResult(Result *ru);
 void freeResultSafe(Result *ru);
 
-Error *makeError(char *type, char *message, long int line, char *file);
+Error *makeError(char *type, char *message, fline line, char *file);
 void freeError(Result *base);
 Error *connectError(Error *new, Error *base);
 void printError(Result *result, Inter *inter, bool free);

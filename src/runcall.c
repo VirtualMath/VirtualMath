@@ -9,7 +9,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     setResultCore(result);
 
     call = getArgument(st->u.set_class.father, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto error_;
 
     class_belong = setFather(call);
@@ -24,13 +24,13 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_class.st, tmp->value->object.var, result, tmp));
     inter->data.default_pt_type = pt_type_bak;
     tmp->value->object.var->next = belong_var;
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto error_;
 
     freeResult(result);
     if (st->u.set_class.decoration != NULL){
         setDecoration(st->u.set_class.decoration, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             goto error_;
         gc_freeTmpLink(&tmp->gc_status);
         tmp = result->value;
@@ -39,7 +39,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
     }
 
     assCore(st->u.set_class.name, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (run_continue(result))
+    if (CHECK_RESULT(result))
         setResult(result, inter, belong);
 
     gc_freeTmpLink(&tmp->gc_status);
@@ -63,7 +63,7 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
     gc_addTmpLink(&tmp->gc_status);
     if (st->u.set_function.decoration != NULL){
         setDecoration(st->u.set_function.decoration, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             goto error_;
         gc_freeTmpLink(&tmp->gc_status);
         tmp = result->value;
@@ -71,7 +71,7 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
         freeResult(result);
     }
     assCore(st->u.set_function.name, tmp, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto error_;
     setResult(result, inter, belong);
     gc_freeTmpLink(&tmp->gc_status);
@@ -144,7 +144,7 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
     gc_addTmpLink(&function_value->gc_status);
 
     arg = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto return_;
 
     freeResult(result);
@@ -156,7 +156,7 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
     return result->type;
 }
 
-ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
     if (function_value->value->type == function && function_value->value->data.function.type == vm_function)
@@ -173,7 +173,7 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, long line, cha
     return result->type;
 }
 
-ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_new_ = findAttributes(inter->data.object_new, false, class_value, inter);
     setResultCore(result);
 
@@ -188,7 +188,7 @@ ResultType callClass(LinkValue *class_value, Argument *arg, long int line, char 
     return result->type;
 }
 
-ResultType callObject(LinkValue *object_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_call_ = findAttributes(inter->data.object_call, false, object_value, inter);
     setResultCore(result);
 
@@ -211,7 +211,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
     gc_addTmpLink(&function_value->gc_status);
 
     setFunctionArgument(&arg, function_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto return_;
 
     of = function_value->value->data.function.of;
@@ -219,7 +219,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
     gc_freeze(inter, var_list, function_var, true);
 
     freeResult(result);
-    of(CALL_OfficialFunction(arg, function_var, result, function_value->belong));
+    of(CALL_OFFICAL_FUNCTION(arg, function_var, result, function_value->belong));
 
     gc_freeze(inter, var_list, function_var, false);
     freeFunctionArgument(arg, bak);
@@ -244,7 +244,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
     gc_freeze(inter, var_list, function_var, true);
 
     setFunctionArgument(&arg, function_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto return_;
 
     freeResult(result);
@@ -252,7 +252,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
     setParameterCore(line, file, arg, func_pt, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, function_value->belong));
     freeFunctionArgument(arg, bak);
     gc_freeTmpLink(&function_var->hashtable->gc_status);
-    if (!run_continue(result)) {
+    if (!CHECK_RESULT(result)) {
         gc_freeze(inter, var_list, function_var, false);
         funtion_st = function_value->value->data.function.function;
         if (yield_run)
@@ -303,7 +303,7 @@ ResultType setDecoration(DecorationStatement *ds, LinkValue *value, INTER_FUNCTI
         callBackCorePt(decall, pt, ds->decoration->line, ds->decoration->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&decall->gc_status);
         freeParameter(pt, true);
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             break;
 
         gc_freeTmpLink(&value->gc_status);

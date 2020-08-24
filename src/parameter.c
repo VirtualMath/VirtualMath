@@ -2,7 +2,7 @@
 
 
 #define returnResult(result) do{ \
-if (!run_continue(result)) { \
+if (!CHECK_RESULT(result)) { \
 goto return_; \
 } \
 }while(0)
@@ -186,14 +186,14 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUN
     LinkValue *iter = NULL;
     setResultCore(result);
     getIter(list_value, 1, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return NULL;
     iter = result->value;
     result->value = NULL;
     while (true) {
         freeResult(result);
         getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             freeResult(result);
             break;
         }
@@ -209,7 +209,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
     LinkValue *iter = NULL;
     setResultCore(result);
     getIter(dict_value, 1, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return NULL;
     iter = result->value;
     result->value = NULL;
@@ -219,7 +219,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
 
         freeResult(result);
         getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             freeResult(result);
             break;
         }
@@ -228,7 +228,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
         freeResult(result);
 
         elementDownOne(iter, name_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             gc_freeTmpLink(&name_->gc_status);
             goto return_;
         }
@@ -252,7 +252,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
  * @param num
  * @return
  */
-ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST) {
     Parameter *function = *function_ad;
     setResultCore(result);
 
@@ -264,7 +264,7 @@ ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUN
         value = result->value;
         freeResult(result);
         assCore(function->data.name, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             goto return_;
     }
     setResult(result, inter, belong);
@@ -282,7 +282,7 @@ ResultType defaultParameter(Parameter **function_ad, NUMBER_TYPE *num, INTER_FUN
  * @param num
  * @return
  */
-ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *call = *call_ad;
     setResultCore(result);
 
@@ -293,7 +293,7 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
         }
         freeResult(result);
         assCore(call->data.name, call->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             goto return_;
     }
     setResult(result, inter, belong);
@@ -312,7 +312,7 @@ ResultType argumentToVar(Argument **call_ad, NUMBER_TYPE *num, INTER_FUNCTIONSIG
  * @param num
  * @return
  */
-ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMBER_TYPE *num, NUMBER_TYPE max, bool *status,
+ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum *num, vnum max, bool *status,
                             INTER_FUNCTIONSIG_NOT_ST) {
     Parameter *function = *function_ad;
     bool get = true;
@@ -335,7 +335,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
 
         freeResult(result);
         getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             memFree(str_name);
             *function_ad = function;
             return result->type;
@@ -370,7 +370,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, NUMB
         freeResult(result);
         assCore(name, value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
 
-        if (!run_continue(result)) {
+        if (!CHECK_RESULT(result)) {
             *function_ad = function;
             return result->type;
         }
@@ -404,7 +404,7 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
     for (PASS; call != NULL && function != NULL && (call->type == value_arg) && function->type != args_par; call = call->next, function = function->next){
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
         assCore(name, call->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             goto return_;
         freeResult(result);
     }
@@ -501,7 +501,7 @@ Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) 
  * @param var_list
  * @return
  */
-ResultType setParameter(long int line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType setParameter(fline line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *self_tmp = makeValueArgument(function_father);
     Argument *father_tmp = makeValueArgument(function_father->belong);
     Argument *call = NULL;
@@ -509,7 +509,7 @@ ResultType setParameter(long int line, char *file, Parameter *call_base, Paramet
     call = getArgument(call_base, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     self_tmp->next = father_tmp;
     father_tmp->next = call;
-    if (!run_continue(result)) {
+    if (!CHECK_RESULT(result)) {
         freeArgument(call, false);
         return result->type;
     }
@@ -520,7 +520,7 @@ ResultType setParameter(long int line, char *file, Parameter *call_base, Paramet
     return result->type;
 }
 
-ResultType setParameterCore(long int line, char *file, Argument *call, Parameter *function_base, VarList *function_var,
+ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *function_base, VarList *function_var,
                         INTER_FUNCTIONSIG_NOT_ST) {
     Parameter *function = NULL;
     Parameter *tmp_function = NULL;  // 释放使用
@@ -569,19 +569,19 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 break;
             }
             case default_status: {
-                NUMBER_TYPE num = 0;
+                vnum num = 0;
                 defaultParameter(&function, &num, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
                 returnResult(result);
                 break;
             }
             case self_ass: {
-                NUMBER_TYPE set_num = 0;
-                NUMBER_TYPE get_num = 0;
+                vnum set_num = 0;
+                vnum get_num = 0;
                 bool dict_status = false;
                 VarList *tmp = makeVarList(inter, true);
 
                 argumentToVar(&call, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, belong));
-                if (!run_continue(result)) {
+                if (!CHECK_RESULT(result)) {
                     freeVarList(tmp);
                     goto return_;
                 }
@@ -589,7 +589,7 @@ ResultType setParameterCore(long int line, char *file, Argument *call, Parameter
                 freeResult(result);
                 parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, belong));
                 freeVarList(tmp);
-                if (!run_continue(result))
+                if (!CHECK_RESULT(result))
                     goto return_;
 
                 if (!dict_status && set_num > get_num)
@@ -694,7 +694,7 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
         }
 
         status = parserNameArgument(ap, arg, &bak, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             return -1;
         if (status == -3){
             if (parserArgumentNameDefault(ap)->must != -1){
@@ -735,8 +735,8 @@ Argument *parserValueArgument(ArgumentParser *ap, Argument *arg, int *status, Ar
 
 int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, INTER_FUNCTIONSIG_NOT_ST){
     VarList *tmp = NULL;
-    NUMBER_TYPE set_num = 0;
-    NUMBER_TYPE get_num = 0;
+    vnum set_num = 0;
+    vnum get_num = 0;
     int return_;
     setResultCore(result);
 
@@ -750,7 +750,7 @@ int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak,
 
     tmp = makeVarList(inter, true);
     argumentToVar(&arg, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, belong));
-    if (!run_continue(result)) {
+    if (!CHECK_RESULT(result)) {
         return_ = -1;
         goto return_;
     }

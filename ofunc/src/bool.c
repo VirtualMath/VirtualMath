@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-void registeredBool(RegisteredFunctionSig){
+void registeredBool(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.bool_, inter->base_father, inter);
 //    VarList *object_var = object->value->object.var;
 //    VarList *object_backup = NULL;

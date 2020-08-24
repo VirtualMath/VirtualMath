@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType list_slice(OfficialFunctionSig){
+ResultType list_slice(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
@@ -12,7 +12,7 @@ ResultType list_slice(OfficialFunctionSig){
     long stride;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
@@ -81,7 +81,7 @@ ResultType list_slice(OfficialFunctionSig){
     return error_return;
 }
 
-ResultType list_down_assignment(OfficialFunctionSig){
+ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -90,7 +90,7 @@ ResultType list_down_assignment(OfficialFunctionSig){
     long index;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
@@ -114,7 +114,7 @@ ResultType list_down_assignment(OfficialFunctionSig){
     return result->type;
 }
 
-ResultType list_down(OfficialFunctionSig){
+ResultType list_down(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -123,7 +123,7 @@ ResultType list_down(OfficialFunctionSig){
     LinkValue *element = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
@@ -147,12 +147,12 @@ ResultType list_down(OfficialFunctionSig){
     return result->type;
 }
 
-ResultType list_iter(OfficialFunctionSig){
+ResultType list_iter(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
@@ -171,7 +171,7 @@ ResultType list_iter(OfficialFunctionSig){
     return result->type;
 }
 
-void registeredList(RegisteredFunctionSig){
+void registeredList(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.list, inter->base_father, inter);
     VarList *object_var = object->value->object.var;
     VarList *object_backup = NULL;

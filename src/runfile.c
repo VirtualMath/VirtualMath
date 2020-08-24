@@ -31,7 +31,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     }
 
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         setResultErrorSt(result, inter, NULL, NULL, st, belong, false);
 
     return_:
@@ -77,7 +77,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     }
 
     globalIterStatement(result, import_inter, run_st);
-    if (!run_continue(result)) {
+    if (!CHECK_RESULT(result)) {
         freeInter(import_inter, false);
         result->value = makeLinkValue(inter->base, belong, inter);  // 重新设定none值
         setResultErrorSt(result, inter, NULL, NULL, st, belong, false);
@@ -101,7 +101,7 @@ ResultType importFile(INTER_FUNCTIONSIG) {
     LinkValue *import_value = NULL;
     setResultCore(result);
     importFileCore(&new_object, &file_dir, CALL_INTER_FUNCTIONSIG(st->u.import_file.file, var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto return_;
 
     freeResult(result);
@@ -128,13 +128,13 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
     Parameter *as = st->u.from_import_file.as != NULL ? st->u.from_import_file.as : st->u.from_import_file.pt;
     setResultCore(result);
     importFileCore(&new_object, &file_dir, CALL_INTER_FUNCTIONSIG(st->u.from_import_file.file, var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto return_;
 
     freeResult(result);
     if (pt != NULL) {
         setParameter(st->line, st->code_file, pt, as, var_list, belong, CALL_INTER_FUNCTIONSIG_NOT_ST(new_object, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             goto return_;
     }
     else

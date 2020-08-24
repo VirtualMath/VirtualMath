@@ -68,7 +68,7 @@ ResultType blockOperation(INTER_FUNCTIONSIG) {
         else
             popVarList(var_list);
     }
-    if (run_continue(result) && st->aut != auto_aut)
+    if (CHECK_RESULT(result) && st->aut != auto_aut)
         result->value->aut = st->aut;
     return result->type;
 }
@@ -89,7 +89,7 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
 
     gc_freeze(inter, var_list, object, true);
     operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto return_;
     else if ((left->aut == public_aut || left->aut == auto_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut))
         setResultErrorSt(result, inter, "PermissionsException", "Wrong Permissions: access variables as public", st,
@@ -158,7 +158,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, INTER_FUNCT
     int int_times = 0;
     LinkValue *var_value = NULL;
     getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
-    if (!run_continue(result)) {
+    if (!CHECK_RESULT(result)) {
         memFree(str_name);
         return result->type;
     }
@@ -207,12 +207,12 @@ ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
 
     pt = makeArgsParameter(tmp_st);
     call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result))
+    if (!CHECK_RESULT(result))
         goto return_;
 
     freeResult(result);
     setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (run_continue(result)){
+    if (CHECK_RESULT(result)){
         Argument *tmp = call;
         LinkValue *new_value = makeLinkValue(makeListValue(&tmp, inter, value_tuple), belong, inter);
         freeResult(result);
@@ -238,7 +238,7 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
         Argument *arg = makeValueArgument(value);
         gc_addTmpLink(&_down_assignment_->gc_status);
         arg->next = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             goto daerror_;
 
         freeResult(result);
@@ -280,7 +280,7 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 
     freeResult(result);
     var_info(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
-    if (!run_continue(result)) {
+    if (!CHECK_RESULT(result)) {
         memFree(name);
         return result->type;
     }
@@ -353,7 +353,7 @@ ResultType getList(INTER_FUNCTIONSIG) {
     setResultCore(result);
     at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     at_tmp = at;
-    if (!run_continue(result)){
+    if (!CHECK_RESULT(result)){
         freeArgument(at_tmp, false);
         return result->type;
     }
@@ -372,14 +372,14 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     setResultCore(result);
     at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     at_tmp = at;
-    if (!run_continue(result)){
+    if (!CHECK_RESULT(result)){
         freeArgument(at_tmp, false);
         return result->type;
     }
 
     freeResult(result);
     Value *tmp_value = makeDictValue(&at, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!run_continue(result)) {
+    if (!CHECK_RESULT(result)) {
         freeArgument(at_tmp, false);
         return result->type;
     }
@@ -406,7 +406,7 @@ ResultType setDefault(INTER_FUNCTIONSIG){
         int times = 0;
         freeResult(result);
         getVarInfo(&name, &times, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list, result, belong));
-        if (!run_continue(result))
+        if (!CHECK_RESULT(result))
             break;
         if (type != default_)
             times = base;

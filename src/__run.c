@@ -69,9 +69,9 @@ char *setStrVarName(char *old, bool free_old, Inter *inter) {
     return memStrcat(inter->data.var_str_prefix, old, false, free_old);
 }
 
-char *setNumVarName(NUMBER_TYPE num, struct Inter *inter) {
+char *setNumVarName(vnum num, struct Inter *inter) {
     char name[50];
-    snprintf(name, 50, "%"NUMBER_FORMAT, num);
+    snprintf(name, 50, "%lld", num);
     return memStrcat(inter->data.var_num_prefix, name, false, false);
 }
 
@@ -135,7 +135,7 @@ void updateFunctionYield(Statement *function_st, Statement *node){
     function_st->info.have_info = true;
 }
 
-ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
     enum FunctionPtType pt_type = function_value->value->data.function.function_data.pt_type;
     setResultCore(result);
@@ -229,7 +229,7 @@ void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belon
     addStrVar(name, free_old, value, belong, inter, belong->value->object.var);
 }
 
-ResultType elementDownOne(LinkValue *element, LinkValue *index, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_func_ = NULL;
     setResultCore(result);
     gc_addTmpLink(&element->gc_status);
@@ -252,7 +252,7 @@ ResultType elementDownOne(LinkValue *element, LinkValue *index, long int line, c
     return result->type;
 }
 
-ResultType getIter(LinkValue *value, int status, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_func_ = NULL;
     setResultCore(result);
     if (status == 1)
