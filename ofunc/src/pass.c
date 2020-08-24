@@ -2,10 +2,8 @@
 
 void registeredEllipisis(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.pass_, inter->base_father, inter);
-//    NameFunc tmp[] = {{NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("ellipsis", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-//    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

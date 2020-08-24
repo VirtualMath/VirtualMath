@@ -90,12 +90,57 @@ ResultType vobject_div(OFFICAL_FUNCTIONSIG){
     return vobject_opt_core(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), vobject_div_base);
 }
 
+ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    bool result_ = false;
+    Value *value = NULL;
+    Value *return_value = NULL;
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+    value = ap[0].value->value;
+    switch (value->type) {
+        case number:
+            result_ = value->data.num.num != 0;
+            break;
+        case string:
+            result_ = memStrlen(value->data.str.str) > 0;
+            break;
+        case bool_:
+            result_ = value->data.bool_.bool_;
+            break;
+        case pass_:
+        case none:
+            result_ = false;
+            break;
+        case list:
+            result_ = value->data.list.size > 0;
+            break;
+        case dict:
+            result_ = value->data.dict.size > 0;
+            break;
+        default:
+            setResultError(E_TypeException, "\"vobject.__bool__\" gets an unsupported value type",
+                           0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            return error_return;
+    }
+    return_value = makeBoolValue(result_, inter);
+    setResultOperationBase(result, makeLinkValue(return_value, belong, inter));
+    return result->type;
+}
+
 void registeredVObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.vobject, inter->base_father, inter);
     NameFunc tmp[] = {{"__add__", vobject_add, object_free_},
                       {"__sub__", vobject_sub, object_free_},
                       {"__mul__", vobject_mul, object_free_},
                       {"__div__", vobject_div, object_free_},
+                      {"__bool__", vobject_bool, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("vobject", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

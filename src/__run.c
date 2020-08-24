@@ -281,22 +281,18 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
     return result->type;
 }
 
-bool checkBool(Value *value){
-    switch (value->type) {
-        case number:
-            return value->data.num.num != 0;
-        case string:
-            return memStrlen(value->data.str.str) > 0;
-        case bool_:
-            return value->data.bool_.bool_;
-        case pass_:
-        case none:
-            return false;
-        case list:
-            return value->data.list.size > 0;
-        case dict:
-            return value->data.dict.size > 0;
-        default:
-            return true;
-    }
+bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+    LinkValue *_bool_ = findAttributes("__bool__", false, value, inter);
+    setResultCore(result);
+    if (_bool_ != NULL){
+        gc_addTmpLink(&_bool_->gc_status);
+        callBackCore(_bool_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&_bool_->gc_status);
+        if (result->value->value->type != bool_)
+            setResultError(E_TypeException, "__bool__ function should return bool type data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        else
+            return result->value->value->data.bool_.bool_;
+    } else
+        setResultError(E_TypeException, "Object does not support __bool__ function", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    return false;
 }

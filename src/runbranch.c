@@ -79,6 +79,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
     }
 
     for (PASS; if_list != NULL; if_list = if_list->next){
+        bool condition;
         freeResult(result);
         if (info_vl != NULL){
             if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_vl, var_list, result, belong))){
@@ -108,7 +109,15 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
                 freeResult(result);
             }
 
-            bool condition = is_rego ? true : checkBool(condition_value->value);  // 若是rego则不执行checkbool的判断了
+            if (!(condition = is_rego)){
+                condition = checkBool(condition_value, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                if (!CHECK_RESULT(result)) {
+                    set_result = false;
+                    goto not_else;
+                }
+                freeResult(result);
+            }
+
             if (condition){
                 is_rego = false;
                 if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(if_list->code, var_list, result, belong))){
@@ -217,7 +226,7 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         LinkValue *condition_value = NULL;
         Statement *after_st = after;
         Statement *while_st = while_list->code;
-        bool condition = false;
+        bool condition;
         freeResult(result);
 
         if (info_vl != NULL){
@@ -247,8 +256,17 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
             freeResult(result);  // 赋值的返回值被丢弃
         }
 
-        condition = do_while || checkBool(condition_value->value);
+        condition = do_while;
+        if (!(condition = do_while)){
+            condition = checkBool(condition_value, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            if (!CHECK_RESULT(result)){
+                set_result = false;
+                goto not_else;
+            }
+            freeResult(result);
+        }
         do_while = false;
+
         if (condition){
             do_while_st:
             if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_st, var_list, result, belong))){
@@ -935,11 +953,15 @@ ResultType raiseCode(INTER_FUNCTIONSIG){
 }
 
 ResultType assertCode(INTER_FUNCTIONSIG){
+    bool result_;
     setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list, result, belong)))
         return result->type;
 
-    if (checkBool(result->value->value))
+    result_ = checkBool(result->value, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    else if (result_)
         setResult(result, inter, belong);
     else
         setResultErrorSt(E_AssertException, "Assertion check error", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

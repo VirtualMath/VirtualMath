@@ -13,8 +13,10 @@ ResultType bool_init(OFFICAL_FUNCTIONSIG){
 
     base = ap[0].value;
     base->value->type = bool_;
-    base->value->data.bool_.bool_ = checkBool(ap[1].value->value);
-    setResultBase(result, inter, belong);
+    base->value->data.bool_.bool_ = checkBool(ap[1].value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    setResult(result, inter, belong);
     return result->type;
 }
 

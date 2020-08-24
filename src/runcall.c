@@ -225,6 +225,10 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
 
     freeResult(result);
     of(CALL_OFFICAL_FUNCTION(arg, function_var, result, function_value->belong));
+    if (result->type == function_return)
+        result->type = operation_return;
+    else if (result->type != operation_return)
+        setResult(result, inter, function_value->belong);
 
     gc_freeze(inter, var_list, function_var, false);
     freeFunctionArgument(arg, bak);
