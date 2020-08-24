@@ -41,7 +41,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
         Argument *new_list = NULL;
         Argument *back_up = NULL;
         LinkValue *new = NULL;
-        for (long i = first; i < second; i += stride) {
+        for (vnum i = first; i < second; i += stride) {
             LinkValue *element = ap[0].value->value->data.list.list[i];
             new_list = connectValueArgument(element, new_list);
         }

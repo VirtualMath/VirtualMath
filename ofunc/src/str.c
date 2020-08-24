@@ -95,9 +95,73 @@ ResultType str_down(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
+ResultType str_to_list(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    vnum size;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != string){
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+    size = memStrlen(ap[0].value->value->data.str.str);
+
+    {
+        Argument *new_list = NULL;
+        Argument *back_up = NULL;
+        LinkValue *new = NULL;
+        for (vnum i = 0; i < size; i ++) {
+            char str[2] = {};
+            str[0] = ap[0].value->value->data.str.str[i];
+            new_list = connectValueArgument(makeLinkValue(makeStringValue(str, inter), belong, inter), new_list);
+        }
+        back_up = new_list;
+        new = makeLinkValue(makeListValue(&new_list, inter, ap[0].value->value->data.list.type), belong, inter);
+        setResultOperationBase(result, new);
+        freeArgument(back_up, true);
+    }
+
+    return result->type;
+}
+
+ResultType str_iter(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    LinkValue *to_list = NULL;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+    to_list = findAttributes("to_list", false, ap[0].value, inter);
+    if (to_list == NULL){
+        setResultError(E_TypeException, "String cannot be converted to list", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+    gc_addTmpLink(&to_list->gc_status);
+    callBackCore(to_list, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    gc_freeTmpLink(&to_list->gc_status);
+    if (CHECK_RESULT(result)) {
+        LinkValue *str_list = NULL;
+        str_list = result->value;
+        result->value = NULL;
+        freeResult(result);
+        getIter(str_list, 1, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&str_list->gc_status);
+    }
+    return result->type;
+}
+
 void registeredStr(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.str, inter->base_father, inter);
-    NameFunc tmp[] = {{inter->data.object_init, str_init, object_free_},
+    NameFunc tmp[] = {{"to_list", str_to_list, object_free_},
+                      {inter->data.object_init, str_init, object_free_},
+                      {inter->data.object_iter, str_iter, object_free_},
                       {inter->data.object_down, str_down, object_free_},
                       {inter->data.object_slice, str_slice, object_free_},
                       {NULL, NULL}};
