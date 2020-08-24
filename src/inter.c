@@ -98,6 +98,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_father = memStrcpy("__father__");
     inter->data.object_message = memStrcpy("__message__");
     inter->data.object_down_assignment = memStrcpy("__down_assignment__");
+    inter->data.object_str = memStrcpy("__str__");
     inter->data.default_pt_type = free_;
 }
 
@@ -164,6 +165,7 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_father);
     memFree(inter->data.object_message);
     memFree(inter->data.object_down_assignment);
+    memFree(inter->data.object_str);
 
     if (!inter->data.is_stdout)
         fclose(inter->data.inter_stdout);

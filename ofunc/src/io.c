@@ -13,7 +13,7 @@ ResultType vm_print(OFFICAL_FUNCTIONSIG){
     arg = ap[0].arg;
     for (int i=0; i < ap[0].c_count; arg = arg->next,i++){
         freeResult(result);
-        char *tmp = getRepo(arg->data.value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        char *tmp = getRepoStr(arg->data.value, true, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             return result->type;
         if (i != 0)

@@ -100,7 +100,7 @@ ResultType dict_iter(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType dict_repo(OFFICAL_FUNCTIONSIG){
+ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     char *repo = NULL;
@@ -114,10 +114,10 @@ ResultType dict_repo(OFFICAL_FUNCTIONSIG){
     value = ap[0].value->value;
 
     if (value->type != dict){
-        setResultError(E_TypeException, "dict.__repo__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, "dict.__repo__/__str__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
-    again = findAttributes("repo_again", false, ap[0].value, inter);
+    again = findAttributes(is_repo ? "repo_again" : "str_again", false, ap[0].value, inter);
     if (again != NULL){
         bool again_ = checkBool(again, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
@@ -128,7 +128,7 @@ ResultType dict_repo(OFFICAL_FUNCTIONSIG){
         }
     }
 
-    addAttributes("repo_again", false, makeLinkValue(makeBoolValue(true, inter), belong, inter), ap[0].value, inter);
+    addAttributes(is_repo ? "repo_again" : "str_again", false, makeLinkValue(makeBoolValue(true, inter), belong, inter), ap[0].value, inter);
     repo = memStrcpy("{");
     for (int i = 0, count = 0; i < MAX_SIZE; i++) {
         for (Var *var = value->data.dict.dict->hashtable[i]; var != NULL; var = var->next, count++) {
@@ -138,14 +138,14 @@ ResultType dict_repo(OFFICAL_FUNCTIONSIG){
                 repo = memStrcat(repo, ", ", true, false);
 
             freeResult(result);
-            name_tmp = getRepo(var->name_, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            name_tmp = getRepoStr(var->name_, is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
             repo = memStrcat(repo, name_tmp, true, false);
             repo = memStrcat(repo, ": ", true, false);
 
             freeResult(result);
-            value_tmp = getRepo(var->value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            value_tmp = getRepoStr(var->value, is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
             repo = memStrcat(repo, value_tmp, true, false);
@@ -156,9 +156,17 @@ ResultType dict_repo(OFFICAL_FUNCTIONSIG){
     setResultOperation(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
 
     return_:
-    addAttributes("repo_again", false, makeLinkValue(makeBoolValue(false, inter), belong, inter), ap[0].value, inter);
+    addAttributes(is_repo ? "repo_again" : "str_again", false, makeLinkValue(makeBoolValue(false, inter), belong, inter), ap[0].value, inter);
     memFree(repo);
     return result->type;
+}
+
+ResultType dict_repo(OFFICAL_FUNCTIONSIG){
+    return dictRepoStrCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), true);
+}
+
+ResultType dict_str(OFFICAL_FUNCTIONSIG){
+    return dictRepoStrCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), false);
 }
 
 void registeredDict(REGISTERED_FUNCTIONSIG){
@@ -167,6 +175,7 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_down, dict_down, object_free_},
                       {inter->data.object_iter, dict_iter, object_free_},
                       {inter->data.object_repo, dict_repo, object_free_},
+                      {inter->data.object_str, dict_str, object_free_},
                       {inter->data.object_down_assignment, dict_down_assignment, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);

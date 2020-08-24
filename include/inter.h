@@ -79,6 +79,7 @@ struct Inter{
         char *object_father;
         char *object_message;
         char *object_down_assignment;
+        char *object_str;
         int default_pt_type;
     } data;
 };

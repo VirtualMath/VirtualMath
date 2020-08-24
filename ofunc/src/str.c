@@ -5,7 +5,7 @@ ResultType str_init(OFFICAL_FUNCTIONSIG){
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *base;
-    char *repo = NULL;
+    char *str = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -13,11 +13,11 @@ ResultType str_init(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     base = ap[0].value;
-    repo = getRepo(ap[1].value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    str = getRepoStr(ap[1].value, false, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     base->value->type = string;
-    base->value->data.str.str = memStrcpy(repo);
+    base->value->data.str.str = memStrcpy(str);
     setResult(result, inter, belong);
     return result->type;
 }

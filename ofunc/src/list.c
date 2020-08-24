@@ -171,7 +171,7 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType list_repo(OFFICAL_FUNCTIONSIG){
+ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     char *repo = NULL;
@@ -186,11 +186,11 @@ ResultType list_repo(OFFICAL_FUNCTIONSIG){
     value = ap[0].value->value;
 
     if (value->type != list){
-        setResultError(E_TypeException, "list.__repo__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, "list.__repo__/__list__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     lt = value->data.list.type;
-    again = findAttributes("repo_again", false, ap[0].value, inter);
+    again = findAttributes(is_repo ? "repo_again" : "str_again", false, ap[0].value, inter);
     if (again != NULL){
         bool again_ = checkBool(again, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
@@ -201,7 +201,7 @@ ResultType list_repo(OFFICAL_FUNCTIONSIG){
         }
     }
 
-    addAttributes("repo_again", false, makeLinkValue(makeBoolValue(true, inter), belong, inter), ap[0].value, inter);
+    addAttributes(is_repo ? "repo_again" : "str_again", false, makeLinkValue(makeBoolValue(true, inter), belong, inter), ap[0].value, inter);
     if (lt == value_list)
         repo = memStrcpy("[");
     else
@@ -211,7 +211,7 @@ ResultType list_repo(OFFICAL_FUNCTIONSIG){
         freeResult(result);
         if (i > 0)
             repo = memStrcat(repo, ", ", true, false);
-        tmp = getRepo(value->data.list.list[i], 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        tmp = getRepoStr(value->data.list.list[i], is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
         repo = memStrcat(repo, tmp, true, false);
@@ -223,9 +223,17 @@ ResultType list_repo(OFFICAL_FUNCTIONSIG){
     setResultOperation(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
 
     return_:
-    addAttributes("repo_again", false, makeLinkValue(makeBoolValue(false, inter), belong, inter), ap[0].value, inter);
+    addAttributes(is_repo ? "repo_again" : "str_again", false, makeLinkValue(makeBoolValue(false, inter), belong, inter), ap[0].value, inter);
     memFree(repo);
     return result->type;
+}
+
+ResultType list_repo(OFFICAL_FUNCTIONSIG){
+    return listRepoStrCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), true);
+}
+
+ResultType list_str(OFFICAL_FUNCTIONSIG){
+    return listRepoStrCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), false);
 }
 
 void registeredList(REGISTERED_FUNCTIONSIG){
@@ -235,6 +243,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
                           {inter->data.object_slice, list_slice, object_free_},
                           {inter->data.object_iter, list_iter, object_free_},
                           {inter->data.object_repo, list_repo, object_free_},
+                          {inter->data.object_str, list_str, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addStrVar("tuple", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

@@ -197,6 +197,7 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_div, vobject_div, object_free_},
                       {inter->data.object_bool, vobject_bool, object_free_},
                       {inter->data.object_repo, vobject_repo, object_free_},
+                      {inter->data.object_str, vobject_repo, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("vobject", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
