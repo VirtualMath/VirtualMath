@@ -109,9 +109,9 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
 
 void registeredDictIter(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.dict_iter, inter->base_father, inter);
-    NameFunc tmp[] = {{"__init__", dictiter_init, object_free_},
-                      {"__next__", dictiter_next, object_free_},
-                      {"__down__", dictiter_down, object_free_},
+    NameFunc tmp[] = {{inter->data.object_init, dictiter_init, object_free_},
+                      {inter->data.object_next, dictiter_next, object_free_},
+                      {inter->data.object_down, dictiter_down, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("dictiter", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

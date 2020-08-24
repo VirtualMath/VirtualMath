@@ -164,10 +164,10 @@ ResultType dict_repo(OFFICAL_FUNCTIONSIG){
 void registeredDict(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.dict, inter->base_father, inter);
     NameFunc tmp[] = {{"keys", dict_keys, object_free_},
-                      {"__down__", dict_down, object_free_},
-                      {"__iter__", dict_iter, object_free_},
-                      {"__repo__", dict_repo, object_free_},
-                      {"__down_assignment__", dict_down_assignment, object_free_},
+                      {inter->data.object_down, dict_down, object_free_},
+                      {inter->data.object_iter, dict_iter, object_free_},
+                      {inter->data.object_repo, dict_repo, object_free_},
+                      {inter->data.object_down_assignment, dict_down_assignment, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("dict", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

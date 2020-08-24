@@ -37,7 +37,7 @@ ResultType num_init(OFFICAL_FUNCTIONSIG){
 
 void registeredNum(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.num, inter->base_father, inter);
-    NameFunc tmp[] = {{"__init__", num_init, object_free_},
+    NameFunc tmp[] = {{inter->data.object_init, num_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("num", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

@@ -24,7 +24,7 @@ ResultType bool_init(OFFICAL_FUNCTIONSIG){
 
 void registeredBool(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.bool_, inter->base_father, inter);
-    NameFunc tmp[] = {{"__init__", bool_init, object_free_},
+    NameFunc tmp[] = {{inter->data.object_init, bool_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("bool", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

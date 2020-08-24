@@ -72,6 +72,13 @@ struct Inter{
         char *object_slice;
         char *object_iter;
         char *object_next;
+        char *object_repo;
+        char *object_bool;
+        char *object_name;
+        char *object_self;
+        char *object_father;
+        char *object_message;
+        char *object_down_assignment;
         int default_pt_type;
     } data;
 };

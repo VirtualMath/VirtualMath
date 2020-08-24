@@ -231,10 +231,10 @@ ResultType list_repo(OFFICAL_FUNCTIONSIG){
 void registeredList(REGISTERED_FUNCTIONSIG){
     {
         LinkValue *object = makeLinkValue(inter->data.tuple, inter->base_father, inter);
-        NameFunc tmp[] = {{"__down__", list_down, object_free_},
-                          {"__slice__", list_slice, object_free_},
-                          {"__iter__", list_iter, object_free_},
-                          {"__repo__", list_repo, object_free_},
+        NameFunc tmp[] = {{inter->data.object_down, list_down, object_free_},
+                          {inter->data.object_slice, list_slice, object_free_},
+                          {inter->data.object_iter, list_iter, object_free_},
+                          {inter->data.object_repo, list_repo, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addStrVar("tuple", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
@@ -244,7 +244,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
 
     {
         LinkValue *object = makeLinkValue(inter->data.list, inter->base_father, inter);
-        NameFunc tmp[] = {{"__down_assignment__", list_down_assignment, object_free_},
+        NameFunc tmp[] = {{inter->data.object_down_assignment, list_down_assignment, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addStrVar("list", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

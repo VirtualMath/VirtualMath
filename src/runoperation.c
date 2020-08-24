@@ -236,7 +236,7 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     iter = result->value;
     result->value = NULL;
     freeResult(result);
-    _down_assignment_ = findAttributes("__down_assignment__", false, iter, inter);  // TODO-szh __down_assignment__
+    _down_assignment_ = findAttributes(inter->data.object_down_assignment, false, iter, inter);
     if (_down_assignment_ != NULL){
         Argument *arg = makeValueArgument(value);
         gc_addTmpLink(&_down_assignment_->gc_status);

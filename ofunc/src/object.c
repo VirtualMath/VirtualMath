@@ -60,8 +60,8 @@ ResultType object_repo_(OFFICAL_FUNCTIONSIG){
 
 void registeredObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.object, inter->base_father, inter);
-    NameFunc tmp[] = {{"__new__", object_new_, class_free_},
-                      {"__repo__", object_repo_, object_free_},
+    NameFunc tmp[] = {{inter->data.object_new, object_new_, class_free_},
+                      {inter->data.object_repo, object_repo_, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("object", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

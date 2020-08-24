@@ -191,12 +191,12 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
 
 void registeredVObject(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.vobject, inter->base_father, inter);
-    NameFunc tmp[] = {{"__add__", vobject_add, object_free_},
-                      {"__sub__", vobject_sub, object_free_},
-                      {"__mul__", vobject_mul, object_free_},
-                      {"__div__", vobject_div, object_free_},
-                      {"__bool__", vobject_bool, object_free_},
-                      {"__repo__", vobject_repo, object_free_},
+    NameFunc tmp[] = {{inter->data.object_add, vobject_add, object_free_},
+                      {inter->data.object_sub, vobject_sub, object_free_},
+                      {inter->data.object_mul, vobject_mul, object_free_},
+                      {inter->data.object_div, vobject_div, object_free_},
+                      {inter->data.object_bool, vobject_bool, object_free_},
+                      {inter->data.object_repo, vobject_repo, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("vobject", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

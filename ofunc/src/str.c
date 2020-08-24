@@ -24,7 +24,7 @@ ResultType str_init(OFFICAL_FUNCTIONSIG){
 
 void registeredStr(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.str, inter->base_father, inter);
-    NameFunc tmp[] = {{"__init__", str_init, object_free_},
+    NameFunc tmp[] = {{inter->data.object_init, str_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("str", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

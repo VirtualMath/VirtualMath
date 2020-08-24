@@ -20,7 +20,7 @@ ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    addAttributes("__message__", false, ap[1].value, ap[0].value, inter);  // TODO-szh 设置inter的__mesage__
+    addAttributes(inter->data.object_message, false, ap[1].value, ap[0].value, inter);
     setResultBase(result, inter, belong);
     return result->type;
 }

@@ -307,7 +307,7 @@ Value *findBaseError(BaseErrorType type, Inter *inter){
 }
 
 char *getErrorInfo(LinkValue *exc, int type, Inter *inter){
-    char *str_name = type == 1 ? "__name__" : "__message__";
+    char *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
     LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
     if (_info_ != NULL && _info_->value->type == string)
         return memStrcpy(_info_->value->data.str.str);
@@ -389,105 +389,6 @@ void freeResultSafe(Result *ru){
     if (ru->error != NULL)
         freeError(ru);
     ru->error = NULL;
-}
-
-void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
-    switch (value->type){
-        case number:
-            fprintf(debug, "%lld", value->data.num.num);
-            break;
-        case string:
-            fprintf(debug, "%s", value->data.str.str);
-            break;
-        case function:
-            if (print_father)
-                fprintf(debug, "function");
-            else
-                fprintf(debug, "(function on %p)", value);
-            break;
-        case list:
-            if (print_in){
-                fprintf(debug, "[");
-                for (int i = 0; i < value->data.list.size; i++) {
-                    if (i > 0)
-                        fprintf(debug, ", ", NULL);
-                    printValue(value->data.list.list[i]->value, debug, false, false);
-                }
-                fprintf(debug, " ]", NULL);
-            } else
-                fprintf(debug, "[list]", NULL);
-            break;
-        case dict:
-            if (print_in){
-                Var *tmp = NULL;
-                bool print_comma = false;
-                fprintf(debug, "{");
-                for (int i = 0; i < MAX_SIZE; i++) {
-                    for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
-                        if (print_comma)
-                            fprintf(debug, ", ", NULL);
-                        else
-                            print_comma = true;
-                        printValue(tmp->name_->value, debug, false, false);
-                        fprintf(debug, " ['%s'] : ", tmp->name);
-                        printValue(tmp->value->value, debug, false, false);
-                    }
-                }
-                fprintf(debug, " }", NULL);
-            } else
-                fprintf(debug, "[dict]", NULL);
-            break;
-        case none:
-            fprintf(debug, "(null)", NULL);
-            break;
-        case class:
-            if (print_father)
-                fprintf(debug, "class");
-            else
-                fprintf(debug, "(class on %p)", value);
-            break;
-        case object_:
-            if (print_father)
-                fprintf(debug, "object");
-            else
-                fprintf(debug, "(object on %p)", value);
-            break;
-        case bool_:
-            if (value->data.bool_.bool_)
-                fprintf(debug, "true");
-            else
-                fprintf(debug, "false");
-            break;
-        case pass_:
-            fprintf(debug, "...");
-            break;
-        default:
-            fprintf(debug, "unknown");
-            break;
-    }
-    if (print_father){
-        fprintf(debug, "(");
-        printf("<%p>", value);
-        for (Inherit *fv = value->object.inherit; fv != NULL; fv = fv->next) {
-            printf(" -> ");
-            printValue(fv->value->value, debug, false, false);
-        }
-        fprintf(debug, ")");
-    }
-
-}
-
-void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
-    if (value == NULL)
-        return;
-    fprintf(debug, "%s", first);
-    if (value->belong != NULL) {
-        printLinkValue(value->belong, "", "", debug);
-        fprintf(debug, " . ", NULL);
-    }
-    if (value->value != NULL)
-        printValue(value->value, debug, true, true);
-    fprintf(debug, "%s", last);
 }
 
 Error *makeError(char *type, char *message, fline line, char *file) {
@@ -639,4 +540,103 @@ bool checkAttribution(Value *self, Value *father){
         if (self_father->value->value == father)
             return true;
     return false;
+}
+
+void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
+    switch (value->type){
+        case number:
+            fprintf(debug, "%lld", value->data.num.num);
+            break;
+        case string:
+            fprintf(debug, "%s", value->data.str.str);
+            break;
+        case function:
+            if (print_father)
+                fprintf(debug, "function");
+            else
+                fprintf(debug, "(function on %p)", value);
+            break;
+        case list:
+            if (print_in){
+                fprintf(debug, "[");
+                for (int i = 0; i < value->data.list.size; i++) {
+                    if (i > 0)
+                        fprintf(debug, ", ", NULL);
+                    printValue(value->data.list.list[i]->value, debug, false, false);
+                }
+                fprintf(debug, " ]", NULL);
+            } else
+                fprintf(debug, "[list]", NULL);
+            break;
+        case dict:
+            if (print_in){
+                Var *tmp = NULL;
+                bool print_comma = false;
+                fprintf(debug, "{");
+                for (int i = 0; i < MAX_SIZE; i++) {
+                    for (tmp = value->data.dict.dict->hashtable[i]; tmp != NULL; tmp = tmp->next) {
+                        if (print_comma)
+                            fprintf(debug, ", ", NULL);
+                        else
+                            print_comma = true;
+                        printValue(tmp->name_->value, debug, false, false);
+                        fprintf(debug, " ['%s'] : ", tmp->name);
+                        printValue(tmp->value->value, debug, false, false);
+                    }
+                }
+                fprintf(debug, " }", NULL);
+            } else
+                fprintf(debug, "[dict]", NULL);
+            break;
+        case none:
+            fprintf(debug, "(null)", NULL);
+            break;
+        case class:
+            if (print_father)
+                fprintf(debug, "class");
+            else
+                fprintf(debug, "(class on %p)", value);
+            break;
+        case object_:
+            if (print_father)
+                fprintf(debug, "object");
+            else
+                fprintf(debug, "(object on %p)", value);
+            break;
+        case bool_:
+            if (value->data.bool_.bool_)
+                fprintf(debug, "true");
+            else
+                fprintf(debug, "false");
+            break;
+        case pass_:
+            fprintf(debug, "...");
+            break;
+        default:
+            fprintf(debug, "unknown");
+            break;
+    }
+    if (print_father){
+        fprintf(debug, "(");
+        printf("<%p>", value);
+        for (Inherit *fv = value->object.inherit; fv != NULL; fv = fv->next) {
+            printf(" -> ");
+            printValue(fv->value->value, debug, false, false);
+        }
+        fprintf(debug, ")");
+    }
+
+}
+
+void printLinkValue(LinkValue *value, char *first, char *last, FILE *debug){
+    if (value == NULL)
+        return;
+    fprintf(debug, "%s", first);
+    if (value->belong != NULL) {
+        printLinkValue(value->belong, "", "", debug);
+        fprintf(debug, " . ", NULL);
+    }
+    if (value->value != NULL)
+        printValue(value->value, debug, true, true);
+    fprintf(debug, "%s", last);
 }

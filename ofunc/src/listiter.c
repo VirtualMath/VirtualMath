@@ -50,8 +50,8 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
 
 void registeredListIter(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.list_iter, inter->base_father, inter);
-    NameFunc tmp[] = {{"__init__", listiter_init, object_free_},
-                      {"__next__", listiter_next, object_free_},
+    NameFunc tmp[] = {{inter->data.object_init, listiter_init, object_free_},
+                      {inter->data.object_next, listiter_next, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("listiter", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

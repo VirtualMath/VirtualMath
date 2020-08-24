@@ -232,10 +232,10 @@ void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belon
 }
 
 void newObjectSetting(LinkValue *name, LinkValue *belong, Inter *inter) {
-    addAttributes("__name__", false, name, belong, inter);
-    addAttributes("__self__", false, belong, belong, inter);
+    addAttributes(inter->data.object_name, false, name, belong, inter);
+    addAttributes(inter->data.object_self, false, belong, belong, inter);
     if (belong->value->object.inherit != NULL)
-        addAttributes("__father__", false, belong->value->object.inherit->value, belong, inter);
+        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, belong, inter);
 }
 
 
@@ -282,7 +282,7 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
 }
 
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    LinkValue *_bool_ = findAttributes("__bool__", false, value, inter);
+    LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, value, inter);
     setResultCore(result);
     if (_bool_ != NULL){
         gc_addTmpLink(&_bool_->gc_status);
@@ -292,13 +292,15 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
             setResultError(E_TypeException, "__bool__ function should return bool type data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         else
             return result->value->value->data.bool_.bool_;
-    } else
-        setResultError(E_TypeException, "Object does not support __bool__ function", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    } else {
+        setResultOperationBase(result, makeLinkValue(makeBoolValue(true, inter), belong, inter));
+        return true;
+    }
     return false;
 }
 
 char *getRepo(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    LinkValue *_repo_ = findAttributes("__repo__", false, value, inter);
+    LinkValue *_repo_ = findAttributes(inter->data.object_repo, false, value, inter);
     setResultCore(result);
     if (_repo_ != NULL){
         gc_addTmpLink(&_repo_->gc_status);
