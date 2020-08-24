@@ -280,3 +280,23 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
 
     return result->type;
 }
+
+bool checkBool(Value *value){
+    switch (value->type) {
+        case number:
+            return value->data.num.num != 0;
+        case string:
+            return memStrlen(value->data.str.str) > 0;
+        case bool_:
+            return value->data.bool_.bool_;
+        case pass_:
+        case none:
+            return false;
+        case list:
+            return value->data.list.size > 0;
+        case dict:
+            return value->data.dict.size > 0;
+        default:
+            return true;
+    }
+}
