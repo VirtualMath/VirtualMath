@@ -346,6 +346,10 @@ char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_
     return NULL;
 }
 
-bool is_iterStop(LinkValue *value, Inter *inter){
+bool is_iterStop(LinkValue *value, Inter *inter) {
     return value->value == inter->data.iterstop_exc || checkAttribution(value->value, inter->data.iterstop_exc);
+}
+
+bool is_SystemError(LinkValue *value, Inter *inter) {
+    return value->value == inter->data.sys_exc || checkAttribution(value->value, inter->data.sys_exc);
 }

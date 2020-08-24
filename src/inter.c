@@ -64,12 +64,6 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
 }
 
 void setBaseInterData(struct Inter *inter){
-    inter->data.object = NULL;
-    inter->data.vobject = NULL;
-    inter->data.num = NULL;
-    inter->data.str = NULL;
-    inter->data.none = NULL;
-    inter->data.list_iter = NULL;
     inter->data.var_str_prefix = memStrcpy("str_");
     inter->data.var_num_prefix = memStrcpy("num_");
     inter->data.var_none = memStrcpy("none");
@@ -121,6 +115,8 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.none->gc_status);
 
     gc_freeStatementLink(&inter->data.base_exc->gc_status);
+    gc_freeStatementLink(&inter->data.sys_exc->gc_status);
+    gc_freeStatementLink(&inter->data.keyInterrupt_exc->gc_status);
     gc_freeStatementLink(&inter->data.exc->gc_status);
     gc_freeStatementLink(&inter->data.type_exc->gc_status);
     gc_freeStatementLink(&inter->data.arg_exc->gc_status);

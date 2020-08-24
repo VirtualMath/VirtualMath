@@ -30,6 +30,8 @@ void registeredExcIter(REGISTERED_FUNCTIONSIG){
         char *name;
         Value *value;
     } setList[] = {{"Exception", inter->data.exc},
+                   {"SystemException", inter->data.sys_exc},
+                   {"KeyboardInterrupt", inter->data.keyInterrupt_exc},
                    {"TypeException", inter->data.type_exc},
                    {"ArgumentException", inter->data.arg_exc},
                    {"PermissionsException", inter->data.per_exc},
@@ -60,7 +62,10 @@ void registeredExcIter(REGISTERED_FUNCTIONSIG){
 
 void makeExcIter(Inter *inter){
     inter->data.base_exc = makeException(inter->data.object, inter);
+    inter->data.sys_exc = makeException(inter->data.base_exc, inter);
     inter->data.exc = makeException(inter->data.base_exc, inter);
+
+    inter->data.keyInterrupt_exc = makeException(inter->data.sys_exc, inter);
 
     inter->data.type_exc = makeException(inter->data.exc, inter);
     inter->data.arg_exc = makeException(inter->data.exc, inter);

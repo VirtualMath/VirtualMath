@@ -110,6 +110,18 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
     return type;
 }
 
+bool checkSignal(ResultType *type, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    extern volatile bool is_KeyInterrupt;
+    if (is_KeyInterrupt){
+        is_KeyInterrupt = false;
+        if (type != NULL)
+            *type = error_return;
+        setResultError(E_KeyInterrupt, "KeyInterrupt", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return true;
+    }
+    return false;
+}
+
 /**
  * 局部程序运行statement
  * @param st
@@ -118,7 +130,7 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
  * @return
  */
 ResultType iterStatement(INTER_FUNCTIONSIG) {
-    Statement *base_st = NULL;
+    Statement *base;
     ResultType type;
     setResultCore(result);
 
@@ -128,9 +140,14 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
     }
 
     do {
-        for (base_st = st; base_st != NULL; PASS) {
+        base = st;
+        if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            break;
+        while (base != NULL) {
             freeResult(result);
-            type = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list, result, belong));
+            type = runStatement(CALL_INTER_FUNCTIONSIG(base, var_list, result, belong));
+            if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+                break;
             if (type == goto_return && result->times == 0){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
@@ -141,18 +158,18 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
                 type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
                 if (!RUN_TYPE(type))
                     break;
-                base_st = label_st->next;
+                base = label_st->next;
             }
             else if (!RUN_TYPE(type))
                 break;
             else
-                base_st = base_st->next;
+                base = base->next;
         }
     } while (type == restart_return && result->times == 0);
 
     if (type == not_return || type == restart_return)
         setResultOperationNone(result, inter, belong);
-    result->node = base_st;
+    result->node = base;
     gc_run(inter, var_list, 1, 0, 0, var_list);
     return result->type;
 }
@@ -163,15 +180,27 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
  * @return
  */
 ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
-    LinkValue *belong = inter->base_father;
-    gc_addTmpLink(&belong->gc_status);
-    Statement *base_st = NULL;
+    ResultType type;
     VarList *var_list = NULL;
-    enum ResultType type;
+    Statement *base;
+    LinkValue *belong = inter->base_father;
+
+    if (st == NULL){
+        setResult(result, inter, belong);
+        return result->type;
+    }
+
+    gc_addTmpLink(&belong->gc_status);
     do {
-        for (base_st = st, var_list = inter->var_list; base_st != NULL; PASS) {
+        base = st;
+        var_list = inter->var_list;
+        if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            break;
+        while (base != NULL) {
             freeResult(result);
-            type = runStatement(CALL_INTER_FUNCTIONSIG(base_st, var_list, result, belong));
+            type = runStatement(CALL_INTER_FUNCTIONSIG(base, var_list, result, belong));
+            if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+                break;
             if (type == goto_return){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
@@ -182,18 +211,18 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
                 type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
                 if (!RUN_TYPE(type))
                     break;
-                base_st = label_st->next;
+                base = label_st->next;
             }
             else if (!RUN_TYPE(type))
                 break;
             else
-                base_st = base_st->next;
+                base = base->next;
         }
     } while (type == restart_return && result->times == 0);
 
     if (type != error_return && type != function_return)
         setResultOperationNone(result, inter, belong);
-    result->node = base_st;
+    result->node = base;
     gc_freeTmpLink(&belong->gc_status);
     gc_run(inter, var_list, 1, 0, 0, var_list);
     return result->type;

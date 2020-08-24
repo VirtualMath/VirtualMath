@@ -312,6 +312,10 @@ Value *findBaseError(BaseErrorType type, Inter *inter){
             return inter->data.import_exc;
         case E_IncludeException:
             return inter->data.include_exp;
+        case E_SystemException:
+            return inter->data.sys_exc;
+        case E_KeyInterrupt:
+            return inter->data.keyInterrupt_exc;
         default:
             return NULL;
     }

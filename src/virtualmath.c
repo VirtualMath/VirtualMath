@@ -1,4 +1,4 @@
-#include "__virtualmath.h"
+#include "__run.h"
 
 ResultType runCodeBlock(char *code_file, Inter *inter) {
     Statement *pst = NULL;
@@ -13,16 +13,25 @@ ResultType runCodeBlock(char *code_file, Inter *inter) {
     return type;
 }
 
-ResultType runCodeStdin(Inter *inter) {
+void runCodeStdin(Inter *inter) {
     Statement *pst = NULL;
-    ResultType type = error_return;
-    fprintf(stdout, ">>> ");
-    runParser(NULL, inter, true, &pst);
-    if (pst != NULL) {
-        type = runCode(pst, inter);
-        freeStatement(pst);
+    Result result;
+    bool should_break = false;
+    setResultCore(&result);
+    printf("%s", HelloString);
+    while (!should_break && !ferror(stdin) && !feof(stdin)){
+        fprintf(stdout, ">>> ");
+        runParser(NULL, inter, true, &pst);
+        if (pst != NULL) {
+            globalIterStatement(&result, inter, pst);
+            if (result.type == error_return) {
+                printError(&result, inter, true);
+                should_break = is_SystemError(result.value, inter);
+            }
+            freeStatement(pst);
+            freeResult(&result);
+        }
     }
-    return type;
 }
 
 void runParser(char *code_file, Inter *inter, bool is_one, Statement **st) {

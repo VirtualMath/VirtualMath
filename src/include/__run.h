@@ -2,13 +2,6 @@
 #define VIRTUALMATH___RUN_H
 #include "__virtualmath.h"
 
-#if OUT_INTER_LOG && OUT_INTER_LOG
-#define writeLog_(...) writeLog(__VA_ARGS__)
-#else
-#define printResult(...)
-#define writeLog_(...)
-#endif
-
 char *setStrVarName(char *old, bool free_old, struct Inter *inter);
 char *setNumVarName(vnum num, struct Inter *inter);
 char *getNameFromValue(Value *value, struct Inter *inter);
@@ -40,4 +33,5 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool is_iterStop(LinkValue *value, Inter *inter);
+bool is_SystemError(LinkValue *value, Inter *inter);
 #endif //VIRTUALMATH___RUN_H
