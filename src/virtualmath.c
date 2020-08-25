@@ -26,11 +26,12 @@ void runCodeStdin(Inter *inter) {
     bool should_break = false;
     setResultCore(&result);
     printf("%s", HelloString);
-    while (!should_break && !ferror(stdin) && !feof(stdin)){
+    while (!should_break){
+        if (ferror(stdin) || feof(stdin))
+            clearerr(stdin);
         fprintf(stdout, ">>> ");
         if (runParser(NULL, inter, true, &pst)) {
             globalIterStatement(&result, inter, pst);
-
             if (result.type == error_return && !(should_break = is_quitExc(result.value, inter)))
                 printError(&result, inter, true);
             freeStatement(pst);
