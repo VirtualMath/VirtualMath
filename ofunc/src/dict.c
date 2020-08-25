@@ -4,8 +4,6 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    char *name = NULL;
-    LinkValue *element = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -16,13 +14,44 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
         setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
-    name = getNameFromValue(ap[1].value->value, inter);
-    element = findVar(name, 0, inter, ap[0].value->value->data.dict.dict);
-    memFree(name);
-    if (element != NULL)
-        setResultOperationBase(result, copyLinkValue(element, inter));
-    else
-        setResultError(E_KeyException, "Key Not Found", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    {
+        LinkValue *element = NULL;
+        char *name = getNameFromValue(ap[1].value->value, inter);
+        element = findVar(name, get_var, inter, ap[0].value->value->data.dict.dict);
+        memFree(name);
+        if (element != NULL)
+            setResultOperationBase(result, copyLinkValue(element, inter));
+        else
+            setResultError(E_KeyException, "Key Not Found", 0, "sys", true,
+                           CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    }
+    return result->type;
+}
+
+ResultType dict_down_del(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != dict){
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+    {
+        LinkValue *element = NULL;
+        char *name = getNameFromValue(ap[1].value->value, inter);
+        element = findVar(name, del_var, inter, ap[0].value->value->data.dict.dict);
+        memFree(name);
+        if (element != NULL)
+            setResult(result, inter, belong);
+        else
+            setResultError(E_KeyException, "Key Not Found", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    }
     return result->type;
 }
 
@@ -177,6 +206,7 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_repo, dict_repo, object_free_},
                       {inter->data.object_str, dict_str, object_free_},
                       {inter->data.object_down_assignment, dict_down_assignment, object_free_},
+                      {inter->data.object_down_del, dict_down_del, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addStrVar("dict", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

@@ -177,7 +177,6 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
 LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *ht) {
     LinkValue *tmp = NULL;
     vhashn index = time33(name);
-
     for (Var **base = &ht->hashtable[index]; *base != NULL; base = &(*base)->next){
         if (eqString((*base)->name, name)){
             tmp = (*base)->value;
@@ -206,7 +205,7 @@ LinkValue *findFromVarList(char *name, vnum times, VarOperation operating, INTER
     for (vnum i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     if (operating == del_var && var_list != NULL)
-        tmp = findVar(name, true, inter, var_list->hashtable);
+        tmp = findVar(name, del_var, inter, var_list->hashtable);
     else
         for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
             tmp = findVar(name, operating, inter, var_list->hashtable);

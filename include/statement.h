@@ -10,6 +10,7 @@ struct Statement{
         base_list,
         base_dict,
         base_var,
+        del_,
         base_svar,
         base_lambda,
         operation,
@@ -55,6 +56,9 @@ struct Statement{
             char *name;
             struct Statement *times;
         } base_var;
+        struct{
+            struct Statement *var;
+        } del_;
         struct base_svar{
             struct Statement *name;
             struct Statement *times;
@@ -249,7 +253,7 @@ typedef struct Statement Statement;
 typedef struct StatementList StatementList;
 typedef struct DecorationStatement DecorationStatement;
 
-Statement *makeStatement(long int line, char *file);
+Statement *makeStatement(fline line, char *file);
 void setRunInfo(Statement *st);
 void freeRunInfo(Statement *st);
 void freeStatement(Statement *st);
@@ -257,39 +261,40 @@ Statement *copyStatement(Statement *st);
 Statement *copyStatementCore(Statement *st);
 void connectStatement(Statement *base, Statement *new);
 
-Statement *makeOperationBaseStatement(enum OperationType type, long int line, char *file);
+Statement *makeOperationBaseStatement(enum OperationType type, fline line, char *file);
 Statement *makeOperationStatement(enum OperationType type, Statement *left, Statement *right);
-Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *file);
-Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file);
-Statement *makeBaseValueStatement(enum BaseValueType type, long int line, char *file);
-Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file);
+Statement *makeBaseLinkValueStatement(LinkValue *value, fline line, char *file);
+Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, fline line, char *file);
+Statement *makeBaseValueStatement(enum BaseValueType type, fline line, char *file);
+Statement *makeBaseVarStatement(char *name, Statement *times, fline line, char *file);
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
-Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file);
-Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, char *file);
+Statement *makeBaseDictStatement(Parameter *pt, fline line, char *file);
+Statement *makeTupleStatement(Parameter *pt, enum ListType type, fline line, char *file);
 Statement *makeClassStatement(Statement *name, Statement *function, Parameter *pt);
 Statement *makeFunctionStatement(Statement *name, Statement *function, struct Parameter *pt);
 Statement *makeLambdaStatement(Statement *function, Parameter *pt);
 Statement *makeCallStatement(Statement *function, struct Parameter *pt);
 Statement *makeSliceStatement(Statement *element, Parameter *index, enum SliceType type);
-Statement *makeForStatement(long int line, char *file);
-Statement *makeIfStatement(long int line, char *file);
-Statement *makeWhileStatement(long int line, char *file);
-Statement *makeTryStatement(long int line, char *file);
-Statement *makeBreakStatement(Statement *times, long int line, char *file);
-Statement *makeWithStatement(long int line, char *file);
-Statement *makeContinueStatement(Statement *times, long int line, char *file);
-Statement *makeRegoStatement(Statement *times, long int line, char *file);
-Statement *makeRestartStatement(Statement *times, long int line, char *file);
-Statement *makeReturnStatement(Statement *value, long int line, char *file);
-Statement *makeYieldStatement(Statement *value, long int line, char *file);
-Statement *makeRaiseStatement(Statement *value, long int line, char *file);
-Statement *makeAssertStatement(Statement *conditions, long int line, char *file);
-Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir);
+Statement *makeForStatement(fline line, char *file);
+Statement *makeIfStatement(fline line, char *file);
+Statement *makeWhileStatement(fline line, char *file);
+Statement *makeTryStatement(fline line, char *file);
+Statement *makeBreakStatement(Statement *times, fline line, char *file);
+Statement *makeWithStatement(fline line, char *file);
+Statement *makeContinueStatement(Statement *times, fline line, char *file);
+Statement *makeRegoStatement(Statement *times, fline line, char *file);
+Statement *makeRestartStatement(Statement *times, fline line, char *file);
+Statement *makeReturnStatement(Statement *value, fline line, char *file);
+Statement *makeYieldStatement(Statement *value, fline line, char *file);
+Statement *makeRaiseStatement(Statement *value, fline line, char *file);
+Statement *makeAssertStatement(Statement *conditions, fline line, char *file);
+Statement *makeIncludeStatement(Statement *file, fline line, char *file_dir);
 Statement *makeImportStatement(Statement *file, Statement *as);
 Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt);
-Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir, enum DefaultType type);
-Statement *makeLabelStatement(Statement *var, Statement *command, char *label, long int line, char *file_dir);
-Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, long int line, char *file_dir);
+Statement *makeDefaultVarStatement(Parameter *var, fline line, char *file_dir, enum DefaultType type);
+Statement *makeLabelStatement(Statement *var, Statement *command, char *label, fline line, char *file_dir);
+Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, fline line, char *file_dir);
+Statement *makeDelStatement(Statement *var, fline line, char *file_dir);
 Token *setOperationFromToken(Statement **st_ad, Token *left, Token *right, enum OperationType type, bool is_right);
 
 StatementList *makeStatementList(Statement *condition, Statement *var, Statement *code, int type);

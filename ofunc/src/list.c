@@ -124,6 +124,64 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
+ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=false},
+                           {.must=-1}};
+    vnum size;
+    vnum first;
+    vnum second;
+    vnum stride;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != list) {
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+    size = ap[0].value->value->data.list.size;
+
+    first = 0;
+    second = size;
+    stride = 1;
+    for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == number)
+            *(list[i]) = ap[i + 1].value->value->data.num.num;
+        else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
+            setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            return error_return;
+        }
+    }
+
+    if (!checkSlice(&first, &second, &stride, size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        return result->type;
+
+    {
+        LinkValue **new = NULL;
+        vnum new_size = size;
+        for (vnum i = first; i < second; i += stride) {
+            ap[0].value->value->data.list.list[i] = NULL;
+            new_size --;
+        }
+        new = memCalloc(new_size, sizeof(LinkValue *));
+        for (vnum i = 0, c = 0; i < size; i++) {
+            if (ap[0].value->value->data.list.list[i] != NULL){
+                new[c] = ap[0].value->value->data.list.list[i];
+                c++;
+            }
+        }
+        memFree(ap[0].value->value->data.list.list);
+        ap[0].value->value->data.list.list = new;
+        ap[0].value->value->data.list.size = new_size;
+    }
+    return result->type;
+}
+
 ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -154,6 +212,39 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     }
     ap[0].value->value->data.list.list[index] = ap[1].value;
     setResultOperationBase(result, ap[1].value);
+    return result->type;
+}
+
+ResultType list_down_del(OFFICAL_FUNCTIONSIG){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    vnum size;
+    vnum index;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != list || ap[1].value->value->type != number){
+        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+    size = ap[0].value->value->data.list.size;
+    index = ap[1].value->value->data.num.num;
+    if (!checkIndex(&index, &size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        return result->type;
+    {
+        LinkValue **new = NULL;
+        new = memCalloc(size - 1, sizeof(LinkValue *));
+        memcpy(new, ap[0].value->value->data.list.list, sizeof(LinkValue *) * index);
+        memcpy(new + index, ap[0].value->value->data.list.list + index + 1, sizeof(LinkValue *) * (size - index - 1));
+        memFree(ap[0].value->value->data.list.list);
+        ap[0].value->value->data.list.list = new;
+        ap[0].value->value->data.list.size --;
+    }
+    setResult(result, inter, belong);
     return result->type;
 }
 
@@ -280,6 +371,8 @@ void registeredList(REGISTERED_FUNCTIONSIG){
                           {inter->data.object_iter, list_iter, object_free_},
                           {inter->data.object_repo, list_repo, object_free_},
                           {inter->data.object_str, list_str, object_free_},
+                          {inter->data.object_down_del, list_down_del, object_free_},
+                          {inter->data.object_slice_del, list_slice_del, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addStrVar("tuple", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));

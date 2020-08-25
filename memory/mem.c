@@ -4,10 +4,7 @@ jmp_buf memVirtualMath_Env;
 bool memVirtualMathUseJmp;
 
 void *memCalloc(size_t num, size_t size){
-    void *tmp = NULL;
-    if (num == 0 || size == 0)
-        return NULL;
-    tmp = calloc(num, size);
+    void *tmp = calloc(num, size);
     if (tmp == NULL) {
         if (memVirtualMathUseJmp)
             longjmp(memVirtualMath_Env, -1);
@@ -18,13 +15,7 @@ void *memCalloc(size_t num, size_t size){
 }
 
 void *memRealloc(void *old, size_t size){
-    void *tmp = NULL;
-    if (size <= 0)
-        return NULL;
-    else if (old == NULL)
-        tmp = memCalloc(1,size);
-    else
-        tmp = realloc(old, size);
+    void *tmp = realloc(old, size);
     if (tmp == NULL) {
         if (memVirtualMathUseJmp)
             longjmp(memVirtualMath_Env, -1);

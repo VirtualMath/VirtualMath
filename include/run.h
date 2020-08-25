@@ -71,4 +71,11 @@ ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST);
 ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST);
+
+ResultType delOperation(INTER_FUNCTIONSIG);
+ResultType delCore(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST);
+ResultType listDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST);
+ResultType varDel(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST);
+ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST);
+ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH_RUN_H

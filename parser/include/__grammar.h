@@ -15,7 +15,7 @@
 typedef void (*PasersFunction)(PASERSSIGNATURE);
 typedef int (*GetSymbolFunction)(PASERSSIGNATURE, int, Statement **);
 typedef int (*ChecktLeftToken)(PASERSSIGNATURE, Statement *);
-typedef Statement *(*MakeControlFunction)(Statement *, long int, char *);
+typedef Statement *(*MakeControlFunction)(Statement *, fline, char *);
 typedef int (*TailFunction)(PASERSSIGNATURE, Token *, Statement **);
 
 void parserCommand(PASERSSIGNATURE);

@@ -81,9 +81,11 @@ struct Inter{
         char *object_self;
         char *object_father;
         char *object_message;
-        char *object_down_assignment;
         char *object_str;
+        char *object_down_assignment;
         char *object_slice_assignment;
+        char *object_down_del;
+        char *object_slice_del;
         int default_pt_type;
     } data;
 };

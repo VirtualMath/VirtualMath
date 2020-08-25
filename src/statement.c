@@ -1,6 +1,6 @@
 #include "__virtualmath.h"
 
-Statement *makeStatement(long int line, char *file) {
+Statement *makeStatement(fline line, char *file) {
     Statement *tmp = memCalloc(1, sizeof(Statement));
     tmp->type = start;
     tmp->next = NULL;
@@ -64,7 +64,7 @@ Token *setOperationFromToken(Statement **st_ad, struct Token *left, struct Token
     return new_token;
 }
 
-Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *file) {
+Statement *makeBaseLinkValueStatement(LinkValue *value, fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
     tmp->u.base_value.type = link_value;
@@ -74,7 +74,7 @@ Statement *makeBaseLinkValueStatement(LinkValue *value, long int line, char *fil
     return tmp;
 }
 
-Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long int line, char *file){
+Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
     tmp->u.base_value.type = type;
@@ -83,7 +83,7 @@ Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, long 
     return tmp;
 }
 
-Statement *makeBaseValueStatement(enum BaseValueType type, long int line, char *file) {
+Statement *makeBaseValueStatement(enum BaseValueType type, fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
     tmp->u.base_value.type = type;
@@ -92,7 +92,7 @@ Statement *makeBaseValueStatement(enum BaseValueType type, long int line, char *
     return tmp;
 }
 
-Statement *makeBaseVarStatement(char *name, Statement *times, long int line, char *file){
+Statement *makeBaseVarStatement(char *name, Statement *times, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_var;
     tmp->u.base_var.name = memStrcpy(name);
@@ -108,14 +108,14 @@ Statement *makeBaseSVarStatement(Statement *name, Statement *times){
     return tmp;
 }
 
-Statement *makeBaseDictStatement(Parameter *pt, long int line, char *file){
+Statement *makeBaseDictStatement(Parameter *pt, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_dict;
     tmp->u.base_dict.dict = pt;
     return tmp;
 }
 
-Statement *makeOperationBaseStatement(enum OperationType type, long int line, char *file){
+Statement *makeOperationBaseStatement(enum OperationType type, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = operation;
     tmp->u.operation.OperationType = type;
@@ -131,7 +131,7 @@ Statement *makeOperationStatement(enum OperationType type, Statement *left, Stat
     return tmp;
 }
 
-Statement *makeTupleStatement(Parameter *pt, enum ListType type, long int line, char *file) {
+Statement *makeTupleStatement(Parameter *pt, enum ListType type, fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_list;
     tmp->u.base_list.type = type;
@@ -184,7 +184,7 @@ Statement *makeSliceStatement(Statement *element, Parameter *index, enum SliceTy
     return tmp;
 }
 
-Statement *makeForStatement(long int line, char *file) {
+Statement *makeForStatement(fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = for_branch;
     tmp->u.for_branch.after_do = NULL;
@@ -195,7 +195,7 @@ Statement *makeForStatement(long int line, char *file) {
     return tmp;
 }
 
-Statement *makeIfStatement(long int line, char *file) {
+Statement *makeIfStatement(fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = if_branch;
     tmp->u.if_branch.if_list = NULL;
@@ -204,7 +204,7 @@ Statement *makeIfStatement(long int line, char *file) {
     return tmp;
 }
 
-Statement *makeWhileStatement(long int line, char *file) {
+Statement *makeWhileStatement(fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = while_branch;
     tmp->u.while_branch.type = while_;
@@ -216,7 +216,7 @@ Statement *makeWhileStatement(long int line, char *file) {
     return tmp;
 }
 
-Statement *makeTryStatement(long int line, char *file) {
+Statement *makeTryStatement(fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = try_branch;
     tmp->u.try_branch.except_list = NULL;
@@ -226,7 +226,7 @@ Statement *makeTryStatement(long int line, char *file) {
     return tmp;
 }
 
-Statement *makeWithStatement(long int line, char *file) {
+Statement *makeWithStatement(fline line, char *file) {
     Statement *tmp = makeStatement(line, file);
     tmp->type = with_branch;
     tmp->u.with_branch.with_list = NULL;
@@ -235,63 +235,63 @@ Statement *makeWithStatement(long int line, char *file) {
     return tmp;
 }
 
-Statement *makeBreakStatement(Statement *times, long int line, char *file){
+Statement *makeBreakStatement(Statement *times, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = break_cycle;
     tmp->u.break_cycle.times = times;
     return tmp;
 }
 
-Statement *makeContinueStatement(Statement *times, long int line, char *file){
+Statement *makeContinueStatement(Statement *times, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = continue_cycle;
     tmp->u.continue_cycle.times = times;
     return tmp;
 }
 
-Statement *makeRegoStatement(Statement *times, long int line, char *file){
+Statement *makeRegoStatement(Statement *times, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = rego_if;
     tmp->u.rego_if.times = times;
     return tmp;
 }
 
-Statement *makeRestartStatement(Statement *times, long int line, char *file){
+Statement *makeRestartStatement(Statement *times, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = restart;
     tmp->u.restart.times = times;
     return tmp;
 }
 
-Statement *makeReturnStatement(Statement *value, long int line, char *file){
+Statement *makeReturnStatement(Statement *value, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = return_code;
     tmp->u.return_code.value = value;
     return tmp;
 }
 
-Statement *makeYieldStatement(Statement *value, long int line, char *file){
+Statement *makeYieldStatement(Statement *value, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = yield_code;
     tmp->u.yield_code.value = value;
     return tmp;
 }
 
-Statement *makeRaiseStatement(Statement *value, long int line, char *file){
+Statement *makeRaiseStatement(Statement *value, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = raise_code;
     tmp->u.raise_code.value = value;
     return tmp;
 }
 
-Statement *makeAssertStatement(Statement *conditions, long int line, char *file){
+Statement *makeAssertStatement(Statement *conditions, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = assert;
     tmp->u.assert.conditions = conditions;
     return tmp;
 }
 
-Statement *makeIncludeStatement(Statement *file, long int line, char *file_dir){
+Statement *makeIncludeStatement(Statement *file, fline line, char *file_dir){
     Statement *tmp = makeStatement(line, file_dir);
     tmp->type = include_file;
     tmp->u.include_file.file = file;
@@ -315,7 +315,7 @@ Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt
     return tmp;
 }
 
-Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir, enum DefaultType type) {
+Statement *makeDefaultVarStatement(Parameter *var, fline line, char *file_dir, enum DefaultType type) {
     Statement *tmp = makeStatement(line, file_dir);
     tmp->type = default_var;
     tmp->u.default_var.var = var;
@@ -323,7 +323,7 @@ Statement *makeDefaultVarStatement(Parameter *var, long int line, char *file_dir
     return tmp;
 }
 
-Statement *makeLabelStatement(Statement *var, Statement *command, char *label, long int line, char *file_dir) {
+Statement *makeLabelStatement(Statement *var, Statement *command, char *label, fline line, char *file_dir) {
     Statement *tmp = makeStatement(line, file_dir);
     tmp->type = label_;
     tmp->u.label_.as = var;
@@ -332,12 +332,19 @@ Statement *makeLabelStatement(Statement *var, Statement *command, char *label, l
     return tmp;
 }
 
-Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, long int line, char *file_dir) {
+Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, fline line, char *file_dir) {
     Statement *tmp = makeStatement(line, file_dir);
     tmp->type = goto_;
     tmp->u.goto_.return_ = return_;
     tmp->u.goto_.times = times;
     tmp->u.goto_.label = label;
+    return tmp;
+}
+
+Statement *makeDelStatement(Statement *var, fline line, char *file_dir) {
+    Statement *tmp = makeStatement(line, file_dir);
+    tmp->type = del_;
+    tmp->u.del_.var = var;
     return tmp;
 }
 
@@ -366,6 +373,9 @@ void freeStatement(Statement *st){
             case base_var:
                 memFree(st->u.base_var.name);
                 freeStatement(st->u.base_var.times);
+                break;
+            case del_:
+                freeStatement(st->u.del_.var);
                 break;
             case base_svar:
                 freeStatement(st->u.base_svar.name);
@@ -523,6 +533,9 @@ Statement *copyStatementCore(Statement *st){
         case base_var:
             new->u.base_var.name = memStrcpy(st->u.base_var.name);
             new->u.base_var.times = copyStatement(st->u.base_var.times);
+            break;
+        case del_:
+            new->u.del_.var = copyStatement(st->u.del_.var);
             break;
         case base_svar:
             new->u.base_svar.name = copyStatement(st->u.base_svar.name);

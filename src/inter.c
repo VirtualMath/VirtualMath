@@ -91,9 +91,11 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_name = memStrcpy("__name__");
     inter->data.object_father = memStrcpy("__father__");
     inter->data.object_message = memStrcpy("__message__");
+    inter->data.object_str = memStrcpy("__str__");
     inter->data.object_down_assignment = memStrcpy("__down_assignment__");
     inter->data.object_slice_assignment = memStrcpy("__slice_assignment__");
-    inter->data.object_str = memStrcpy("__str__");
+    inter->data.object_down_del = memStrcpy("__down_del__");
+    inter->data.object_slice_del = memStrcpy("__slice_del__");
     inter->data.default_pt_type = free_;
 
 }
@@ -165,9 +167,11 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_self);
     memFree(inter->data.object_father);
     memFree(inter->data.object_message);
+    memFree(inter->data.object_str);
     memFree(inter->data.object_down_assignment);
     memFree(inter->data.object_slice_assignment);
-    memFree(inter->data.object_str);
+    memFree(inter->data.object_down_del);
+    memFree(inter->data.object_slice_del);
 
     if (!inter->data.is_stdout)
         fclose(inter->data.inter_stdout);

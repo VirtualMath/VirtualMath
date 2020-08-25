@@ -167,6 +167,10 @@ void parserCommand(PASERSSIGNATURE){
             status = commandCallControl_(CALLPASERSSIGNATURE, makeIncludeStatement, INCLUDE, &st, true,
                                          "parserInclude: Don't get file after include");
             break;
+        case MATHER_DEL :
+            status = commandCallControl_(CALLPASERSSIGNATURE, makeDelStatement, DEL, &st, true,
+                                         "parserInclude: Don't get operation after del");
+            break;
         case MATHER_FROM :
         case MATHER_IMPORT :
             status = callChildStatement(CALLPASERSSIGNATURE, parserImport, IMPORT, &st, NULL);

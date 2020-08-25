@@ -98,6 +98,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
         case goto_:
             type = gotoLabel(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
+        case del_:
+            type = delOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+            break;
         default:
             setResult(result, inter, belong);
             break;

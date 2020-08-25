@@ -94,8 +94,9 @@
 #define MATHER_GOTO 80
 #define MATHER_LABEL 81
 #define MATHER_PASSVALUE 82
+#define MATHER_DEL 83
 
-#define MATHER_MAX 83
+#define MATHER_MAX 84
 
 // 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
 #define COMMAND -6
@@ -130,6 +131,7 @@
 #define DECORATION -34
 #define SLICE -35
 #define FOR_BRANCH -36
+#define DEL -36
 
 struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配
