@@ -134,12 +134,13 @@ void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
 
 int readBackToken(ParserMessage *pm){
     Token *tmp = popNewToken(pm->tm);
-    if (tmp->token_type == -2){
-        freeToken(tmp, false);
+    int type = tmp->token_type;
+    if (type == -2)
         syntaxError(pm, lexical_error, tmp->line, 1, "lexical make some error");
-    }
+    else if (type == -3)
+        syntaxError(pm, int_error, tmp->line, 1, "KeyInterrupt");
     addBackToken(pm->tm->ts, tmp);
-    return tmp->token_type;
+    return type;
 }
 
 bool checkToken(ParserMessage *pm, int type){

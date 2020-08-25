@@ -9,7 +9,9 @@ enum SignalType{
 
 typedef enum SignalType SignalType;
 extern volatile SignalType is_KeyInterrupt;
+extern volatile SignalType pm_KeyInterrupt;
 
-void resetHandler();
+void signalStopInter(int signum);;
+void signalStopPm(int signum);
 
 #endif //VIRTUALMATH_HANDLER_H

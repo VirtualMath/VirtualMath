@@ -10,7 +10,7 @@ int readChar(LexFile *file){
     if (file->back.is_back)
         file->back.is_back = false;
     else
-        file->back.p = getc(file->file);
+        file->back.p = fgetc(file->file);
     if (file->back.p == '\n')
         file->line++;
     return file->back.p;

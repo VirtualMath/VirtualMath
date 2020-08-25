@@ -244,9 +244,9 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
     setupMathers(mathers);
     while (status == -1){
         p = readChar(file);
-        if (is_KeyInterrupt == signal_appear) {
-            is_KeyInterrupt = signal_check;
-            return -2;
+        if (pm_KeyInterrupt == signal_appear) {
+            pm_KeyInterrupt = signal_check;
+            return -3;
         }
 
         numberMather(p ,mathers->mathers[MATHER_NUMBER]);
@@ -370,17 +370,11 @@ int lexFilter(LexFile *file, int status){
 Token *getToken(LexFile *file, LexMathers *mathers) {
     int status = MATHER_SPACE;
     int filter;
-    Token *tmp = NULL;
 
     while ((filter = lexFilter(file, status)) == -1)
         status = getMatherStatus(file, mathers);
 
-    if (status == -2){
-        tmp = makeLexToken(MATHER_ERROR_, NULL, NULL, file->line);
-        goto return_;
-    }
-    tmp = makeLexToken(filter, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
-
-    return_:
-    return tmp;
+    if (status == -2 || status == -3)
+        return makeLexToken(status, NULL, NULL, file->line);
+    return makeLexToken(filter, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
 }

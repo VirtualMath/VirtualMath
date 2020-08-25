@@ -3,7 +3,6 @@
 
 #include <__macro.h>
 
-#define MATHER_ERROR_ -1
 #define MATHER_NUMBER 0
 #define MATHER_STRING 1
 #define MATHER_VAR 2

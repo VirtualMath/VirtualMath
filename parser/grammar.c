@@ -35,10 +35,18 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
     bool should_break = false;
     char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
     int save_enter = pm->tm->file->filter_data.enter;
+    void *bak = NULL;
+    fline line = 0;
+
+    pm_KeyInterrupt = signal_reset;
+    bak = signal(SIGINT, signalStopPm);
     pm->tm->file->filter_data.enter = 0;
+
     while (!should_break){
         token_type = readBackToken(pm);
-        if (token_type == MATHER_EOF){
+        if (token_type == -3 || token_type == -2)
+            goto return_;
+        else if (token_type == MATHER_EOF){
             delToken(pm);
             goto return_;
         }
@@ -51,7 +59,7 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
             int stop;
             if (!callChildToken(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command_token, command_message, command_list_error))
                 goto return_;
-
+            line = command_token->line;
             stop = readBackToken(pm);
             if (stop == MATHER_ENTER) {
                 delToken(pm);
@@ -78,6 +86,11 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
         }
     }
     return_:
+    signal(SIGINT, bak);
+    if (pm_KeyInterrupt != signal_reset) {
+        pm_KeyInterrupt = signal_reset;
+        syntaxError(pm, int_error, line, 1, "KeyInterrupt");
+    }
     pm->tm->file->filter_data.enter = save_enter;
     return;
 }

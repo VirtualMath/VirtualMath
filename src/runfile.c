@@ -25,7 +25,11 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     new_st = makeStatement(0, file_dir);
     pm = makeParserMessage(file_dir);
     parserCommandList(pm, inter, true, false, new_st);
-    if (pm->status != success){
+    if (pm->status == int_error) {
+        setResultErrorSt(E_KeyInterrupt, "KeyInterrupt", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        goto return_;
+    }
+    else if (pm->status != success){
         setResultErrorSt(E_IncludeException, pm->status_message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
@@ -74,9 +78,14 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     pm = makeParserMessage(*file_dir);
     run_st = makeStatement(0, *file_dir);
     parserCommandList(pm, import_inter, true, false, run_st);
-    if (pm->status != success) {
+    if (pm->status == int_error) {
+        setResultErrorSt(E_KeyInterrupt, "KeyInterrupt", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeInter(import_inter, false);
+        goto return_;
+    }
+    else if (pm->status != success) {
         setResultErrorSt(E_TypeException, pm->status_message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        freeInter(import_inter, false);
         goto return_;
     }
 

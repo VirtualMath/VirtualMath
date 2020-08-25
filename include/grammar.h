@@ -9,6 +9,7 @@ struct ParserMessage{
         syntax_error,
         command_list_error,
         lexical_error,
+        int_error,
     } status;
     char *status_message;
     char *file;

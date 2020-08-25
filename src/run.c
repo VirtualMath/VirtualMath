@@ -134,13 +134,16 @@ bool checkSignal(ResultType *type, fline line, char *file, INTER_FUNCTIONSIG_NOT
 ResultType iterStatement(INTER_FUNCTIONSIG) {
     Statement *base;
     ResultType type;
-    setResultCore(result);
+//    void *bak = NULL;
 
+    setResultCore(result);
     if (st == NULL){
         setResult(result, inter, belong);
         return result->type;
     }
 
+//    is_KeyInterrupt = signal_reset;
+//    signal(SIGINT, signalStopInter);
     do {
         base = st;
         if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
@@ -172,7 +175,9 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
     if (type == not_return || type == restart_return)
         setResultOperationNone(result, inter, belong);
     result->node = base;
+
     gc_run(inter, var_list, 1, 0, 0, var_list);
+//    signal(SIGINT, bak);
     return result->type;
 }
 
@@ -186,12 +191,15 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
     VarList *var_list = NULL;
     Statement *base;
     LinkValue *belong = inter->base_father;
+    void *bak = NULL;
 
     if (st == NULL){
         setResult(result, inter, belong);
         return result->type;
     }
 
+    is_KeyInterrupt = signal_reset;
+    bak = signal(SIGINT, signalStopInter);
     gc_addTmpLink(&belong->gc_status);
     do {
         base = st;
@@ -225,8 +233,11 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
     if (type != error_return && type != function_return)
         setResultOperationNone(result, inter, belong);
     result->node = base;
+
     gc_freeTmpLink(&belong->gc_status);
     gc_run(inter, var_list, 1, 0, 0, var_list);
+
+    signal(SIGINT, bak);
     return result->type;
 }
 
