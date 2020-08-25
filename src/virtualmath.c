@@ -1,18 +1,24 @@
 #include "__run.h"
 
-ResultType runCodeBlock(char *code_file, Inter *inter) {
+void runCodeFile(Inter *inter, char *file[]) {
     Statement *pst = NULL;
-    ResultType type = error_return;
-    if (checkFile(code_file) != 1)
-        return error_return;
-    runParser(code_file, inter, false, &pst);
-    if (pst != NULL) {
-        type = runCode(pst, inter);
-        freeStatement(pst);
+    Result result;
+    bool should_break = false;
+    setResultCore(&result);
+    for (PASS; !should_break && *file != NULL; file++) {
+        if (checkFile((*file)) != 1)
+            continue;
+        if (runParser(*file, inter, false, &pst)) {
+            globalIterStatement(&result, inter, pst);
+            if (result.type == error_return) {
+                printError(&result, inter, true);
+                should_break = true;
+            }
+            freeStatement(pst);
+            freeResult(&result);
+        }
     }
-    return type;
 }
-
 void runCodeStdin(Inter *inter) {
     Statement *pst = NULL;
     Result result;
@@ -21,38 +27,31 @@ void runCodeStdin(Inter *inter) {
     printf("%s", HelloString);
     while (!should_break && !ferror(stdin) && !feof(stdin)){
         fprintf(stdout, ">>> ");
-        runParser(NULL, inter, true, &pst);
-        if (pst != NULL) {
+        if (runParser(NULL, inter, true, &pst)) {
             globalIterStatement(&result, inter, pst);
-            if (result.type == error_return) {
+            if (result.type == error_return && !(should_break = is_quitExc(result.value, inter)))
                 printError(&result, inter, true);
-                should_break = is_SystemError(result.value, inter);
-            }
             freeStatement(pst);
             freeResult(&result);
         }
     }
 }
 
-void runParser(char *code_file, Inter *inter, bool is_one, Statement **st) {
+bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st) {
     ParserMessage *pm = makeParserMessage(code_file);
     *st = makeStatement(0, (code_file == NULL) ? "stdin" : code_file);
     parserCommandList(pm, inter, true, is_one, *st);
-    if (pm->status != success) {
+    if (is_KeyInterrupt != signal_reset) {
+        is_KeyInterrupt = signal_reset;
+        fprintf(stderr, "KeyInterrupt\n");
+    } else if (pm->status != success)
         fprintf(stderr, "Syntax Error: %s\n", pm->status_message);
-        freeStatement(*st);
-        *st = NULL;
+    else {
+        freeParserMessage(pm, true);
+        return true;
     }
+    freeStatement(*st);
+    *st = NULL;
     freeParserMessage(pm, true);
-}
-
-ResultType runCode(Statement *st, Inter *inter) {
-    Result result;
-    ResultType type;
-    setResultCore(&result);
-    type = globalIterStatement(&result, inter, st);
-    if (type == error_return)
-        printError(&result, inter, true);
-    freeResult(&result);
-    return type;
+    return false;
 }

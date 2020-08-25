@@ -239,19 +239,25 @@ void commentMather(int p, LexMather *mather){
  * @return
  */
 int getMatherStatus(LexFile *file, LexMathers *mathers) {
-    setupMathers(mathers);
     int status = -1;
+    int p;
+    setupMathers(mathers);
     while (status == -1){
-        int p = readChar(file);
+        p = readChar(file);
+        if (is_KeyInterrupt == signal_appear) {
+            is_KeyInterrupt = signal_check;
+            return -2;
+        }
+
         numberMather(p ,mathers->mathers[MATHER_NUMBER]);
         varMather(p ,mathers->mathers[MATHER_VAR]);
         spaceMather(p ,mathers->mathers[MATHER_SPACE]);
         stringMather(p, mathers->mathers[MATHER_STRING]);
         backslashMather(p, mathers->mathers[MATHER_NOTENTER]);
         commentMather(p, mathers->mathers[MATHER_COMMENT]);
-        charMatherMacro(MATHER_EOF, EOF);
         aCharMather(p, mathers->mathers[MATHER_ENTER], '\n');
 
+        charMatherMacro(MATHER_EOF, EOF);
         strMatherMacro(MATHER_IF, "if");  // 条件判断
         strMatherMacro(MATHER_ELIF, "elif");  // 条件循环
         strMatherMacro(MATHER_WHILE, "while");  // 条件循环

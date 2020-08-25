@@ -94,6 +94,14 @@ ResultType vm_allstaticmethod(OFFICAL_FUNCTIONSIG){
     return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), all_static_);
 }
 
+ResultType vm_quit(OFFICAL_FUNCTIONSIG){
+    if (arg != NULL)
+        setResultError(E_ArgumentException, "Too Many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else
+        setResultError(E_QuitException, "Quit By User", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    return error_return;
+}
+
 void registeredSysFunction(REGISTERED_FUNCTIONSIG){
     NameFunc tmp[] = {{"super", vm_super, free_},
                       {"freemethod", vm_freemethod, free_},
@@ -104,6 +112,7 @@ void registeredSysFunction(REGISTERED_FUNCTIONSIG){
                       {"objectmethod", vm_objectfreemethod, free_},
                       {"simplemethod", vm_allfreemethod, free_},
                       {"simplestaticmethod", vm_allstaticmethod, free_},
+                      {"quit", vm_quit, free_},
                       {NULL, NULL}};
     iterNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

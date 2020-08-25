@@ -1,5 +1,4 @@
 #include "__virtualmath.h"
-volatile bool is_KeyInterrupt = false;
 void signalStop(int signum);
 
 int main(int argc, char *argv[]) {
@@ -15,8 +14,7 @@ int main(int argc, char *argv[]) {
         goto args_error;
 
     inter = makeInter(args.out_file, args.error_file, args.in_file, NULL);
-    for (ResultType status = not_return; status != error_return && argv[optind] != NULL; optind++)
-        status = runCodeBlock(argv[optind], inter);
+    runCodeFile(inter, argv + optind);
     if (args.run_commandLine)
         runCodeStdin(inter);
     freeInter(inter, true);
@@ -27,7 +25,8 @@ int main(int argc, char *argv[]) {
 
 
 void signalStop(int signum) {
-    is_KeyInterrupt = true;
+    if (is_KeyInterrupt == signal_reset)
+        is_KeyInterrupt = signal_appear;
 }
 
 /** TODO-szh List

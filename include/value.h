@@ -147,6 +147,7 @@ enum BaseErrorType{
     E_IncludeException,
     E_SystemException,
     E_KeyInterrupt,
+    E_QuitException,
 };
 
 typedef struct Value Value;

@@ -111,9 +111,8 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
 }
 
 bool checkSignal(ResultType *type, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    extern volatile bool is_KeyInterrupt;
-    if (is_KeyInterrupt){
-        is_KeyInterrupt = false;
+    if (is_KeyInterrupt == signal_appear){
+        is_KeyInterrupt = signal_reset;
         if (type != NULL)
             *type = error_return;
         setResultError(E_KeyInterrupt, "KeyInterrupt", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

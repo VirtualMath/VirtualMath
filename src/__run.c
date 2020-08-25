@@ -350,6 +350,6 @@ bool is_iterStop(LinkValue *value, Inter *inter) {
     return value->value == inter->data.iterstop_exc || checkAttribution(value->value, inter->data.iterstop_exc);
 }
 
-bool is_SystemError(LinkValue *value, Inter *inter) {
-    return value->value == inter->data.sys_exc || checkAttribution(value->value, inter->data.sys_exc);
+bool is_quitExc(LinkValue *value, Inter *inter) {
+    return value->value == inter->data.quit_exc || checkAttribution(value->value, inter->data.quit_exc);
 }

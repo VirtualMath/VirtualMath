@@ -36,6 +36,7 @@ struct Inter{
         struct Value *base_exc;
         struct Value *sys_exc;
         struct Value *keyInterrupt_exc;
+        struct Value *quit_exc;
         struct Value *exc;
         struct Value *type_exc;
         struct Value *arg_exc;
@@ -94,9 +95,8 @@ typedef enum ResultType ResultType;
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
-ResultType runCodeBlock(char *code_file, Inter *inter);
 void runCodeStdin(Inter *inter);
-void runParser(char *code_file, Inter *inter, bool is_one, Statement **st);
-ResultType runCode(Statement *st, Inter *inter);
+void runCodeFile(Inter *inter, char *file[]);
+bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st);
 void mergeInter(Inter *new, Inter *base);
 #endif //VIRTUALMATH_INTER_H

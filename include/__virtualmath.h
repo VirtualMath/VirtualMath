@@ -5,6 +5,7 @@
 
 #include "mem.h"
 #include "arguement.h"
+#include "handler.h"
 #include "file.h"
 
 #include "gc.h"

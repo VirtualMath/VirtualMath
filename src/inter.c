@@ -115,8 +115,11 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.none->gc_status);
 
     gc_freeStatementLink(&inter->data.base_exc->gc_status);
+
     gc_freeStatementLink(&inter->data.sys_exc->gc_status);
     gc_freeStatementLink(&inter->data.keyInterrupt_exc->gc_status);
+    gc_freeStatementLink(&inter->data.quit_exc->gc_status);
+
     gc_freeStatementLink(&inter->data.exc->gc_status);
     gc_freeStatementLink(&inter->data.type_exc->gc_status);
     gc_freeStatementLink(&inter->data.arg_exc->gc_status);

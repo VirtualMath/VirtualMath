@@ -316,6 +316,8 @@ Value *findBaseError(BaseErrorType type, Inter *inter){
             return inter->data.sys_exc;
         case E_KeyInterrupt:
             return inter->data.keyInterrupt_exc;
+        case E_QuitException:
+            return inter->data.quit_exc;
         default:
             return NULL;
     }
