@@ -1,5 +1,6 @@
 #ifndef VIRTUALMATH_ARGUEMENT_H
 #define VIRTUALMATH_ARGUEMENT_H
+#include "virtualmath.h"
 
 extern char *HelloString;
 struct Args{

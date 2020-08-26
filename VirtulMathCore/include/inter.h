@@ -97,7 +97,7 @@ typedef enum ResultType ResultType;
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
-void runCodeStdin(Inter *inter);
+void runCodeStdin(Inter *inter, char *hello_string);
 void runCodeFile(Inter *inter, char *file[]);
 bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st);
 void mergeInter(Inter *new, Inter *base);

@@ -20,12 +20,13 @@ void runCodeFile(Inter *inter, char *file[]) {
     }
 }
 
-void runCodeStdin(Inter *inter) {
+void runCodeStdin(Inter *inter, char *hello_string) {
     Statement *pst = NULL;
     Result result;
     bool should_break = false;
     setResultCore(&result);
-    printf("%s", HelloString);
+    if (hello_string != NULL)
+        printf("%s", hello_string);
     while (!should_break){
         if (ferror(stdin) || feof(stdin))
             clearerr(stdin);

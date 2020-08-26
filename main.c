@@ -1,4 +1,5 @@
-#include "__virtualmath.h"
+#include "hellovm.h"
+
 int main(int argc, char *argv[]) {
     Inter *inter = NULL;
 
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
     inter = makeInter(args.out_file, args.error_file, args.in_file, NULL);
     runCodeFile(inter, argv + optind);
     if (args.run_commandLine)
-        runCodeStdin(inter);
+        runCodeStdin(inter, HelloString);
     freeInter(inter, true);
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "__virtualmath.h"
+#include "hellovm.h"
 
 char *HelloString = "Welcome To VirtualMath ("__TIME__", "__DATE__") \n"
 #ifdef __linux__
