@@ -1,5 +1,55 @@
 #include "__run.h"
 
+int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
+    if (checkFile(*file_dir) == 1)
+        return 1;
+
+    {
+        char cwd[200] = {};
+        char *cwd_tmp = NULL;
+        getcwd(cwd, 200);
+        cwd_tmp = memStrcat(cwd, "/", false, false);
+        cwd_tmp = memStrcat(cwd_tmp, *file_dir, true, false);
+        if (checkFile(cwd_tmp) == 1 || checkFile(cwd_tmp = memStrcat(cwd_tmp, ".vm", true, false)) == 1) {
+            memFree(*file_dir);
+            *file_dir = cwd_tmp;
+            return 1;
+        } else
+            memFree(cwd_tmp);
+    }
+
+    {
+        char *path = memStrcpy(getenv("VIRTUALMATHPATH"));
+        for (char *tmp = strtok(path, ";"), *new_dir, *new_tmp; tmp != NULL; tmp = strtok(NULL, ";")) {
+#ifdef __linux__
+            if (*(tmp + (memStrlen(tmp) - 1)) != '/')
+                new_tmp = memStrcat(tmp, "/", false, false);
+#else
+                if (*(tmp + (memStrlen(tmp) - 1)) != '\\')
+                    new_tmp = memStrcat(tmp, "\\", false, false);
+#endif
+            else
+                new_tmp = memStrcpy(tmp);
+            new_dir = memStrcat(new_tmp, *file_dir, false, false);
+            memFree(new_tmp);
+
+            if (checkFile(new_dir) == 1 || checkFile(new_dir = memStrcat(new_dir, ".vm", true, false)) == 1) {
+                memFree(*file_dir);
+                *file_dir = new_dir;
+                return 1;
+            } else
+                memFree(new_dir);
+        }
+        memFree(path);
+    }
+
+    if (checkCLib(*file_dir))
+        return 2;
+
+    setResultErrorSt(E_ImportException, "import file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    return 0;
+}
+
 ResultType includeFile(INTER_FUNCTIONSIG) {
     Statement *new_st = NULL;
     ParserMessage *pm = NULL;
@@ -16,11 +66,9 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
 
     file_dir = result->value->value->data.str.str;
     freeResult(result);
-
-    if (checkFile(file_dir) != 1){
-        setResultErrorSt(E_IncludeException, "include file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    freeResult(result);
+    if (checkFileDir(&file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)) != 1)
         goto return_;
-    }
 
     new_st = makeStatement(0, file_dir);
     pm = makeParserMessage(file_dir);
@@ -46,30 +94,24 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-ResultType importVMFileCore(VarList **new_object, char *file_dir, INTER_FUNCTIONSIG) {
+ResultType importVMFileCore(VarList **new_object, char *file_dir, fline line, char *code_file, INTER_FUNCTIONSIG_NOT_ST) {
     Inter *import_inter = NULL;
     ParserMessage *pm = NULL;
     Statement *run_st = NULL;
     setResultCore(result);
 
-    import_inter = makeInter(NULL, NULL, NULL, belong);
-    import_inter->data.inter_stdout = inter->data.inter_stdout;
-    import_inter->data.inter_stderr = inter->data.inter_stderr;
-    import_inter->data.inter_stdin = inter->data.inter_stdin;
-    import_inter->data.is_stdout = true;
-    import_inter->data.is_stderr = true;
-    import_inter->data.is_stdin = true;
-
+    import_inter = deriveInter(belong, inter);
     pm = makeParserMessage(file_dir);
     run_st = makeStatement(0, file_dir);
+
     parserCommandList(pm, import_inter, true, false, run_st);
     if (pm->status == int_error) {
-        setResultErrorSt(E_KeyInterrupt, KEY_INTERRUPT, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, code_file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeInter(import_inter, false);
         goto return_;
     }
     else if (pm->status != success) {
-        setResultErrorSt(E_TypeException, pm->status_message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, pm->status_message, line, code_file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeInter(import_inter, false);
         goto return_;
     }
@@ -78,7 +120,7 @@ ResultType importVMFileCore(VarList **new_object, char *file_dir, INTER_FUNCTION
     if (!CHECK_RESULT(result)) {
         freeInter(import_inter, false);
         result->value = makeLinkValue(makeNoneValue(inter), belong, inter);
-        setResultErrorSt(E_BaseException, NULL, false, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_BaseException, NULL, line, code_file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -93,22 +135,31 @@ ResultType importVMFileCore(VarList **new_object, char *file_dir, INTER_FUNCTION
     return result->type;
 }
 
-ResultType importShareFileCore(VarList **new_object, char *file_dir, INTER_FUNCTIONSIG) {
+ResultType importShareFileCore(VarList **new_object, char *file_dir, INTER_FUNCTIONSIG_NOT_ST) {
     Inter *import_inter;
     setResultCore(result);
-    void* handle = dlopen(file_dir, RTLD_LAZY);
     Registered reg;
-    reg = dlsym(handle, "registered");
+    void* handle = dlopen(file_dir, RTLD_LAZY);
 
-    import_inter = makeInter(NULL, NULL, NULL, belong);
-    import_inter->data.inter_stdout = inter->data.inter_stdout;
-    import_inter->data.inter_stderr = inter->data.inter_stderr;
-    import_inter->data.inter_stdin = inter->data.inter_stdin;
-    import_inter->data.is_stdout = true;
-    import_inter->data.is_stderr = true;
-    import_inter->data.is_stdin = true;
+    reg = dlsym(handle, "registered");
+    import_inter = deriveInter(belong, inter);
 
     reg(belong, import_inter, import_inter->var_list);
+    *new_object = import_inter->var_list;
+    import_inter->var_list = NULL;
+
+    mergeInter(import_inter, inter);
+    setResult(result, inter, belong);
+    return result->type;
+}
+
+ResultType importCLibFileCore(VarList **new_object, char *file_dir, INTER_FUNCTIONSIG_NOT_ST) {
+    Inter *import_inter;
+    setResultCore(result);
+    import_inter = deriveInter(belong, inter);
+
+    runClib(file_dir, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+
     *new_object = import_inter->var_list;
     import_inter->var_list = NULL;
     mergeInter(import_inter, inter);
@@ -117,6 +168,7 @@ ResultType importShareFileCore(VarList **new_object, char *file_dir, INTER_FUNCT
 }
 
 ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONSIG) {
+    int status;
     setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
         return result->type;
@@ -126,19 +178,21 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
         return error_return;
     }
 
-    *file_dir = result->value->value->data.str.str;
+    *file_dir = memStrcpy(result->value->value->data.str.str);
     freeResult(result);
-    if (checkFile(*file_dir) != 1) {
-        setResultErrorSt(E_ImportException, "import file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
-    }
+    if ((status = checkFileDir(file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) == 0)
+        return result->type;
+
     {
         char *file = strrchr(*file_dir, '.');
-        if (eqString(file, ".vm"))
-            importVMFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+        if (status == 2)
+            importCLibFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        else if (file != NULL && eqString(file, ".vm"))
+            importVMFileCore(new_object, *file_dir, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         else
-            importShareFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+            importShareFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
+
     return result->type;
 }
 
@@ -147,6 +201,8 @@ ResultType importFile(INTER_FUNCTIONSIG) {
     VarList *new_object = NULL;
     LinkValue *import_value = NULL;
     setResultCore(result);
+    gc_freeze(inter, var_list, NULL, true);
+
     importFileCore(&new_object, &file_dir, CALL_INTER_FUNCTIONSIG(st->u.import_file.file, var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
@@ -164,6 +220,8 @@ ResultType importFile(INTER_FUNCTIONSIG) {
     setResult(result, inter, belong);
 
     return_:
+    memFree(file_dir);
+    gc_freeze(inter, var_list, NULL, false);
     return result->type;
 }
 

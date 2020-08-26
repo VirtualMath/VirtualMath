@@ -385,7 +385,6 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 
     freeResult(result);
     var = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    gc_addTmpLink(&var->gc_status);
     if (var == NULL) {
         char *info = memStrcat("Variable not found: ", name, false, false);
         setResultErrorSt(E_NameExceptiom, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -393,7 +392,6 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     }
     else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
         setResultOperationBase(result, var);
-    gc_freeTmpLink(&var->gc_status);
     memFree(name);
     return result->type;
 }

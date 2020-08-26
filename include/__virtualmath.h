@@ -15,6 +15,7 @@
 #include "var.h"
 #include "inter.h"
 #include "ofunc.h"
+#include "clib.h"
 #include "run.h"
 
 #include "lexical.h"

@@ -101,4 +101,5 @@ void runCodeStdin(Inter *inter);
 void runCodeFile(Inter *inter, char *file[]);
 bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st);
 void mergeInter(Inter *new, Inter *base);
+Inter *deriveInter(LinkValue *belong, Inter *inter);
 #endif //VIRTUALMATH_INTER_H
