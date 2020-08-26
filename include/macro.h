@@ -12,6 +12,7 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 // 布尔逻辑的定义
 #define bool int

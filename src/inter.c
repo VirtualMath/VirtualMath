@@ -3,12 +3,12 @@
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
     LinkValue *base_father = NULL;
-    setBaseInterData(tmp);
     tmp->base = NULL;
     tmp->link_base = NULL;
     tmp->hash_base = NULL;
     tmp->base_var = NULL;
 
+    setBaseInterData(tmp);
     tmp->var_list = makeVarList(tmp, true);
 
     if (out != NULL) {
@@ -212,11 +212,9 @@ void mergeInter(Inter *new, Inter *base){
     HashTable **base_hash = NULL;
     Var **base_var = NULL;
 
-    gc_freeStatementLink(&new->base_father->gc_status);
-    new->base_father = NULL;
-
-    freeVarList(new->var_list);
+    gc_runDelAll(new);
     freeBaseInterData(new);
+    freeVarList(new->var_list);
 
     for (base_value = &base->base; *base_value != NULL; base_value = &(*base_value)->gc_next)
         PASS;
