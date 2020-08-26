@@ -9,6 +9,8 @@
 #include "gc.h"
 #include "value.h"
 #include "parameter.h"
+#include "statement.h"
+#include "grammar.h"
 #include "inter.h"
 #include "run.h"
 

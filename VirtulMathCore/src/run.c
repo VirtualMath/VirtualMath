@@ -319,3 +319,7 @@ Statement *checkLabel(Statement *base, char *label){
             return base;
     return NULL;
 }
+
+bool is_quitExc(LinkValue *value, Inter *inter) {
+    return value->value == inter->data.quit_exc || checkAttribution(value->value, inter->data.quit_exc);
+}

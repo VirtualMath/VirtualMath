@@ -78,4 +78,5 @@ ResultType listDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST);
 ResultType varDel(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST);
 ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST);
 ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST);
+bool is_quitExc(LinkValue *value, Inter *inter);
 #endif //VIRTUALMATH_RUN_H
