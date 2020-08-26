@@ -307,7 +307,6 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
 
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, value, inter);
-    setResultCore(result);
     if (_bool_ != NULL){
         gc_addTmpLink(&_bool_->gc_status);
         callBackCore(_bool_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -352,4 +351,28 @@ bool is_iterStop(LinkValue *value, Inter *inter) {
 
 bool is_quitExc(LinkValue *value, Inter *inter) {
     return value->value == inter->data.quit_exc || checkAttribution(value->value, inter->data.quit_exc);
+}
+
+bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST) {
+    if ((value == public_aut || (!pri_auto && value == auto_aut)) && (base != public_aut && base != auto_aut)) {
+        if (name == NULL)
+            setResultError(E_PermissionsException, "Wrong Permissions: access variables as public", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        else {
+            char *message = memStrcat("Wrong Permissions: access variables as public: ", name, false, false);
+            setResultError(E_PermissionsException, message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            memFree(message);
+        }
+        return false;
+    }
+    else if ((value == protect_aut) && (base == private_aut)) {
+        if (name == NULL)
+            setResultError(E_PermissionsException, "Wrong Permissions: access variables as protect", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        else {
+            char *message = memStrcat("Wrong Permissions: access variables as protect: ", name, false, false);
+            setResultError(E_PermissionsException, message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            memFree(message);
+        }
+        return false;
+    }
+    return true;
 }

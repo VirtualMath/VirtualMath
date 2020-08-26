@@ -1495,8 +1495,7 @@ void parserBaseValue(PASERSSIGNATURE){
                 goto return_;
             }
             delToken(pm);
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st,
-                                    "Don't get Base Value after aut token")) {
+            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st, "Don't get Base Value after aut token")) {
                 freeToken(value_token, true);
                 goto return_;
             }

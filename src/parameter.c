@@ -197,7 +197,7 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUN
             freeResult(result);
             break;
         }
-        else if (!CHECK_RESULT(result)) {  // TODO-szh 处理迭代其的result 通过getIter找到迭代器
+        else if (!CHECK_RESULT(result)) {
             freeArgument(at, true);
             at = NULL;
             goto return_;
@@ -365,18 +365,10 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
                 goto not_return;
             }
             setResultErrorSt(E_ArgumentException, FEW_ARG, true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            goto reutnr_;
+            goto return_;
         }
-        else if ((name->aut == public_aut || name->aut == auto_aut) && (value->aut != public_aut && value->aut != auto_aut)) {
-            setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as public", true,
-                             name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            goto reutnr_;
-        }
-        else if ((name->aut == protect_aut) && (value->aut == private_aut)) {
-            setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as protect", true,
-                             name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            goto reutnr_;
-        }
+        else if (!checkAut(name->aut, value->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            goto return_;
 
         not_return:
         freeResult(result);
@@ -394,7 +386,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
     }
 
     setResult(result, inter, belong);
-    reutnr_:
+    return_:
     *function_ad = function;
     return result->type;
 }

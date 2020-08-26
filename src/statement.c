@@ -512,6 +512,7 @@ Statement *copyStatement(Statement *st){
 Statement *copyStatementCore(Statement *st){
     Statement *new = makeStatement(st->line, st->code_file);
     new->type = st->type;
+    new->aut = st->aut;
     new->next = NULL;
     switch (st->type) {
         case base_value:

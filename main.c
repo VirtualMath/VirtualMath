@@ -21,8 +21,3 @@ int main(int argc, char *argv[]) {
     args_error: freeArgs();
     return 0;
 }
-
-/** TODO-szh List
- * 官方函数
- * 官方类
- */

@@ -84,17 +84,11 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     object = left->value->object.var;
     gc_freeze(inter, var_list, object, true);
     operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));
-    if (!CHECK_RESULT(result))
-        goto return_;
-    else if ((left->aut == public_aut || left->aut == auto_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut))
-        setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as public", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if ((left->aut == protect_aut) && (result->value->aut == private_aut))
-        setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as protect", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-
-    if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))
+    if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        PASS;
+    else if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))
         result->value->belong = left;
 
-    return_:
     gc_freeze(inter, var_list, object, false);
     gc_freeTmpLink(&left->gc_status);
     return result->type;
@@ -142,15 +136,9 @@ ResultType varDel(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
     }
     if (check_aut) {
         LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (tmp != NULL) {
-            if ((name->aut == public_aut || name->aut == auto_aut) && (tmp->aut != public_aut && tmp->aut != auto_aut)) {  // TODO-szh 封装位函数
-                setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as public", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                goto return_;
-            }
-            else if ((name->aut == protect_aut) && (tmp->aut == private_aut)) {
-                setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as protect", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                goto return_;
-            }
+        freeResult(result);
+        if (tmp != NULL && !checkAut(name->aut, tmp->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+            goto return_;
         }
     }
     findFromVarList(str_name, int_times, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
@@ -283,27 +271,14 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
         var_value->aut = name->aut;
     if (check_aut) {
         LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (tmp != NULL) {
-            if ((value->aut == public_aut || value->aut == auto_aut) && (tmp->aut != public_aut && tmp->aut != auto_aut)) {
-                setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as public", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                goto return_;
-            }
-            else if ((value->aut == protect_aut) && (tmp->aut == private_aut)) {
-                setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as protect", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                goto return_;
-            }
-            else
-                varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        } else
-            varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    } else {
-        if (name->aut != auto_aut) {
-            LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-            if (tmp != NULL)
-                tmp->aut = name->aut;
-        }
-        varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        if (tmp != NULL && !checkAut(value->aut, tmp->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            goto return_;
+    } else if (name->aut != auto_aut){
+        LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        if (tmp != NULL)
+            tmp->aut = name->aut;
     }
+    varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     freeResult(result);
     result->type = operation_return;
     result->value = value;
@@ -399,6 +374,7 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
 ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     int int_times = 0;
     char *name = NULL;
+    LinkValue *var;
 
     setResultCore(result);
     var_info(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
@@ -408,28 +384,16 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     }
 
     freeResult(result);
-    result->type = operation_return;
-    result->value = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    if (result->value == NULL) {
+    var = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    gc_addTmpLink(&var->gc_status);
+    if (var == NULL) {
         char *info = memStrcat("Variable not found: ", name, false, false);
         setResultErrorSt(E_NameExceptiom, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(info);
     }
-    else if ((st->aut == public_aut) && (result->value->aut != public_aut && result->value->aut != auto_aut)){
-        setResultCore(result);
-        char *info = memStrcat("Wrong Permissions: access variables as public ", name, false, false);
-        setResultErrorSt(E_PermissionsException, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        memFree(info);
-    }
-    else if ((st->aut == protect_aut) && (result->value->aut == private_aut)){
-        setResultCore(result);
-        char *info = memStrcat("Wrong Permissions: access variables as protect ", name, false, false);
-        setResultErrorSt(E_PermissionsException, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        memFree(info);
-    }
-    else
-        setResultOperationBase(result, result->value);
-
+    else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        setResultOperationBase(result, var);
+    gc_freeTmpLink(&var->gc_status);
     memFree(name);
     return result->type;
 }
