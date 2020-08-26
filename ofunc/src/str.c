@@ -39,7 +39,7 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != string) {
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     size = memStrlen(ap[0].value->value->data.str.str);
@@ -51,7 +51,7 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == number)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
-            setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
         }
     }
@@ -61,7 +61,7 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
 
     {
         char *str = NULL;
-        for (vnum i = first; i < second; i += stride)
+        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride)
             str = memStrCharcpy(str, 1, true, true, ap[0].value->value->data.str.str[i]);
         setResultOperationBase(result, makeLinkValue(makeStringValue(str, inter), belong, inter));
         memFree(str);
@@ -82,10 +82,15 @@ ResultType str_down(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != string || ap[1].value->value->type != number){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (ap[0].value->value->type != string){
+        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
+    if (ap[1].value->value->type != number){
+        setResultError(E_TypeException, ONLY_ACC(str index, number), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
     size = memStrlen(ap[0].value->value->data.str.str);
     index = ap[1].value->value->data.num.num;
     if (!checkIndex(&index, &size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
@@ -106,7 +111,7 @@ ResultType str_to_list(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != string){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     size = memStrlen(ap[0].value->value->data.str.str);
@@ -140,18 +145,18 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
     to_list = findAttributes("to_list", false, ap[0].value, inter);
     if (to_list == NULL){
-        setResultError(E_TypeException, "String cannot be converted to list", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, "String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     gc_addTmpLink(&to_list->gc_status);
-    callBackCore(to_list, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    callBackCore(to_list, NULL, 0, "str", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&to_list->gc_status);
     if (CHECK_RESULT(result)) {
         LinkValue *str_list = NULL;
         str_list = result->value;
         result->value = NULL;
         freeResult(result);
-        getIter(str_list, 1, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getIter(str_list, 1, 0, "str", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&str_list->gc_status);
     }
     return result->type;

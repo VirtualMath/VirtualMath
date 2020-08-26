@@ -188,7 +188,7 @@ ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *fi
         gc_freeTmpLink(&_new_->gc_status);
     }
     else
-        setResultError(E_TypeException, "Don't find __new__", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(new(__new__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }
@@ -203,7 +203,7 @@ ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *
         gc_freeTmpLink(&_call_->gc_status);
     }
     else
-        setResultError(E_TypeException, "Object is not callable", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(call(__call__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }

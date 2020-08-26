@@ -17,7 +17,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != list) {
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     size = ap[0].value->value->data.list.size;
@@ -29,7 +29,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == number)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
-            setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ONLY_ACC(first/second/stride, number or none), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
         }
     }
@@ -41,7 +41,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
         Argument *new_list = NULL;
         Argument *back_up = NULL;
         LinkValue *new = NULL;
-        for (vnum i = first; i < second; i += stride) {
+        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
             LinkValue *element = ap[0].value->value->data.list.list[i];
             new_list = connectValueArgument(element, new_list);
         }
@@ -72,11 +72,11 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != list) {
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     size = ap[0].value->value->data.list.size;
-    getIter(ap[1].value, 1, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    getIter(ap[1].value, 1, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     iter_obj = result->value;
@@ -90,7 +90,7 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
         if (ap[i + 2].value != NULL && ap[i + 2].value->value->type == number)
             *(list[i]) = ap[i + 2].value->value->data.num.num;
         else if (ap[i + 2].value != NULL && ap[i + 2].value->value->type != none) {
-            setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto return_;
         }
     }
@@ -99,11 +99,11 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
         goto return_;
 
     {
-        for (long i = first; i < second; i += stride) {
+        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
             freeResult(result);
-            getIter(iter_obj, 0, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            getIter(iter_obj, 0, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (is_iterStop(result->value, inter)){
-                setResultError(E_TypeException, "Iter Object Too Short", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_TypeException, "Iter Object Too Short", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             }
             else if (!CHECK_RESULT(result))
@@ -111,9 +111,9 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
             ap[0].value->value->data.list.list[i] = result->value;
         }
         freeResult(result);
-        getIter(iter_obj, 0, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getIter(iter_obj, 0, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (CHECK_RESULT(result)) {
-            setResultError(E_TypeException, "Iter Object Too Long", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, "Iter Object Too Long", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto return_;
         } else if (!is_iterStop(result->value, inter))
             goto return_;
@@ -141,7 +141,7 @@ ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != list) {
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     size = ap[0].value->value->data.list.size;
@@ -153,7 +153,7 @@ ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == number)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
-            setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
         }
     }
@@ -164,7 +164,7 @@ ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
     {
         LinkValue **new = NULL;
         vnum new_size = size;
-        for (vnum i = first; i < second; i += stride) {
+        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
             ap[0].value->value->data.list.list[i] = NULL;
             new_size --;
         }
@@ -195,19 +195,24 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != list || ap[2].value->value->type != number){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (ap[0].value->value->type != list){
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
+    if (ap[2].value->value->type != number){
+        setResultError(E_TypeException, ONLY_ACC(list index, number), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
     size = ap[0].value->value->data.list.size;
     index = ap[2].value->value->data.num.num;
     if (index < 0)
         index = size + index;
     if (index >= size){
-        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, "Index too max", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     } else if (index < 0){
-        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, "Index less than 0", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     ap[0].value->value->data.list.list[index] = ap[1].value;
@@ -227,10 +232,15 @@ ResultType list_down_del(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != list || ap[1].value->value->type != number){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (ap[0].value->value->type != list){
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
+    if (ap[1].value->value->type != number){
+        setResultError(E_TypeException, ONLY_ACC(list index, number), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
     size = ap[0].value->value->data.list.size;
     index = ap[1].value->value->data.num.num;
     if (!checkIndex(&index, &size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
@@ -261,10 +271,15 @@ ResultType list_down(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != list || ap[1].value->value->type != number){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (ap[0].value->value->type != list){
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
+    if (ap[1].value->value->type != number){
+        setResultError(E_TypeException, ONLY_ACC(list index, number), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
     size = ap[0].value->value->data.list.size;
     index = ap[1].value->value->data.num.num;
     if (!checkIndex(&index, &size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
@@ -284,14 +299,14 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != list){
-        setResultError(E_TypeException, "Don't get a list", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
         Argument *list_iter_arg = makeValueArgument(ap[0].value);
         LinkValue *iter_list = makeLinkValue(inter->data.list_iter, inter->base_father, inter);
         gc_addTmpLink(&iter_list->gc_status);
-        callBackCore(iter_list, list_iter_arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(iter_list, list_iter_arg, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&iter_list->gc_status);
         freeArgument(list_iter_arg, true);
     }
@@ -313,7 +328,7 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     value = ap[0].value->value;
 
     if (value->type != list){
-        setResultError(E_TypeException, "list.__repo__/__list__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     lt = value->data.list.type;

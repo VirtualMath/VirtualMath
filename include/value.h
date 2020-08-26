@@ -2,12 +2,29 @@
 #define VIRTUALMATH_VALUE_H
 
 #include "__macro.h"
-#include "gc.h"
-#include "run.h"
 
-struct VarList;
-struct Argument;
-struct Inter;
+// 标准错误信息定义
+#define INSTANCE_ERROR(class) "Instance error when calling function, call non-"#class" "#class" method"
+#define VALUE_ERROR(value, acc) #value" value is not a "#acc" (may be modified by an external program)"
+#define ONLY_ACC(var, value) #var" only accepts "#value
+#define ERROR_INIT(class) #class" get wrong initialization parameters"
+#define MANY_ARG "Too many parameters"
+#define FEW_ARG "Too few parameters"
+#define CUL_ERROR(opt) #opt" operation gets incorrect value"
+#define OBJ_NOTSUPPORT(opt) "Object does not support "#opt" operation"
+#define RETURN_ERROR(func, type) #func" function should return "#type" type data"
+#define KEY_INTERRUPT "KeyInterrupt"
+
+typedef struct Value Value;
+typedef struct Argument Argument;
+typedef struct Inter Inter;
+typedef struct LinkValue LinkValue;
+typedef struct Result Result;
+typedef struct Error Error;
+typedef struct Inherit Inherit;
+typedef struct VarList VarList;
+typedef enum ResultType ResultType;
+typedef enum BaseErrorType BaseErrorType;
 
 typedef enum ResultType (*OfficialFunction)(OFFICAL_FUNCTIONSIG);
 typedef void (*Registered)(REGISTERED_FUNCTIONSIG);
@@ -149,14 +166,6 @@ enum BaseErrorType{
     E_KeyInterrupt,
     E_QuitException,
 };
-
-typedef struct Value Value;
-typedef struct LinkValue LinkValue;
-typedef struct Result Result;
-typedef struct Error Error;
-typedef struct Inherit Inherit;
-typedef enum ResultType ResultType;
-typedef enum BaseErrorType BaseErrorType;
 
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit);
 void freeValue(Value **Value);

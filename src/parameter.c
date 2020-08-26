@@ -364,11 +364,11 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
                 value = result->value;
                 goto not_return;
             }
-            setResultErrorSt(E_ArgumentException, "Too less Argument", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultErrorSt(E_ArgumentException, FEW_ARG, true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto reutnr_;
         }
         else if ((name->aut == public_aut || name->aut == auto_aut) && (value->aut != public_aut && value->aut != auto_aut)) {
-            setResultErrorSt(E_PermissionsException, "Wrong Permissions: access Argument as public", true,
+            setResultErrorSt(E_PermissionsException, "Wrong Permissions: access variables as public", true,
                              name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto reutnr_;
         }
@@ -630,14 +630,14 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 break;
             }
             case error_to_less:
-                setResultError(E_ArgumentException, "Too less argument", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             case error_to_more:
             to_more:
-                setResultError(E_ArgumentException, "Too more argument", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, MANY_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             case error_kw:
-                setResultError(E_ArgumentException, "Value argument for double star", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             default:
                 goto break_;
@@ -695,7 +695,7 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
         int status = 1;
         arg = parserValueArgument(ap, arg, &status, &bak);
         if (status != 1){
-            setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return 0;
         }
         ap = bak;
@@ -705,7 +705,7 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
         int status;
 
         if (arg != NULL && arg->type != name_arg) {
-            setResultError(E_ArgumentException, "Too many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -6;
         }
 
@@ -714,20 +714,20 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
             return -1;
         if (status == -3){
             if (parserArgumentNameDefault(ap)->must != -1){
-                setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 return -7;
             }
         }
         else if (status == 0){
-            setResultError(E_ArgumentException, "Too many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -2;
         } else if (status == -4){
-            setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -3;
         }
     } else{
         if (arg != NULL) {
-            setResultError(E_ArgumentException, "Too many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return -4;
         }
     }

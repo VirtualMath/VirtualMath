@@ -12,7 +12,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[1].value->value->type != dict){
-        setResultError(E_TypeException, "Don't get a dict to dictiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(dictiter, dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
@@ -21,13 +21,13 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         LinkValue *listiter_class = NULL;
 
         if (keys == NULL){
-            setResultError(E_TypeException, "Don't Find keys", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, "Object non-key-value pairs (there is no keys method)", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
         }
 
         gc_addTmpLink(&keys->gc_status);
         freeResult(result);
-        callBackCore(keys, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(keys, NULL, 0, "dictiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&keys->gc_status);
         if (!CHECK_RESULT(result)) {
             return error_return;
@@ -40,7 +40,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
 
         list_arg = makeValueArgument(list);
         freeResult(result);
-        callBackCore(listiter_class, list_arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(listiter_class, list_arg, 0, "dictiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(list_arg, true);
 
         if (!CHECK_RESULT(result)) {
@@ -73,13 +73,13 @@ ResultType dictiter_next(OFFICAL_FUNCTIONSIG){
         return result->type;
     list_ = findAttributes("__list", false, ap[0].value, inter);
     if (list_ == NULL){
-        setResultError(E_TypeException, "Don't get a list to listiter from dictiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, VALUE_ERROR(__list, listiter), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
     list_next = findAttributes(inter->data.object_next, false, list_, inter);
     if (list_next == NULL){
-        setResultError(E_TypeException, "Don't find __next__", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, "Object is not iterable", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -97,8 +97,8 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     dict_ = findAttributes("__dict", false, ap[0].value, inter);
-    if (dict_->value->type != dict){
-        setResultError(E_TypeException, "Don't get a dict to dictiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (dict_ == NULL || dict_->value->type != dict){
+        setResultError(E_TypeException, VALUE_ERROR(__dict, dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 

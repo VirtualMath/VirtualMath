@@ -21,7 +21,7 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
             result->type = operation_return;
             gc_addTmpLink(&result->value->gc_status);
         } else
-            setResultError(E_SuperException, "Don't get next father", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_SuperException, "Object has no next father", 0, "super", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
 
@@ -39,7 +39,7 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
         gc_addTmpLink(&result->value->gc_status);
     }
     else
-        setResultError(E_SuperException, "Don't get next father", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_SuperException, "Object has no next father", 0, "super", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }
@@ -96,9 +96,9 @@ ResultType vm_allstaticmethod(OFFICAL_FUNCTIONSIG){
 
 ResultType vm_quit(OFFICAL_FUNCTIONSIG){
     if (arg != NULL)
-        setResultError(E_ArgumentException, "Too Many Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
-        setResultError(E_QuitException, "Quit By User", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_QuitException, "VirtualMath Quit", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return error_return;
 }
 

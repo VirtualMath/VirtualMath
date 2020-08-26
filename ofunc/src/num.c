@@ -28,7 +28,7 @@ ResultType num_init(OFFICAL_FUNCTIONSIG){
             base->value->data.num.num = 0;
             break;
         default:
-            setResultError(E_TypeException, "Get A Not Support Type For Int", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ERROR_INIT(num), 0, "num", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return result->type;
     }
     setResultBase(result, inter, belong);

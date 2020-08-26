@@ -11,7 +11,7 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[1].value->value->type != list){
-        setResultError(E_TypeException, "Don't get a list to listiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(listiter, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -32,15 +32,21 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
         return result->type;
     list_ = findAttributes("__list", false, ap[0].value, inter);
     index = findAttributes("__index", false, ap[0].value, inter);
-    if (list_->value->type != list || index->value->type != number){
-        setResultError(E_TypeException, "Don't get a list to listiter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+    if (list_->value->type != list){
+        setResultError(E_TypeException, VALUE_ERROR(listiter.__list, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+    if (index->value->type != number){
+        setResultError(E_TypeException, VALUE_ERROR(listiter.__index, number), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
+
     freeResult(result);
-    elementDownOne(list_, index, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    elementDownOne(list_, index, 0, "listiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
-        setResultError(E_StopIterException, "Stop Iter", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_StopIterException, "Stop Iter", 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else {
         index->value->data.num.num ++;
         addAttributes("__index", false, index, ap[0].value, inter);

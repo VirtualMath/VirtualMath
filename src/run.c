@@ -118,7 +118,7 @@ bool checkSignal(ResultType *type, fline line, char *file, INTER_FUNCTIONSIG_NOT
         is_KeyInterrupt = signal_reset;
         if (type != NULL)
             *type = error_return;
-        setResultError(E_KeyInterrupt, "KeyInterrupt", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return true;
     }
     return false;
@@ -248,7 +248,7 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
     if (RUN_TYPE(type))
         return false;
     else if (type != return_code && type != error_return)
-        setResultErrorSt(E_ResultException, "Get Not Support Result", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_ResultException, "Operation get not support result type", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return true;
 }
 

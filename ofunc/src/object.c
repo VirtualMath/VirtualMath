@@ -9,7 +9,7 @@ ResultType object_new(OFFICAL_FUNCTIONSIG){
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, "Too less Argument", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "object", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -38,7 +38,7 @@ ResultType object_new(OFFICAL_FUNCTIONSIG){
         }
         freeResult(&_init_result);
     } else if (arg != NULL)
-        setResultError(E_ArgumentException, "Too many Exception", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, MANY_ARG, 0, "object", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:
     return result->type;

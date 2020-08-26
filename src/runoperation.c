@@ -211,7 +211,7 @@ ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
         freeArgument(arg, true);
     }
     else
-        setResultErrorSt(E_TypeException, "Don't find __down_del__/__slice_del__", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(del(__down_del__/__slice_del__)), true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
@@ -369,7 +369,7 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultErrorSt(E_TypeException, "Don't find __down_assignment__/__slice_assignment__", true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(assignment(__down_assignment__/__slice_assignment__)), true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
@@ -411,7 +411,7 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     result->type = operation_return;
     result->value = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (result->value == NULL) {
-        char *info = memStrcat("Name Not Found: ", name, false, false);
+        char *info = memStrcat("Variable not found: ", name, false, false);
         setResultErrorSt(E_NameExceptiom, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(info);
     }
@@ -570,7 +570,7 @@ ResultType operationCore(INTER_FUNCTIONSIG, char *name) {
         freeArgument(arg, true);
     }
     else {
-        char *message = memStrcat("Don't find ", name, false, false);
+        char *message = memStrcat("Object not support ", name, false, false);
         setResultErrorSt(E_TypeException, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(message);
     }

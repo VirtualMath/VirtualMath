@@ -12,7 +12,7 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(E_TypeException, "Don't get a number value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, "Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -35,7 +35,7 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(E_TypeException, "Don't get a number value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, "Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -140,7 +140,7 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
     enum FunctionPtType pt_type = function_value->value->data.function.function_data.pt_type;
     setResultCore(result);
     if (function_value->belong == NULL){
-        setResultError(E_ArgumentException, "Don't get self", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, "Function does not belong to anything(not self)", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -279,7 +279,7 @@ ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char
         freeArgument(arg, true);
     }
     else
-        setResultError(E_TypeException, "Don't find __down__", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(subscript(__down__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     gc_freeTmpLink(&element->gc_status);
     gc_freeTmpLink(&index->gc_status);
@@ -300,7 +300,7 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultError(E_TypeException, "Object Not Iterable", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(iter), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }
@@ -313,7 +313,7 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
         callBackCore(_bool_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_bool_->gc_status);
         if (result->value->value->type != bool_)
-            setResultError(E_TypeException, "__bool__ function should return bool type data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, RETURN_ERROR(__bool__, bool), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         else
             return result->value->value->data.bool_.bool_;
     } else {
@@ -336,13 +336,13 @@ char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_
         if (!CHECK_RESULT(result))
             return NULL;
         else if (result->value->value->type != string){
-            setResultError(E_TypeException, "__repo__/__str__ function should return str type data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, OBJ_NOTSUPPORT(repo(str)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return NULL;
         }
         return result->value->value->data.str.str;
     }
     else
-        setResultError(E_TypeException, "__repo__/__str__ gets unsupported data", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(repo(str)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return NULL;
 }
 

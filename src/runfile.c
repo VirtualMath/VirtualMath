@@ -10,7 +10,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
         return result->type;
 
     if (!isType(result->value->value, string)){
-        setResultErrorSt(E_TypeException, "Don't get a string value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, ONLY_ACC(include file dir, string), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -18,7 +18,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     freeResult(result);
 
     if (checkFile(file_dir) != 1){
-        setResultErrorSt(E_IncludeException, "File is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_IncludeException, "include file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -26,7 +26,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     pm = makeParserMessage(file_dir);
     parserCommandList(pm, inter, true, false, new_st);
     if (pm->status == int_error) {
-        setResultErrorSt(E_KeyInterrupt, "KeyInterrupt", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_KeyInterrupt, KEY_INTERRUPT, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
     else if (pm->status != success){
@@ -55,14 +55,14 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
         goto return_;
 
     if (!isType(result->value->value, string)) {
-        setResultErrorSt(E_ImportException, "Don't get a string value", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_ImportException, ONLY_ACC(include file dir, string), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
     *file_dir = result->value->value->data.str.str;
     freeResult(result);
     if (checkFile(*file_dir) != 1) {
-        setResultErrorSt(E_ImportException, "File is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_ImportException, "include file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -79,7 +79,7 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     run_st = makeStatement(0, *file_dir);
     parserCommandList(pm, import_inter, true, false, run_st);
     if (pm->status == int_error) {
-        setResultErrorSt(E_KeyInterrupt, "KeyInterrupt", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_KeyInterrupt, KEY_INTERRUPT, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeInter(import_inter, false);
         goto return_;
     }

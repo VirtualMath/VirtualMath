@@ -52,13 +52,13 @@ bool checkIndex(vnum *index, const vnum *size, INTER_FUNCTIONSIG_NOT_ST){
         setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     } else if (*index < 0){
-        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, "Index is less than 0", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;  // true - 保持result为setResultCore的结果
 }
 
-bool checkSlice(vnum *first, vnum *second, vnum *stride, vnum size, INTER_FUNCTIONSIG_NOT_ST){
+bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, INTER_FUNCTIONSIG_NOT_ST){
     setResultCore(result);
     *first = *first < 0 ? *first + size : *first;
     *second = *second < 0 ? *second + size : *second;
@@ -66,18 +66,12 @@ bool checkSlice(vnum *first, vnum *second, vnum *stride, vnum size, INTER_FUNCTI
         setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     } else if (*first < 0 || *second <= 0){
-        setResultError(E_IndexException, "Index too small", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, "Index is less than 0", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
 
-    if (stride < 0){
-        long tmp = *first;
-        *stride = -*stride;
-        *first = *second;
-        *second = tmp;
-    }
-    if (*stride == 0 || *first > *second){
-        setResultError(E_StrideException, "Stride Error", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (*stride == 0 || *first > *second && stride > 0 || *first < *second && stride < 0){
+        setResultError(E_StrideException, "Stride is 0 or Unfinished iteration", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;

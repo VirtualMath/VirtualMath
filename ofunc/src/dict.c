@@ -11,19 +11,21 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != dict){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
         LinkValue *element = NULL;
         char *name = getNameFromValue(ap[1].value->value, inter);
         element = findVar(name, get_var, inter, ap[0].value->value->data.dict.dict);
-        memFree(name);
         if (element != NULL)
             setResultOperationBase(result, copyLinkValue(element, inter));
-        else
-            setResultError(E_KeyException, "Key Not Found", 0, "sys", true,
-                           CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        else {
+            char *message = memStrcat("Dict could not find key value: ", name, false, false);
+            setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            memFree(message);
+        }
+        memFree(name);
     }
     return result->type;
 }
@@ -39,18 +41,21 @@ ResultType dict_down_del(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != dict){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
         LinkValue *element = NULL;
         char *name = getNameFromValue(ap[1].value->value, inter);
         element = findVar(name, del_var, inter, ap[0].value->value->data.dict.dict);
-        memFree(name);
         if (element != NULL)
             setResult(result, inter, belong);
-        else
-            setResultError(E_KeyException, "Key Not Found", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        else{
+            char *message = memStrcat("Cannot delete non-existent keys: ", name, false, false);
+            setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            memFree(message);
+        }
+        memFree(name);
     }
     return result->type;
 }
@@ -68,7 +73,7 @@ ResultType dict_down_assignment(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != dict){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
@@ -90,7 +95,7 @@ ResultType dict_keys(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[0].value->value->type != dict){
-        setResultError(E_TypeException, "Get Not Support Type", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     for (int index=0; index < MAX_SIZE; index++){
@@ -115,14 +120,14 @@ ResultType dict_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != dict){
-        setResultError(E_TypeException, "Don't get a dict", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     {
         Argument *dict_iter_arg = makeValueArgument(ap[0].value);
         LinkValue *iter_dict = makeLinkValue(inter->data.dict_iter, inter->base_father, inter);
         gc_addTmpLink(&iter_dict->gc_status);
-        callBackCore(iter_dict, dict_iter_arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(iter_dict, dict_iter_arg, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&iter_dict->gc_status);
         freeArgument(dict_iter_arg, true);
     }
@@ -143,7 +148,7 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     value = ap[0].value->value;
 
     if (value->type != dict){
-        setResultError(E_TypeException, "dict.__repo__/__str__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
     again = findAttributes(is_repo ? "repo_again" : "str_again", false, ap[0].value, inter);
@@ -167,14 +172,14 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
                 repo = memStrcat(repo, ", ", true, false);
 
             freeResult(result);
-            name_tmp = getRepoStr(var->name_, is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            name_tmp = getRepoStr(var->name_, is_repo, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
             repo = memStrcat(repo, name_tmp, true, false);
             repo = memStrcat(repo, ": ", true, false);
 
             freeResult(result);
-            value_tmp = getRepoStr(var->value, is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            value_tmp = getRepoStr(var->value, is_repo, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
             repo = memStrcat(repo, value_tmp, true, false);

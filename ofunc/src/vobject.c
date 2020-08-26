@@ -12,7 +12,7 @@ void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         memFree(new_string);
     }
     else
-        setResultError(E_TypeException, "Get Not Support Value", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Add), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
@@ -20,7 +20,7 @@ void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, Va
     if (left->type == number && right->type == number)
         result->value->value = makeNumberValue(left->data.num.num - right->data.num.num, inter);
     else
-        setResultError(E_TypeException, "Get Not Support Value", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Sub), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
@@ -39,7 +39,7 @@ void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         memFree(new_string);
     }
     else
-        setResultError(E_TypeException, "Get Not Support Value", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Mul), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
@@ -49,14 +49,14 @@ void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         result->value->value = makeNumberValue(div_result.quot, inter);
     }
     else
-        setResultError(E_TypeException, "Get Not Support Value", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Div), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 ResultType vobject_opt_core(OFFICAL_FUNCTIONSIG, base_opt func){
     Value *left = NULL;
     Value *right = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.type=name_value, .name="left", .must=1, .long_arg=false},
+                           {.type=name_value, .name="right", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     {
@@ -125,8 +125,7 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
             result_ = value->data.dict.size > 0;
             break;
         default:
-            setResultError(E_TypeException, "\"vobject.__bool__\" gets an unsupported value type",
-                           0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, CUL_ERROR(bool), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
     }
     return_value = makeBoolValue(result_, inter);
@@ -181,7 +180,7 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
             repo = memStrcpy("...");
             break;
         default:
-            setResultError(E_TypeException, "vobject.__repo__ gets unsupported data", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, CUL_ERROR(repo/str), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
     }
     setResultOperationBase(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
