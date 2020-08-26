@@ -1222,42 +1222,35 @@ void parserFactor(PASERSSIGNATURE){
  * | parserBaseValue
  * | parserCallBack MATHER_LP parserParameter MATHER_RP
  */
-int tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
+bool tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
     Parameter *pt = NULL;
-    if (readBackToken(pm) != MATHER_LP)
-        return -1;
     long int line = delToken(pm);
 
     if (checkToken(pm, MATHER_RP))
         goto not_pt;
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get call parameter");
-        return 0;
+        return false;
     }
-    if (!checkToken(pm, MATHER_RP)){
+    if (!checkToken(pm, MATHER_RP)) {
         freeParameter(pt, true);
         syntaxError(pm, syntax_error, line, 1, "Don't get ) from call back");
-        return 0;
+        return false;
     }
 
     not_pt:
     *st = makeCallStatement(left_token->data.st, pt);
-    return 1;
-}
-void parserCallBack(PASERSSIGNATURE){
-    return tailOperation(CALLPASERSSIGNATURE, parserSlice, tailCall, SLICE, CALLBACK);
+    return true;
 }
 
-int tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
+bool tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
     Parameter *pt = NULL;
     Token *tmp = NULL;
     enum SliceType type;  // 0-slice  1-down
-    if (readBackToken(pm) != MATHER_LB)
-        return -1;
     long int line = delToken(pm);
 
     if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
-        PASS;
+            PASS;
     if (readBackToken(pm) == MATHER_COLON)
         type = SliceType_slice_;
     else
@@ -1267,42 +1260,56 @@ int tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
 
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, true, true, (type == SliceType_down_ ? MATHER_COMMA : MATHER_COLON), MATHER_ASSIGNMENT)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get slice element");
-        return 0;
+        return false;
     }
     if (!checkToken(pm, MATHER_RB)){
         freeParameter(pt, true);
         syntaxError(pm, syntax_error, line, 1, "Don't get ] from slice");
-        return 0;
+        return false;
     }
-
     *st = makeSliceStatement(left_token->data.st, pt, type);
-    return 1;
-}
-void parserSlice(PASERSSIGNATURE){
-    return tailOperation(CALLPASERSSIGNATURE, parserPoint, tailSlice, POINT, SLICE);
-}
-
-/**
- * 成员运算符匹配
- * parserPoint:
- * | parserBaseValue
- * | parserBaseValue POINT parserPoint
- */
-bool switchPoint(PASERSSIGNATURE, int symbol, Statement **st){
-    switch (symbol) {
-        case MATHER_POINT:
-            *st = makeOperationBaseStatement(OPT_POINT, 0, pm->file);
-            break;
-        default:
-            return false;
-    }
     return true;
 }
-void parserPoint(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserBaseValue, switchPoint, NULL, BASEVALUE, POINT,
-                        "base value", "point", false);
+
+bool taliPoint(PASERSSIGNATURE, Token *left_token, Statement **st){
+    Statement *right_st = NULL;
+    delToken(pm);
+    if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after point"))
+        return false;
+    *st = makeOperationStatement(OPT_POINT, left_token->data.st, right_st);
+    return true;
 }
 
+void parserCallBack(PASERSSIGNATURE){
+    while(true){
+        int tk;
+        Token *left_token = NULL;
+        struct Statement *st = NULL;
+
+        if (readBackToken(pm) != CALLBACK){
+
+            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st, NULL))
+                goto return_;
+            addStatementToken(CALLBACK, st, pm);
+            continue;
+        }
+        left_token = popNewToken(pm->tm);
+
+        tk = readBackToken(pm);
+        if (tk == MATHER_LB && !tailSlice(CALLPASERSSIGNATURE, left_token, &st) ||
+            tk == MATHER_LP && !tailCall(CALLPASERSSIGNATURE, left_token, &st) ||
+            tk == MATHER_POINT && !taliPoint(CALLPASERSSIGNATURE, left_token, &st)) {
+            freeToken(left_token, true);
+            goto return_;
+        } else if (tk != MATHER_LB && tk != MATHER_LP && tk != MATHER_POINT) {
+            backToken_(pm, left_token);
+            goto return_;
+        }
+        addStatementToken(CALLBACK, st, pm);
+        freeToken(left_token, false);
+    }
+    return_: return;
+}
 
 /**
  * 字面量匹配

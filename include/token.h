@@ -113,13 +113,12 @@
 #define CONTINUE -18
 #define REGO -19
 #define RETURN -20
-#define YIELD -20
 #define RESTART -21
 #define TRY_BRANCH -22
 #define RAISE -23
 #define TUPLE -24
 #define INCLUDE -25
-#define POINT -26
+#define YIELD -26
 #define IMPORT -27
 #define VARCONTROL -28
 #define ASSERT -29
@@ -128,8 +127,7 @@
 #define GOTO -32
 #define LABEL -33
 #define DECORATION -34
-#define SLICE -35
-#define FOR_BRANCH -36
+#define FOR_BRANCH -35
 #define DEL -36
 
 struct Token{
