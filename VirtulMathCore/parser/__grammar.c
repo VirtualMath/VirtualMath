@@ -1,5 +1,4 @@
 #include "__grammar.h"
-
 /**
  * 二元匹配器
  * twoOperation:
@@ -13,6 +12,7 @@
  * @param self_name 输出值名称(log)
  * @param is_right 表达式是否从右运算到左
  */
+
 inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                          int call_type, int self_type, char *call_name, char *self_name, bool is_right) {
     bool is_right_ = false;

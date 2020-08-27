@@ -145,7 +145,7 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
     }
 
     is_KeyInterrupt = signal_reset;
-    signal(SIGINT, signalStopInter);
+    bak = signal(SIGINT, signalStopInter);
     do {
         base = st;
         if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))

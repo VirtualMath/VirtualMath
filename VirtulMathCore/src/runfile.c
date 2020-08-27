@@ -7,7 +7,11 @@ int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
     {
         char cwd[200] = {};
         char *cwd_tmp = NULL;
+#ifdef __linux__
         getcwd(cwd, 200);
+#else
+        _getcwd(cwd, 200);
+#endif
         cwd_tmp = memStrcat(cwd, "/", false, false);
         cwd_tmp = memStrcat(cwd_tmp, *file_dir, true, false);
         if (checkFile(cwd_tmp) == 1 || checkFile(cwd_tmp = memStrcat(cwd_tmp, ".vm", true, false)) == 1) {
