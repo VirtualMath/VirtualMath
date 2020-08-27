@@ -20,6 +20,7 @@ struct LexMather{
     int string_type;
     char *str;
     char *second_str;
+    int ascii;
     enum LexMatherStatus{
         LEXMATHER_START=1,
         LEXMATHER_ING_1,
@@ -27,6 +28,7 @@ struct LexMather{
         LEXMATHER_ING_3,
         LEXMATHER_ING_4,
         LEXMATHER_ING_5,
+        LEXMATHER_ING_6,
         LEXMATHER_END_1,
         LEXMATHER_END_2,
         LEXMATHER_MISTAKE,
@@ -44,6 +46,7 @@ typedef struct LexMathers LexMathers;
 
 int readChar(LexFile *file);
 void backChar(LexFile *file);
+void clearLexFile(LexFile *file);
 
 LexFile *makeLexFile(char *dir);
 void freeLexFile(LexFile *file);

@@ -46,21 +46,22 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
     while (!should_break){
         token_type = readBackToken(pm);
         if (token_type == -3 || token_type == -2)
-            goto return_;
+            break;
         else if (token_type == MATHER_EOF){
             delToken(pm);
-            goto return_;
+            break;
         }
         else if (token_type == MATHER_ENTER || token_type == MATHER_SEMICOLON){
             delToken(pm);
-            if (!is_one || !have_command)
-                continue;
+            if (is_one && have_command)
+                break;
         }
         else{
             Token *command_token = NULL;
             int stop;
+            have_command = true;
             if (!callChildToken(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command_token, command_message, command_list_error))
-                goto return_;
+                break;
             line = command_token->line;
             stop = readBackToken(pm);
             if (stop == MATHER_ENTER) {
@@ -81,14 +82,14 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
                     connectStatement(st, command_token->data.st);
                     freeToken(command_token, false);
                 }
-                goto return_;
+                break;
             }
-            have_command = true;
             connectStatement(st, command_token->data.st);
             freeToken(command_token, false);
         }
     }
-    return_:
+    if (is_one)
+        clearLexFile(pm->tm->file);
     signal(SIGINT, bak);
     if (pm_KeyInterrupt != signal_reset) {
         pm_KeyInterrupt = signal_reset;

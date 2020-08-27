@@ -61,9 +61,8 @@ void varMather(int p, LexMather *mather){
         else if(mather->status == LEXMATHER_START)
             mather->status = LEXMATHER_MISTAKE;
     }
-    else{
+    else
         mather->status = LEXMATHER_MISTAKE;
-    }
 }
 
 /**
@@ -85,6 +84,8 @@ void stringMather(int p, LexMather *mather){
     else if (mather->status == LEXMATHER_ING_1)
         if (mather->string_type == p)
             mather->status = LEXMATHER_ING_4;
+        else if ('\\' == p)
+            mather->status = LEXMATHER_ING_5;
         else if (EOF == p)
             mather->status = LEXMATHER_MISTAKE;
         else{
@@ -104,6 +105,64 @@ void stringMather(int p, LexMather *mather){
         }
         else
             mather->status = LEXMATHER_END_1;
+    else if (mather->status == LEXMATHER_ING_5){
+        char new = -1;
+        switch (p) {
+            case 'n':
+                new = '\n';
+                break;
+            case 't':
+                new = '\t';
+                break;
+            case 'b':
+                new = '\b';
+                break;
+            case 'a':
+                new = '\a';
+                break;
+            case 'r':
+                new = '\r';
+                break;
+            case '\'':
+                new = '\'';
+                break;
+            case '"':
+                new = '"';
+                break;
+            case '\\':
+                new = '\\';
+                break;
+            case '[':
+                mather->status = LEXMATHER_ING_6;
+                break;
+            default :
+            case '0':
+                mather->status = LEXMATHER_MISTAKE;
+                break;
+        }
+        if (new != -1) {
+            mather->str = memStrCharcpy(mather->str, 1, true, true, new);
+            mather->status = LEXMATHER_ING_1;
+            mather->len ++;
+        }
+    }
+    else if (mather->status == LEXMATHER_ING_6)
+        if (p == ']')
+            if (mather->ascii <= 0)
+                mather->status = LEXMATHER_MISTAKE;
+            else {
+                mather->str = memStrCharcpy(mather->str, 1, true, true, (char)mather->ascii);
+                mather->status = LEXMATHER_ING_1;
+                mather->len ++;
+            }
+        else if (isdigit(p)){
+            char num_[2] = {(char)p, 0};
+            int num = (int)strtol(num_, NULL, 10);
+            mather->ascii = (mather->ascii * 10) + num;
+            if (mather->ascii > 127)
+                mather->status = LEXMATHER_MISTAKE;
+        } else
+            mather->status = LEXMATHER_MISTAKE;
     else
         mather->status = LEXMATHER_MISTAKE;
 }

@@ -26,6 +26,13 @@ void backChar(LexFile *file){
         file->line --;
 }
 
+void clearLexFile(LexFile *file) {
+    int ch;
+    backChar(file);
+    while ((ch = readChar(file)) != '\n' && ch != EOF)
+        PASS;
+}
+
 LexFile *makeLexFile(char *dir){
     LexFile *tmp = memCalloc(1, sizeof(LexFile));
     tmp->is_std = (bool)(dir == NULL);
@@ -55,6 +62,7 @@ void freeLexFile(LexFile *file) {
  */
 void setupMather(LexMather *mather){
     mather->len = 0;
+    mather->ascii = 0;
     mather->str = NULL;
     mather->second_str = NULL;
     mather->string_type = '"';
