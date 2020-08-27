@@ -2,9 +2,9 @@
 
 char *HelloString = "Welcome To VirtualMath ("__TIME__", "__DATE__") \n"
 #ifdef __linux__
-                    "On Linux\n"
+                    "On Linux ("CC")\n"
 #else
-                    "On windows"
+                    "On windows ("CC")\n"
 #endif
                     "VirtualMath Command Line Mode\n";
 

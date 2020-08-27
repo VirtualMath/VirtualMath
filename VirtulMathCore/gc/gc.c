@@ -1,25 +1,84 @@
 #include "__virtualmath.h"
 
-void gc_iterLinkValue(LinkValue *value){
+#if START_GC
+static void gc_iterVar(Var *var);
+static void gc_iterLinkValue(LinkValue *value);
+static void gc_fatherValue(Inherit *value);
+static void gc_iterValue(Value *value);
+static void gc_varList(VarList *vl);
+static void gc_iterHashTable(HashTable *ht);
+
+static void resetGC(GCStatus *gcs){
+    gcs->continue_ = false;
+    gcs->link = 0;
+}
+
+void setGC(GCStatus *gcs){
+    resetGC(gcs);
+    gcs->tmp_link = 0;
+    gcs->statement_link = 0;
+    gcs->c_value = not_free;
+}
+
+void gc_addTmpLink(GCStatus *gcs){
+    gcs->tmp_link ++;
+}
+
+void gc_addLink(GCStatus *gcs){
+    gcs->link ++;
+}
+
+void gc_addStatementLink(GCStatus *gcs){
+    gcs->statement_link ++;
+}
+
+void gc_freeStatementLink(GCStatus *gcs){
+    gcs->statement_link --;
+}
+
+void gc_freeTmpLink(GCStatus *gcs){
+    gcs->tmp_link --;
+}
+
+static bool gc_iterAlready(GCStatus *gcs){
+    bool return_ = gcs->continue_;
+    gcs->continue_ = true;
+    return return_;
+}
+
+static bool gc_needFree(GCStatus *gcs){
+    return (gcs->statement_link == 0 && gcs->tmp_link == 0 && gcs->link == 0);
+}
+
+static void gc_resetValue(Value *value){
+    value->gc_status.c_value = not_free;
+}
+
+static bool gc_needFreeValue(Value *value){
+    return (gc_needFree(&value->gc_status) && value->gc_status.c_value == need_free);
+}
+
+
+static void gc_iterLinkValue(LinkValue *value){
     if (value == NULL)
         return;
     gc_addLink(&value->gc_status);
-    if (!gc_IterAlready(&value->gc_status)){
+    if (!gc_iterAlready(&value->gc_status)){
         gc_iterLinkValue(value->belong);
         gc_iterValue(value->value);
     }
 }
 
-void gc_fatherValue(Inherit *value){
+static void gc_fatherValue(Inherit *value){
     for (PASS; value != NULL; value = value->next)
         gc_iterLinkValue(value->value);
 }
 
-void gc_iterValue(Value *value){
+static void gc_iterValue(Value *value){
     if (value == NULL)
         return;
     gc_addLink(&value->gc_status);
-    if (gc_IterAlready(&value->gc_status))
+    if (gc_iterAlready(&value->gc_status))
         return;
     gc_varList(value->object.var);
     gc_varList(value->object.out_var);
@@ -38,25 +97,25 @@ void gc_iterValue(Value *value){
     }
 }
 
-void gc_varList(VarList *vl){
+static void gc_varList(VarList *vl){
     for (PASS; vl != NULL; vl = vl->next)
         gc_iterHashTable(vl->hashtable);
 }
 
-void gc_iterHashTable(HashTable *ht){
+static void gc_iterHashTable(HashTable *ht){
     if (ht == NULL)
         return;
     gc_addLink(&ht->gc_status);
-    if (gc_IterAlready(&ht->gc_status))
+    if (gc_iterAlready(&ht->gc_status))
         return;
     for (int i=0;i < MAX_SIZE;i++)
         gc_iterVar(ht->hashtable[i]);
 }
 
-void gc_iterVar(Var *var){
+static void gc_iterVar(Var *var){
     if (var == NULL)
         return;
-    if (gc_IterAlready(&var->gc_status))
+    if (gc_iterAlready(&var->gc_status))
         return;
     for (PASS; var != NULL; var = var->next){
         gc_addLink(&var->gc_status);
@@ -65,7 +124,7 @@ void gc_iterVar(Var *var){
     }
 }
 
-void gc_resetBase(Inter *inter){
+static void gc_resetBase(Inter *inter){
     for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->gc_next)
         resetGC(&value_base->gc_status);
 
@@ -79,7 +138,7 @@ void gc_resetBase(Inter *inter){
         resetGC(&var_base->gc_status);
 }
 
-void gc_checkBase(Inter *inter){
+static void gc_checkBase(Inter *inter){
     for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->gc_next)
         if (!gc_needFree(&value_base->gc_status) && !value_base->gc_status.continue_)
             gc_iterValue(value_base);
@@ -97,7 +156,7 @@ void gc_checkBase(Inter *inter){
             gc_iterVar(var_base);
 }
 
-void gc_checkDel(Inter *inter){
+static void gc_checkDel(Inter *inter){
     for (Value *value = inter->base; value != NULL; value = value->gc_next)
         if (!gc_needFree(&value->gc_status))
             gc_resetValue(value);
@@ -126,7 +185,7 @@ void gc_runDelAll(Inter *inter){
     }
 }
 
-void gc_runDel(Inter *inter, VarList *var_list){
+static void gc_runDel(Inter *inter, VarList *var_list){
     Result result;
     setResultCore(&result);
     for (Value *value = inter->base; value != NULL; value = value->gc_next) {
@@ -142,8 +201,7 @@ void gc_runDel(Inter *inter, VarList *var_list){
     }
 }
 
-void gc_freeBase(Inter *inter){
-#if START_GC
+static void gc_freeBase(Inter *inter){
     for (Value **value_base = &inter->base; *value_base != NULL;)
         if (gc_needFreeValue(*value_base))
             freeValue(value_base);
@@ -167,11 +225,9 @@ void gc_freeBase(Inter *inter){
             freeVar(var_base);
         else
             var_base = &(*var_base)->gc_next;
-#endif
 }
 
 void gc_run(Inter *inter, VarList *run_var, int var_list, int link_value, int value, ...){
-#if START_GC
     gc_resetBase(inter);
     va_list arg;
     va_start(arg, value);
@@ -192,5 +248,36 @@ void gc_run(Inter *inter, VarList *run_var, int var_list, int link_value, int va
     gc_checkDel(inter);
     gc_freeBase(inter);
     gc_runDel(inter, run_var);
-#endif
 }
+
+static void gc_freezeHashTable(HashTable *ht, bool is_lock){
+    if (ht == NULL)
+        return;
+
+    if (is_lock)
+        gc_addTmpLink(&ht->gc_status);
+    else
+        gc_freeTmpLink(&ht->gc_status);
+
+    gc_iterAlready(&ht->gc_status);
+}
+
+static void gc_iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
+    for (PASS; freeze != NULL; freeze = freeze->next){
+        if (!comparVarList(freeze, base))
+            gc_freezeHashTable(freeze->hashtable, is_lock);
+    }
+}
+
+/**
+ * 冻结不可达的VarList的hashTable
+ * @param inter
+ * @param freeze
+ * @param base
+ * @param is_lock
+ */
+void gc_freeze(Inter *inter, VarList *freeze, VarList *base, bool is_lock){
+    gc_resetBase(inter);
+    gc_iterFreezeVarList(freeze, base, is_lock);
+}
+#endif

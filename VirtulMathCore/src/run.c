@@ -109,7 +109,9 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
     if (RUN_TYPE(type) && result->value->aut == auto_aut)
         result->value->aut = st->aut;
     result->node = st;
+#if START_GC
     gc_run(inter, var_list, 1, 0, 0, var_list);
+#endif
     return type;
 }
 
@@ -134,7 +136,7 @@ bool checkSignal(ResultType *type, fline line, char *file, INTER_FUNCTIONSIG_NOT
 ResultType iterStatement(INTER_FUNCTIONSIG) {
     Statement *base;
     ResultType type;
-//    void *bak = NULL;
+    void *bak = NULL;
 
     setResultCore(result);
     if (st == NULL){
@@ -142,8 +144,8 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
         return result->type;
     }
 
-//    is_KeyInterrupt = signal_reset;
-//    signal(SIGINT, signalStopInter);
+    is_KeyInterrupt = signal_reset;
+    signal(SIGINT, signalStopInter);
     do {
         base = st;
         if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
@@ -176,8 +178,10 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
         setResultOperationNone(result, inter, belong);
     result->node = base;
 
+#if START_GC
     gc_run(inter, var_list, 1, 0, 0, var_list);
-//    signal(SIGINT, bak);
+#endif
+    signal(SIGINT, bak);
     return result->type;
 }
 
@@ -234,8 +238,10 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
         setResultOperationNone(result, inter, belong);
     result->node = base;
 
+#if START_GC
     gc_freeTmpLink(&belong->gc_status);
     gc_run(inter, var_list, 1, 0, 0, var_list);
+#endif
 
     signal(SIGINT, bak);
     return result->type;

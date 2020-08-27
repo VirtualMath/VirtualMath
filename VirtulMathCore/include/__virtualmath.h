@@ -22,7 +22,6 @@
 #include "syntax.h"
 #include "grammar.h"
 
-#define DEBUG 1
 #if DEBUG
 /* DEBUG */
 void printGC(Inter *inter);

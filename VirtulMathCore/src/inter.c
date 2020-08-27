@@ -243,10 +243,11 @@ Inter *deriveInter(LinkValue *belong, Inter *inter) {
     return import_inter;
 }
 
-#if DEBUG == 1
+#if DEBUG
 /* ***********************DEBUG 专用函数*********************************** */
 
 void printGC(Inter *inter){
+#if START_GC
     long int lv_st = 0;
     long int lv_tmp = 0;
     long int v_st = 0;
@@ -265,9 +266,11 @@ void printGC(Inter *inter){
     printf("hashtable tmp       link = %ld\n", h_tmp);
     printf("      tmp link     count = %ld\n", lv_tmp + v_tmp + h_tmp);
     printf("statement link     count = %ld\n", lv_st + v_st);
+#endif
 
 }
 
+#if START_GC
 void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     LinkValue *base = inter->link_base;
     long tmp = 0;
@@ -392,4 +395,5 @@ void printTokenStream(TokenStream *ts) {
     }
     printf("\n");
 }
-#endif
+#endif  // START_GC
+#endif  // DBUG
