@@ -8,8 +8,8 @@ struct Args{
     char *out_file;
     char *in_file;
     bool run_commandLine;
-} args;
-
+};
+extern struct Args args;
 typedef struct Args Args;
 
 int getArgs(int argc, char **argv);

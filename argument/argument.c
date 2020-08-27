@@ -18,6 +18,8 @@ static const struct option long_option[]={
 
 static const char *short_option = "o:e:i:n";
 
+Args args = {.out_file=NULL, .error_file=NULL, .in_file=NULL, .run_commandLine=true};
+
 /**
  * 参数设置, args是全局结构体, 保存全局的参数设置
  * @param argc
@@ -26,12 +28,8 @@ static const char *short_option = "o:e:i:n";
  */
 int getArgs(const int argc, char **argv)
 {
-    args.out_file = NULL;
-    args.error_file = NULL;
-    args.in_file = NULL;
-    args.run_commandLine = true;
-    opterr = true;
     int opt;
+    opterr = true;
     while((opt=getopt_long(argc, argv, short_option ,long_option,NULL))!=-1)
     {
         switch(opt)
