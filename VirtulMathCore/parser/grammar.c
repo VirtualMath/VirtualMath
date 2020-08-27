@@ -32,11 +32,12 @@ void freeParserMessage(ParserMessage *pm, bool self) {
  */
 void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st) {
     int token_type;
-    bool should_break = false;
-    char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
     int save_enter = pm->tm->file->filter_data.enter;
+    char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
     void *bak = NULL;
     fline line = 0;
+    bool should_break = false;
+    bool have_command = false;
 
     pm_KeyInterrupt = signal_reset;
     bak = signal(SIGINT, signalStopPm);
@@ -52,7 +53,8 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
         }
         else if (token_type == MATHER_ENTER || token_type == MATHER_SEMICOLON){
             delToken(pm);
-            continue;
+            if (!is_one || !have_command)
+                continue;
         }
         else{
             Token *command_token = NULL;
@@ -81,6 +83,7 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
                 }
                 goto return_;
             }
+            have_command = true;
             connectStatement(st, command_token->data.st);
             freeToken(command_token, false);
         }
@@ -92,7 +95,6 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
         syntaxError(pm, int_error, line, 1, "KeyInterrupt");
     }
     pm->tm->file->filter_data.enter = save_enter;
-    return;
 }
 
 /**
@@ -240,7 +242,6 @@ void parserDecoration(PASERSSIGNATURE){
 
     error_:
     freeDecorationStatement(ds);
-    return;
 }
 
 /**
@@ -263,7 +264,7 @@ void parserLabel(PASERSSIGNATURE){
     long int line = delToken(pm);
 
     if (!checkToken(pm, MATHER_COLON)){
-        syntaxError(pm, syntax_error, line, 1, "Don't get : afther label");
+        syntaxError(pm, syntax_error, line, 1, "Don't get : after label");
         goto error_;
     }
     switch (readBackToken(pm)) {
@@ -282,7 +283,7 @@ void parserLabel(PASERSSIGNATURE){
         goto make;
     if (tmp != MATHER_COLON) {  // 匹配到 ： 则label的times参数缺省
         if (!checkToken(pm, MATHER_AS)) {
-            syntaxError(pm, syntax_error, line, 1, "Don't get as afther goto label");
+            syntaxError(pm, syntax_error, line, 1, "Don't get as after goto label");
             goto error_;
         } else if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &var, "Don't get a goto var"))
             goto error_;
@@ -291,7 +292,7 @@ void parserLabel(PASERSSIGNATURE){
     if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)  // 如匹配到stop_token则label的command参数缺省
         goto make;
     else if (!checkToken(pm, MATHER_COLON)){
-        syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto var");
+        syntaxError(pm, syntax_error, line, 1, "Don't get : after goto var");
         goto error_;
     }
     else if (!callChildStatement(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command, "Don't get a label command"))
@@ -307,7 +308,6 @@ void parserLabel(PASERSSIGNATURE){
     freeStatement(var);
     freeStatement(command);
     memFree(label);
-    return;
 }
 
 /**
@@ -327,7 +327,7 @@ void parserGoto(PASERSSIGNATURE){
     long int line = delToken(pm);
 
     if (!checkToken(pm, MATHER_AT)){
-        syntaxError(pm, syntax_error, line, 1, "Don't get @ afther goto");
+        syntaxError(pm, syntax_error, line, 1, "Don't get @ after goto");
         goto error_;
     }
     if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &label, "Don't get a goto times"))
@@ -336,7 +336,7 @@ void parserGoto(PASERSSIGNATURE){
     if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)  // 如匹配到stop_token则goto后面参数缺省
         goto make;
     else if (!checkToken(pm, MATHER_COLON)){
-        syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto label");
+        syntaxError(pm, syntax_error, line, 1, "Don't get : after goto label");
         goto error_;
     }
     else if (!checkToken(pm, MATHER_COLON) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &times, "Don't get a goto times"))
@@ -345,7 +345,7 @@ void parserGoto(PASERSSIGNATURE){
     if ((tmp = readBackToken(pm)) == MATHER_ENTER || tmp == MATHER_SEMICOLON || tmp == MATHER_EOF)  // 如匹配到stop_token则goto的return_参数缺省
         goto make;
     else if (times != NULL && !checkToken(pm, MATHER_COLON)){
-        syntaxError(pm, syntax_error, line, 1, "Don't get : afther goto times");
+        syntaxError(pm, syntax_error, line, 1, "Don't get : after goto times");
         goto error_;
     }
     else if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &return_, "Don't get a goto return"))
@@ -360,7 +360,6 @@ void parserGoto(PASERSSIGNATURE){
     freeStatement(label);
     freeStatement(times);
     freeStatement(return_);
-    return;
 }
 
 /**
@@ -464,9 +463,7 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
     Token *tmp = NULL;
     long int line = delToken(pm);
     parserOperation(CALLPASERSSIGNATURE);
-    if (!call_success(pm))
-        goto error;
-    else if (readBackToken(pm) == OPERATION){
+    if (call_success(pm) && readBackToken(pm) == OPERATION){
         tmp = popNewToken(pm->tm);
         opt = tmp->data.st;
         freeToken(tmp, false);
@@ -480,7 +477,6 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
 
     error:
     syntaxError(pm, syntax_error, line, 1, message);
-    return;
 }
 
 void parserDo(PASERSSIGNATURE){
@@ -547,7 +543,6 @@ void parserDo(PASERSSIGNATURE){
     error_:
     freeStatement(do_code);
     freeStatement(st);
-    return;
 }
 
 void parserFor(PASERSSIGNATURE){
@@ -629,7 +624,6 @@ void parserFor(PASERSSIGNATURE){
     freeStatement(finally_st);
     freeStatement(do_st);
     freeStatementList(sl);
-    return;
 }
 
 void parserWith(PASERSSIGNATURE){
@@ -687,7 +681,6 @@ void parserWith(PASERSSIGNATURE){
     freeStatement(else_st);
     freeStatement(finally_st);
     freeStatementList(sl);
-    return;
 }
 
 /**
@@ -795,7 +788,6 @@ void parserIf(PASERSSIGNATURE){
     freeStatement(else_st);
     freeStatement(finally_st);
     freeStatementList(sl);
-    return;
 }
 
 /**
@@ -894,7 +886,6 @@ void parserWhile(PASERSSIGNATURE){
     freeStatement(finally_st);
     freeStatement(do_st);
     freeStatementList(sl);
-    return;
 }
 
 /**
@@ -989,7 +980,6 @@ void parserTry(PASERSSIGNATURE){
     freeStatement(else_st);
     freeStatement(finally_st);
     freeStatementList(sl);
-    return;
 }
 
 /**
@@ -1041,7 +1031,6 @@ void parserDef(PASERSSIGNATURE){
     freeStatement(name_tmp);
     freeStatement(code_tmp);
     freeParameter(pt, true);
-    return;
 }
 
 /**
@@ -1079,7 +1068,6 @@ void parserCode(PASERSSIGNATURE) {
 
     error_:
     freeStatement(st);
-    return;
 }
 
 /**
@@ -1105,14 +1093,14 @@ void parserOperation(PASERSSIGNATURE){
  */
 bool checkAssignmentLeft(PASERSSIGNATURE, Statement *left){
     if (left->type == call_function && !checkFormal(left->u.call_function.parameter)){
-        syntaxError(pm, syntax_error, left->line, 1, "Don't get success function definition from Assignmen");
+        syntaxError(pm, syntax_error, left->line, 1, "Don't get success function definition from Assignment");
         return false;
     }
     return true;
 }
 
 bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
-    switch (symbol) {
+    switch (symbol) {  // 此处保持使用switch分支
         case MATHER_ASSIGNMENT:
             *st = makeOperationBaseStatement(OPT_ASS, 0, pm->file);
             break;
@@ -1250,8 +1238,8 @@ bool tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
     long int line = delToken(pm);
 
     if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
-            PASS;
-    if (readBackToken(pm) == MATHER_COLON)
+        return false;
+    else if (readBackToken(pm) == MATHER_COLON)
         type = SliceType_slice_;
     else
         type = SliceType_down_;
@@ -1350,9 +1338,9 @@ void parserBaseValue(PASERSSIGNATURE){
             if (*value_token->data.second_str == NUL)
                 st = tmp;
             else {
-                Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line,
+                Statement *second_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line,
                                                              pm->file);
-                st = makeCallStatement(sencod_var, makeValueParameter(tmp));
+                st = makeCallStatement(second_var, makeValueParameter(tmp));
             }
             break;
         }
