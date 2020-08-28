@@ -514,6 +514,11 @@ void parserDo(PASERSSIGNATURE){
                     goto error_;
                 st->u.for_branch.first_do = do_code;
                 break;
+            case MATHER_DEF:
+                if (!callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Don't get a function def after do"))
+                    goto error_;
+                st->u.set_function.first_do = do_code;
+                break;
             case MATHER_DO: {
                 long int tmp_line = delToken(pm);
                 if (readBackToken(pm) != MATHER_WHILE){

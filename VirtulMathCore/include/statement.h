@@ -90,6 +90,7 @@ struct Statement{
         struct {
             struct Statement *name;
             struct Statement *function;
+            struct Statement *first_do;
             struct Parameter *parameter;
             struct DecorationStatement *decoration;
         } set_function;

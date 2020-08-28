@@ -156,6 +156,7 @@ Statement *makeFunctionStatement(Statement *name, Statement *function, Parameter
     tmp->u.set_function.function = function;
     tmp->u.set_function.parameter = pt;
     tmp->u.set_function.decoration = NULL;
+    tmp->u.set_function.first_do = NULL;
     return tmp;
 }
 
@@ -390,6 +391,7 @@ void freeStatement(Statement *st){
                 freeStatement(st->u.set_function.function);
                 freeParameter(st->u.set_function.parameter, true);
                 freeDecorationStatement(st->u.set_function.decoration);
+                freeStatement(st->u.set_function.first_do);
                 break;
             case set_class:
                 freeStatement(st->u.set_class.name);
@@ -551,6 +553,7 @@ Statement *copyStatementCore(Statement *st){
             new->u.set_function.function = copyStatement(st->u.set_function.function);
             new->u.set_function.parameter = copyParameter(st->u.set_function.parameter);
             new->u.set_function.decoration = copyDecorationStatement(st->u.set_function.decoration);
+            new->u.set_function.first_do = copyStatement(st->u.set_function.first_do);
             break;
         case set_class:
             new->u.set_class.name = copyStatement(st->u.set_class.name);

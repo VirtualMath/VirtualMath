@@ -58,14 +58,28 @@ ResultType setClass(INTER_FUNCTIONSIG) {
 
 ResultType setFunction(INTER_FUNCTIONSIG) {
     LinkValue *tmp = NULL;
-    Value *function_value = NULL;
-    VarList *function_var = NULL;
+    Value *func_value = NULL;
+    VarList *func_out_var = NULL;
     setResultCore(result);
 
-    function_var = copyVarList(var_list, false, inter);
-    function_value = makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, function_var, inter);
-    tmp = makeLinkValue(function_value, belong, inter);
+    func_out_var = copyVarList(var_list, false, inter);
+    func_value = makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, func_out_var, inter);
+    tmp = makeLinkValue(func_value, belong, inter);
     gc_addTmpLink(&tmp->gc_status);
+
+    {
+        enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
+        VarList *var_backup = func_value->object.var->next;
+        inter->data.default_pt_type = object_free_;
+        func_value->object.var->next = var_list;
+        functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_function.first_do, func_value->object.var, result, tmp));
+        func_value->object.var->next = var_backup;
+        inter->data.default_pt_type = pt_type_bak;
+        if (result->type != yield_return && !CHECK_RESULT(result))
+            goto error_;
+        freeResult(result);
+    }
+
     if (st->u.set_function.decoration != NULL){
         setDecoration(st->u.set_function.decoration, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
