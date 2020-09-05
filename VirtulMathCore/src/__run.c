@@ -372,3 +372,26 @@ bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, c
     }
     return true;
 }
+
+LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
+    Inherit *object_father = getInheritFromValueCore(class);
+    VarList *new_var = copyVarList(class->value->object.out_var, false, inter);
+    Value *new_object = makeObject(inter, NULL, new_var, object_father);
+    return makeLinkValue(new_object, belong, inter);
+}
+
+int init_new(LinkValue *obj, Argument *arg, INTER_FUNCTIONSIG_NOT_ST){
+    LinkValue *_init_ = NULL;
+    _init_ = findAttributes(inter->data.object_init, false, obj, inter);
+
+    if (_init_ == NULL) {
+        setResultError(E_ArgumentException, MANY_ARG, 0, "object", true,
+                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return 0;
+    }
+    _init_->belong = obj;
+    gc_addTmpLink(&_init_->gc_status);
+    callBackCore(_init_, arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
+    gc_freeTmpLink(&_init_->gc_status);
+    return CHECK_RESULT(result) ? 1 : -1;
+}

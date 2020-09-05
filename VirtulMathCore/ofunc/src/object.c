@@ -1,5 +1,22 @@
 #include "__ofunc.h"
 
+//ResultType object_new(OFFICAL_FUNCTIONSIG){
+//    LinkValue *value = NULL;
+//    setResultCore(result);
+//    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+//                           {.must=-1}};
+//    int status = 1;
+//    arg = parserValueArgument(ap, arg, &status, NULL);
+//    if (status != 1){
+//        setResultError(E_ArgumentException, FEW_ARG, 0, "object", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+//        return error_return;
+//    }
+//
+//    value = make_new(inter, belong, ap[0].value);
+//    init_new(value, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+//    return result->type;
+//}
+
 ResultType object_new(OFFICAL_FUNCTIONSIG){
     LinkValue *value = NULL;
     LinkValue *_init_ = NULL;
@@ -13,34 +30,16 @@ ResultType object_new(OFFICAL_FUNCTIONSIG){
         return error_return;
     }
 
-    {
-        Inherit *object_father = getInheritFromValueCore(ap[0].value);
-        VarList *new_var = copyVarList(ap[0].value->value->object.out_var, false, inter);
-        Value *new_object = makeObject(inter, NULL, new_var, object_father);
-        value = makeLinkValue(new_object, belong, inter);
-        setResultOperation(result, value);
-    }
+    value = make_new(inter, belong, ap[0].value);
 
-    _init_ = findAttributes(inter->data.object_init, false, value, inter);
-
-    if (_init_ != NULL){
-        Result _init_result;
-        setResultCore(&_init_result);
-        _init_->belong = value;
-
-        gc_addTmpLink(&_init_->gc_status);
-        callBackCore(_init_, arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &_init_result, value));
-        gc_freeTmpLink(&_init_->gc_status);
-        if (!RUN_TYPE(_init_result.type)){
+    switch (init_new(value, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+        case 1:
             freeResult(result);
-            *result = _init_result;
-            goto return_;
-        }
-        freeResult(&_init_result);
-    } else if (arg != NULL)
-        setResultError(E_ArgumentException, MANY_ARG, 0, "object", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-
-    return_:
+            setResultOperation(result, value);
+            break;
+        default:
+            break;
+    }
     return result->type;
 }
 
@@ -74,7 +73,7 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     else
         type = "object";
 
-    len = memStrlen(name) + 26;
+    len = memStrlen(name) + 30;
     repo = memCalloc(len, sizeof(char ));
     snprintf(repo, len, "(%s: %s on %p)", type, name, ap[0].value->value);
     setResultOperationBase(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));

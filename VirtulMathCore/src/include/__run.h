@@ -34,4 +34,6 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
 char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool is_iterStop(LinkValue *value, Inter *inter);
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST);
+LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class);
+int init_new(LinkValue *obj, Argument *arg, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH___RUN_H

@@ -413,9 +413,10 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
 }
 
 int lexFilter(LexFile *file, int status){
-    if (status == MATHER_SPACE || status == MATHER_NOTENTER || status == MATHER_COMMENT)
-        return -1;
-    if (file->filter_data.enter != 0 && status == MATHER_ENTER)
+    if (status == MATHER_SPACE ||
+        status == MATHER_NOTENTER ||
+        status == MATHER_COMMENT ||
+        file->filter_data.enter != 0 && status == MATHER_ENTER)
         return -1;
     return status;
 }
