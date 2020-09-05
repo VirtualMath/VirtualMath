@@ -19,9 +19,7 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     freeResult(result);
 
     not_times:
-    value = makeLinkValue(makeStringValue(st->u.base_var.name, inter), belong, inter);
-    setResultOperation(result, value);
-
+    makeStringValue(st->u.base_var.name, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -205,7 +203,7 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
         default:
             break;
     }
-    setResultBase(result, inter, belong);
+    setResultBase(result, inter);
     return result->type;
 }
 
@@ -235,13 +233,25 @@ LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     return tmp;
 }
 
-void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, LinkValue *belong, INTER_FUNCTIONSIG_CORE){
+void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     char *var_name = setStrVarName(name, free_old, inter);
-    LinkValue *name_ = makeLinkValue(makeStringValue(name, inter), belong, inter);
-    addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    if (setting)
-        newObjectSetting(name_, value, inter);
-    memFree(var_name);
+    setResultCore(result);
+
+    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    addFromVarList(var_name, result->value, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    else if (setting) {
+        LinkValue *name_value = result->value;
+        result->value = NULL;
+        freeResult(result);
+        newObjectSetting(name_value, line, file, value, result, inter);
+        gc_freeTmpLink(&name_value->gc_status);
+    }
+
+    if (CHECK_RESULT(result))
+        freeResult(result);
+    return_: memFree(var_name);
 }
 
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter) {
@@ -251,15 +261,17 @@ LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *in
     return attr;
 }
 
-void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belong, Inter *inter) {
-    addStrVar(name, free_old, false, value, belong, inter, belong->value->object.var);
+bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, LinkValue *belong, Result *result, Inter *inter) {
+    setResultCore(result);
+    addStrVar(name, free_old, false, value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong));
+    return CHECK_RESULT(result);
 }
 
-void newObjectSetting(LinkValue *name, LinkValue *belong, Inter *inter) {
-    addAttributes(inter->data.object_name, false, name, belong, inter);
-    addAttributes(inter->data.object_self, false, belong, belong, inter);
+void newObjectSetting(LinkValue *name, fline line, char *file, LinkValue *belong, Result *result, Inter *inter) {
+    addAttributes(inter->data.object_name, false, name, line, file, belong, result, inter);
+    addAttributes(inter->data.object_self, false, belong, line, file, belong, result, inter);
     if (belong->value->object.inherit != NULL)
-        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, belong, inter);
+        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, line, file, belong, result, inter);
 }
 
 
@@ -316,7 +328,7 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
         else
             return result->value->value->data.bool_.bool_;
     } else {
-        setResultOperationBase(result, makeLinkValue(makeBoolValue(true, inter), belong, inter));
+        makeBoolValue(true, 0, "sys.bool", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return true;
     }
     return false;
@@ -331,7 +343,6 @@ char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_
         callBackCore(_repo_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_repo_->gc_status);
         gc_freeTmpLink(&value->gc_status);
-
         if (!CHECK_RESULT(result))
             return NULL;
         else if (result->value->value->type != string){
@@ -380,18 +391,35 @@ LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
     return makeLinkValue(new_object, belong, inter);
 }
 
-int init_new(LinkValue *obj, Argument *arg, INTER_FUNCTIONSIG_NOT_ST){
+int init_new(LinkValue *obj, Argument *arg, char *message, INTER_FUNCTIONSIG_NOT_ST){
     LinkValue *_init_ = NULL;
     _init_ = findAttributes(inter->data.object_init, false, obj, inter);
 
     if (_init_ == NULL) {
-        setResultError(E_ArgumentException, MANY_ARG, 0, "object", true,
-                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return 0;
+        if (arg != NULL) {
+            setResultError(E_ArgumentException, MANY_ARG, 0, message, true,
+                           CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            return 0;
+        } else
+            return 1;
     }
     _init_->belong = obj;
     gc_addTmpLink(&_init_->gc_status);
-    callBackCore(_init_, arg, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
+    callBackCore(_init_, arg, 0, message, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
     gc_freeTmpLink(&_init_->gc_status);
     return CHECK_RESULT(result) ? 1 : -1;
+}
+
+bool setBoolAttrible(bool value, char *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST) {
+    LinkValue *bool_value = NULL;
+    setResultCore(result);
+    makeBoolValue(value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return false;
+    bool_value = result->value;
+    freeResult(result);
+    if (!addAttributes(var, false, bool_value, line, file, obj, result, inter))
+        return false;
+    freeResult(result);
+    return true;
 }

@@ -55,8 +55,11 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         gc_freeTmpLink(&list->gc_status);
         gc_freeTmpLink(&listiter_class->gc_status);
     }
-    addAttributes("__list", false, list_iter, ap[0].value, inter);
-    addAttributes("__dict", false, ap[1].value, ap[0].value, inter);
+    freeResult(result);
+    if (addAttributes("__list", false, list_iter, 0, "dictiter.init", ap[0].value, result, inter)) {
+        freeResult(result);
+        addAttributes("__dict", false, ap[1].value, 0, "dictiter.init", ap[0].value, result, inter);
+    }
     gc_freeTmpLink(&list_iter->gc_status);
     setResult(result, inter, belong);
     return result->type;
@@ -114,8 +117,8 @@ void registeredDictIter(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_down, dictiter_down, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("dictiter", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addBaseClassVar("dictiter", object, belong, inter);
+    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

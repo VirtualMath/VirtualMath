@@ -29,96 +29,132 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
     return tmp;
 }
 
-Value *makeNoneValue(Inter *inter) {
+Value *makeNoneValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp;
-    if (inter->data.none == NULL) {
-        tmp = makeObject(inter, NULL, NULL, NULL);
-        tmp->type = none;
-    }
-    else
-        tmp = inter->data.none;
+    setResultCore(result);
+    callBackCore(makeLinkValue(inter->data.object, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
+    tmp->type = none;
     return tmp;
 }
 
-Value *makeBoolValue(bool bool_num, Inter *inter) {
-    Inherit *object_father = getInheritFromValue(inter->data.bool_, inter);
-    VarList *new_var = copyVarList(inter->data.bool_->object.out_var, false, inter);
-    Value *tmp;
-    tmp = makeObject(inter, NULL, new_var, object_father);
-    tmp->type = bool_;
+Value *useNoneValue(Inter *inter, Result *result) {
+    Value *tmp = inter->data.none;
+    if (result != NULL) {
+        setResultCore(result);
+        result->type = operation_return;
+        result->value = makeLinkValue(tmp, inter->base_father, inter);
+        gc_addTmpLink(&result->value->gc_status);
+    }
+    return tmp;
+}
+
+Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    Value *tmp = NULL;
+    callBackCore(makeLinkValue(inter->data.bool_, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
     tmp->data.bool_.bool_ = bool_num;
     return tmp;
 }
 
-Value *makePassValue(Inter *inter){
-    Inherit *object_father = getInheritFromValue(inter->data.pass_, inter);
-    VarList *new_var = copyVarList(inter->data.pass_->object.out_var, false, inter);
-    Value *tmp;
-    tmp = makeObject(inter, NULL, new_var, object_father);
-    tmp->type = pass_;
+Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){  // TODO-szh 让切片支持该语法
+    Value *tmp = NULL;
+    callBackCore(makeLinkValue(inter->data.pass_, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
     return tmp;
 }
 
-Value *makeNumberValue(vnum num, Inter *inter) {
-    Inherit *object_father = getInheritFromValue(inter->data.num, inter);
-    VarList *new_var = copyVarList(inter->data.num->object.out_var, false, inter);
-    Value *tmp;
-    tmp = makeObject(inter, NULL, new_var, object_father);
-    tmp->type = number;
+Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    Value *tmp = NULL;
+    callBackCore(makeLinkValue(inter->data.num, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
     tmp->data.num.num = num;
     return tmp;
 }
 
-Value *makeStringValue(char *str, Inter *inter) {
-    Inherit *object_father = getInheritFromValue(inter->data.str, inter);
-    VarList *new_var = copyVarList(inter->data.str->object.out_var, false, inter);
-    Value *tmp;
-    tmp = makeObject(inter, NULL, new_var, object_father);
-    tmp->type = string;
+Value *makeStringValue(char *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    Value *tmp = NULL;
+    callBackCore(makeLinkValue(inter->data.str, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
+    memFree(tmp->data.str.str);
     tmp->data.str.str = memStrcpy(str);
     return tmp;
 }
 
-
-static void setFunctionData(Value *value, Inter *inter) {
-    value->data.function.function_data.pt_type = inter->data.default_pt_type;
-}
-
-Value *makeVMFunctionFromValue(Value *value, LinkValue *return_value, fline line, char *file, Inter *inter) {
-    Statement *st = makeReturnStatement(makeBaseLinkValueStatement(return_value, line, file), line, file);
-    value->type = function;
-    value->data.function.type = vm_function;
-    value->data.function.function = st;
-    value->data.function.pt = NULL;
-    value->data.function.of = NULL;
-    setFunctionData(value, inter);
-    return value;
-}
-
-Value *makeVMFunctionValue(Statement *st, Parameter *pt, VarList *var_list, Inter *inter) {
-    Inherit *object_father = getInheritFromValue(inter->data.function, inter);
-    Value *tmp;
-    tmp = makeObject(inter, NULL, var_list, object_father);
-    tmp->type = function;
-    tmp->data.function.type = vm_function;
+Value *makeVMFunctionValue(Statement *st, Parameter *pt, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 设置无var_list的函数 (允许使用装饰器装饰，该功能未测试)
+    Value *tmp = NULL;
+    callBackCore(makeLinkValue(inter->data.function, inter->base_father, inter), NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
-    tmp->data.function.of = NULL;
-    setFunctionData(tmp, inter);
+    for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
+        vl_next = vl->next;
+        freeVarList(vl);
+    }
+    tmp->object.out_var = copyVarList(var_list, false, inter);
+    result->value->belong = belong;
     return tmp;
 }
 
-Value *makeCFunctionValue(OfficialFunction of, VarList *var_list, Inter *inter) {
-    Inherit *object_father = getInheritFromValue(inter->data.function, inter);
-    Value *tmp;
-    tmp = makeObject(inter, NULL, copyVarList(var_list, false, inter), object_father);
-    tmp->type = function;
+Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    Value *tmp = NULL;
+    callBackCore(makeLinkValue(inter->data.function, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
     tmp->data.function.type = c_function;
-    tmp->data.function.function = NULL;
-    tmp->data.function.pt = NULL;
     tmp->data.function.of = of;
-    setFunctionData(tmp, inter);
+    tmp->data.function.function_data.pt_type = inter->data.default_pt_type;
+    for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
+        vl_next = vl->next;
+        freeVarList(vl);
+    }
+    tmp->object.out_var = copyVarList(var_list, false, inter);
+    result->value->belong = belong;
     return tmp;
+}
+
+LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, OfficialFunction function_init, LinkValue *belong, VarList *var_list, Inter *inter) {
+    Argument *arg = makeValueArgument(func);
+    Argument *init_arg = NULL;
+    LinkValue *return_ = NULL;
+    Result result;
+
+    setResultCore(&result);
+    function_new(CALL_OFFICAL_FUNCTION(arg, func->value->object.var, &result, func));
+    return_ = result.value;
+    result.value = NULL;
+    freeResult(&result);
+
+    init_arg = makeValueArgument(return_);
+    function_init(CALL_OFFICAL_FUNCTION(init_arg, func->value->object.var, &result, func));
+    freeResult(&result);
+    freeArgument(init_arg, true);
+    freeArgument(arg, true);
+
+    return_->value->data.function.type = c_function;
+    return_->value->data.function.of = of;
+    return_->value->data.function.function_data.pt_type = inter->data.default_pt_type;
+    for (VarList *vl = return_->value->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
+        vl_next = vl->next;
+        freeVarList(vl);
+    }
+    return_->value->object.out_var = copyVarList(var_list, false, inter);
+    return_->belong = belong;
+    gc_freeTmpLink(&return_->gc_status);
+    return return_;
 }
 
 Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
@@ -128,51 +164,29 @@ Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
     return tmp;
 }
 
-Value *makeListValue(Argument **arg_ad, Inter *inter, enum ListType type) {
-    Inherit *object_father = NULL;
-    VarList *new_var = NULL;
-    Value *tmp;
-    Argument *at = *arg_ad;
-    if (type == value_list) {
-        object_father = getInheritFromValue(inter->data.list, inter);
-        new_var = copyVarList(inter->data.list->object.out_var, false, inter);
-    }
-    else {
-        object_father = getInheritFromValue(inter->data.tuple, inter);
-        new_var = copyVarList(inter->data.tuple->object.out_var, false, inter);
-    }
-    tmp = makeObject(inter, NULL, new_var, object_father);
-    tmp->type = list;
-    tmp->data.list.type = type;
-    tmp->data.list.list = NULL;
-    tmp->data.list.size = 0;
-    for (PASS; at != NULL && at->type == value_arg; at = at->next) {
-        tmp->data.list.size++;
-        tmp->data.list.list = memRealloc(tmp->data.list.list, tmp->data.list.size * sizeof(LinkValue *));
-        tmp->data.list.list[tmp->data.list.size - 1] = at->data.value;
-    }
-    *arg_ad = at;
+Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, INTER_FUNCTIONSIG_NOT_ST) {
+    Value *tmp = NULL;
+    if (type == value_list)
+        callBackCore(makeLinkValue(inter->data.list, inter->base_father, inter), arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    else
+        callBackCore(makeLinkValue(inter->data.tuple, inter->base_father, inter), arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
     return tmp;
 }
 
-Value *makeDictValue(Argument **arg_ad, bool new_hash, INTER_FUNCTIONSIG_NOT_ST) {
-    Inherit *object_father = getInheritFromValue(inter->data.dict, inter);
-    VarList *new_var = copyVarList(inter->data.dict->object.out_var, false, inter);
-    Value *tmp;
-    tmp = makeObject(inter, NULL, new_var, object_father);
-    tmp->data.dict.size = 0;
-    tmp->type = dict;
-    if (new_hash) {
-        VarList *hash = pushVarList(var_list, inter);
-        gc_addTmpLink(&tmp->gc_status);
-        tmp->data.dict.dict = hash->hashtable;
-        freeResult(result);
-        argumentToVar(arg_ad, &tmp->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result, belong));
-        popVarList(hash);
-        gc_freeTmpLink(&tmp->gc_status);
-    }
-    else
+Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    Value *tmp = NULL;
+    LinkValue *dict = makeLinkValue(inter->data.dict, inter->base_father, inter);
+    callBackCore(dict, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
+    if (!new_hash) {
         tmp->data.dict.dict = NULL;
+        tmp->data.dict.size = 0;
+    }
     return tmp;
 }
 
@@ -265,13 +279,12 @@ void setResultCore(Result *ru) {
 
 void setResult(Result *ru, Inter *inter, LinkValue *belong) {
     freeResult(ru);
-    setResultBase(ru, inter, belong);
+    setResultBase(ru, inter);
 }
 
-void setResultBase(Result *ru, Inter *inter, LinkValue *belong) {
+void setResultBase(Result *ru, Inter *inter) {
     setResultCore(ru);
-    ru->value = makeLinkValue(makeNoneValue(inter), belong, inter);
-    gc_addTmpLink(&ru->value->gc_status);
+    useNoneValue(inter, ru);
 }
 
 void setResultErrorSt(BaseErrorType type, char *error_message, bool new, Statement *st, INTER_FUNCTIONSIG_NOT_ST) {
@@ -340,7 +353,13 @@ void callException(LinkValue *exc, char *message, fline line, char *file, INTER_
     gc_addTmpLink(&exc->gc_status);
 
     if (_new_ != NULL){
-        Argument *arg = makeValueArgument(makeLinkValue(makeStringValue(message, inter), belong, inter));
+        Argument *arg = NULL;
+        makeStringValue(message, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            goto return_;
+        arg =  makeValueArgument(result->value);
+        freeResult(result);
+
         gc_addTmpLink(&_new_->gc_status);
         callBackCore(_new_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_new_->gc_status);
@@ -357,7 +376,7 @@ void callException(LinkValue *exc, char *message, fline line, char *file, INTER_
     result->error = connectError(makeError(type, error_message, line, file), result->error);
     memFree(type);
     memFree(error_message);
-    gc_freeTmpLink(&exc->gc_status);
+    return_: gc_freeTmpLink(&exc->gc_status);
 }
 
 void setResultError(BaseErrorType type, char *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST) {
@@ -493,14 +512,14 @@ Inherit *connectInherit(Inherit *base, Inherit *back){
 Inherit *connectSafeInherit(Inherit *base, Inherit *back){
     Inherit **last_node = &base;
     if (back == NULL)
-        goto reutrn_;
+        goto return_;
     for (PASS; *last_node != NULL;)
         if ((*last_node)->value->value == back->value->value)
             *last_node = freeInherit(*last_node);
         else
             last_node = &(*last_node)->next;
     *last_node = back;
-    reutrn_: return base;
+    return_: return base;
 }
 
 Inherit *getInheritFromValue(Value *value, Inter *inter){

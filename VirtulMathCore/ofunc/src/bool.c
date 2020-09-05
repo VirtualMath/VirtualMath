@@ -1,11 +1,37 @@
 #include "__ofunc.h"
 
+ResultType bool_new(OFFICAL_FUNCTIONSIG){
+    LinkValue *value = NULL;
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    int status = 1;
+    arg = parserValueArgument(ap, arg, &status, NULL);
+    if (status != 1){
+        setResultError(E_ArgumentException, FEW_ARG, 0, "bool.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
+    setResultCore(result);
+    value = make_new(inter, belong, ap[0].value);
+    value->value->type = bool_;
+    value->value->data.bool_.bool_ = false;
+    switch (init_new(value, arg, "bool.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+        case 1:
+            freeResult(result);
+            setResultOperation(result, value);
+            break;
+        default:
+            break;
+    }
+    return result->type;
+}
+
 ResultType bool_init(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
     LinkValue *base;
-    bool new;
+    bool new = false;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -13,22 +39,25 @@ ResultType bool_init(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     base = ap[0].value;
-    new = checkBool(ap[1].value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!CHECK_RESULT(result))
-        return result->type;
-    base->value->type = bool_;
+    if (ap[1].value != NULL) {
+        new = checkBool(ap[1].value, 0, "bool.init", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
     base->value->data.bool_.bool_ = new;
-    setResult(result, inter, belong);
+    setResultBase(result, inter);
     return result->type;
 }
 
 void registeredBool(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.bool_, inter->base_father, inter);
-    NameFunc tmp[] = {{inter->data.object_init, bool_init, object_free_},
+    NameFunc tmp[] = {{inter->data.object_new, bool_new, class_free_},
+                      {inter->data.object_init, bool_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("bool", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addBaseClassVar("bool", object, belong, inter);
+    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

@@ -121,7 +121,7 @@ ResultType listDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
         delCore(pt->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeResult(result);
     }
-    setResultBase(result, inter, belong);
+    setResultBase(result, inter);
     return result->type;
 }
 
@@ -206,19 +206,19 @@ ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
 
 ResultType assOperation(INTER_FUNCTIONSIG) {
     LinkValue *value = NULL;
+    setResultCore(result);
     if (st->u.operation.left->type == call_function){
-        VarList *function_var = NULL;
-        Value *function_value = NULL;
-        LinkValue *tmp = NULL;
-        function_var = copyVarList(var_list, false, inter);
-        {
-            Statement *return_st = makeReturnStatement(st->u.operation.right, st->line, st->code_file);
-            function_value = makeVMFunctionValue(return_st, st->u.operation.left->u.call_function.parameter, function_var, inter);
-            return_st->u.return_code.value = NULL;
-            freeStatement(return_st);
-        }
-        tmp = makeLinkValue(function_value, belong, inter);
-        assCore(st->u.operation.left->u.call_function.function, tmp, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        Statement *return_st = makeReturnStatement(st->u.operation.right, st->line, st->code_file);
+        LinkValue *func = NULL;
+        makeVMFunctionValue(return_st, st->u.operation.left->u.call_function.parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return_st->u.return_code.value = NULL;
+        freeStatement(return_st);
+
+        func = result->value;
+        result->value = NULL;
+        freeResult(result);
+        assCore(st->u.operation.left->u.call_function.function, func, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&func->gc_status);
     }
     else{
         if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)))
@@ -249,11 +249,6 @@ ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setti
     return result->type;
 }
 
-void varAssCore(char *name, LinkValue *name_, vnum times, LinkValue *value, bool setting, INTER_FUNCTIONSIG_CORE) {
-    addFromVarList(name, name_, times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    if (setting)
-        newObjectSetting(name_, value, inter);
-}
 
 ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST) {
     char *str_name = NULL;
@@ -272,19 +267,29 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     if (check_aut) {
         LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (tmp != NULL && !checkAut(value->aut, tmp->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
-            goto return_;
+            goto error_;
     } else if (name->aut != auto_aut){
         LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (tmp != NULL)
             tmp->aut = name->aut;
     }
-    varAssCore(str_name, result->value, int_times, var_value, setting, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    addFromVarList(str_name, result->value, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (setting) {
+        LinkValue *name_value = result->value;
+        result->value = NULL;
+        freeResult(result);
+        newObjectSetting(name_value, name->line, name->code_file, value, result, inter);
+        gc_freeTmpLink(&name_value->gc_status);
+        if (CHECK_RESULT(result))
+            goto error_;
+    }
+
     freeResult(result);
     result->type = operation_return;
     result->value = value;
     gc_addTmpLink(&result->value->gc_status);
 
-    return_:
+    error_:
     memFree(str_name);
     return result->type;
 }
@@ -303,10 +308,8 @@ ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     freeResult(result);
     setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (CHECK_RESULT(result)){
-        Argument *tmp = call;
-        LinkValue *new_value = makeLinkValue(makeListValue(&tmp, inter, value_tuple), belong, inter);
         freeResult(result);
-        setResultOperation(result, new_value);
+        makeListValue(call, name->line, name->code_file, value_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     return_:
     freeArgument(call, false);
@@ -398,35 +401,32 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
 
 ResultType getBaseValue(INTER_FUNCTIONSIG) {
     setResultCore(result);
-    if (st->u.base_value.type == link_value)
+    if (st->u.base_value.type == link_value) {
         result->value = st->u.base_value.value;
-    else {
-        Value *value = NULL;
+        result->type = operation_return;
+        gc_addTmpLink(&result->value->gc_status);
+    }
+    else
         switch (st->u.base_value.type){
             case number_str:
-                value = makeNumberValue(strtol(st->u.base_value.str, NULL, 10), inter);
+                makeNumberValue(strtol(st->u.base_value.str, NULL, 10), st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 break;
             case bool_true:
-                value = makeBoolValue(true, inter);
+                makeBoolValue(true, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 break;
             case bool_false:
-                value = makeBoolValue(false, inter);
+                makeBoolValue(false, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 break;
             case pass_value:
-                value = makePassValue(inter);
+                makePassValue(st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 break;
             case null_value:
-                value = makeNoneValue(inter);
+                useNoneValue(inter, result);
                 break;
             default:
-                value = makeStringValue(st->u.base_value.str, inter);
+                makeStringValue(st->u.base_value.str, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 break;
         }
-        result->value = makeLinkValue(value, belong, inter);
-    }
-
-    result->type = operation_return;
-    gc_addTmpLink(&result->value->gc_status);
     return result->type;
 }
 
@@ -441,9 +441,8 @@ ResultType getList(INTER_FUNCTIONSIG) {
         freeArgument(at_tmp, false);
         return result->type;
     }
-
-    LinkValue *value = makeLinkValue(makeListValue(&at, inter, st->u.base_list.type), belong, inter);
-    setResultOperation(result, value);
+    freeResult(result);
+    makeListValue(at, st->line, st->code_file, st->u.base_list.type, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     freeArgument(at_tmp, false);
 
     return result->type;
@@ -451,27 +450,25 @@ ResultType getList(INTER_FUNCTIONSIG) {
 
 ResultType getDict(INTER_FUNCTIONSIG) {
     Argument *at = NULL;
-    Argument *at_tmp = NULL;
 
     setResultCore(result);
     at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    at_tmp = at;
     if (!CHECK_RESULT(result)){
-        freeArgument(at_tmp, false);
+        freeArgument(at, false);
         return result->type;
     }
 
     freeResult(result);
-    Value *tmp_value = makeDictValue(&at, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    Value *tmp_value = makeDictValue(at, true, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result)) {
-        freeArgument(at_tmp, false);
+        freeArgument(at, false);
         return result->type;
     }
 
     freeResult(result);
     LinkValue *value = makeLinkValue(tmp_value, belong, inter);
     setResultOperation(result, value);
-    freeArgument(at_tmp, false);
+    freeArgument(at, false);
 
     return result->type;
 }

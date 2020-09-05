@@ -1,32 +1,70 @@
 #include "__ofunc.h"
 
-LinkValue *registeredFunctionCore(OfficialFunction of, char *name, LinkValue *belong, INTER_FUNCTIONSIG_CORE) {
-    LinkValue *value = makeLinkValue(makeCFunctionValue(of, var_list, inter), belong, inter);
-    addStrVar(name, false, true, value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+LinkValue *registeredFunctionCore(OfficialFunction of, char *name, INTER_FUNCTIONSIG_NOT_ST) {
+    LinkValue *value = NULL;
+    makeCFunctionValue(of, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    value = result->value;
+    result->value = NULL;
+    freeResult(result);
+    addStrVar(name, false, true, value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    gc_freeTmpLink(&value->gc_status);
     return value;
 }
 
-void iterNameFunc(NameFunc list[], LinkValue *father, INTER_FUNCTIONSIG_CORE){
+bool iterNameFunc(NameFunc *list, INTER_FUNCTIONSIG_NOT_ST){
+    setResultCore(result);
     for (PASS; list->of != NULL; list++) {
-        LinkValue *value = registeredFunctionCore(list->of, list->name, father, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        LinkValue *value = registeredFunctionCore(list->of, list->name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            return false;
         value->value->data.function.function_data.pt_type = list->type;
+        freeResult(result);
     }
+    return true;
 }
 
-void iterClassFunc(NameFunc list[], LinkValue *father, INTER_FUNCTIONSIG_CORE){
-    VarList *object_backup = father->value->object.var->next;
-    VarList *object_var = father->value->object.var;
+bool iterClassFunc(NameFunc *list, INTER_FUNCTIONSIG_NOT_ST){
+    VarList *object_var = belong->value->object.var;
+    VarList *object_backup = object_var->next;
     enum FunctionPtType bak = inter->data.default_pt_type;
+    bool return_ = true;
+
+    setResultCore(result);
     object_var->next = var_list;
     inter->data.default_pt_type = object_free_;
+
     gc_freeze(inter, object_backup, NULL, true);
     for (PASS; list->of != NULL; list++) {
-        LinkValue *value = registeredFunctionCore(list->of, list->name, father, CALL_INTER_FUNCTIONSIG_CORE(object_var));
+        LinkValue *value = registeredFunctionCore(list->of, list->name, CALL_INTER_FUNCTIONSIG_NOT_ST(object_var, result, belong));
+        if (!CHECK_RESULT(result)) {
+            return_ = false;
+            break;
+        }
         value->value->data.function.function_data.pt_type = list->type;
+        freeResult(result);
     }
     gc_freeze(inter, object_backup, NULL, false);
+
     object_var->next = object_backup;
     inter->data.default_pt_type = bak;
+
+    return return_;
+}
+
+void iterBaseNameFunc(NameFunc *list, LinkValue *father, INTER_FUNCTIONSIG_CORE){
+    Result result;
+    setResultCore(&result);
+    if (!iterNameFunc(list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &result, father)))
+        printError(&result, inter, true);
+    freeResult(&result);
+}
+
+void iterBaseClassFunc(NameFunc *list, LinkValue *father, INTER_FUNCTIONSIG_CORE){
+    Result result;
+    setResultCore(&result);
+    if (!iterClassFunc(list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &result, father)))
+        printError(&result, inter, true);
+    freeResult(&result);
 }
 
 Value *makeBaseChildClass(Value *inherit, Inter *inter) {
@@ -75,4 +113,22 @@ bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, INTER_
         return false;
     }
     return true;
+}
+
+void addBaseClassVar(char *name, LinkValue *obj, LinkValue *belong, Inter *inter) {
+    Result result;
+    setResultCore(&result);
+    addStrVar(name, false, true, obj, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(inter->var_list, &result, belong));
+    if (!RUN_TYPE(result.type))
+        printError(&result, inter, true);
+    freeResult(&result);
+}
+
+void newObjectSettingPresetting(LinkValue *func, LinkValue *name, Inter *inter) {
+    Result result;
+    setResultCore(&result);
+    newObjectSetting(name, 0, "sys", func, &result, inter);
+    if (RUN_TYPE(result.type))
+        printError(&result, inter, true);
+    freeResult(&result);
 }

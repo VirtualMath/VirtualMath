@@ -3,30 +3,30 @@
 typedef void (*base_opt)(LinkValue *, Result *, struct Inter *, VarList *var_list, Value *, Value *);
 
 void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
+    setResultCore(result);
     if (left->type == number && right->type == number)
-        result->value->value = makeNumberValue(left->data.num.num + right->data.num.num, inter);
+        makeNumberValue(left->data.num.num + right->data.num.num, 0, "vobject.add", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if(left->type == string && right->type == string){
         char *new_string = memStrcat(left->data.str.str, right->data.str.str, false, false);
-        result->value->value = makeStringValue(new_string, inter);
+        makeStringValue(new_string, 0, "vobject.add", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(new_string);
     }
     else
-        setResultError(E_TypeException, CUL_ERROR(Add), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Add), 0, "vobject.add", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
+    setResultCore(result);
     if (left->type == number && right->type == number)
-        result->value->value = makeNumberValue(left->data.num.num - right->data.num.num, inter);
+        makeNumberValue(left->data.num.num - right->data.num.num, 0, "vobject.sub", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
-        setResultError(E_TypeException, CUL_ERROR(Sub), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Sub), 0, "vobject.sub", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
+    setResultCore(result);
     if (left->type == number && right->type == number)
-        result->value->value = makeNumberValue(left->data.num.num * right->data.num.num, inter);
+        makeNumberValue(left->data.num.num * right->data.num.num, 0, "vobject.mul", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if(left->type == number && right->type == string) {
         Value *tmp = left;
         left = right;
@@ -35,21 +35,21 @@ void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Va
     }
     else if(left->type == string && right->type == number) mul_str: {
         char *new_string = memStrcpySelf(left->data.str.str, right->data.num.num);
-        result->value->value = makeStringValue(new_string, inter);
+        makeStringValue(new_string, 0, "vobject.mul", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(new_string);
     }
     else
-        setResultError(E_TypeException, CUL_ERROR(Mul), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Mul), 0, "vobject.mul", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
-    setResultOperationBase(result, makeLinkValue(NULL, belong, inter));
+    setResultCore(result);
     if (left->type == number && right->type == number) {
         lldiv_t div_result = lldiv(left->data.num.num, right->data.num.num);
-        result->value->value = makeNumberValue(div_result.quot, inter);
+        makeNumberValue(div_result.quot, 0, "vobject.div", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     else
-        setResultError(E_TypeException, CUL_ERROR(Div), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Div), 0, "vobject.div", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
 ResultType vobject_opt_core(OFFICAL_FUNCTIONSIG, base_opt func){
@@ -70,7 +70,6 @@ ResultType vobject_opt_core(OFFICAL_FUNCTIONSIG, base_opt func){
     right = ap[1].value->value;
 
     func(belong, result, inter, var_list, left, right);
-
     return result->type;
 }
 
@@ -95,7 +94,6 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
                            {.must=-1}};
     bool result_ = false;
     Value *value = NULL;
-    Value *return_value = NULL;
     setResultCore(result);
     {
         parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -128,8 +126,7 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
             setResultError(E_TypeException, CUL_ERROR(bool), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
     }
-    return_value = makeBoolValue(result_, inter);
-    setResultOperationBase(result, makeLinkValue(return_value, belong, inter));
+    makeBoolValue(result_, 0, "vobject.bool", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -183,7 +180,7 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
             setResultError(E_TypeException, CUL_ERROR(repo/str), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return error_return;
     }
-    setResultOperationBase(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
+    makeStringValue(repo, 0, "vobject.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     memFree(repo);
     return result->type;
 }
@@ -199,8 +196,8 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_str, vobject_repo, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("vobject", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addBaseClassVar("vobject", object, belong, inter);
+    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

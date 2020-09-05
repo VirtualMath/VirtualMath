@@ -15,9 +15,17 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         return error_return;
     }
 
-    index = makeLinkValue(makeNumberValue(0, inter), ap[0].value, inter);
-    addAttributes("__list", false, ap[1].value, ap[0].value, inter);
-    addAttributes("__index", false, index, ap[0].value, inter);
+    index = makeLinkValue(makeNumberValue(0, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)), ap[0].value, inter);
+    if (!CHECK_RESULT(result))
+        return result->type;
+
+    freeResult(result);
+    if (addAttributes("__list", false, ap[1].value, 0, "listiter.init", ap[0].value, result, inter)) {
+        freeResult(result);
+        addAttributes("__index", false, index, 0, "listiter.init", ap[0].value, result, inter);
+    }
+
+    setResult(result, inter, belong);
     return result->type;
 }
 
@@ -49,7 +57,8 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
         setResultError(E_StopIterException, "Stop Iter", 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else {
         index->value->data.num.num ++;
-        addAttributes("__index", false, index, ap[0].value, inter);
+        if (addAttributes("__index", false, index, 0, "listiter.next", ap[0].value, result, inter))
+            setResult(result, inter, belong);
     }
     return result->type;
 }
@@ -60,8 +69,8 @@ void registeredListIter(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_next, listiter_next, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("listiter", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addBaseClassVar("listiter", object, belong, inter);
+    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

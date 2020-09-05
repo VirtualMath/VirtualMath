@@ -2,7 +2,6 @@
 
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
-    LinkValue *base_father = NULL;
     tmp->base = NULL;
     tmp->link_base = NULL;
     tmp->hash_base = NULL;
@@ -47,19 +46,7 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
         tmp->data.is_stdin = true;
     }
 
-    registeredFunctionName(tmp);
-
-    tmp->data.none = makeNoneValue(tmp);
-    gc_addStatementLink(&tmp->data.none->gc_status);
-
-    {
-        Value *global_belong = makeObject(tmp, copyVarList(tmp->var_list, false, tmp), NULL, NULL);
-        base_father = makeLinkValue(global_belong, belong, tmp);
-        gc_addStatementLink(&base_father->gc_status);
-        tmp->base_father = base_father;
-    }
-
-    registeredBaseFunction(base_father, tmp);
+    registeredFunctionName(tmp, belong);
     return tmp;
 }
 

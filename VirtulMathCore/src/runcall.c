@@ -57,23 +57,23 @@ ResultType setClass(INTER_FUNCTIONSIG) {
 }
 
 ResultType setFunction(INTER_FUNCTIONSIG) {
-    LinkValue *tmp = NULL;
-    Value *func_value = NULL;
-    VarList *func_out_var = NULL;
+    LinkValue *func = NULL;
     setResultCore(result);
 
-    func_out_var = copyVarList(var_list, false, inter);
-    func_value = makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, func_out_var, inter);
-    tmp = makeLinkValue(func_value, belong, inter);
-    gc_addTmpLink(&tmp->gc_status);
+    makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    func = result->value;
+    result->value = NULL;
+    freeResult(result);
 
     {
         enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
-        VarList *var_backup = func_value->object.var->next;
+        VarList *var_backup = func->value->object.var->next;
         inter->data.default_pt_type = object_free_;
-        func_value->object.var->next = var_list;
-        functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_function.first_do, func_value->object.var, result, tmp));
-        func_value->object.var->next = var_backup;
+        func->value->object.var->next = var_list;
+        functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_function.first_do, func->value->object.var, result, func));
+        func->value->object.var->next = var_backup;
         inter->data.default_pt_type = pt_type_bak;
         if (result->type != yield_return && !CHECK_RESULT(result))
             goto error_;
@@ -81,41 +81,31 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
     }
 
     if (st->u.set_function.decoration != NULL){
-        setDecoration(st->u.set_function.decoration, tmp, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setDecoration(st->u.set_function.decoration, func, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto error_;
-        gc_freeTmpLink(&tmp->gc_status);
-        tmp = result->value;
+        gc_freeTmpLink(&func->gc_status);
+        func = result->value;
         result->value = NULL;
         freeResult(result);
     }
-    assCore(st->u.set_function.name, tmp, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!CHECK_RESULT(result))
-        goto error_;
-    setResult(result, inter, belong);
-    gc_freeTmpLink(&tmp->gc_status);
-    return result->type;
+    assCore(st->u.set_function.name, func, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (CHECK_RESULT(result))
+        setResult(result, inter, belong);
 
     error_:
-    gc_freeTmpLink(&tmp->gc_status);
+    gc_freeTmpLink(&func->gc_status);
     return result->type;
 }
 
 ResultType setLambda(INTER_FUNCTIONSIG) {
-    Value *function_value = NULL;
-    VarList *function_var = NULL;
+    Statement *resunt_st = NULL;
     setResultCore(result);
 
-    result->type = operation_return;
-    function_var = copyVarList(var_list, false, inter);
-    {
-        Statement *resunt_st = makeReturnStatement(st->u.base_lambda.function, st->line, st->code_file);
-        function_value = makeVMFunctionValue(resunt_st, st->u.base_lambda.parameter, function_var, inter);
-        resunt_st->u.return_code.value = NULL;
-        freeStatement(resunt_st);
-    }
-    result->value = makeLinkValue(function_value, belong, inter);
-    gc_addTmpLink(&result->value->gc_status);
+    resunt_st = makeReturnStatement(st->u.base_lambda.function, st->line, st->code_file);
+    makeVMFunctionValue(resunt_st, st->u.base_lambda.parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    resunt_st->u.return_code.value = NULL;
+    freeStatement(resunt_st);
     return result->type;
 }
 
@@ -195,14 +185,14 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, ch
 ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_new_ = findAttributes(inter->data.object_new, false, class_value, inter);
     setResultCore(result);
-
     if (_new_ != NULL){
         gc_addTmpLink(&_new_->gc_status);
         callBackCore(_new_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_new_->gc_status);
     }
     else
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(new(__new__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(new(__new__)), line, file, true,
+                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }
@@ -234,7 +224,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
         goto return_;
 
     of = function_value->value->data.function.of;
-    function_var = function_value->value->object.out_var;
+    function_var = pushVarList(function_value->value->object.out_var != NULL ? function_value->value->object.out_var : var_list, inter);
     gc_freeze(inter, var_list, function_var, true);
 
     freeResult(result);
@@ -245,10 +235,10 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
         setResult(result, inter, function_value->belong);
 
     gc_freeze(inter, var_list, function_var, false);
+    popVarList(function_var);
     freeFunctionArgument(arg, bak);
 
-    return_:
-    gc_freeTmpLink(&function_value->gc_status);
+    return_: gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }
 
@@ -261,7 +251,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
     funtion_st = function_value->value->data.function.function;
-    if ((yield_run = popStatementVarList(funtion_st, &function_var, function_value->value->object.out_var, inter)))
+    if ((yield_run = popStatementVarList(funtion_st, &function_var, (function_value->value->object.out_var != NULL ? function_value->value->object.out_var : var_list), inter)))
         funtion_st = funtion_st->info.node;
 
     gc_freeze(inter, var_list, function_var, true);

@@ -123,7 +123,7 @@ ResultType importVMFileCore(VarList **new_object, char *file_dir, fline line, ch
     globalIterStatement(result, import_inter, run_st);
     if (!CHECK_RESULT(result)) {
         freeInter(import_inter, false);
-        result->value = makeLinkValue(makeNoneValue(inter), belong, inter);
+        useNoneValue(inter, result);
         setResultError(E_BaseException, NULL, line, code_file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
@@ -211,16 +211,20 @@ ResultType importFile(INTER_FUNCTIONSIG) {
     if (!CHECK_RESULT(result))
         goto return_;
 
-    freeResult(result);
     {
         VarList *import_var = copyVarList(var_list, false, inter);
         Value *import_obj = makeObject(inter, new_object, import_var, NULL);
         import_value = makeLinkValue(import_obj, belong, inter);
     }
+
+    freeResult(result);
     if (st->u.import_file.as != NULL)
         assCore(st->u.import_file.as, import_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else
-        addStrVar(splitDir(file_dir), true, true, import_value, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    else {
+        addStrVar(splitDir(file_dir), true, true, import_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            goto return_;
+    }
     setResult(result, inter, belong);
 
     return_:

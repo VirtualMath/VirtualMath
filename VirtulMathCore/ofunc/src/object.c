@@ -1,38 +1,19 @@
 #include "__ofunc.h"
 
-//ResultType object_new(OFFICAL_FUNCTIONSIG){
-//    LinkValue *value = NULL;
-//    setResultCore(result);
-//    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-//                           {.must=-1}};
-//    int status = 1;
-//    arg = parserValueArgument(ap, arg, &status, NULL);
-//    if (status != 1){
-//        setResultError(E_ArgumentException, FEW_ARG, 0, "object", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-//        return error_return;
-//    }
-//
-//    value = make_new(inter, belong, ap[0].value);
-//    init_new(value, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-//    return result->type;
-//}
-
 ResultType object_new(OFFICAL_FUNCTIONSIG){
     LinkValue *value = NULL;
-    LinkValue *_init_ = NULL;
     setResultCore(result);
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "object", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "object.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
     value = make_new(inter, belong, ap[0].value);
-
-    switch (init_new(value, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+    switch (init_new(value, arg, "object.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
         case 1:
             freeResult(result);
             setResultOperation(result, value);
@@ -76,9 +57,8 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     len = memStrlen(name) + 30;
     repo = memCalloc(len, sizeof(char ));
     snprintf(repo, len, "(%s: %s on %p)", type, name, ap[0].value->value);
-    setResultOperationBase(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
+    makeStringValue(repo, 0, "object.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     memFree(repo);
-
     return result->type;
 }
 
@@ -97,8 +77,8 @@ void registeredObject(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_str,  object_str,  all_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("object", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addBaseClassVar("object", object, belong, inter);
+    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

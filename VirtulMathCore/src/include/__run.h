@@ -24,10 +24,11 @@ ResultType setFunctionArgument(struct Argument **arg, LinkValue *function_value,
 void freeFunctionArgument(Argument *arg, Argument *base);
 LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
-void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, LinkValue *father, INTER_FUNCTIONSIG_CORE);
+void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter);
-void addAttributes(char *name, bool free_old, LinkValue *value, LinkValue *belong, Inter *inter);
-void newObjectSetting(LinkValue *name, LinkValue *belong, Inter *inter);
+
+bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, LinkValue *belong,Result *result, Inter *inter);
+void newObjectSetting(LinkValue *name, fline line, char *file, LinkValue *belong,Result *result, Inter *inter);
 ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
@@ -35,5 +36,6 @@ char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_
 bool is_iterStop(LinkValue *value, Inter *inter);
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class);
-int init_new(LinkValue *obj, Argument *arg, INTER_FUNCTIONSIG_NOT_ST);
+int init_new(LinkValue *obj, Argument *arg, char *message, INTER_FUNCTIONSIG_NOT_ST);
+bool setBoolAttrible(bool value, char *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH___RUN_H

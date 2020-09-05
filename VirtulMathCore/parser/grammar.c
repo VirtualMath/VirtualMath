@@ -202,6 +202,7 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_PROTECT:
         case MATHER_PRIVATE:
         case MATHER_PUBLIC:
+        case MATHER_PASSVALUE:
             status = callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st, NULL);
             break;
         default:
@@ -1352,7 +1353,6 @@ void parserBaseValue(PASERSSIGNATURE){
         }
 
         case MATHER_STRING:{
-            Value *tmp_value = makeStringValue(value_token->data.str, inter);
             Statement *tmp = NULL;
             tmp = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
             if (*value_token->data.second_str == NUL)

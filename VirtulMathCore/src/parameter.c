@@ -339,7 +339,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
         get = true;
 
         if (function->type == kwargs_par){
-            value = makeLinkValue(makeDictValue(NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, NULL, belong)), belong, inter);
+            value = makeLinkValue(makeDictValue(NULL, false, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, NULL, belong)), belong, inter);
             value->value->data.dict.dict = var_list->hashtable;
             value->value->data.dict.size = max - *num;
             *status = true;
@@ -605,14 +605,20 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 break;
             }
             case mul_par: {
-                LinkValue *tmp = makeLinkValue(makeListValue(&call, inter, value_tuple), belong, inter);
+                LinkValue *tmp = NULL;
+                makeListValue(call, 0, "sys", value_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                for (PASS; call != NULL && call->type == value_arg; call = call->next)
+                    PASS;
+                returnResult(result);
+                freeResult(result);
+
                 assCore(function->data.value, tmp, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
                 returnResult(result);
                 function = function->next;
                 break;
             }
             case space_kwargs:{
-                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)), belong, inter);
+                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)), belong, inter);
                 returnResult(result);
                 freeResult(result);
 
@@ -750,7 +756,7 @@ int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak,
 
     gc_freeze(inter, var_list, NULL, true);
     for (PASS; arg != NULL && arg->type != name_arg; arg = arg->next)
-            PASS;
+        PASS;
     if (arg == NULL) {
         return_ = -3;  // 参数缺失
         goto return_;
@@ -762,7 +768,7 @@ int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak,
         return_ = -1;
         goto return_;
     }
-    setResultBase(result, inter, belong);
+    setResult(result, inter, belong);
 
     for (PASS; ap->must != -1 && (ap->type == only_name || ap->type == name_value); ap++) {
         int status = parserArgumentVar(ap, inter, tmp);
@@ -790,7 +796,7 @@ Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap){
     arg = arg->next;
     if (ap->long_arg)
         for (PASS; arg != NULL && arg->type == value_arg; arg = arg->next, count++)
-                PASS;
+            PASS;
     ap->c_count = count;
     return arg;
 }

@@ -1,5 +1,48 @@
 #include "__ofunc.h"
 
+ResultType dict_new(OFFICAL_FUNCTIONSIG){
+    LinkValue *value = NULL;
+    VarList *hash = NULL;
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    int status = 1;
+    arg = parserValueArgument(ap, arg, &status, NULL);
+    if (status != 1){
+        setResultError(E_ArgumentException, FEW_ARG, 0, "bool.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
+    if (arg != NULL && arg->type == value_arg) {
+        setResultError(E_ArgumentException, "Too many argument", 0, "dict.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
+
+    value = make_new(inter, belong, ap[0].value);
+    hash = pushVarList(var_list, inter);
+    value->value->type = dict;
+    value->value->data.dict.size = 0;
+    value->value->data.dict.dict = hash->hashtable;
+
+    gc_addTmpLink(&value->gc_status);
+    argumentToVar(&arg, &value->value->data.dict.size, CALL_INTER_FUNCTIONSIG_NOT_ST(hash, result, belong));
+    gc_freeTmpLink(&value->gc_status);
+    popVarList(hash);
+
+    freeResult(result);
+    switch (init_new(value, NULL, "dict.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+        case 1:
+            freeResult(result);
+            setResultOperation(result, value);
+            break;
+        default:
+            break;
+    }
+    freeResult(result);
+    setResultOperation(result, value);
+    return result->type;
+}
+
 ResultType dict_down(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -87,8 +130,6 @@ ResultType dict_keys(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     Argument *list = NULL;
-    Argument *backup = NULL;
-    LinkValue *element = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -103,10 +144,8 @@ ResultType dict_keys(OFFICAL_FUNCTIONSIG){
         for (PASS; tmp != NULL; tmp = tmp->next)
             list = connectValueArgument(copyLinkValue(tmp->name_, inter), list);
     }
-    backup = list;
-    element = makeLinkValue(makeListValue(&list, inter, value_list), belong, inter);
-    setResultOperationBase(result, element);
-    freeArgument(backup, true);
+    makeListValue(list, 0, "dict", value_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    freeArgument(list, true);
     return result->type;
 }
 
@@ -157,12 +196,12 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         if (!CHECK_RESULT(result))
             return result->type;
         if (again_) {
-            setResultOperation(result, makeLinkValue(makeStringValue("{...}", inter), belong, inter));
+            makeStringValue("{...}", 0, "dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return result->type;
         }
     }
 
-    addAttributes(is_repo ? "repo_again" : "str_again", false, makeLinkValue(makeBoolValue(true, inter), belong, inter), ap[0].value, inter);
+    setBoolAttrible(true, is_repo ? "repo_again" : "str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     repo = memStrcpy("{");
     for (int i = 0, count = 0; i < MAX_SIZE; i++) {
         for (Var *var = value->data.dict.dict->hashtable[i]; var != NULL; var = var->next, count++) {
@@ -186,11 +225,21 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         }
     }
 
+    freeResult(result);
     repo = memStrcat(repo, "}", true, false);
-    setResultOperation(result, makeLinkValue(makeStringValue(repo, inter), belong, inter));
+    makeStringValue(repo, 0, "dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:
-    addAttributes(is_repo ? "repo_again" : "str_again", false, makeLinkValue(makeBoolValue(false, inter), belong, inter), ap[0].value, inter);
+    {
+        Result tmp;
+        setResultCore(&tmp);
+        setBoolAttrible(false, is_repo ? "repo_again" : "str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
+        if (!RUN_TYPE(tmp.type)) {
+            freeResult(result);
+            *result = tmp;
+        } else
+            freeResult(&tmp);
+    }
     memFree(repo);
     return result->type;
 }
@@ -206,6 +255,7 @@ ResultType dict_str(OFFICAL_FUNCTIONSIG){
 void registeredDict(REGISTERED_FUNCTIONSIG){
     LinkValue *object = makeLinkValue(inter->data.dict, inter->base_father, inter);
     NameFunc tmp[] = {{"keys", dict_keys, object_free_},
+                      {inter->data.object_new, dict_new, class_free_},
                       {inter->data.object_down, dict_down, object_free_},
                       {inter->data.object_iter, dict_iter, object_free_},
                       {inter->data.object_repo, dict_repo, object_free_},
@@ -214,8 +264,8 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_down_del, dict_down_del, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addStrVar("dict", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    addBaseClassVar("dict", object, belong, inter);
+    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

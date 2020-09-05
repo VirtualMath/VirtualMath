@@ -29,5 +29,5 @@ struct NameFunc{
 typedef struct NameFunc NameFunc;
 
 void registeredBaseFunction(struct LinkValue *father, Inter *inter);
-void registeredFunctionName(Inter *inter);
+void registeredFunctionName(Inter *inter, LinkValue *belong);
 #endif //VIRTUALMATH_OFUNC_H

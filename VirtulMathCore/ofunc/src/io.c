@@ -47,7 +47,7 @@ ResultType vm_input(OFFICAL_FUNCTIONSIG){
     while ((ch = fgetc(inter->data.inter_stdin)) != '\n' && ch != EOF)
         str = memStrCharcpy(str, 1, true, true, ch);
 
-    setResultOperationBase(result, makeLinkValue(makeStringValue(str, inter), belong, inter));
+    makeStringValue(str, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     memFree(str);
     return result->type;
 }
@@ -56,5 +56,5 @@ void registeredIOFunction(REGISTERED_FUNCTIONSIG){
     NameFunc tmp[] = {{"print", vm_print, free_},
                       {"input", vm_input, free_},
                       {NULL, NULL}};
-    iterNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    iterBaseNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

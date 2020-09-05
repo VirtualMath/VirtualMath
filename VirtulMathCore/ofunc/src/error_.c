@@ -1,14 +1,10 @@
 #include "__ofunc.h"
 
+
 static Value *makeException(Value *father, Inter *inter){
     Value *exc = makeBaseChildClass(father, inter);
     gc_addStatementLink(&exc->gc_status);
     return exc;
-}
-
-static void addException(char *name, Value *exc, LinkValue *belong, Inter *inter){
-    addStrVar(name, false, true, makeLinkValue(exc, inter->base_father, inter),
-              belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
 }
 
 ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
@@ -20,8 +16,8 @@ ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    addAttributes(inter->data.object_message, false, ap[1].value, ap[0].value, inter);
-    setResultBase(result, inter, belong);
+    if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", ap[0].value, result, inter))
+        setResult(result, inter, belong);
     return result->type;
 }
 
@@ -53,12 +49,12 @@ void registeredExcIter(REGISTERED_FUNCTIONSIG){
         NameFunc tmp[] = {{"__init__", base_exception_init, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
-        addStrVar("BaseException", false, true, object, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-        iterClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+        addBaseClassVar("BaseException", object, belong, inter);
+        iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
         gc_freeTmpLink(&object->gc_status);
     }
     for (int i=0; setList[i].name != NULL; i++)
-        addException(setList[i].name, setList[i].value, belong, inter);
+        addBaseClassVar(setList[i].name, makeLinkValue(setList[i].value, inter->base_father, inter), belong, inter);
 }
 
 void makeExcIter(Inter *inter){

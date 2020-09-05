@@ -114,5 +114,5 @@ void registeredSysFunction(REGISTERED_FUNCTIONSIG){
                       {"simplestaticmethod", vm_allstaticmethod, free_},
                       {"quit", vm_quit, free_},
                       {NULL, NULL}};
-    iterNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    iterBaseNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }
