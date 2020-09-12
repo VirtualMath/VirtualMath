@@ -49,6 +49,17 @@ char *memStrCharcpy(char *str, size_t nsize, bool free_old, bool write, ...) {  
     return tmp;
 }
 
+char *memStrcatIter(char *base, bool free_base, ...) {
+    va_list ap;
+    va_start(ap, free_base);
+    for (char *ch = va_arg(ap, char *); ch != NULL; ch = va_arg(ap, char *)) {
+        base = memStrcat(base, ch, free_base, false);
+        free_base = false;
+    }
+    va_end(ap);
+    return base;
+}
+
 char *memStrcat(char *first, char *second, bool free_first, bool free_last) {
     if (first == NULL && second == NULL)
         return NULL;

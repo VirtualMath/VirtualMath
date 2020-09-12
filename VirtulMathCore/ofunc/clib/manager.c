@@ -15,7 +15,8 @@ bool checkCLib(char *file) {
 }
 
 void runClib(char *file, struct LinkValue *belong, INTER_FUNCTIONSIG_CORE){
-    for (struct InFo *info = ManagerInFo; info->name != NULL; info++)
+    for (struct InFo *info = ManagerInFo; info->name != NULL; info++) {
         if (eqString(file, info->name))
             info->reg(CALL_REGISTERED_FUNCTION(belong, var_list));
+    }
 }

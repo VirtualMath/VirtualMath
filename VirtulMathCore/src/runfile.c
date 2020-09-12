@@ -1,56 +1,104 @@
 #include "__run.h"
 
+bool importRunParser(ParserMessage *pm, fline line, char *file, Statement *run_st, INTER_FUNCTIONSIG_NOT_ST) {
+    setResultCore(result);
+    parserCommandList(pm, inter, true, false, run_st);
+    if (pm->status == int_error)
+        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else if (pm->status != success)
+        setResultError(E_TypeException, pm->status_message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    return CHECK_RESULT(result);
+}
+
+int isAbsolutePath(const char *path) {
+    switch (*path) {
+        case ':':
+            return 1;
+        case '@':
+            return 2;
+        case '$':
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+bool isExist(char **path, bool is_ab) {
+    char *backup = is_ab ? memStrcpy((*path) + 1) : memStrcpy(*path);
+    if (checkFile(backup) == 1 || checkFile(backup = memStrcat(backup, ".vm", true, false)) == 1) {
+        memFree(*path);
+        *path = backup;
+        return true;
+    }
+    memFree(backup);
+    return false;
+}
+
 int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
-    if (checkFile(*file_dir) == 1)
+    switch (isAbsolutePath(*file_dir)) {
+        case 1:
+            if (isExist(file_dir, true))
+                return 1;
+            goto error_;
+        case 2:
+            goto clib;
+        case 3:
+            goto path;
+        default:
+            break;
+    }
+
+    if (isExist(file_dir, false))
         return 1;
 
     {
-        char cwd[200] = {};
-        char *cwd_tmp = NULL;
+        char arr_cwd[200] = {};
+        char *p_cwd = NULL;
 #ifdef __linux__
-        getcwd(cwd, 200);
+        getcwd(arr_cwd, 200);
+        p_cwd = memStrcatIter(arr_cwd, false, "/", *file_dir, NULL);
 #else
-        _getcwd(cwd, 200);
+        _getcwd(arr_cwd, 200);
+        p_cwd = memStrcatIter(arr_cwd, false, "\\", *file_dir);
 #endif
-        cwd_tmp = memStrcat(cwd, "/", false, false);
-        cwd_tmp = memStrcat(cwd_tmp, *file_dir, true, false);
-        if (checkFile(cwd_tmp) == 1 || checkFile(cwd_tmp = memStrcat(cwd_tmp, ".vm", true, false)) == 1) {
+        if (isExist(&p_cwd, false)) {
             memFree(*file_dir);
-            *file_dir = cwd_tmp;
+            *file_dir = p_cwd;
             return 1;
-        } else
-            memFree(cwd_tmp);
+        }
+        memFree(p_cwd);
     }
 
-    {
+    path: {
         char *path = memStrcpy(getenv("VIRTUALMATHPATH"));
-        for (char *tmp = strtok(path, ";"), *new_dir, *new_tmp; tmp != NULL; tmp = strtok(NULL, ";")) {
+        for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
 #ifdef __linux__
             if (*(tmp + (memStrlen(tmp) - 1)) != '/')
-                new_tmp = memStrcat(tmp, "/", false, false);
+                new_dir = memStrcatIter(tmp, false, "/", *file_dir, NULL);
 #else
-                if (*(tmp + (memStrlen(tmp) - 1)) != '\\')
-                    new_tmp = memStrcat(tmp, "\\", false, false);
+            if (*(tmp + (memStrlen(tmp) - 1)) != '\\')
+                new_dir = memStrcatIter(tmp, false, "\\", *file_dir);
 #endif
             else
-                new_tmp = memStrcpy(tmp);
-            new_dir = memStrcat(new_tmp, *file_dir, false, false);
-            memFree(new_tmp);
+                new_dir = memStrcat(tmp, *file_dir, false, false);
 
-            if (checkFile(new_dir) == 1 || checkFile(new_dir = memStrcat(new_dir, ".vm", true, false)) == 1) {
+            if (isExist(&new_dir, false)) {
                 memFree(*file_dir);
                 *file_dir = new_dir;
                 return 1;
-            } else
-                memFree(new_dir);
+            }
+            memFree(new_dir);
+
         }
         memFree(path);
     }
 
+    clib:
     if (checkCLib(*file_dir))
         return 2;
 
-    setResultErrorSt(E_ImportException, "import file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    error_:
+    setResultErrorSt(E_ImportException, "import/include file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return 0;
 }
 
@@ -70,21 +118,14 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
 
     file_dir = result->value->value->data.str.str;
     freeResult(result);
-    freeResult(result);
     if (checkFileDir(&file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)) != 1)
         goto return_;
 
     new_st = makeStatement(0, file_dir);
     pm = makeParserMessage(file_dir);
-    parserCommandList(pm, inter, true, false, new_st);
-    if (pm->status == int_error) {
-        setResultErrorSt(E_KeyInterrupt, KEY_INTERRUPT, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+    if (!importRunParser(pm, st->line, st->code_file, new_st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
         goto return_;
-    }
-    else if (pm->status != success){
-        setResultErrorSt(E_IncludeException, pm->status_message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        goto return_;
-    }
 
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result, belong));
     if (result->type == yield_return)
@@ -108,14 +149,7 @@ ResultType importVMFileCore(VarList **new_object, char *file_dir, fline line, ch
     pm = makeParserMessage(file_dir);
     run_st = makeStatement(0, file_dir);
 
-    parserCommandList(pm, import_inter, true, false, run_st);
-    if (pm->status == int_error) {
-        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, code_file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        freeInter(import_inter, false);
-        goto return_;
-    }
-    else if (pm->status != success) {
-        setResultError(E_TypeException, pm->status_message, line, code_file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!importRunParser(pm, line, code_file, run_st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
         freeInter(import_inter, false);
         goto return_;
     }
@@ -123,7 +157,6 @@ ResultType importVMFileCore(VarList **new_object, char *file_dir, fline line, ch
     globalIterStatement(result, import_inter, run_st);
     if (!CHECK_RESULT(result)) {
         freeInter(import_inter, false);
-        useNoneValue(inter, result);
         setResultError(E_BaseException, NULL, line, code_file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
@@ -136,24 +169,6 @@ ResultType importVMFileCore(VarList **new_object, char *file_dir, fline line, ch
     return_:
     freeStatement(run_st);
     freeParserMessage(pm, true);
-    return result->type;
-}
-
-ResultType importShareFileCore(VarList **new_object, char *file_dir, INTER_FUNCTIONSIG_NOT_ST) {
-    Inter *import_inter;
-    setResultCore(result);
-    Registered reg;
-    void* handle = dlopen(file_dir, RTLD_LAZY);
-
-    reg = dlsym(handle, "registered");
-    import_inter = deriveInter(belong, inter);
-
-    reg(belong, import_inter, import_inter->var_list);
-    *new_object = import_inter->var_list;
-    import_inter->var_list = NULL;
-
-    mergeInter(import_inter, inter);
-    setResult(result, inter, belong);
     return result->type;
 }
 
@@ -187,15 +202,10 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
     if ((status = checkFileDir(file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) == 0)
         return result->type;
 
-    {
-        char *file = strrchr(*file_dir, '.');
-        if (status == 2)
-            importCLibFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        else if (file != NULL && eqString(file, ".vm"))
-            importVMFileCore(new_object, *file_dir, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        else
-            importShareFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    }
+    if (status == 2)
+        importCLibFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else
+        importVMFileCore(new_object, *file_dir, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }
