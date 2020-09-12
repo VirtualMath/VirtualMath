@@ -78,7 +78,7 @@ Value *makeBaseChildClass(Value *inherit, Inter *inter) {
         freeArgument(arg, true);
         gc_freeTmpLink(&father_->gc_status);
     }
-    num = makeClassValue(copyVarList(inter->var_list, false, inter), inter, father_value);
+    num = makeClassValue(inter->var_list, inter, father_value);
     return num;
 }
 

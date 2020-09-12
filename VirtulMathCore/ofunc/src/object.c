@@ -83,7 +83,7 @@ void registeredObject(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseObject(Inter *inter){
-    Value *object = makeClassValue(copyVarList(inter->var_list, false, inter), inter, NULL);
+    Value *object = makeClassValue(inter->var_list, inter, NULL);
     gc_addStatementLink(&object->gc_status);
     inter->data.object = object;
 }

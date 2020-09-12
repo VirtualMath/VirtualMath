@@ -12,10 +12,15 @@ ResultType setClass(INTER_FUNCTIONSIG) {
 
     class_inherit = setFather(call);
     freeArgument(call, false);
-    tmp = makeLinkValue(makeClassValue(copyVarList(var_list, false, inter), inter, class_inherit), belong, inter);
+//    freeResult(result);
+//
+//    makeClassValue(class_inherit, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+//    tmp = result->value;
+//    result->value = NULL;
+    tmp = makeLinkValue(makeClassValue(var_list, inter, class_inherit), belong, inter);
     gc_addTmpLink(&tmp->gc_status);
-
     freeResult(result);
+
     {
         enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
         VarList *var_backup = tmp->value->object.var->next;

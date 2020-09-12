@@ -397,8 +397,7 @@ int init_new(LinkValue *obj, Argument *arg, char *message, INTER_FUNCTIONSIG_NOT
 
     if (_init_ == NULL) {
         if (arg != NULL) {
-            setResultError(E_ArgumentException, MANY_ARG, 0, message, true,
-                           CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, 0, message, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return 0;
         } else
             return 1;

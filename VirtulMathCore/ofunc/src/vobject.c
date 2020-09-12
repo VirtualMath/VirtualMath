@@ -202,7 +202,7 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseVObject(Inter *inter){
-    Value *vobject = makeClassValue(copyVarList(inter->var_list, false, inter), inter, NULL);
+    Value *vobject = makeBaseChildClass(inter->data.object, inter);
     gc_addStatementLink(&vobject->gc_status);
     inter->data.vobject = vobject;
 }

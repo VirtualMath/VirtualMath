@@ -230,10 +230,8 @@ LinkValue *makeFunctionFromValue(LinkValue *func, LinkValue *new, LinkValue *ini
     new_func->value->data.function.type = c_function;
     new_func->value->data.function.of = of;
     new_func->value->data.function.function_data.pt_type = inter->data.default_pt_type;
-    for (VarList *vl = new_func->value->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
-        vl_next = vl->next;
-        freeVarList(vl);
-    }
+    for (VarList *vl = new_func->value->object.out_var; vl != NULL; vl = freeVarList(vl))
+        PASS;
     new_func->value->object.out_var = copyVarList(var_list, false, inter);
     new_func->belong = belong;
     return new_func;

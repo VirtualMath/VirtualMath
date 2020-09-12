@@ -53,6 +53,7 @@ Value *useNoneValue(Inter *inter, Result *result) {
 
 Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
+    setResultCore(result);
     callBackCore(makeLinkValue(inter->data.bool_, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
     if (!CHECK_RESULT(result))
         return NULL;
@@ -63,6 +64,7 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NO
 
 Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){  // TODO-szh 让切片支持该语法
     Value *tmp = NULL;
+    setResultCore(result);
     callBackCore(makeLinkValue(inter->data.pass_, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
     if (!CHECK_RESULT(result))
         return NULL;
@@ -72,6 +74,7 @@ Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){  // TODO
 
 Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
+    setResultCore(result);
     callBackCore(makeLinkValue(inter->data.num, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
     if (!CHECK_RESULT(result))
         return NULL;
@@ -82,6 +85,7 @@ Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
 
 Value *makeStringValue(char *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
+    setResultCore(result);
     callBackCore(makeLinkValue(inter->data.str, inter->base_father, inter), NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
     if (!CHECK_RESULT(result))
         return NULL;
@@ -147,10 +151,8 @@ LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFun
     return_->value->data.function.type = c_function;
     return_->value->data.function.of = of;
     return_->value->data.function.function_data.pt_type = inter->data.default_pt_type;
-    for (VarList *vl = return_->value->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
-        vl_next = vl->next;
-        freeVarList(vl);
-    }
+    for (VarList *vl = return_->value->object.out_var; vl != NULL; vl = freeVarList(vl))
+        PASS;
     return_->value->object.out_var = copyVarList(var_list, false, inter);
     return_->belong = belong;
     gc_freeTmpLink(&return_->gc_status);
@@ -159,13 +161,15 @@ LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFun
 
 Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
     Value *tmp;
-    tmp = makeObject(inter, NULL, var_list, father);
+    VarList *new_var = copyVarList(var_list, false, inter);
+    tmp = makeObject(inter, NULL, new_var, father);
     tmp->type = class;
     return tmp;
 }
 
 Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
+    setResultCore(result);
     if (type == value_list)
         callBackCore(makeLinkValue(inter->data.list, inter->base_father, inter), arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
     else
@@ -179,6 +183,7 @@ Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, 
 Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     LinkValue *dict = makeLinkValue(inter->data.dict, inter->base_father, inter);
+    setResultCore(result);
     callBackCore(dict, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
     if (!CHECK_RESULT(result))
         return NULL;
