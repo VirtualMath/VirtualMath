@@ -327,5 +327,5 @@ Statement *checkLabel(Statement *base, char *label){
 }
 
 bool is_quitExc(LinkValue *value, Inter *inter) {
-    return value->value == inter->data.quit_exc || checkAttribution(value->value, inter->data.quit_exc);
+    return value->value == inter->data.quit_exc->value || checkAttribution(value->value, inter->data.quit_exc->value);
 }

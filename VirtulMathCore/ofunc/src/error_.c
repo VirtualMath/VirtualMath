@@ -1,8 +1,8 @@
 #include "__ofunc.h"
 
 
-static Value *makeException(Value *father, Inter *inter){
-    Value *exc = makeBaseChildClass(father, inter);
+static LinkValue *makeException(LinkValue *father, Inter *inter){
+    LinkValue *exc = makeBaseChildClass4(father, inter);
     gc_addStatementLink(&exc->gc_status);
     return exc;
 }
@@ -24,7 +24,7 @@ ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
 void registeredExcIter(REGISTERED_FUNCTIONSIG){
     struct {
         char *name;
-        Value *value;
+        LinkValue *value;
     } setList[] = {{"Exception", inter->data.exc},
                    {"SystemException", inter->data.sys_exc},
                    {"KeyboardInterrupt", inter->data.keyInterrupt_exc},
@@ -45,7 +45,7 @@ void registeredExcIter(REGISTERED_FUNCTIONSIG){
                    {"SuperException", inter->data.super_exc},
                    {NULL, NULL}};
     {
-        LinkValue *object = makeLinkValue(inter->data.base_exc, inter->base_father, inter);
+        LinkValue *object = inter->data.base_exc;
         NameFunc tmp[] = {{"__init__", base_exception_init, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
@@ -54,7 +54,7 @@ void registeredExcIter(REGISTERED_FUNCTIONSIG){
         gc_freeTmpLink(&object->gc_status);
     }
     for (int i=0; setList[i].name != NULL; i++)
-        addBaseClassVar(setList[i].name, makeLinkValue(setList[i].value, inter->base_father, inter), belong, inter);
+        addBaseClassVar(setList[i].name, setList[i].value, belong, inter);
 }
 
 void makeExcIter(Inter *inter){

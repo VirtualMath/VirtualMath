@@ -65,7 +65,7 @@ ResultType num_init(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredNum(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.num, inter->base_father, inter);
+    LinkValue *object = inter->data.num;
     NameFunc tmp[] = {{inter->data.object_new, num_new, class_free_},
                       {inter->data.object_init, num_init, object_free_},
                       {NULL, NULL}};
@@ -76,7 +76,7 @@ void registeredNum(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseNum(Inter *inter){
-    Value *num = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *num = makeBaseChildClass4(inter->data.vobject, inter);
     gc_addStatementLink(&num->gc_status);
     inter->data.num = num;
 }

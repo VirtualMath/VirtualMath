@@ -35,7 +35,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         list = result->value;
         result->value = NULL;
 
-        listiter_class = makeLinkValue(inter->data.list_iter, inter->base_father, inter);
+        listiter_class = inter->data.list_iter;
         gc_addTmpLink(&listiter_class->gc_status);
 
         list_arg = makeValueArgument(list);
@@ -111,7 +111,7 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredDictIter(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.dict_iter, inter->base_father, inter);
+    LinkValue *object = inter->data.dict_iter;
     NameFunc tmp[] = {{inter->data.object_init, dictiter_init, object_free_},
                       {inter->data.object_next, dictiter_next, object_free_},
                       {inter->data.object_down, dictiter_down, object_free_},
@@ -123,7 +123,7 @@ void registeredDictIter(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseDictIter(Inter *inter){
-    Value *dict_iter = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *dict_iter = makeBaseChildClass4(inter->data.vobject, inter);
     gc_addStatementLink(&dict_iter->gc_status);
     inter->data.dict_iter = dict_iter;
 }

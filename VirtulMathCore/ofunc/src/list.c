@@ -342,10 +342,7 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
     }
     {
         Argument *list_iter_arg = makeValueArgument(ap[0].value);
-        LinkValue *iter_list = makeLinkValue(inter->data.list_iter, inter->base_father, inter);
-        gc_addTmpLink(&iter_list->gc_status);
-        callBackCore(iter_list, list_iter_arg, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        gc_freeTmpLink(&iter_list->gc_status);
+        callBackCore(inter->data.list_iter, list_iter_arg, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(list_iter_arg, true);
     }
     return result->type;
@@ -428,7 +425,7 @@ ResultType list_str(OFFICAL_FUNCTIONSIG){
 
 void registeredList(REGISTERED_FUNCTIONSIG){
     {
-        LinkValue *object = makeLinkValue(inter->data.tuple, inter->base_father, inter);
+        LinkValue *object = inter->data.tuple;
         NameFunc tmp[] = {{inter->data.object_new, tuple_new, class_free_},
                           {inter->data.object_down, list_down, object_free_},
                           {inter->data.object_slice, list_slice, object_free_},
@@ -445,7 +442,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
     }
 
     {
-        LinkValue *object = makeLinkValue(inter->data.list, inter->base_father, inter);
+        LinkValue *object = inter->data.list;
         NameFunc tmp[] = {{inter->data.object_new, list_new, class_free_},
                           {inter->data.object_down_assignment, list_down_assignment, object_free_},
                           {inter->data.object_slice_assignment, list_slice_assignment, object_free_},
@@ -458,8 +455,8 @@ void registeredList(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseList(Inter *inter){
-    Value *tuple = makeBaseChildClass(inter->data.vobject, inter);
-    Value *list = makeBaseChildClass(tuple, inter);
+    LinkValue *tuple = makeBaseChildClass4(inter->data.vobject, inter);
+    LinkValue *list = makeBaseChildClass4(tuple, inter);
     gc_addStatementLink(&tuple->gc_status);
     gc_addStatementLink(&list->gc_status);
     inter->data.tuple = tuple;

@@ -164,10 +164,7 @@ ResultType dict_iter(OFFICAL_FUNCTIONSIG){
     }
     {
         Argument *dict_iter_arg = makeValueArgument(ap[0].value);
-        LinkValue *iter_dict = makeLinkValue(inter->data.dict_iter, inter->base_father, inter);
-        gc_addTmpLink(&iter_dict->gc_status);
-        callBackCore(iter_dict, dict_iter_arg, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        gc_freeTmpLink(&iter_dict->gc_status);
+        callBackCore(inter->data.dict_iter, dict_iter_arg, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(dict_iter_arg, true);
     }
     return result->type;
@@ -253,7 +250,7 @@ ResultType dict_str(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredDict(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.dict, inter->base_father, inter);
+    LinkValue *object = inter->data.dict;
     NameFunc tmp[] = {{"keys", dict_keys, object_free_},
                       {inter->data.object_new, dict_new, class_free_},
                       {inter->data.object_down, dict_down, object_free_},
@@ -270,7 +267,7 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseDict(Inter *inter){
-    Value *dict = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *dict = makeBaseChildClass4(inter->data.vobject, inter);
     gc_addStatementLink(&dict->gc_status);
     inter->data.dict = dict;
 }

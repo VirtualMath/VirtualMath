@@ -17,7 +17,7 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     }
 
     {
-        Inherit *object_father = getInheritFromValue(inter->data.function, inter);
+        Inherit *object_father = getInheritFromValueCore(inter->data.function);
         VarList *new_var = copyVarList(var_list, false, inter);
         Value *new_object = makeObject(inter, NULL, new_var, object_father);
         value = makeLinkValue(new_object, belong, inter);
@@ -58,7 +58,7 @@ ResultType function_init(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredFunction(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.function, inter->base_father, inter);
+    LinkValue *object = inter->data.function;
     NameFunc tmp[] = {{NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar("function", object, belong, inter);
@@ -67,14 +67,14 @@ void registeredFunction(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseFunction(Inter *inter){
-    Value *function = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *function = makeBaseChildClass4(inter->data.vobject, inter);
     gc_addStatementLink(&function->gc_status);
     inter->data.function = function;
 }
 
 void functionPresetting(LinkValue *func, LinkValue **func_new, LinkValue **func_init, Inter *inter) {
-    *func_new = makeCFunctionFromOf(function_new, func, function_new, function_init, inter->base_father, inter->var_list, inter);
-    *func_init = makeCFunctionFromOf(function_init, func, function_new, function_init, inter->base_father, inter->var_list, inter);
+    *func_new = makeCFunctionFromOf(function_new, func, function_new, function_init, func, inter->var_list, inter);
+    *func_init = makeCFunctionFromOf(function_init, func, function_new, function_init, func, inter->var_list, inter);
     (*func_new)->value->data.function.function_data.pt_type = class_free_;
     (*func_init)->value->data.function.function_data.pt_type = object_free_;
 }

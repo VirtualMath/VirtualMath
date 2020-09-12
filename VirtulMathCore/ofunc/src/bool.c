@@ -51,7 +51,7 @@ ResultType bool_init(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredBool(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.bool_, inter->base_father, inter);
+    LinkValue *object = inter->data.bool_;
     NameFunc tmp[] = {{inter->data.object_new, bool_new, class_free_},
                       {inter->data.object_init, bool_init, object_free_},
                       {NULL, NULL}};
@@ -62,7 +62,7 @@ void registeredBool(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseBool(Inter *inter){
-    Value *bool_ = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *bool_ = makeBaseChildClass4(inter->data.vobject, inter);
     gc_addStatementLink(&bool_->gc_status);
     inter->data.bool_ = bool_;
 }

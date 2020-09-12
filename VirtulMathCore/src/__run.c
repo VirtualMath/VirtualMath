@@ -181,7 +181,7 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
         case class_free_:
             if (function_value->belong->value->type == class)
                 tmp = makeValueArgument(function_value->belong);
-            else if (function_value->value->object.inherit->value != NULL)
+            else if (function_value->value->object.inherit->value != NULL)  // TODO-szh 检查 function_value->value->object.inherit ！= NULL
                 tmp = makeValueArgument(function_value->belong->value->object.inherit->value);
             else
                 break;
@@ -357,7 +357,7 @@ char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_
 }
 
 bool is_iterStop(LinkValue *value, Inter *inter) {
-    return value->value == inter->data.iterstop_exc || checkAttribution(value->value, inter->data.iterstop_exc);
+    return value->value == inter->data.iterstop_exc->value || checkAttribution(value->value, inter->data.iterstop_exc->value);
 }
 
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST) {

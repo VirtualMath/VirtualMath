@@ -186,7 +186,7 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredVObject(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.vobject, inter->base_father, inter);
+    LinkValue *object = inter->data.vobject;
     NameFunc tmp[] = {{inter->data.object_add, vobject_add, object_free_},
                       {inter->data.object_sub, vobject_sub, object_free_},
                       {inter->data.object_mul, vobject_mul, object_free_},
@@ -202,7 +202,7 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseVObject(Inter *inter){
-    Value *vobject = makeBaseChildClass(inter->data.object, inter);
+    LinkValue *vobject = makeBaseChildClass4(inter->data.object, inter);
     gc_addStatementLink(&vobject->gc_status);
     inter->data.vobject = vobject;
 }

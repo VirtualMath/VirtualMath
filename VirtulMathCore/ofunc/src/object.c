@@ -71,7 +71,7 @@ ResultType object_str(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredObject(REGISTERED_FUNCTIONSIG){
-    LinkValue *object = makeLinkValue(inter->data.object, inter->base_father, inter);
+    LinkValue *object = inter->data.object;
     NameFunc tmp[] = {{inter->data.object_new,  object_new,  class_free_},
                       {inter->data.object_repo, object_repo, all_free_},
                       {inter->data.object_str,  object_str,  all_free_},
@@ -82,8 +82,36 @@ void registeredObject(REGISTERED_FUNCTIONSIG){
     gc_freeTmpLink(&object->gc_status);
 }
 
-void makeBaseObject(Inter *inter){
+void makeBaseObject(Inter *inter, LinkValue *belong){
+    LinkValue *g_belong;
     Value *object = makeClassValue(inter->var_list, inter, NULL);
-    gc_addStatementLink(&object->gc_status);
-    inter->data.object = object;
+
+    {
+        Value *global_belong = makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL);
+        g_belong = makeLinkValue(global_belong, belong, inter);
+        inter->base_father = g_belong;
+        gc_addStatementLink(&inter->base_father->gc_status);
+    }
+
+    inter->data.object = makeLinkValue(object, g_belong, inter);
+    gc_addStatementLink(&inter->data.object->gc_status);
+    for (Inherit *ih=g_belong->value->object.inherit; ih != NULL; ih = ih->next) {
+        if (ih->value->value == object)
+            ih->value->belong = g_belong;
+    }
+
+
+    // TODO-szh base father在这里设置
+    {
+        Result result;
+        Argument *arg = makeValueArgument(makeLinkValue(object, g_belong, inter));
+        setResultCore(&result);
+        object_new(CALL_OFFICAL_FUNCTION(arg, inter->var_list, &result, g_belong));
+
+        inter->data.none = result.value;
+        gc_addStatementLink(&inter->data.none->gc_status);
+
+        freeArgument(arg, true);
+        freeResult(&result);
+    }
 }
