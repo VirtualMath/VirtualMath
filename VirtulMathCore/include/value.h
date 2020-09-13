@@ -36,69 +36,86 @@ enum ValueAuthority{
     private_aut
 };
 
+enum ValueType{
+    none=0,
+    number=1,
+    string=2,
+    function=3,
+    list=4,
+    dict=5,
+    class=6,
+    object_=7,
+    bool_=8,
+    pass_=9,
+};
+
+struct Number{
+    vnum num;
+};
+
+struct String{
+    char *str;
+};
+
+struct Function{
+    enum{
+        c_function,
+        vm_function,
+    } type;
+    struct Statement *function;
+    struct Parameter *pt;
+    OfficialFunction of;
+    struct {
+        enum FunctionPtType{
+            free_,  // 不包含任何隐式传递的参数
+            static_,  // 不包含self参数
+            object_static_,  // self参数不允许class
+            class_static_,  // self参数允许一切，但转换为类
+            all_static_, // self参数允许一切
+            object_free_,  // 同object_static_但不包含func参数
+            class_free_,  // 同object_static_但不包含func参数
+            all_free_,  // 允许class或者object
+        } pt_type;
+    } function_data;
+};
+
+struct List{
+    enum ListType{
+        value_tuple,
+        value_list,
+    } type;
+    struct LinkValue **list;
+    vnum size;
+};
+
+struct Dict{
+    struct HashTable *dict;
+    vnum size;
+};
+
+struct Bool{
+    bool bool_;
+};
+
 struct Value{
     struct GCStatus gc_status;
-    enum ValueType{
-        none=0,
-        number=1,
-        string=2,
-        function=3,
-        list=4,
-        dict=5,
-        class=6,
-        object_=7,
-        bool_=8,
-        pass_=9,
-    } type;
+    enum ValueType type;
+
     struct {
         struct VarList *var;
         struct VarList *out_var;
         struct Inherit *inherit;
     } object;
+
     union data{
-        struct Number{
-            vnum num;
-        } num;
-        struct String{
-            char *str;
-        } str;
-        struct Function{
-            enum{
-                c_function,
-                vm_function,
-            } type;
-            struct Statement *function;
-            struct Parameter *pt;
-            OfficialFunction of;
-            struct {
-                enum FunctionPtType{
-                    free_,  // 不包含任何隐式传递的参数
-                    static_,  // 不包含self参数
-                    object_static_,  // self参数不允许class
-                    class_static_,  // self参数允许一切，但转换为类
-                    all_static_, // self参数允许一切
-                    object_free_,  // 同object_static_但不包含func参数
-                    class_free_,  // 同object_static_但不包含func参数
-                    all_free_,
-                } pt_type;
-            } function_data;
-        } function;
-        struct List{
-            enum ListType{
-                value_tuple,
-                value_list,
-            } type;
-            struct LinkValue **list;
-            vnum size;
-        } list;
-        struct Dict{
-            struct HashTable *dict;
-            vnum size;
-        } dict;
-        struct Bool{
-            bool bool_;
-        } bool_;
+        struct Number num;
+        struct String str;
+        struct Function function;
+        struct List list;
+        struct Dict dict;
+        struct Bool bool_;
     }data;
+
     struct Value *gc_next;
     struct Value *gc_last;
 };
