@@ -189,7 +189,6 @@ void freeValue(Value **Value);
 LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter);
 void freeLinkValue(LinkValue **value);
 LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
-Value *makeNoneValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 Value *useNoneValue(Inter *inter, Result *result);
 Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);

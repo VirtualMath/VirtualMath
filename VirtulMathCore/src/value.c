@@ -29,17 +29,6 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
     return tmp;
 }
 
-Value *makeNoneValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 删除该函数
-    Value *tmp;
-    setResultCore(result);
-    callBackCore(inter->data.object, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
-    if (!CHECK_RESULT(result))
-        return NULL;
-    tmp = result->value->value;
-    tmp->type = none;
-    return tmp;
-}
-
 Value *useNoneValue(Inter *inter, Result *result) {
     LinkValue *tmp = inter->data.none;
     if (result != NULL) {

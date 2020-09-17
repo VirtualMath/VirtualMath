@@ -30,7 +30,6 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     char *repo;
     char *name;
     char *type;
-    size_t len;
     LinkValue *name_value;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -49,14 +48,19 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     } else
         name = "unknown";
 
-    if (ap[0].value->value->type == class)
-        type = "class";
-    else
-        type = "object";
+    if (ap[0].value->value->type == none) {
+        repo = memStrcpy("null");
+    } else {
+        size_t len;
+        if (ap[0].value->value->type == class)
+            type = "class";
+        else
+            type = "object";
+        len = memStrlen(name) + 30;
+        repo = memCalloc(len, sizeof(char ));
+        snprintf(repo, len, "(%s: %s on %p)", type, name, ap[0].value->value);
+    }
 
-    len = memStrlen(name) + 30;
-    repo = memCalloc(len, sizeof(char ));
-    snprintf(repo, len, "(%s: %s on %p)", type, name, ap[0].value->value);
     makeStringValue(repo, 0, "object.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     memFree(repo);
     return result->type;
@@ -101,13 +105,13 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
     }
 
 
-    // TODO-szh base father在这里设置
     {
         Result result;
         Argument *arg = makeValueArgument(makeLinkValue(object, g_belong, inter));
         setResultCore(&result);
         object_new(CALL_OFFICAL_FUNCTION(arg, inter->var_list, &result, g_belong));
 
+        result.value->value->type = none;
         inter->data.none = result.value;
         gc_addStatementLink(&inter->data.none->gc_status);
 

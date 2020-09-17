@@ -158,9 +158,6 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
             repo = memStrcpy(str);
             break;
         }
-        case none:
-            repo = memStrcpy("(null)");
-            break;
         case class: {
             char str[30] = {};
             snprintf(str, 30, "(class on %p)", value);
