@@ -360,6 +360,10 @@ bool is_iterStop(LinkValue *value, Inter *inter) {
     return value->value == inter->data.iterstop_exc->value || checkAttribution(value->value, inter->data.iterstop_exc->value);
 }
 
+bool is_indexException(LinkValue *value, Inter *inter) {
+    return value->value == inter->data.index_exc->value || checkAttribution(value->value, inter->data.index_exc->value);
+}
+
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST) {
     if ((value == public_aut || (!pri_auto && value == auto_aut)) && (base != public_aut && base != auto_aut)) {
         if (name == NULL)
