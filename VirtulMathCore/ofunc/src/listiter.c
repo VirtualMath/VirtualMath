@@ -56,9 +56,15 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         setResultError(E_StopIterException, "Stop Iter", 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else {
+        Result tmp_result;
+        setResultCore(&tmp_result);
         index->value->data.num.num ++;
-        if (addAttributes("__index", false, index, 0, "listiter.next", ap[0].value, result, inter))
-            setResult(result, inter, belong);
+        if (addAttributes("__index", false, index, 0, "listiter.next", ap[0].value, &tmp_result, inter))
+            freeResult(&tmp_result);
+        else {
+            freeResult(result);
+            *result = tmp_result;
+        }
     }
     return result->type;
 }
