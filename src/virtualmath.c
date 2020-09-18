@@ -6,8 +6,18 @@ void runCodeFile(Inter *inter, char *file[]) {
     bool should_break = false;
     setResultCore(&result);
     for (PASS; !should_break && *file != NULL; file++) {
-        if (checkFile((*file)) != 1)
+        int status;
+        if ((status = checkFileReadble((*file))) == 3)
             continue;
+        else if (status == 2) {
+#if __linux__
+            *file = memStrcat(*file, (*file)[memStrlen(*file) - 1] != '/' ? "/__main__.vm" : "__main__.vm", false, false);
+#else
+            *file = memStrcat(*file, (*file)[memStrlen(*file) - 1] != '\\' ? "\\__main__.vm" : "__main__.vm", false, false);
+#endif
+            if (checkFileReadble(*file) != 1)
+                continue;
+        }
         if (runParser(*file, inter, false, &pst)) {
             globalIterStatement(&result, inter, pst);
             if (result.type == error_return) {

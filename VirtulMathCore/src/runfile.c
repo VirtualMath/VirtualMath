@@ -23,12 +23,27 @@ int isAbsolutePath(const char *path) {
     }
 }
 
-bool isExist(char **path, bool is_ab) {
+static bool isExist(char **path, bool is_ab, char *file) {
     char *backup = is_ab ? memStrcpy((*path) + 1) : memStrcpy(*path);
-    if (checkFile(backup) == 1 || checkFile(backup = memStrcat(backup, ".vm", true, false)) == 1) {
+    int status;
+    if ((status = checkFileReadble(backup)) != 3 || (status = checkFileReadble(backup = memStrcat(backup, ".vm", true, false))) != 3) {
         memFree(*path);
         *path = backup;
-        return true;
+        if (status == 2) {
+            if (file == NULL)
+                return false;
+#if __linux__
+            if ((*path)[memStrlen(*path) - 1] != '/')
+                *path = memStrcat(*path, "/", true, false);
+            *path = memStrcat(*path, file, true, false);
+#else
+            if ((*path)[memStrlen(*path) - 1] != '\\')
+                *path = memStrcat(*path, "\\", true, false);
+            *path = memStrcat(*path, file, true, false);
+#endif
+            return isExist(path, false, NULL);
+        } else
+            return true;
     }
     memFree(backup);
     return false;
@@ -37,7 +52,7 @@ bool isExist(char **path, bool is_ab) {
 int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
     switch (isAbsolutePath(*file_dir)) {
         case 1:
-            if (isExist(file_dir, true))
+            if (isExist(file_dir, true, "__init__.vm"))
                 return 1;
             goto error_;
         case 2:
@@ -48,20 +63,19 @@ int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
             break;
     }
 
-    if (isExist(file_dir, false))
+    if (isExist(file_dir, false, "__init__.vm"))
         return 1;
 
     {
         char arr_cwd[200] = {};
         char *p_cwd = NULL;
-#ifdef __linux__
         getcwd(arr_cwd, 200);
+#ifdef __linux__
         p_cwd = memStrcatIter(arr_cwd, false, "/", *file_dir, NULL);
 #else
-        _getcwd(arr_cwd, 200);
         p_cwd = memStrcatIter(arr_cwd, false, "\\", *file_dir);
 #endif
-        if (isExist(&p_cwd, false)) {
+        if (isExist(&p_cwd, false, "__init__.vm")) {
             memFree(*file_dir);
             *file_dir = p_cwd;
             return 1;
@@ -82,7 +96,7 @@ int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
             else
                 new_dir = memStrcat(tmp, *file_dir, false, false);
 
-            if (isExist(&new_dir, false)) {
+            if (isExist(&new_dir, false, "__init__.vm")) {
                 memFree(*file_dir);
                 *file_dir = new_dir;
                 return 1;
