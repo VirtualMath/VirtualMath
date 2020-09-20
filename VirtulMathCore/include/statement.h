@@ -83,6 +83,7 @@ struct Statement{
                 OPT_ASS = 5,
                 OPT_POINT = 6,
                 OPT_BLOCK = 7,
+                OPT_LINK = 8,
             } OperationType;
             struct Statement *left;
             struct Statement *right;

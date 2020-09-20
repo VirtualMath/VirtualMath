@@ -1292,6 +1292,15 @@ bool taliPoint(PASERSSIGNATURE, Token *left_token, Statement **st){
     return true;
 }
 
+bool taliLink(PASERSSIGNATURE, Token *left_token, Statement **st){
+    Statement *right_st = NULL;
+    delToken(pm);
+    if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after link"))
+        return false;
+    *st = makeOperationStatement(OPT_LINK, left_token->data.st, right_st);
+    return true;
+}
+
 void parserCallBack(PASERSSIGNATURE){
     while(true){
         int tk;
@@ -1310,10 +1319,11 @@ void parserCallBack(PASERSSIGNATURE){
         tk = readBackToken(pm);
         if (tk == MATHER_LB && !tailSlice(CALLPASERSSIGNATURE, left_token, &st) ||
             tk == MATHER_LP && !tailCall(CALLPASERSSIGNATURE, left_token, &st) ||
-            tk == MATHER_POINT && !taliPoint(CALLPASERSSIGNATURE, left_token, &st)) {
+            tk == MATHER_POINT && !taliPoint(CALLPASERSSIGNATURE, left_token, &st) ||
+            tk == MATHER_LINK && !taliLink(CALLPASERSSIGNATURE, left_token, &st)) {
             freeToken(left_token, true);
             goto return_;
-        } else if (tk != MATHER_LB && tk != MATHER_LP && tk != MATHER_POINT) {
+        } else if (tk != MATHER_LB && tk != MATHER_LP && tk != MATHER_POINT && tk != MATHER_LINK) {
             backToken_(pm, left_token);
             goto return_;
         }

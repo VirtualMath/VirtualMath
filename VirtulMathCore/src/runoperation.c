@@ -31,6 +31,7 @@ ResultType operationStatement(INTER_FUNCTIONSIG) {
         case OPT_ASS:
             assOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
+        case OPT_LINK:
         case OPT_POINT:
             pointOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
@@ -76,20 +77,32 @@ ResultType blockOperation(INTER_FUNCTIONSIG) {
 ResultType pointOperation(INTER_FUNCTIONSIG) {
     LinkValue *left;
     VarList *object = NULL;
+    setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == none)
         return result->type;
     left = result->value;
-    setResultCore(result);
+    result->value = NULL;
+    freeResult(result);
 
-    object = left->value->object.var;
+    if (st->u.operation.OperationType == OPT_POINT)
+        object = left->value->object.var;
+    else if (st->u.operation.OperationType == OPT_LINK)
+        object = left->value->object.out_var;
+
+    if (object == NULL) {
+        setResultError(E_TypeException, "object not support . / ->", st->line, st->code_file, true,
+                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        goto return_;
+    }
     gc_freeze(inter, var_list, object, true);
     operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));
     if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
         PASS;
     else if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))
         result->value->belong = left;
-
     gc_freeze(inter, var_list, object, false);
+
+    return_:
     gc_freeTmpLink(&left->gc_status);
     return result->type;
 }
@@ -108,7 +121,7 @@ ResultType delCore(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
         listDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if (name->type == slice_)
         downDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
+    else if (name->type == operation && (name->u.operation.OperationType == OPT_POINT || name->u.operation.OperationType == OPT_LINK))
         pointDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
         varDel(name, check_aut, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -151,6 +164,7 @@ ResultType varDel(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
 ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
     Result left;
     VarList *object = NULL;
+    Statement *right = name->u.operation.right;
 
     setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.operation.left, var_list, result, belong)))
@@ -158,14 +172,22 @@ ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
     left = *result;
     setResultCore(result);
 
-    object = left.value->value->object.var;
+    object = name->u.operation.OperationType == OPT_POINT ? left.value->value->object.var : left.value->value->object.out_var;
+
+    if (object == NULL) {
+        setResultError(E_TypeException, "object not support . / ->", name->line, name->code_file, true,
+                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        goto return_;
+    }
+
     gc_freeze(inter, var_list, object, true);
-    if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
+    if (right->type == OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
         pointDel(name->u.operation.right, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     else
         delCore(name->u.operation.right, true, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     gc_freeze(inter, var_list, object, false);
 
+    return_:
     freeResult(&left);
     return result->type;
 }
@@ -240,7 +262,7 @@ ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setti
         listAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if (name->type == slice_)
         downAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (name->type == operation && name->u.operation.OperationType == OPT_POINT)
+    else if (name->type == operation && (name->u.operation.OperationType == OPT_POINT || name->u.operation.OperationType == OPT_LINK))
         pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
         varAss(name, value, check_aut, setting, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -351,6 +373,7 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
 
 ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
     Result left;
+    Statement *right = name->u.operation.right;
     VarList *object = NULL;
 
     setResultCore(result);
@@ -359,14 +382,22 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     left = *result;
     setResultCore(result);
 
-    object = left.value->value->object.var;
+    object = name->u.operation.OperationType == OPT_POINT ? left.value->value->object.var : left.value->value->object.out_var;
+
+    if (object == NULL) {
+        setResultError(E_TypeException, "object not support . / ->", name->line, name->code_file, true,
+                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        goto return_;
+    }
+
     gc_freeze(inter, var_list, object, true);
-    if (name->u.operation.right->type == OPERATION && name->u.operation.right->u.operation.OperationType == OPT_POINT)
+    if (right->type == OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
         pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     else
         assCore(name->u.operation.right, value, true, false, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
     gc_freeze(inter, var_list, object, false);
 
+    return_:
     freeResult(&left);
     return result->type;
 }
