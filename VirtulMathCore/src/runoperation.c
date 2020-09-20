@@ -275,11 +275,8 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     }
     addFromVarList(str_name, result->value, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (setting) {
-        LinkValue *name_value = result->value;
-        result->value = NULL;
         freeResult(result);
-        newObjectSetting(name_value, name->line, name->code_file, value, result, inter);
-        gc_freeTmpLink(&name_value->gc_status);
+        newObjectSetting(value, name->line, name->code_file, value, result, inter);
         if (CHECK_RESULT(result))
             goto error_;
     }

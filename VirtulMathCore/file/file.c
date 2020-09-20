@@ -1,7 +1,6 @@
 #include "__virtualmath.h"
 
 /**
- *
  * @param dir 文件地址
  * @return 0-错误, 1-普通文件, 2-目录
  */
@@ -25,6 +24,14 @@ char *splitDir(char * dir){
     char *slash = NULL;
     char *point = NULL;
     char *return_char = NULL;
+
+#ifdef __unix__
+    if (dir[memStrlen(dir) - 1] == '/')
+#else
+    if (dir[memStrlen(dir) - 1] == '\\')
+#endif  // __unix__
+    { dir[memStrlen(dir) - 1] = NUL; }
+
 #ifdef __unix__
     if ((slash = strrchr(dir, '/'))  == NULL)
 #else

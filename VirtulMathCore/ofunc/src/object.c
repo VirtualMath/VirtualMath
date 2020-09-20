@@ -93,8 +93,8 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
     {
         Value *global_belong = makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL);
         g_belong = makeLinkValue(global_belong, belong, inter);
-        inter->base_father = g_belong;
-        gc_addStatementLink(&inter->base_father->gc_status);
+        inter->base_belong = g_belong;
+        gc_addStatementLink(&inter->base_belong->gc_status);
     }
 
     inter->data.object = makeLinkValue(object, g_belong, inter);

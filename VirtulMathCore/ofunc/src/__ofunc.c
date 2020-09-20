@@ -71,7 +71,7 @@ Value *makeBaseChildClass(Value *inherit, Inter *inter) {
     Inherit *father_value = NULL;
     Value *new = NULL;
     {
-        LinkValue *father_ = makeLinkValue(inherit, inter->base_father, inter);
+        LinkValue *father_ = makeLinkValue(inherit, inter->base_belong, inter);
         Argument *arg = makeValueArgument(father_);
         gc_addTmpLink(&father_->gc_status);
         father_value = setFather(arg);
@@ -100,7 +100,7 @@ LinkValue *makeBaseChildClass3(Value *inherit, Inter *inter) {
     Inherit *father_value = NULL;
     Value *new = NULL;
     {
-        LinkValue *father_ = makeLinkValue(inherit, inter->base_father, inter);
+        LinkValue *father_ = makeLinkValue(inherit, inter->base_belong, inter);
         Argument *arg = makeValueArgument(father_);
         gc_addTmpLink(&father_->gc_status);
         father_value = setFather(arg);
@@ -108,7 +108,7 @@ LinkValue *makeBaseChildClass3(Value *inherit, Inter *inter) {
         gc_freeTmpLink(&father_->gc_status);
     }
     new = makeClassValue(inter->var_list, inter, father_value);
-    return makeLinkValue(new, inter->base_father, inter);
+    return makeLinkValue(new, inter->base_belong, inter);
 }
 
 LinkValue *makeBaseChildClass4(LinkValue *inherit, Inter *inter) {  // TODO-szh 最终函数
@@ -122,7 +122,7 @@ LinkValue *makeBaseChildClass4(LinkValue *inherit, Inter *inter) {  // TODO-szh 
         gc_freeTmpLink(&inherit->gc_status);
     }
     new = makeClassValue(inter->var_list, inter, father_value);
-    return makeLinkValue(new, inter->base_father, inter);
+    return makeLinkValue(new, inter->base_belong, inter);
 }
 
 bool checkIndex(vnum *index, const vnum *size, INTER_FUNCTIONSIG_NOT_ST){

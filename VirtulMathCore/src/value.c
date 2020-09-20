@@ -456,6 +456,7 @@ void printError(Result *result, Inter *inter, bool free) {
     }
     if (free)
         freeError(result);
+    fflush(inter->data.inter_stderr);
 }
 
 inline bool isType(Value *value, enum ValueType type){
@@ -525,6 +526,41 @@ Inherit *getInheritFromValueCore(LinkValue *num_father) {
     return object_father;
 }
 
+Package *makePackage(Value *value, char *md5, char *name, Package *base) {
+    Package *tmp = memCalloc(1, sizeof(Package));
+    Package *tmp_base = base;
+    tmp->name = memStrcpy(name);
+    tmp->md5 = memStrcpy(md5);
+    tmp->package = value;
+    gc_addStatementLink(&value->gc_status);
+    tmp->next = NULL;
+    if (base == NULL)
+        return tmp;
+
+    for (PASS; tmp_base->next != NULL; tmp_base = tmp_base->next)
+            PASS;
+    tmp_base->next = tmp;
+    return base;
+}
+
+void freePackage(Package *base) {
+    for (Package *next; base != NULL; base = next) {
+        next = base->next;
+        gc_freeStatementLink(&base->package->gc_status);
+        memFree(base->name);
+        memFree(base->md5);
+        memFree(base);
+    }
+}
+
+Value *checkPackage(Package *base, char *md5, char *name) {
+    for (PASS; base != NULL; base = base->next) {
+        if (eqString(name, base->name) && eqString(md5, base->md5))
+            return base->package;
+    }
+    return NULL;
+}
+
 bool needDel(Value *object_value, Inter *inter) {
     LinkValue *_del_ = checkStrVar(inter->data.object_del, false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
     enum FunctionPtType type;
@@ -545,8 +581,8 @@ bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_lis
     if (_del_ != NULL){
         gc_addTmpLink(&_del_->gc_status);
         if (_del_->belong == NULL || _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value))
-            _del_->belong = makeLinkValue(object_value, inter->base_father, inter);
-        callBackCore(_del_, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, inter->base_father));
+            _del_->belong = makeLinkValue(object_value, inter->base_belong, inter);
+        callBackCore(_del_, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, inter->base_belong));
         gc_freeTmpLink(&_del_->gc_status);
         return true;
     } else

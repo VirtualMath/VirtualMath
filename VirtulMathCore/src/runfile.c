@@ -84,28 +84,28 @@ int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
     }
 
     path: {
-        char *path = memStrcpy(getenv("VIRTUALMATHPATH"));
-        for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
+    char *path = memStrcpy(getenv("VIRTUALMATHPATH"));
+    for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
 #ifdef __linux__
-            if (*(tmp + (memStrlen(tmp) - 1)) != '/')
-                new_dir = memStrcatIter(tmp, false, "/", *file_dir, NULL);
+        if (*(tmp + (memStrlen(tmp) - 1)) != '/')
+            new_dir = memStrcatIter(tmp, false, "/", *file_dir, NULL);
 #else
             if (*(tmp + (memStrlen(tmp) - 1)) != '\\')
                 new_dir = memStrcatIter(tmp, false, "\\", *file_dir);
 #endif
-            else
-                new_dir = memStrcat(tmp, *file_dir, false, false);
+        else
+            new_dir = memStrcat(tmp, *file_dir, false, false);
 
-            if (isExist(&new_dir, false, "__init__.vm")) {
-                memFree(*file_dir);
-                *file_dir = new_dir;
-                return 1;
-            }
-            memFree(new_dir);
-
+        if (isExist(&new_dir, false, "__init__.vm")) {
+            memFree(*file_dir);
+            *file_dir = new_dir;
+            return 1;
         }
-        memFree(path);
+        memFree(new_dir);
+
     }
+    memFree(path);
+}
 
     clib:
     if (checkCLib(*file_dir))
@@ -153,32 +153,22 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-ResultType importVMFileCore(VarList **new_object, char *file_dir, fline line, char *code_file, INTER_FUNCTIONSIG_NOT_ST) {
-    Inter *import_inter = NULL;
+ResultType importVMFileCore(Inter *import_inter, char *path, fline line, char *code_file, INTER_FUNCTIONSIG_NOT_ST) {
     ParserMessage *pm = NULL;
     Statement *run_st = NULL;
     setResultCore(result);
 
-    import_inter = deriveInter(belong, inter);
-    pm = makeParserMessage(file_dir);
-    run_st = makeStatement(0, file_dir);
+    pm = makeParserMessage(path);
+    run_st = makeStatement(0, path);
 
-    if (!importRunParser(pm, line, code_file, run_st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
-        freeInter(import_inter, false);
+    if (!importRunParser(pm, line, code_file, run_st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
         goto return_;
-    }
 
     globalIterStatement(result, import_inter, run_st);
-    if (!CHECK_RESULT(result)) {
-        freeInter(import_inter, false);
+    if (!CHECK_RESULT(result))
         setResultError(E_BaseException, NULL, line, code_file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        goto return_;
-    }
-
-    *new_object = import_inter->var_list;
-    import_inter->var_list = NULL;
-    mergeInter(import_inter, inter);
-    setResult(result, inter, belong);
+    else
+        setResult(result, inter, belong);
 
     return_:
     freeStatement(run_st);
@@ -186,22 +176,8 @@ ResultType importVMFileCore(VarList **new_object, char *file_dir, fline line, ch
     return result->type;
 }
 
-ResultType importCLibFileCore(VarList **new_object, char *file_dir, INTER_FUNCTIONSIG_NOT_ST) {
-    Inter *import_inter;
-    setResultCore(result);
-    import_inter = deriveInter(belong, inter);
 
-    runClib(file_dir, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-
-    *new_object = import_inter->var_list;
-    import_inter->var_list = NULL;
-    mergeInter(import_inter, inter);
-    setResult(result, inter, belong);
-    return result->type;
-}
-
-ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONSIG) {
-    int status;
+ResultType importFileCore(char **path, char **split, int *status, INTER_FUNCTIONSIG) {
     setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
         return result->type;
@@ -211,74 +187,130 @@ ResultType importFileCore(VarList **new_object, char **file_dir, INTER_FUNCTIONS
         return error_return;
     }
 
-    *file_dir = memStrcpy(result->value->value->data.str.str);
+    *path = memStrcpy(result->value->value->data.str.str);
+    *split = splitDir(*path);  // 自动去除末尾路径分隔符
     freeResult(result);
-    if ((status = checkFileDir(file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) == 0)
+    if ((*status = checkFileDir(path, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) == 0)
         return result->type;
-
-    if (status == 2)
-        importCLibFileCore(new_object, *file_dir, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else
-        importVMFileCore(new_object, *file_dir, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return result->type;
 }
 
+ResultType runImportFile(Inter *import_inter, char **path, int status, INTER_FUNCTIONSIG) {
+    setResultCore(result);
+    if (status == 2)
+        importClibCore(*path, belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    else
+        importVMFileCore(import_inter, *path, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+    import_inter->var_list = NULL;
+    mergeInter(import_inter, inter);
+    return result->type;
+}
+
+static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int status, char **path, INTER_FUNCTIONSIG) {
+    Value *pg;
+    Inter *imp_inter;
+    if ((pg = checkPackage(inter->package, md5_str, split)) == NULL) {
+        setResultCore(result);
+        imp_inter = deriveInter(belong, inter);
+        pg = makeObject(inter, imp_inter->var_list, copyVarList(var_list, false, inter), NULL);
+        inter->package = makePackage(pg, md5_str, split, inter->package);
+        imp_inter->package = inter->package;
+
+        freeResult(result);
+        runImportFile(imp_inter, path, status, CALL_INTER_FUNCTIONSIG(st->u.import_file.file, var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            return false;
+    }
+    *imp_value = makeLinkValue(pg, belong, inter);
+    gc_addTmpLink(&(*imp_value)->gc_status);
+    return true;
+}
+
+
 ResultType importFile(INTER_FUNCTIONSIG) {
-    char *file_dir = NULL;
-    VarList *new_object = NULL;
-    LinkValue *import_value = NULL;
+    int status;
+    char *split_path = NULL;
+    char *path = NULL;
+    LinkValue *imp_value = NULL;
+    char md5_str[MD5_STRING] = {};
+
     setResultCore(result);
     gc_freeze(inter, var_list, NULL, true);
 
-    importFileCore(&new_object, &file_dir, CALL_INTER_FUNCTIONSIG(st->u.import_file.file, var_list, result, belong));
+    importFileCore(&path, &split_path, &status, CALL_INTER_FUNCTIONSIG(st->u.import_file.file, var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
-    {
-        VarList *import_var = copyVarList(var_list, false, inter);
-        Value *import_obj = makeObject(inter, new_object, import_var, NULL);
-        import_value = makeLinkValue(import_obj, belong, inter);
-    }
-
+    getFileMd5(path, md5_str);
+    if (!getPackage(&imp_value, md5_str, split_path, status, &path, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+        goto return_;
     freeResult(result);
-    if (st->u.import_file.as != NULL)
-        assCore(st->u.import_file.as, import_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else {
-        addStrVar(splitDir(file_dir), true, true, import_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        if (!CHECK_RESULT(result))
-            goto return_;
-    }
-    setResult(result, inter, belong);
+    if (st->u.import_file.as == NULL)
+        addStrVar(split_path, false, false, imp_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else
+        assCore(st->u.import_file.as, imp_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (CHECK_RESULT(result))
+        setResult(result, inter, belong);
+    gc_freeTmpLink(&imp_value->gc_status);
 
     return_:
-    memFree(file_dir);
+    memFree(split_path);
+    memFree(path);
     gc_freeze(inter, var_list, NULL, false);
     return result->type;
 }
 
+static ResultType importParameter(fline line, char *file, Parameter *call_pt, Parameter *func_pt, VarList *func_var, LinkValue *func_belong, INTER_FUNCTIONSIG_NOT_ST) {
+    Argument *call = NULL;
+    setResultCore(result);
+    call = getArgument(call_pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result)) {
+        freeArgument(call, false);
+        return result->type;
+    }
+
+    freeResult(result);
+    setParameterCore(line, file, call, func_pt, func_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, func_belong));
+    freeArgument(call, false);
+    return result->type;
+}
 
 ResultType fromImportFile(INTER_FUNCTIONSIG) {
-    char *file_dir = NULL;
-    VarList *new_object = NULL;
+    int status;
+    char *split_path = NULL;
+    char *path = NULL;
+    char md5_str[MD5_STRING] = {};
+    VarList *imp_var = NULL;
+    LinkValue *imp_value;
     Parameter *pt = st->u.from_import_file.pt;
     Parameter *as = st->u.from_import_file.as != NULL ? st->u.from_import_file.as : st->u.from_import_file.pt;
+
     setResultCore(result);
-    importFileCore(&new_object, &file_dir, CALL_INTER_FUNCTIONSIG(st->u.from_import_file.file, var_list, result, belong));
+    importFileCore(&path, &split_path, &status, CALL_INTER_FUNCTIONSIG(st->u.from_import_file.file, var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
+    getFileMd5(path, md5_str);
+    if (!getPackage(&imp_value, md5_str, split_path, status, &path, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+        goto return_;
+    imp_var = imp_value->value->object.var;
+
     freeResult(result);
     if (pt != NULL) {
-        setParameter(st->line, st->code_file, pt, as, var_list, belong, CALL_INTER_FUNCTIONSIG_NOT_ST(new_object, result, belong));
+        importParameter(st->line, st->code_file, pt, as, var_list, belong, CALL_INTER_FUNCTIONSIG_NOT_ST(imp_var, result, imp_value));
         if (!CHECK_RESULT(result))
             goto return_;
     }
     else
-        updateHashTable(var_list->hashtable, new_object->hashtable, inter);
+        updateHashTable(var_list->hashtable, imp_var->hashtable, inter);
+    gc_freeTmpLink(&imp_value->value->gc_status);
     setResult(result, inter, belong);
 
     return_:
-    freeVarList(new_object);
+    memFree(path);
+    memFree(split_path);
+    freeVarList(imp_var);  // 当需要存储var_list的时候则不需要释放
     return result->type;
 }

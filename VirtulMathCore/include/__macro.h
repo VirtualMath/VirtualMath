@@ -23,6 +23,10 @@
 #define REGISTERED_FUNCTIONSIG struct LinkValue *belong, INTER_FUNCTIONSIG_CORE
 #define CALL_REGISTERED_FUNCTION(belong, var_list) belong, CALL_INTER_FUNCTIONSIG_CORE(var_list)
 
+#define MD5_SIZE 16
+#define MD5_STR_LEN (MD5_SIZE * 2)
+#define MD5_STRING MD5_STR_LEN + 1
+
 typedef long long vnum;
 typedef unsigned long long vhashn;
 typedef unsigned long long fline;

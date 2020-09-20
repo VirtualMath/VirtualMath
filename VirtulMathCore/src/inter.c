@@ -6,6 +6,7 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     tmp->link_base = NULL;
     tmp->hash_base = NULL;
     tmp->base_var = NULL;
+    tmp->package = NULL;
 
     setBaseInterData(tmp);
     tmp->var_list = makeVarList(tmp, true);
@@ -84,11 +85,10 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_down_del = memStrcpy("__down_del__");
     inter->data.object_slice_del = memStrcpy("__slice_del__");
     inter->data.default_pt_type = free_;
-
 }
 
 void freeBaseInterData(struct Inter *inter){
-    gc_freeStatementLink(&inter->base_father->gc_status);
+    gc_freeStatementLink(&inter->base_belong->gc_status);
     gc_freeStatementLink(&inter->data.object->gc_status);
     gc_freeStatementLink(&inter->data.vobject->gc_status);
     gc_freeStatementLink(&inter->data.num->gc_status);
@@ -172,6 +172,7 @@ void freeInter(Inter *inter, bool show_gc) {
     FREE_BASE(inter, return_);
     gc_runDelAll(inter);
     freeBaseInterData(inter);
+    freePackage(inter->package);
 #if DEBUG
     if (show_gc && (printf("\nEnter '1' to show gc: "), getc(stdin) == '1')) {
         printGC(inter);
@@ -216,6 +217,7 @@ void mergeInter(Inter *new, Inter *base){
     *base_linkValue = new->link_base;
     *base_hash = new->hash_base;
     *base_var = new->base_var;
+    new->package = NULL;
     memFree(new);
 }
 

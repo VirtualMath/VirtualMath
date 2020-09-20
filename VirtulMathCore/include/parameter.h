@@ -79,7 +79,6 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUN
 Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 
 ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
-ResultType setParameter(fline line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST);
 ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTER_FUNCTIONSIG_NOT_ST);
 Argument *getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST);
 

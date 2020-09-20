@@ -8,7 +8,8 @@ struct Inter{
     struct LinkValue *link_base;
     struct HashTable *hash_base;
     struct Var *base_var;
-    struct LinkValue *base_father;
+    struct LinkValue *base_belong;
+    struct Package *package;
 
     struct VarList *var_list;
     struct InterData{

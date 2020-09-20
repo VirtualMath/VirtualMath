@@ -6,6 +6,7 @@
 #include "mem.h"
 #include "handler.h"
 #include "file.h"
+#include "md5.h"
 
 #include "gc.h"
 #include "value.h"

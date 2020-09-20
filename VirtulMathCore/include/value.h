@@ -1,6 +1,5 @@
 #ifndef VIRTUALMATH_VALUE_H
 #define VIRTUALMATH_VALUE_H
-
 #include "__macro.h"
 
 // 标准错误信息定义
@@ -15,28 +14,30 @@
 #define RETURN_ERROR(func, type) #func" function should return "#type" type data"
 #define KEY_INTERRUPT "KeyInterrupt"
 
-typedef struct Value Value;
 typedef struct Argument Argument;
 typedef struct Inter Inter;
-typedef struct LinkValue LinkValue;
-typedef struct Result Result;
-typedef struct Error Error;
-typedef struct Inherit Inherit;
 typedef struct VarList VarList;
 typedef enum ResultType ResultType;
 typedef enum BaseErrorType BaseErrorType;
 
+typedef struct Value Value;
+typedef struct LinkValue LinkValue;
+typedef struct Result Result;
+typedef struct Error Error;
+typedef struct Inherit Inherit;
+typedef struct Package Package;
+
 typedef enum ResultType (*OfficialFunction)(OFFICAL_FUNCTIONSIG);
 typedef void (*Registered)(REGISTERED_FUNCTIONSIG);
 
-enum ValueAuthority{
+enum ValueAuthority {
     auto_aut,
     public_aut,
     protect_aut,
     private_aut
 };
 
-enum ValueType{
+enum ValueType {
     none=0,
     number=1,
     string=2,
@@ -49,16 +50,16 @@ enum ValueType{
     pass_=9,
 };
 
-struct Number{
+struct Number {
     vnum num;
 };
 
-struct String{
+struct String {
     char *str;
 };
 
 struct Function{
-    enum{
+    enum {
         c_function,
         vm_function,
     } type;
@@ -66,7 +67,7 @@ struct Function{
     struct Parameter *pt;
     OfficialFunction of;
     struct {
-        enum FunctionPtType{
+        enum FunctionPtType {
             free_,  // 不包含任何隐式传递的参数
             static_,  // 不包含self参数
             object_static_,  // self参数不允许class
@@ -79,8 +80,8 @@ struct Function{
     } function_data;
 };
 
-struct List{
-    enum ListType{
+struct List {
+    enum ListType {
         value_tuple,
         value_list,
     } type;
@@ -88,7 +89,7 @@ struct List{
     vnum size;
 };
 
-struct Dict{
+struct Dict {
     struct HashTable *dict;
     vnum size;
 };
@@ -98,7 +99,6 @@ struct Bool{
 };
 
 struct Value{
-    struct GCStatus gc_status;
     enum ValueType type;
 
     struct {
@@ -107,30 +107,31 @@ struct Value{
         struct Inherit *inherit;
     } object;
 
-    union data{
+    union data {
         struct Number num;
         struct String str;
         struct Function function;
         struct List list;
         struct Dict dict;
         struct Bool bool_;
-    }data;
+    } data;
 
     struct Value *gc_next;
     struct Value *gc_last;
+    struct GCStatus gc_status;
 };
 
-struct LinkValue{
-    struct GCStatus gc_status;
+struct LinkValue {
     enum ValueAuthority aut;
     struct Value *value;
     struct LinkValue *belong;
     struct LinkValue *gc_next;
     struct LinkValue *gc_last;
+    struct GCStatus gc_status;
 };
 
-struct Result{
-    enum ResultType{
+struct Result {
+    enum ResultType {
         not_return = 1,  // 无返回值
         function_return=2,  // 函数返回值
         operation_return=3,  // 表达式返回值
@@ -149,7 +150,7 @@ struct Result{
     struct Statement *node;
 };
 
-struct Error{
+struct Error {
     char *type;
     char *messgae;
     char *file;
@@ -157,9 +158,16 @@ struct Error{
     struct Error *next;
 };
 
-struct Inherit{
+struct Inherit {
     struct LinkValue *value;
     struct Inherit *next;
+};
+
+struct Package {
+    struct Value *package;
+    char *name;  // split dir的name
+    char *md5;  // md5地址
+    struct Package *next;
 };
 
 enum BaseErrorType{
@@ -211,6 +219,10 @@ void setResultOperation(Result *ru, LinkValue *value);
 void setResultOperationBase(Result *ru, LinkValue *value);
 void freeResult(Result *ru);
 void freeResultSafe(Result *ru);
+
+Package *makePackage(Value *value, char *md5, char *name, Package *base);
+void freePackage(Package *base);
+Value *checkPackage(Package *base, char *md5, char *name);
 
 Error *makeError(char *type, char *message, fline line, char *file);
 void freeError(Result *base);

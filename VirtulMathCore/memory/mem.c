@@ -54,7 +54,7 @@ char *memStrcatIter(char *base, bool free_base, ...) {
     va_start(ap, free_base);
     for (char *ch = va_arg(ap, char *); ch != NULL; ch = va_arg(ap, char *)) {
         base = memStrcat(base, ch, free_base, false);
-        free_base = false;
+        free_base = true;
     }
     va_end(ap);
     return base;

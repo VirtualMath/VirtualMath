@@ -47,6 +47,6 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
 
     makeBaseStr(inter);
     presetting(inter);
-    registeredObject(inter->base_father, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    registeredBaseFunction(inter->base_father, inter);
+    registeredObject(inter->base_belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    registeredBaseFunction(inter->base_belong, inter);
 }

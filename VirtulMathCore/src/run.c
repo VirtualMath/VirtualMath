@@ -194,7 +194,7 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
     ResultType type;
     VarList *var_list = NULL;
     Statement *base;
-    LinkValue *belong = inter->base_father;
+    LinkValue *belong = inter->base_belong;
     void *bak = NULL;
 
     if (st == NULL){

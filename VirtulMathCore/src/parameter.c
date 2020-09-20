@@ -504,30 +504,11 @@ Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) 
  * 注解: @p_1 match_status; @p_2 default_status; @p_3 self_ass; @p_4 mul_par; @p_5 pow_par; @p_3! 通过p_3处理**kwargs
  * @param call
  * @param function
- * @param function_var
+ * @param func_var
  * @param inter
  * @param var_list
  * @return
  */
-ResultType setParameter(fline line, char *file, Parameter *call_base, Parameter *function_base, VarList *function_var, LinkValue *function_father, INTER_FUNCTIONSIG_NOT_ST) {
-    Argument *self_tmp = makeValueArgument(function_father);
-    Argument *father_tmp = makeValueArgument(function_father->belong);
-    Argument *call = NULL;
-    setResultCore(result);
-    call = getArgument(call_base, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    self_tmp->next = father_tmp;
-    father_tmp->next = call;
-    if (!CHECK_RESULT(result)) {
-        freeArgument(call, false);
-        return result->type;
-    }
-
-    freeResult(result);
-    setParameterCore(line, file, self_tmp, function_base, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, function_father));
-    freeArgument(self_tmp, false);
-    return result->type;
-}
-
 ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *function_base, VarList *function_var,
                         INTER_FUNCTIONSIG_NOT_ST) {
     Parameter *function = NULL;
