@@ -275,10 +275,13 @@ ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSI
             goto return_;
 
         value = result->value;
+        result->value = NULL;
         freeResult(result);
         assCore(function->data.name, value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        gc_freeTmpLink(&value->gc_status);
         if (!CHECK_RESULT(result))
             goto return_;
+        freeResult(result);
     }
     setResult(result, inter, belong);
 
@@ -586,24 +589,39 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 break;
             }
             case mul_par: {
-                LinkValue *tmp = NULL;
-                makeListValue(call, 0, "sys", value_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                for (PASS; call != NULL && call->type == value_arg; call = call->next)
+                LinkValue *tmp;
+                Argument *backup;
+                Argument *base = call;
+                for (PASS; call->next != NULL && call->next->type == value_arg; call = call->next)
                     PASS;
+
+                backup = call->next;
+                call->next = NULL;  // 断开Argument，只把value_arg部分传入makeListValue
+                makeListValue(base, 0, "sys", value_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                call->next = backup;
+                call = backup;
+
                 returnResult(result);
+                tmp = result->value;
+                result->value = NULL;
                 freeResult(result);
 
                 assCore(function->data.value, tmp, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                gc_freeTmpLink(&tmp->gc_status);
                 returnResult(result);
                 function = function->next;
                 break;
             }
             case space_kwargs:{
-                LinkValue *tmp = makeLinkValue(makeDictValue(NULL, true, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)), belong, inter);
+                LinkValue *tmp;
+                makeDictValue(NULL, true, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 returnResult(result);
+                tmp = result->value;
+                result->value = NULL;
                 freeResult(result);
 
                 assCore(function->data.value, tmp, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                gc_freeTmpLink(&tmp->gc_status);
                 returnResult(result);
                 function = function->next;
                 break;

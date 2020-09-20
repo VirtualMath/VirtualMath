@@ -1117,7 +1117,7 @@ void parserOperation(PASERSSIGNATURE){
  */
 bool checkAssignmentLeft(PASERSSIGNATURE, Statement *left){
     if (left->type == call_function && !checkFormal(left->u.call_function.parameter)){
-        syntaxError(pm, syntax_error, left->line, 1, "Don't get success function definition from Assignment");
+        syntaxError(pm, syntax_error, left->line, 1, "Don't get success function definition from Assignment22");
         return false;
     }
     return true;
@@ -1133,6 +1133,7 @@ bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
     }
     return true;
 }
+
 void parserAssignment(PASERSSIGNATURE){
     return twoOperation(CALLPASERSSIGNATURE, parserTuple, switchAssignment, checkAssignmentLeft, TUPLE, ASSIGNMENT,
                         "polynomial", "assignment", true);

@@ -30,15 +30,16 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         }
         left_token = popNewToken(pm->tm);
         line = left_token->line;
-        if (checkleft != NULL && !checkleft(CALLPASERSSIGNATURE, left_token->data.st)) {
-            freeToken(left_token, true);
-            goto return_;
-        }
 
         if (getSymbol(CALLPASERSSIGNATURE, readBackToken(pm), &st))
             delToken(pm);
         else{
             backToken_(pm, left_token);
+            goto return_;
+        }
+
+        if (checkleft != NULL && !checkleft(CALLPASERSSIGNATURE, left_token->data.st)) {
+            freeToken(left_token, true);
             goto return_;
         }
 
