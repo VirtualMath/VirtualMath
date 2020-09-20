@@ -173,11 +173,13 @@ struct Statement{
         struct {
             struct Statement *file;
             struct Statement *as;
+            bool is_lock;
         } import_file;
         struct {
             struct Statement *file;
             struct Parameter *pt;
             struct Parameter *as;
+            bool is_lock;
         } from_import_file;
         struct {
             struct Parameter *var;
@@ -290,8 +292,8 @@ Statement *makeYieldStatement(Statement *value, fline line, char *file);
 Statement *makeRaiseStatement(Statement *value, fline line, char *file);
 Statement *makeAssertStatement(Statement *conditions, fline line, char *file);
 Statement *makeIncludeStatement(Statement *file, fline line, char *file_dir);
-Statement *makeImportStatement(Statement *file, Statement *as);
-Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt);
+Statement *makeImportStatement(Statement *file, Statement *as, bool is_lock);
+Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt, bool is_lock);
 Statement *makeDefaultVarStatement(Parameter *var, fline line, char *file_dir, enum DefaultType type);
 Statement *makeLabelStatement(Statement *var, Statement *command, char *label, fline line, char *file_dir);
 Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, fline line, char *file_dir);

@@ -217,7 +217,8 @@ void mergeInter(Inter *new, Inter *base){
     *base_linkValue = new->link_base;
     *base_hash = new->hash_base;
     *base_var = new->base_var;
-    new->package = NULL;
+    if (base->package == NULL)
+        base->package = new->package;
     memFree(new);
 }
 

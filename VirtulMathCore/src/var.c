@@ -149,7 +149,7 @@ vhashn time33(char *key){ // hash function
     return (hash & (vhashn)0x7FFFFFFF) % MAX_SIZE;
 }
 
-void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
+static void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     for (PASS; true; base = &(*base)->next) {
         if (*base == NULL) {
             *base = makeVar(name, value, name_, inter);

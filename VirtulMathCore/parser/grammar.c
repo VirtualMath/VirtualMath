@@ -375,8 +375,25 @@ void parserGoto(PASERSSIGNATURE){
 void parserImport(PASERSSIGNATURE) {
     Statement *opt = NULL;
     Statement *st = NULL;
+    bool is_lock = false;
     int token_type = readBackToken(pm);
     long int line = delToken(pm);
+
+    if (checkToken(pm, MATHER_COLON)) {
+        switch (readBackToken(pm)) {
+            case MATHER_PUBLIC:
+                break;
+            case MATHER_PRIVATE:
+            case MATHER_PROTECT:
+                is_lock = true;
+                break;
+            default:
+                syntaxError(pm, syntax_error, opt->line, 1, "Don't get a aut token");
+                goto return_;
+        }
+        delToken(pm);
+    }
+
     if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &opt, "Don't get a import file"))
         goto return_;
     if (token_type == MATHER_IMPORT) {
@@ -385,7 +402,7 @@ void parserImport(PASERSSIGNATURE) {
             freeStatement(opt);
             goto return_;
         }
-        st = makeImportStatement(opt, as);
+        st = makeImportStatement(opt, as, is_lock);
     }
     else{
         Parameter *pt = NULL;
@@ -416,7 +433,7 @@ void parserImport(PASERSSIGNATURE) {
         }
 
         mul_:
-        st = makeFromImportStatement(opt, as, pt);
+        st = makeFromImportStatement(opt, as, pt, is_lock);
     }
 
     addStatementToken(IMPORT, st, pm);

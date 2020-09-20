@@ -208,28 +208,33 @@ ResultType runImportFile(Inter *import_inter, char **path, int status, INTER_FUN
     return result->type;
 }
 
-static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int status, char **path, INTER_FUNCTIONSIG) {
+static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int status, char **path, int *is_new, bool is_lock, INTER_FUNCTIONSIG) {
     Value *pg;
     Inter *imp_inter;
-    if ((pg = checkPackage(inter->package, md5_str, split)) == NULL) {
+    if (is_lock || (pg = checkPackage(inter->package, md5_str, split)) == NULL) {
         setResultCore(result);
+        *is_new = true;
         imp_inter = deriveInter(belong, inter);
         pg = makeObject(inter, imp_inter->var_list, copyVarList(var_list, false, inter), NULL);
-        inter->package = makePackage(pg, md5_str, split, inter->package);
+        if (!is_lock)
+            inter->package = makePackage(pg, md5_str, split, inter->package);  // 只有当不是保护读入或私密读入的时才可以记录
         imp_inter->package = inter->package;
 
         freeResult(result);
-        runImportFile(imp_inter, path, status, CALL_INTER_FUNCTIONSIG(st->u.import_file.file, var_list, result, belong));
+        runImportFile(imp_inter, path, status, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
         if (!CHECK_RESULT(result))
             return false;
-    }
+    } else
+        *is_new = false;
     *imp_value = makeLinkValue(pg, belong, inter);
     gc_addTmpLink(&(*imp_value)->gc_status);
     return true;
 }
 
-
 ResultType importFile(INTER_FUNCTIONSIG) {
+    bool is_new = false;
+    bool is_lock = st->u.import_file.is_lock;
+    Statement *file = st->u.import_file.file;
     int status;
     char *split_path = NULL;
     char *path = NULL;
@@ -239,18 +244,19 @@ ResultType importFile(INTER_FUNCTIONSIG) {
     setResultCore(result);
     gc_freeze(inter, var_list, NULL, true);
 
-    importFileCore(&path, &split_path, &status, CALL_INTER_FUNCTIONSIG(st->u.import_file.file, var_list, result, belong));
+    importFileCore(&path, &split_path, &status, CALL_INTER_FUNCTIONSIG(file, var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
     getFileMd5(path, md5_str);
-    if (!getPackage(&imp_value, md5_str, split_path, status, &path, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+    if (!getPackage(&imp_value, md5_str, split_path, status, &path, &is_new, is_lock, CALL_INTER_FUNCTIONSIG(file, var_list, result, belong)))
         goto return_;
     freeResult(result);
     if (st->u.import_file.as == NULL)
-        addStrVar(split_path, false, false, imp_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        addStrVar(split_path, false, is_new, imp_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
-        assCore(st->u.import_file.as, imp_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.import_file.as, imp_value, false, is_new, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
     if (CHECK_RESULT(result))
         setResult(result, inter, belong);
     gc_freeTmpLink(&imp_value->gc_status);
@@ -279,6 +285,9 @@ static ResultType importParameter(fline line, char *file, Parameter *call_pt, Pa
 
 ResultType fromImportFile(INTER_FUNCTIONSIG) {
     int status;
+    bool is_new;
+    bool is_lock = st->u.from_import_file.is_lock;
+    Statement *file = st->u.from_import_file.file;
     char *split_path = NULL;
     char *path = NULL;
     char md5_str[MD5_STRING] = {};
@@ -288,29 +297,44 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
     Parameter *as = st->u.from_import_file.as != NULL ? st->u.from_import_file.as : st->u.from_import_file.pt;
 
     setResultCore(result);
-    importFileCore(&path, &split_path, &status, CALL_INTER_FUNCTIONSIG(st->u.from_import_file.file, var_list, result, belong));
+    gc_freeze(inter, var_list, NULL, true);
+    importFileCore(&path, &split_path, &status, CALL_INTER_FUNCTIONSIG(file, var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
     getFileMd5(path, md5_str);
-    if (!getPackage(&imp_value, md5_str, split_path, status, &path, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+    if (!getPackage(&imp_value, md5_str, split_path, status, &path, &is_new, is_lock, CALL_INTER_FUNCTIONSIG(file, var_list, result, belong)))
         goto return_;
     imp_var = imp_value->value->object.var;
+    if (is_new) {
+        LinkValue *string;
+        freeResult(result);
+        makeStringValue(split_path, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, imp_value));
+        string = result->value;
+        result->value = NULL;
+        freeResult(result);
+
+        newObjectSetting(string, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, imp_value));
+        gc_freeTmpLink(&string->gc_status);
+    }
 
     freeResult(result);
     if (pt != NULL) {
         importParameter(st->line, st->code_file, pt, as, var_list, belong, CALL_INTER_FUNCTIONSIG_NOT_ST(imp_var, result, imp_value));
-        if (!CHECK_RESULT(result))
+        if (!CHECK_RESULT(result)) {
+            printf("TAG A\n");
+            gc_freeTmpLink(&imp_value->gc_status);
             goto return_;
+        }
     }
     else
         updateHashTable(var_list->hashtable, imp_var->hashtable, inter);
-    gc_freeTmpLink(&imp_value->value->gc_status);
     setResult(result, inter, belong);
+    gc_freeTmpLink(&imp_value->gc_status);
 
     return_:
     memFree(path);
     memFree(split_path);
-    freeVarList(imp_var);  // 当需要存储var_list的时候则不需要释放
+    gc_freeze(inter, var_list, NULL, false);
     return result->type;
 }

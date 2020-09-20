@@ -299,20 +299,22 @@ Statement *makeIncludeStatement(Statement *file, fline line, char *file_dir){
     return tmp;
 }
 
-Statement *makeImportStatement(Statement *file, Statement *as) {
+Statement *makeImportStatement(Statement *file, Statement *as, bool is_lock) {
     Statement *tmp = makeStatement(file->line, file->code_file);
     tmp->type = import_file;
     tmp->u.import_file.file = file;
     tmp->u.import_file.as = as;
+    tmp->u.import_file.is_lock = is_lock;
     return tmp;
 }
 
-Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt) {
+Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt, bool is_lock) {
     Statement *tmp = makeStatement(file->line, file->code_file);
     tmp->type = from_import_file;
     tmp->u.from_import_file.file = file;
     tmp->u.from_import_file.as = as;
     tmp->u.from_import_file.pt = pt;
+    tmp->u.from_import_file.is_lock = is_lock;
     return tmp;
 }
 
@@ -634,11 +636,13 @@ Statement *copyStatementCore(Statement *st){
         case import_file:
             new->u.import_file.file = copyStatement(st->u.import_file.file);
             new->u.import_file.as = copyStatement(st->u.import_file.as);
+            new->u.import_file.is_lock = st->u.import_file.is_lock;
             break;
         case from_import_file:
             new->u.from_import_file.file = copyStatement(st->u.from_import_file.file);
             new->u.from_import_file.as = copyParameter(st->u.from_import_file.as);
             new->u.from_import_file.pt = copyParameter(st->u.from_import_file.pt);
+            new->u.from_import_file.is_lock = st->u.from_import_file.is_lock;
             break;
         case default_var:
             new->u.default_var.var = copyParameter(st->u.default_var.var);
