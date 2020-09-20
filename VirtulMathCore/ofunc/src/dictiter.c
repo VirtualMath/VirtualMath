@@ -56,9 +56,9 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         gc_freeTmpLink(&listiter_class->gc_status);
     }
     freeResult(result);
-    if (addAttributes("__list", false, list_iter, 0, "dictiter.init", ap[0].value, result, inter)) {
+    if (addAttributes("__list", false, list_iter, 0, "dictiter.init", ap[0].value, result, inter, var_list)) {
         freeResult(result);
-        addAttributes("__dict", false, ap[1].value, 0, "dictiter.init", ap[0].value, result, inter);
+        addAttributes("__dict", false, ap[1].value, 0, "dictiter.init", ap[0].value, result, inter, var_list);
     }
     gc_freeTmpLink(&list_iter->gc_status);
     setResult(result, inter, belong);
@@ -106,7 +106,7 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
     }
 
     freeResult(result);
-    elementDownOne(dict_, ap[1].value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    getElement(dict_, ap[1].value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 

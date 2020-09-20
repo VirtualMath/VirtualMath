@@ -276,7 +276,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     addFromVarList(str_name, result->value, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (setting) {
         freeResult(result);
-        newObjectSetting(value, name->line, name->code_file, value, result, inter);
+        newObjectSetting(value, name->line, name->code_file, value, result, inter, var_list);
         if (CHECK_RESULT(result))
             goto error_;
     }

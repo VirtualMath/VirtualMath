@@ -27,12 +27,12 @@ LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter);
 
-bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, LinkValue *belong,Result *result, Inter *inter);
-void newObjectSetting(LinkValue *name, fline line, char *file, LinkValue *belong,Result *result, Inter *inter);
-ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+void newObjectSetting(LinkValue *name, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+char *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool is_iterStop(LinkValue *value, Inter *inter);
 bool is_indexException(LinkValue *value, Inter *inter);
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST);

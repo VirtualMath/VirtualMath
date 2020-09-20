@@ -1,5 +1,6 @@
 #include "__run.h"
 
+
 ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     LinkValue *value;
 
@@ -181,7 +182,7 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
         case class_free_:
             if (function_value->belong->value->type == class)
                 tmp = makeValueArgument(function_value->belong);
-            else if (function_value->value->object.inherit->value != NULL)  // TODO-szh 检查 function_value->value->object.inherit ！= NULL
+            else if (function_value->value->object.inherit != NULL)
                 tmp = makeValueArgument(function_value->belong->value->object.inherit->value);
             else
                 break;
@@ -233,24 +234,31 @@ LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     return tmp;
 }
 
+void addStrVarCore(int setting, char *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, INTER_FUNCTIONSIG_NOT_ST) {
+    addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    out_var = out_var == NULL ? var_list : out_var;
+    if (setting)
+        newObjectSetting(name_, line, file, value, result, inter, out_var);
+    else
+        setResult(result, inter, belong);
+}
+
 void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     char *var_name = setStrVarName(name, free_old, inter);
+    LinkValue *name_;
     setResultCore(result);
 
     makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    addFromVarList(var_name, result->value, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (!CHECK_RESULT(result))
         goto return_;
-    else if (setting) {
-        LinkValue *name_value = result->value;
-        result->value = NULL;
-        freeResult(result);
-        newObjectSetting(name_value, line, file, value, result, inter);
-        gc_freeTmpLink(&name_value->gc_status);
-    }
 
-    if (CHECK_RESULT(result))
-        freeResult(result);
+    name_ = result->value;
+    result->value = NULL;
+    freeResult(result);
+
+    addStrVarCore(setting, var_name, name_, value, line, file, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+    gc_freeTmpLink(&name_->gc_status);
     return_: memFree(var_name);
 }
 
@@ -261,27 +269,51 @@ LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *in
     return attr;
 }
 
-bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, LinkValue *belong, Result *result, Inter *inter) {
+bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    char *var_name = setStrVarName(name, free_old, inter);
+    LinkValue *name_;
     setResultCore(result);
-    addStrVar(name, free_old, false, value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong));
+
+    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        goto return_;
+
+    name_ = result->value;
+    result->value = NULL;
+    freeResult(result);
+
+    gc_freeze(inter, var_list, belong->value->object.var, true);
+    addStrVarCore(false, var_name, name_, value, line, file, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong));
+    gc_freeze(inter, var_list, belong->value->object.var, false);
+
+    gc_freeTmpLink(&name_->gc_status);
+    return_:
+    memFree(var_name);
     return CHECK_RESULT(result);
 }
 
-void newObjectSetting(LinkValue *name, fline line, char *file, LinkValue *belong, Result *result, Inter *inter) {
-    addAttributes(inter->data.object_name, false, name, line, file, belong, result, inter);
-    addAttributes(inter->data.object_self, false, belong, line, file, belong, result, inter);
-    if (belong->value->object.inherit != NULL)
-        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, line, file, belong, result, inter);
+void newObjectSetting(LinkValue *name, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    setResultCore(result);
+    addAttributes(inter->data.object_name, false, name, line, file, belong, result, inter, var_list);
+    if (CHECK_RESULT(result))
+        return;
+    freeResult(result);
+    addAttributes(inter->data.object_self, false, belong, line, file, belong, result, inter, var_list);
+    if (CHECK_RESULT(result) && belong->value->object.inherit != NULL) {
+        freeResult(result);
+        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, line, file, belong,
+                      result, inter, var_list);
+    }
 }
 
 
-ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_func_ = NULL;
     setResultCore(result);
-    gc_addTmpLink(&element->gc_status);
+    gc_addTmpLink(&from->gc_status);
     gc_addTmpLink(&index->gc_status);
 
-    _func_ = findAttributes(inter->data.object_down, false, element, inter);
+    _func_ = findAttributes(inter->data.object_down, false, from, inter);
     if (_func_ != NULL){
         Argument *arg = NULL;
         gc_addTmpLink(&_func_->gc_status);
@@ -293,7 +325,7 @@ ResultType elementDownOne(LinkValue *element, LinkValue *index, fline line, char
     else
         setResultError(E_TypeException, OBJ_NOTSUPPORT(subscript(__down__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
-    gc_freeTmpLink(&element->gc_status);
+    gc_freeTmpLink(&from->gc_status);
     gc_freeTmpLink(&index->gc_status);
     return result->type;
 }
@@ -334,8 +366,8 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
     return false;
 }
 
-char *getRepoStr(LinkValue *value, bool is_repot, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    LinkValue *_repo_ = findAttributes(is_repot ? inter->data.object_repo : inter->data.object_str, false, value, inter);
+char *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+    LinkValue *_repo_ = findAttributes(is_repo ? inter->data.object_repo : inter->data.object_str, false, value, inter);
     setResultCore(result);
     if (_repo_ != NULL){
         gc_addTmpLink(&value->gc_status);
@@ -421,7 +453,7 @@ bool setBoolAttrible(bool value, char *var, fline line, char *file, LinkValue *o
         return false;
     bool_value = result->value;
     freeResult(result);
-    if (!addAttributes(var, false, bool_value, line, file, obj, result, inter))
+    if (!addAttributes(var, false, bool_value, line, file, obj, result, inter, var_list))
         return false;
     freeResult(result);
     return true;

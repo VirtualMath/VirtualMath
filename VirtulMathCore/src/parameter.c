@@ -238,7 +238,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
         result->value = NULL;
         freeResult(result);
 
-        elementDownOne(iter, name_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getElement(iter, name_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result)) {
             gc_freeTmpLink(&name_->gc_status);
             freeArgument(at, true);

@@ -16,7 +16,8 @@ ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", ap[0].value, result, inter))
+    if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", ap[0].value, result,
+                      inter, var_list))
         setResult(result, inter, belong);
     return result->type;
 }

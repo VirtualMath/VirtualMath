@@ -170,7 +170,7 @@ void addBaseClassVar(char *name, LinkValue *obj, LinkValue *belong, Inter *inter
 void newObjectSettingPresetting(LinkValue *func, LinkValue *name, Inter *inter) {
     Result result;
     setResultCore(&result);
-    newObjectSetting(name, 0, "sys", func, &result, inter);
+    newObjectSetting(name, 0, "sys", func, &result, inter, NULL);
     if (RUN_TYPE(result.type))
         printError(&result, inter, true);
     freeResult(&result);

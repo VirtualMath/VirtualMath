@@ -20,9 +20,9 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
 
     freeResult(result);
-    if (addAttributes("__list", false, ap[1].value, 0, "listiter.init", ap[0].value, result, inter)) {
+    if (addAttributes("__list", false, ap[1].value, 0, "listiter.init", ap[0].value, result, inter, var_list)) {
         freeResult(result);
-        addAttributes("__index", false, index, 0, "listiter.init", ap[0].value, result, inter);
+        addAttributes("__index", false, index, 0, "listiter.init", ap[0].value, result, inter, var_list);
     }
 
     setResult(result, inter, belong);
@@ -52,7 +52,7 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
 
 
     freeResult(result);
-    elementDownOne(list_, index, 0, "listiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    getElement(list_, index, 0, "listiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         if (is_indexException(result->value, inter))
             setResultError(E_StopIterException, "Stop Iter", 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -62,7 +62,7 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
         Result tmp_result;
         setResultCore(&tmp_result);
         index->value->data.num.num ++;
-        if (addAttributes("__index", false, index, 0, "listiter.next", ap[0].value, &tmp_result, inter))
+        if (addAttributes("__index", false, index, 0, "listiter.next", ap[0].value, &tmp_result, inter, var_list))
             freeResult(&tmp_result);
         else {
             freeResult(result);
