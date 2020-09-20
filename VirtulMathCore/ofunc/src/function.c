@@ -41,18 +41,29 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
-
-// TODO-szh 函数执行的时候，function的st为NULL的时候, 直接返回null
 ResultType function_init(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
+    LinkValue *func;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    // TODO-szh 添加操作行为
+    if ((func = ap[0].value)->value->type != function) {
+        setResultError(E_TypeException, INSTANCE_ERROR(function), 0, "function", true,
+                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return error_return;
+    }
+
+    if (ap[1].value != NULL) {
+        Statement *return_ = makeBaseLinkValueStatement(ap[1].value, 0, "sys");
+        func->value->data.function.function = makeReturnStatement(return_, 0, "sys");
+        func->value->data.function.function_data.pt_type = free_;
+        func->value->data.function.type = vm_function;
+    }
+
     setResult(result, inter, belong);
     return result->type;
 }
