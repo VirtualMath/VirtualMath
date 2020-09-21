@@ -342,14 +342,21 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
         get = true;
 
         if (function->type == kwargs_par){
-            value = makeLinkValue(makeDictValue(NULL, false, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, NULL, belong)), belong, inter);
+            makeDictValue(NULL, false, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            if (!CHECK_RESULT(result))
+                return result->type;
+
+            value = result->value;
+            result->value = NULL;
+            freeResult(result);
+
             value->value->data.dict.dict = var_list->hashtable;
             value->value->data.dict.size = max - *num;
             *status = true;
+            gc_freeTmpLink(&value->gc_status);
             goto not_return;
         }
 
-        freeResult(result);
         getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
         if (!CHECK_RESULT(result)) {
             memFree(str_name);
@@ -381,8 +388,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
             *function_ad = function;
             return result->type;
         }
-        else
-            freeResult(result);
+        freeResult(result);
 
         if (get)
             (*num)++;
