@@ -134,7 +134,7 @@ void updateFunctionYield(Statement *function_st, Statement *node){
     function_st->info.have_info = true;
 }
 
-ResultType setFunctionArgument(Argument **arg, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
+ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
     LinkValue *self;
     LinkValue *func;
@@ -145,16 +145,14 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *_func, fline line, cha
         case 0:
             func = _func;
             self = _func->belong;
+            *base = *arg;
             break;
         case 1: {
-            Argument *backup;
             func = _func;
             if (*arg != NULL) {
                 self = (*arg)->data.value;
-                backup = (*arg)->next;
-                (*arg)->next = NULL;
-                freeArgument(*arg, true);
-                *arg = backup;
+                *arg = (*arg)->next;
+                *base = *arg;
             } else {
                 error_:
                 setResultError(E_ArgumentException, FEW_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -163,17 +161,12 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *_func, fline line, cha
             break;
         }
         case 2: {
-            Argument *backup;
-            printf("TAG A\n");
             if (*arg != NULL && (*arg)->next != NULL) {
-                func = (*arg)->data.value;
-                self = (*arg)->next->data.value;
+                self = (*arg)->data.value;
+                func = (*arg)->next->data.value;
 
-                backup = (*arg)->next->next;
-                (*arg)->next->next = NULL;
-                freeArgument(*arg, true);
-                *arg = backup;
-                printf("TAG B\n");
+                *arg = (*arg)->next->next;
+                *base = *arg;
             } else
                 goto error_;
             break;

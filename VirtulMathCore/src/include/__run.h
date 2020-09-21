@@ -20,7 +20,7 @@ void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl
 void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
                        Inter *inter, LinkValue *iter);
 
-ResultType setFunctionArgument(struct Argument **arg, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setFunctionArgument(struct Argument **arg, struct Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST);
 void freeFunctionArgument(Argument *arg, Argument *base);
 LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE);

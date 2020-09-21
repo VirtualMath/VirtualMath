@@ -207,11 +207,11 @@ static ResultType callObject(LinkValue *object_value, Argument *arg, fline line,
 static ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
-    Argument *bak = arg;
+    Argument *bak;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
 
-    setFunctionArgument(&arg, function_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setFunctionArgument(&arg, &bak, function_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -237,7 +237,7 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
 static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *var_func = NULL;
     Statement *st_func = NULL;
-    Argument *bak = arg;
+    Argument *bak;
     Parameter *pt_func = function_value->value->data.function.pt;
     bool yield_run = false;
     setResultCore(result);
@@ -254,7 +254,7 @@ static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long 
 
     gc_freeze(inter, var_list, var_func, true);
 
-    setFunctionArgument(&arg, function_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setFunctionArgument(&arg, &bak, function_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
