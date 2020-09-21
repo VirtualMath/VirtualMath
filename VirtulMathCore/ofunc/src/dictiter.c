@@ -27,7 +27,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
 
         gc_addTmpLink(&keys->gc_status);
         freeResult(result);
-        callBackCore(keys, NULL, 0, "dictiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(keys, NULL, 0, "dictiter", 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&keys->gc_status);
         if (!CHECK_RESULT(result)) {
             return error_return;
@@ -40,7 +40,8 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
 
         list_arg = makeValueArgument(list);
         freeResult(result);
-        callBackCore(listiter_class, list_arg, 0, "dictiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(listiter_class, list_arg, 0, "dictiter", 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(list_arg, true);
 
         if (!CHECK_RESULT(result)) {
@@ -86,7 +87,7 @@ ResultType dictiter_next(OFFICAL_FUNCTIONSIG){
         return error_return;
     }
 
-    callBackCore(list_next, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    callBackCore(list_next, NULL, 0, "sys", 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 

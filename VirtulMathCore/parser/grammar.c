@@ -1243,7 +1243,7 @@ bool tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
 
     if (checkToken(pm, MATHER_RP))
         goto not_pt;
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, -1)) {
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, MATHER_SEMICOLON)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get call parameter");
         return false;
     }

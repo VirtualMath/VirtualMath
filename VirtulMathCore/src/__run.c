@@ -134,27 +134,72 @@ void updateFunctionYield(Statement *function_st, Statement *node){
     function_st->info.have_info = true;
 }
 
-ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+ResultType setFunctionArgument(Argument **arg, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
-    enum FunctionPtType pt_type = function_value->value->data.function.function_data.pt_type;
+    LinkValue *self;
+    LinkValue *func;
+    enum FunctionPtType pt_type = _func->value->data.function.function_data.pt_type;
     setResultCore(result);
-    if (function_value->belong == NULL){
+
+    switch (pt_sep) {
+        case 0:
+            func = _func;
+            self = _func->belong;
+            break;
+        case 1: {
+            Argument *backup;
+            func = _func;
+            if (*arg != NULL) {
+                self = (*arg)->data.value;
+                backup = (*arg)->next;
+                (*arg)->next = NULL;
+                freeArgument(*arg, true);
+                *arg = backup;
+            } else {
+                error_:
+                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                return error_return;
+            }
+            break;
+        }
+        case 2: {
+            Argument *backup;
+            printf("TAG A\n");
+            if (*arg != NULL && (*arg)->next != NULL) {
+                func = (*arg)->data.value;
+                self = (*arg)->next->data.value;
+
+                backup = (*arg)->next->next;
+                (*arg)->next->next = NULL;
+                freeArgument(*arg, true);
+                *arg = backup;
+                printf("TAG B\n");
+            } else
+                goto error_;
+            break;
+        }
+        default:
+            setResultError(E_ArgumentException, MANY_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            return error_return;
+    }
+
+    if (pt_type != free_ && self == NULL) {
         setResultError(E_ArgumentException, "Function does not belong to anything(not self)", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
 
     switch (pt_type) {
         case static_:
-            tmp = makeValueArgument(function_value);
+            tmp = makeValueArgument(func);
             tmp->next = *arg;
             *arg = tmp;
             break;
         case class_static_:
-            tmp = makeValueArgument(function_value);
-            if (function_value->belong->value->type == class)
-                tmp->next = makeValueArgument(function_value->belong);
-            else if (function_value->value->object.inherit->value != NULL)
-                tmp->next = makeValueArgument(function_value->belong->value->object.inherit->value);
+            tmp = makeValueArgument(func);
+            if (self->value->type == class)
+                tmp->next = makeValueArgument(self);
+            else if (self->value->object.inherit != NULL)  // TODO-szh 使用循环检查
+                tmp->next = makeValueArgument(self->value->object.inherit->value);
             else {
                 tmp->next = *arg;
                 *arg = tmp;
@@ -164,40 +209,40 @@ ResultType setFunctionArgument(Argument **arg, LinkValue *function_value, fline 
             *arg = tmp;
             break;
         case all_static_:
-            tmp = makeValueArgument(function_value);
-            tmp->next = makeValueArgument(function_value->belong);
+            tmp = makeValueArgument(func);
+            tmp->next = makeValueArgument(self);
             tmp->next->next = *arg;
             *arg = tmp;
             break;
         case object_static_:
-            tmp = makeValueArgument(function_value);
-            if (function_value->belong->value->type == class)
+            tmp = makeValueArgument(func);
+            if (self->value->type == class)
                 tmp->next = *arg;
             else {
-                tmp->next = makeValueArgument(function_value->belong);
+                tmp->next = makeValueArgument(self);
                 tmp->next->next = *arg;
             }
             *arg = tmp;
             break;
         case class_free_:
-            if (function_value->belong->value->type == class)
-                tmp = makeValueArgument(function_value->belong);
-            else if (function_value->value->object.inherit != NULL)
-                tmp = makeValueArgument(function_value->belong->value->object.inherit->value);
+            if (self->value->type == class)
+                tmp = makeValueArgument(self);
+            else if (self->value->object.inherit != NULL)
+                tmp = makeValueArgument(self->value->object.inherit->value);
             else
                 break;
             tmp->next = *arg;
             *arg = tmp;
             break;
         case object_free_:
-            if (function_value->belong->value->type != class) {
-                tmp = makeValueArgument(function_value->belong);
+            if (self->value->type != class) {
+                tmp = makeValueArgument(self);
                 tmp->next = *arg;
                 *arg = tmp;
             }
             break;
         case all_free_:
-            tmp = makeValueArgument(function_value->belong);
+            tmp = makeValueArgument(self);
             tmp->next = *arg;
             *arg = tmp;
             break;
@@ -318,7 +363,7 @@ ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file,
         Argument *arg = NULL;
         gc_addTmpLink(&_func_->gc_status);
         arg = makeValueArgument(index);
-        callBackCore(_func_,arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
         freeArgument(arg, true);
     }
@@ -340,7 +385,7 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
 
     if (_func_ != NULL){
         gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
@@ -353,7 +398,7 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
     LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, value, inter);
     if (_bool_ != NULL){
         gc_addTmpLink(&_bool_->gc_status);
-        callBackCore(_bool_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_bool_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_bool_->gc_status);
         if (result->value->value->type != bool_)
             setResultError(E_TypeException, RETURN_ERROR(__bool__, bool), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -372,7 +417,7 @@ char *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTER_F
     if (_repo_ != NULL){
         gc_addTmpLink(&value->gc_status);
         gc_addTmpLink(&_repo_->gc_status);
-        callBackCore(_repo_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_repo_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_repo_->gc_status);
         gc_freeTmpLink(&value->gc_status);
         if (!CHECK_RESULT(result))
@@ -440,7 +485,7 @@ int init_new(LinkValue *obj, Argument *arg, char *message, INTER_FUNCTIONSIG_NOT
     }
     _init_->belong = obj;
     gc_addTmpLink(&_init_->gc_status);
-    callBackCore(_init_, arg, 0, message, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
+    callBackCore(_init_, arg, 0, message, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
     gc_freeTmpLink(&_init_->gc_status);
     return CHECK_RESULT(result) ? 1 : -1;
 }

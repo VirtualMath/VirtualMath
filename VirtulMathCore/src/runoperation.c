@@ -214,7 +214,8 @@ ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
         if (!CHECK_RESULT(result))
             goto dderror_;
         freeResult(result);
-        callBackCore(_func_, arg, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, name->line, name->code_file, 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
         dderror_:
         gc_freeTmpLink(&_func_->gc_status);
@@ -359,7 +360,8 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
             goto daerror_;
 
         freeResult(result);
-        callBackCore(_func_, arg, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, name->line, name->code_file, 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
         daerror_:
         freeArgument(arg, true);
@@ -552,7 +554,8 @@ ResultType operationCore(INTER_FUNCTIONSIG, char *name) {
     if (_func_ != NULL){
         Argument *arg = makeValueArgument(right.value);
         gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, arg, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, st->line, st->code_file, 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
         freeArgument(arg, true);
     }

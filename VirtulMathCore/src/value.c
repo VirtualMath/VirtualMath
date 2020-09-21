@@ -43,7 +43,7 @@ Value *useNoneValue(Inter *inter, Result *result) {
 Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.bool_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    callBackCore(inter->data.bool_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -54,7 +54,7 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NO
 Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){  // TODO-szh 让切片支持该语法
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.pass_, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    callBackCore(inter->data.pass_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -64,7 +64,7 @@ Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){  // TODO
 Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.num, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    callBackCore(inter->data.num, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -75,7 +75,7 @@ Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
 Value *makeStringValue(char *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.str, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    callBackCore(inter->data.str, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -86,7 +86,8 @@ Value *makeStringValue(char *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_
 
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 设置无var_list的函数 (允许使用装饰器装饰，该功能未测试)
     Value *tmp = NULL;
-    callBackCore(inter->data.function, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    callBackCore(inter->data.function, NULL, st->line, st->code_file, 0,
+                 CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -103,7 +104,8 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, INTER_FUNCTIONSIG_NOT_S
 
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
-    callBackCore(inter->data.function, NULL, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    callBackCore(inter->data.function, NULL, line, file, 0,
+                 CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -160,9 +162,11 @@ Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, 
     Value *tmp = NULL;
     setResultCore(result);
     if (type == value_list)
-        callBackCore(inter->data.list, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+        callBackCore(inter->data.list, arg, line, file, 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
-        callBackCore(inter->data.tuple, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+        callBackCore(inter->data.tuple, arg, line, file, 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -172,7 +176,7 @@ Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, 
 Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.dict, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result ,belong));
+    callBackCore(inter->data.dict, arg, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -354,7 +358,7 @@ void callException(LinkValue *exc, char *message, fline line, char *file, INTER_
         freeResult(result);
 
         gc_addTmpLink(&_new_->gc_status);
-        callBackCore(_new_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_new_, arg, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_new_->gc_status);
         freeArgument(arg, true);
         type = getErrorInfo(result->value, 1, inter);
@@ -582,7 +586,8 @@ bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_lis
         gc_addTmpLink(&_del_->gc_status);
         if (_del_->belong == NULL || _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value))
             _del_->belong = makeLinkValue(object_value, inter->base_belong, inter);
-        callBackCore(_del_, NULL, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, inter->base_belong));
+        callBackCore(_del_, NULL, 0, "sys", 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, inter->base_belong));
         gc_freeTmpLink(&_del_->gc_status);
         return true;
     } else

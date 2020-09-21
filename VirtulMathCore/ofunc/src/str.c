@@ -173,7 +173,7 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
         return error_return;
     }
     gc_addTmpLink(&to_list->gc_status);
-    callBackCore(to_list, NULL, 0, "str", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    callBackCore(to_list, NULL, 0, "str", 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     gc_freeTmpLink(&to_list->gc_status);
     if (CHECK_RESULT(result)) {
         LinkValue *str_list = NULL;

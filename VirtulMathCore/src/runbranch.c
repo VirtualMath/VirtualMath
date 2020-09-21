@@ -577,7 +577,8 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
 
             gc_addTmpLink(&_enter_->gc_status);
             gc_addTmpLink(&_exit_->gc_status);
-            callBackCore(_enter_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+            callBackCore(_enter_, NULL, st->line, st->code_file, 0,
+                         CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
             if (!CHECK_RESULT(result)) {
                 set_result = false;
                 gc_freeTmpLink(&value->gc_status);
@@ -627,7 +628,8 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
         freeResult(&else_tmp);
 
     if (_exit_ != NULL) {
-        callBackCore(_exit_, NULL, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
+        callBackCore(_exit_, NULL, st->line, st->code_file, 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
         if (!RUN_TYPE(exit_tmp.type)) {
             if (!set_result)
                 freeResult(result);

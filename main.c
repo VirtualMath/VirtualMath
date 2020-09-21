@@ -21,3 +21,21 @@ int main(int argc, char *argv[]) {
     freeInter(inter, true);
     return 0;
 }
+
+/**
+class A{
+	def __init__(self, n) {
+		self.num = n
+	}
+
+	def printNum(self) {
+		print(self.num)
+	}
+}
+
+a = A(5)
+b = A(10)
+# a.printNum(20, b;)
+a.printNum(b, 20;)  // 运行到此处会内存错误
+
+ */

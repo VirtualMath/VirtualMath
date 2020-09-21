@@ -32,12 +32,8 @@ ResultType setLambda(INTER_FUNCTIONSIG);
 ResultType callBack(INTER_FUNCTIONSIG);
 ResultType elementSlice(INTER_FUNCTIONSIG);
 
-ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST);
 ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 
 ResultType setDecoration(DecorationStatement *ds, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info);

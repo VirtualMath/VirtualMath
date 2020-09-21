@@ -342,7 +342,8 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
     }
     {
         Argument *list_iter_arg = makeValueArgument(ap[0].value);
-        callBackCore(inter->data.list_iter, list_iter_arg, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(inter->data.list_iter, list_iter_arg, 0, "list", 0,
+                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(list_iter_arg, true);
     }
     return result->type;

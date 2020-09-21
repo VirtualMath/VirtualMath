@@ -12,11 +12,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
 
     class_inherit = setFather(call);
     freeArgument(call, false);
-//    freeResult(result);
-//
-//    makeClassValue(class_inherit, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-//    tmp = result->value;
-//    result->value = NULL;
+
     tmp = makeLinkValue(makeClassValue(var_list, inter, class_inherit), belong, inter);
     gc_addTmpLink(&tmp->gc_status);
     freeResult(result);
@@ -154,15 +150,23 @@ ResultType callBack(INTER_FUNCTIONSIG) {
 
 ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Argument *arg = NULL;
+    int pt_sep =1;
+    bool sep = false;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
 
     arg = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
+    for (Parameter *tmp = pt; tmp != NULL; tmp = tmp->next, pt_sep++) {
+        if (tmp->data.is_sep) {
+            sep = true;
+            break;
+        }
+    }
 
     freeResult(result);
-    callBackCore(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    callBackCore(function_value, arg, line, file, sep ? pt_sep : 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:
     gc_freeTmpLink(&function_value->gc_status);
@@ -170,29 +174,12 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
     return result->type;
 }
 
-ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    setResultCore(result);
-    gc_addTmpLink(&function_value->gc_status);
-    if (function_value->value->type == function && function_value->value->data.function.type == vm_function)
-        callVMFunction(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (function_value->value->type == function && function_value->value->data.function.type == c_function)
-        callCFunction(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (function_value->value->type == class)
-        callClass(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else
-        callObject(function_value, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    setResultError(E_BaseException, NULL, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-
-    gc_freeTmpLink(&function_value->gc_status);
-    return result->type;
-}
-
-ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_new_ = findAttributes(inter->data.object_new, false, class_value, inter);
     setResultCore(result);
     if (_new_ != NULL){
         gc_addTmpLink(&_new_->gc_status);
-        callBackCore(_new_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_new_, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_new_->gc_status);
     }
     else
@@ -202,13 +189,13 @@ ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *fi
     return result->type;
 }
 
-ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_call_ = findAttributes(inter->data.object_call, false, object_value, inter);
     setResultCore(result);
 
     if (_call_ != NULL){
         gc_addTmpLink(&_call_->gc_status);
-        callBackCore(_call_, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_call_, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_call_->gc_status);
     }
     else
@@ -217,14 +204,14 @@ ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *
     return result->type;
 }
 
-ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+static ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
     Argument *bak = arg;
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
 
-    setFunctionArgument(&arg, function_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setFunctionArgument(&arg, function_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -247,7 +234,7 @@ ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line
     return result->type;
 }
 
-ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
     VarList *var_func = NULL;
     Statement *st_func = NULL;
     Argument *bak = arg;
@@ -267,10 +254,9 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
 
     gc_freeze(inter, var_list, var_func, true);
 
-    setFunctionArgument(&arg, function_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setFunctionArgument(&arg, function_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
-
     freeResult(result);
     gc_addTmpLink(&var_func->hashtable->gc_status);
     setParameterCore(line, file, arg, pt_func, var_func, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, function_value->belong));
@@ -290,7 +276,7 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st_func, var_func, result, function_value->belong));
     gc_freeze(inter, var_list, var_func, false);
 
-    st_func = function_value->value->data.function.function;
+    st_func = function_value->value->data.function.function;  // TODO-szh 提取函数
     if (yield_run)
         if (result->type == yield_return){
             updateFunctionYield(st_func, result->node);
@@ -306,6 +292,23 @@ ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int lin
         else
             popVarList(var_func);
     return_:
+    gc_freeTmpLink(&function_value->gc_status);
+    return result->type;
+}
+
+ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
+    setResultCore(result);
+    gc_addTmpLink(&function_value->gc_status);
+    if (function_value->value->type == function && function_value->value->data.function.type == vm_function)
+        callVMFunction(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else if (function_value->value->type == function && function_value->value->data.function.type == c_function)
+        callCFunction(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else if (function_value->value->type == class)
+        callClass(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else
+        callObject(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setResultError(E_BaseException, NULL, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }
