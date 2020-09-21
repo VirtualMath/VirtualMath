@@ -414,12 +414,14 @@ void parserImport(PASERSSIGNATURE) {
         }
         if (checkToken(pm, MATHER_MUL))  // 导入所有
             goto mul_;
-        if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT) || pt == NULL) {
+        if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT,
+                             -1) || pt == NULL) {
             syntaxError(pm, syntax_error, line, 1, "Don't get any value to import");
             freeStatement(opt);
             goto return_;
         }
-        if (checkToken(pm, MATHER_AS) && (!parserParameter(CALLPASERSSIGNATURE, &as, false, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT) || as == NULL)) {
+        if (checkToken(pm, MATHER_AS) && (!parserParameter(CALLPASERSSIGNATURE, &as, false, true, false, false,
+                                                           MATHER_COMMA, MATHER_ASSIGNMENT, -1) || as == NULL)) {
             freeParameter(pt, true);
             syntaxError(pm, syntax_error, opt->line, 1, "Don't get any value after import");
             freeStatement(opt);
@@ -457,7 +459,7 @@ void parserVarControl(PASERSSIGNATURE) {
     Token *tmp = NULL;
     int token_type = readBackToken(pm);
     long int line = delToken(pm);
-    if (!parserParameter(CALLPASERSSIGNATURE, &var, false, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT) || var == NULL) {
+    if (!parserParameter(CALLPASERSSIGNATURE, &var, false, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT, -1) || var == NULL) {
         syntaxError(pm, syntax_error, line, 1, "Don't get any var");
         goto return_;
     }
@@ -1028,7 +1030,7 @@ void parserDef(PASERSSIGNATURE){
 
     if (!checkToken(pm, MATHER_LP))
         goto get_code;
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, type==MATHER_DEF ? MATHER_SEMICOLON : -1)) {
         lexEnter(pm, false);
         syntaxError(pm, syntax_error, line, 1, "Don't get a function/class parameter");
         goto error_;
@@ -1168,7 +1170,7 @@ void parserTuple(PASERSSIGNATURE){
     addToken_(pm ,tmp);
 
     parserPt:
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, false, MATHER_COMMA, MATHER_ASSIGNMENT, -1)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get tuple element");
         goto return_;
     }
@@ -1241,7 +1243,7 @@ bool tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
 
     if (checkToken(pm, MATHER_RP))
         goto not_pt;
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT)) {
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, -1)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get call parameter");
         return false;
     }
@@ -1271,7 +1273,8 @@ bool tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
     line = tmp->line;
     addToken_(pm ,tmp);
 
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, true, true, (type == SliceType_down_ ? MATHER_COMMA : MATHER_COLON), MATHER_ASSIGNMENT)) {
+    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, true, true,
+                         (type == SliceType_down_ ? MATHER_COMMA : MATHER_COLON), MATHER_ASSIGNMENT, -1)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get slice element");
         return false;
     }
@@ -1408,7 +1411,7 @@ void parserBaseValue(PASERSSIGNATURE){
             Parameter *pt = NULL;
             Statement *lambda_st = NULL;
             if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, true, false, false, MATHER_COMMA,
-                                 MATHER_ASSIGNMENT)) {
+                                 MATHER_ASSIGNMENT, -1)) {
                 freeToken(value_token, true);
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a lambda parameter");
                 goto return_;
@@ -1490,7 +1493,7 @@ void parserBaseValue(PASERSSIGNATURE){
             Parameter *pt = NULL;
             int parser_status;
             parser_status = parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, true, MATHER_COMMA,
-                                            MATHER_COLON);
+                                            MATHER_COLON, -1);
             if (!parser_status) {
                 freeToken(value_token, true);
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");

@@ -241,11 +241,12 @@ bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Stat
  * @param ass 设定赋值符号
  * @return
  */
-bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict, int sep,
-                     int ass) {
+bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict,
+                int sep, int ass, int n_sep) {
     Parameter *new_pt = NULL;
     Token *tmp;
     bool last_pt = false;
+    int is_sep = 0;  // 0: 不需要处理 1: 是is_sep 2: 处理过is_sep
     enum {
         s_1,  // only_value模式
         s_2,  // name_value模式
@@ -262,10 +263,13 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
 
     while (!last_pt){
         tmp = NULL;
+        if (is_sep == 1)
+            is_sep = 2;
         if (!is_dict && status != s_2 && checkToken(pm, MATHER_MUL))  // is_formal关闭对*args的支持
             status = s_3;
         else if (!is_list && checkToken(pm, MATHER_POW))  // is_formal关闭对*args的支持
             status = s_4;
+
         parserPolynomial(CALLPASERSSIGNATURE);
         if (!call_success(pm))
             goto error_;
@@ -281,7 +285,9 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
         int pt_type = value_par;
         if (status == s_1){
             if (!checkToken(pm, sep)){
-                if (is_list || !checkToken(pm, ass))  // // is_list关闭对name_value的支持
+                if (is_sep == 0 && n_sep != -1 && checkToken(pm, n_sep))
+                    is_sep = 1;
+                else if (is_list || !checkToken(pm, ass))  // // is_list关闭对name_value的支持
                     last_pt = true;
                 else {
                     pt_type = name_par;
@@ -306,7 +312,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
         }
 
         if (pt_type == value_par)
-            new_pt = connectValueParameter(tmp->data.st, new_pt);
+            new_pt = connectValueParameter(tmp->data.st, new_pt, is_sep == 1);
         else if (pt_type == name_par){
             Statement *tmp_value;
             if (!callChildStatement(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
@@ -316,7 +322,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
                 last_pt = true;
         }
         else if (pt_type == args_par){
-            new_pt = connectArgsParameter(tmp->data.st, new_pt);
+            new_pt = connectArgsParameter(tmp->data.st, new_pt, is_sep == 1);
             if (is_formal)
                 status = s_2;  // 是否规定*args只出现一次
             else

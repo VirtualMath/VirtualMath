@@ -92,6 +92,7 @@ Parameter *makeParameter(void){
     tmp->type = value_par;
     tmp->data.value = NULL;
     tmp->data.name = NULL;
+    tmp->data.is_sep = false;
     tmp->next = NULL;
     return tmp;
 }
@@ -100,6 +101,7 @@ Parameter *copyenOneParameter(Parameter *base){
     Parameter *tmp = makeParameter();
     tmp->data.value = copyStatement(base->data.value);
     tmp->data.name = copyStatement(base->data.name);
+    tmp->data.is_sep = base->data.is_sep;
     tmp->type = base->type;
     return tmp;
 }
@@ -150,8 +152,9 @@ Parameter *connectParameter(Parameter *new, Parameter *base){
     return tmp;
 }
 
-Parameter *connectValueParameter(Statement *st, Parameter *base){
+Parameter *connectValueParameter(Statement *st, Parameter *base, bool is_sep) {
     Parameter *new = makeValueParameter(st);
+    new->data.is_sep = is_sep;
     return connectParameter(new, base);
 }
 
@@ -160,8 +163,9 @@ Parameter *connectNameParameter(Statement *value, Statement *name, Parameter *ba
     return connectParameter(new, base);
 }
 
-Parameter *connectArgsParameter(Statement *st, Parameter *base){
+Parameter *connectArgsParameter(Statement *st, Parameter *base, bool is_sep) {
     Parameter *new = makeArgsParameter(st);
+    new->data.is_sep = is_sep;
     return connectParameter(new, base);
 }
 
@@ -502,6 +506,14 @@ Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) 
     return new_arg;
 }
 
+bool checkIsSep(Parameter *pt) {
+    for (PASS; pt != NULL; pt = pt->next) {
+        if (pt->data.is_sep == true)
+            return true;
+    }
+    return false;
+}
+
 /**
  * 参数表:
  |实参 \ 形参| name | value | arg | kwarg | null |
@@ -531,8 +543,9 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
         error_to_less = -1,
         error_to_more = -2,
         error_kw = -3,
+        error_unknown = -4,
         finished = 0,
-    } status = match_status;
+    } status;
     function = copyParameter(function_base);
     tmp_function = function;
     setResultCore(result);
@@ -556,8 +569,13 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
             status = mul_par;
         else if (call->type == value_arg)
             status = match_status;
-        else if (call->type == name_arg)
-            status = self_ass;
+        else if (call->type == name_arg) {
+            if (checkIsSep(function))
+                status = error_to_less;
+            else
+                status = self_ass;
+        } else
+            status = error_unknown;
 
         freeResult(result);
         switch (status) {
@@ -641,6 +659,9 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 goto return_;
             case error_kw:
                 setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                goto return_;
+            case error_unknown:
+                setResultError(E_ArgumentException, "Argument Unknown Exception", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             default:
                 goto break_;

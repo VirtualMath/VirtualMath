@@ -2,6 +2,7 @@
 #define VIRTUALMATH_PARAMETER_H
 
 #include "__macro.h"
+#include "inter.h"
 
 struct Parameter{
     enum ParameterType{
@@ -13,6 +14,7 @@ struct Parameter{
     struct ParameterData{
         struct Statement *value;
         struct Statement *name;  // 仅在name-value模式生效
+        bool is_sep;  // 是否为分割符
     } data;
     struct Parameter *next;
 };
@@ -70,9 +72,9 @@ Parameter *makeNameParameter(struct Statement *value, struct Statement *name);
 Parameter *makeArgsParameter(struct Statement *st);
 Parameter *makeKwrgsParameter(struct Statement *st);
 Parameter *connectParameter(Parameter *new, Parameter *base);
-Parameter *connectValueParameter(struct Statement *st, Parameter *base);
+Parameter *connectValueParameter(Statement *st, Parameter *base, bool is_sep);
 Parameter *connectNameParameter(struct Statement *value, struct Statement *name, Parameter *base);
-Parameter *connectArgsParameter(struct Statement *st, Parameter *base);
+Parameter *connectArgsParameter(Statement *st, Parameter *base, bool is_sep);
 Parameter *connectKwargsParameter(struct Statement *st, Parameter *base);
 void freeParameter(Parameter *pt, bool free_st);
 Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);

@@ -53,8 +53,9 @@ bool callParserAs(PASERSSIGNATURE, Statement **st,char *message);
 bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message);
 bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **tmp, char *message,
                     int error_type);
+
 bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict,
-                     int sep,int ass);
+                int sep, int ass, int n_sep);
 
 void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                   int call_type, int self_type, char *call_name, char *self_name, bool is_right);
