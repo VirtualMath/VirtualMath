@@ -59,7 +59,6 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
 
 void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                   int call_type, int self_type, char *call_name, char *self_name, bool is_right);
-void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type, int self_type);
 
 void lexEnter(ParserMessage *pm, bool lock);
 

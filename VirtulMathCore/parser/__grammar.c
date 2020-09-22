@@ -58,50 +58,6 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
 }
 
 /**
- * 尾巴一元匹配器
- * tailOperation:
- * | callBack
- * | tailOperation tailFunction
- * @param callBack 符号左、右值匹配函数
- * @param tailFunction 尾巴处理函数
- * @param call_type 左、右值类型
- * @param self_type 输出token的类型
- * @param call_name 左、右值名称(log)
- * @param self_name 输出值名称(log)
- */
-inline void tailOperation(PASERSSIGNATURE, PasersFunction callBack, TailFunction tailFunction, int call_type,
-                          int self_type){
-    while(true){
-        Token *left_token = NULL;
-        struct Statement *st = NULL;
-
-        if (readBackToken(pm) != self_type){
-            
-            if (!callChildStatement(CALLPASERSSIGNATURE, callBack, call_type, &st, NULL))
-                goto return_;
-            addStatementToken(self_type, st, pm);
-            continue;
-        }
-        left_token = popNewToken(pm->tm);
-
-        int tail_status = tailFunction(CALLPASERSSIGNATURE, left_token, &st);
-        if (tail_status == -1){
-            backToken_(pm, left_token);
-            goto return_;
-        }
-        else if(tail_status == 0) {
-            freeToken(left_token, true);
-            goto return_;
-        }
-
-        addStatementToken(self_type, st, pm);
-        freeToken(left_token, false);
-        
-    }
-    return_: return;
-}
-
-/**
  * syntax错误处理器
  * @param pm
  * @param message 错误信息

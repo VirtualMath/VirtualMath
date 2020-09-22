@@ -189,16 +189,20 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             break;
         case class_static_:
             tmp = makeValueArgument(func);
-            if (self->value->type == class)
-                tmp->next = makeValueArgument(self);
-            else if (self->value->object.inherit != NULL)  // TODO-szh 使用循环检查
-                tmp->next = makeValueArgument(self->value->object.inherit->value);
-            else {
-                tmp->next = *arg;
-                *arg = tmp;
-                break;
+            if (self->value->type != class) {
+                self = NULL;
+                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)
+                    if (ih->value->value->type == class) {
+                        self = ih->value;
+                        break;
+                    }
             }
-            tmp->next->next = *arg;
+
+            if (self != NULL) {
+                tmp->next = makeValueArgument(self);
+                tmp->next->next = *arg;
+            } else
+                tmp->next = *arg;
             *arg = tmp;
             break;
         case all_static_:
@@ -209,23 +213,29 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             break;
         case object_static_:
             tmp = makeValueArgument(func);
-            if (self->value->type == class)
-                tmp->next = *arg;
-            else {
+            if (self->value->type != class){
                 tmp->next = makeValueArgument(self);
                 tmp->next->next = *arg;
             }
+            else
+                tmp->next = *arg;
             *arg = tmp;
             break;
         case class_free_:
-            if (self->value->type == class)
+            if (self->value->type != class){
+                self = NULL;
+                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)
+                    if (ih->value->value->type == class) {
+                        self = ih->value;
+                        break;
+                    }
+            }
+
+            if (self != NULL) {
                 tmp = makeValueArgument(self);
-            else if (self->value->object.inherit != NULL)
-                tmp = makeValueArgument(self->value->object.inherit->value);
-            else
-                break;
-            tmp->next = *arg;
-            *arg = tmp;
+                tmp->next = *arg;
+                *arg = tmp;
+            }
             break;
         case object_free_:
             if (self->value->type != class) {
