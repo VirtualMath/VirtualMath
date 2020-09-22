@@ -148,10 +148,16 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             *base = *arg;
             break;
         case 1: {
-            func = _func;
             if (*arg != NULL) {
-                self = (*arg)->data.value;
-                *arg = (*arg)->next;
+                if (pt_type == static_) {
+                    func = (*arg)->data.value;
+                    self = NULL;  // static_模式不需要self
+                }
+                else {
+                    func = _func;
+                    self = (*arg)->data.value;
+                }
+                *arg = (*arg)->next;  // 忽略第一个arg, 但是不释放(在该函数外部统一释放)
                 *base = *arg;
             } else {
                 error_:
@@ -162,8 +168,8 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
         }
         case 2: {
             if (*arg != NULL && (*arg)->next != NULL) {
-                self = (*arg)->data.value;
-                func = (*arg)->next->data.value;
+                func = (*arg)->data.value;
+                self = (*arg)->next->data.value;  // 第一个参数是func, 第二个是self; 这样做保证了和形参调用的一致
 
                 *arg = (*arg)->next->next;
                 *base = *arg;
@@ -191,7 +197,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             tmp = makeValueArgument(func);
             if (self->value->type != class) {
                 self = NULL;
-                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)
+                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)  // 使用循环的方式检查
                     if (ih->value->value->type == class) {
                         self = ih->value;
                         break;
@@ -201,7 +207,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             if (self != NULL) {
                 tmp->next = makeValueArgument(self);
                 tmp->next->next = *arg;
-            } else
+            } else  // 若未检查到class, 则放弃该形参(由原arg补上)
                 tmp->next = *arg;
             *arg = tmp;
             break;
@@ -224,18 +230,18 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
         case class_free_:
             if (self->value->type != class){
                 self = NULL;
-                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)
+                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)  // 循环检查
                     if (ih->value->value->type == class) {
                         self = ih->value;
                         break;
                     }
             }
 
-            if (self != NULL) {
+            if (self != NULL) {  // 若检查到class
                 tmp = makeValueArgument(self);
                 tmp->next = *arg;
                 *arg = tmp;
-            }
+            }  // 若无class则不对arg做任何调整
             break;
         case object_free_:
             if (self->value->type != class) {
