@@ -12,6 +12,9 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <unistd.h>
+#include <wchar.h>
+#include <locale.h>
+
 #ifdef __linux__
 #include <dlfcn.h>
 #else

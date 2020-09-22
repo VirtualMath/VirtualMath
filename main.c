@@ -14,10 +14,12 @@ int main(int argc, char *argv[]) {
     if (getArgs(argc, argv))
         return 2;
 
+    initVirtualMath();
     inter = makeInter(args.out_file, args.error_file, args.in_file, NULL);
     runCodeFile(inter, argv + optind);
     if (args.run_commandLine)
         runCodeStdin(inter, HelloString);
     freeInter(inter, true);
+
     return 0;
 }
