@@ -261,9 +261,9 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
     else
         status = s_1;
 
-    while (!last_pt){
+    for (int count = 0; !last_pt; count++){  // 计算匹配到parameter的个数
         tmp = NULL;
-        if (is_sep == 1)
+        if (is_sep == 1 || !is_formal && count > 1)  // 限制实参的;分隔符前最多只有两个参数
             is_sep = 2;
         if (!is_dict && status != s_2 && checkToken(pm, MATHER_MUL))  // is_formal关闭对*args的支持
             status = s_3;
