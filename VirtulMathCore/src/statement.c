@@ -74,12 +74,12 @@ Statement *makeBaseLinkValueStatement(LinkValue *value, fline line, char *file) 
     return tmp;
 }
 
-Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, fline line, char *file){
+Statement *makeBaseStrValueStatement(wchar_t *value, enum BaseValueType type, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_value;
     tmp->u.base_value.type = type;
     tmp->u.base_value.value = NULL;
-    tmp->u.base_value.str = memStrcpy(value);
+    tmp->u.base_value.str = memWidecpy(value);  // TODO-szh 需要修改运行BaseValue的函数
     return tmp;
 }
 
@@ -326,12 +326,12 @@ Statement *makeDefaultVarStatement(Parameter *var, fline line, char *file_dir, e
     return tmp;
 }
 
-Statement *makeLabelStatement(Statement *var, Statement *command, char *label, fline line, char *file_dir) {
+Statement *makeLabelStatement(Statement *var, Statement *command, wchar_t *label, fline line, char *file_dir) {
     Statement *tmp = makeStatement(line, file_dir);
     tmp->type = label_;
     tmp->u.label_.as = var;
     tmp->u.label_.command = command;
-    tmp->u.label_.label = memStrcpy(label);
+    tmp->u.label_.label = memWidecpy(label);
     return tmp;
 }
 
@@ -528,7 +528,7 @@ Statement *copyStatementCore(Statement *st){
                 gc_addStatementLink(&new->u.base_value.value->gc_status);
             }
             else if (new->u.base_value.type == string_str || new->u.base_value.type == number_str)
-                new->u.base_value.str = memStrcpy(st->u.base_value.str);
+                new->u.base_value.str = memWidecpy(st->u.base_value.str);
             break;
         case operation:
             new->u.operation.OperationType = st->u.operation.OperationType;
@@ -653,7 +653,7 @@ Statement *copyStatementCore(Statement *st){
         case label_:
             new->u.label_.command = copyStatement(st->u.label_.command);
             new->u.label_.as = copyStatement(st->u.label_.as);
-            new->u.label_.label = memStrcpy(st->u.label_.label);
+            new->u.label_.label = memWidecpy(st->u.label_.label);
             break;
         case goto_:
             new->u.goto_.times = copyStatement(st->u.goto_.times);

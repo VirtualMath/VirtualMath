@@ -50,7 +50,7 @@ struct Statement{
                 null_value = 6,
             } type;
             struct LinkValue *value;
-            char *str;
+            wchar_t *str;
         } base_value;
         struct base_var{
             char *name;
@@ -196,7 +196,7 @@ struct Statement{
         struct {
             struct Statement *command;
             struct Statement *as;
-            char *label;
+            wchar_t *label;
         } label_;
         struct {
             struct Statement *times;
@@ -268,7 +268,7 @@ void connectStatement(Statement *base, Statement *new);
 Statement *makeOperationBaseStatement(enum OperationType type, fline line, char *file);
 Statement *makeOperationStatement(enum OperationType type, Statement *left, Statement *right);
 Statement *makeBaseLinkValueStatement(LinkValue *value, fline line, char *file);
-Statement *makeBaseStrValueStatement(char *value, enum BaseValueType type, fline line, char *file);
+Statement *makeBaseStrValueStatement(wchar_t *value, enum BaseValueType type, fline line, char *file);
 Statement *makeBaseValueStatement(enum BaseValueType type, fline line, char *file);
 Statement *makeBaseVarStatement(char *name, Statement *times, fline line, char *file);
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
@@ -296,7 +296,7 @@ Statement *makeIncludeStatement(Statement *file, fline line, char *file_dir);
 Statement *makeImportStatement(Statement *file, Statement *as, bool is_lock);
 Statement *makeFromImportStatement(Statement *file, Parameter *as, Parameter *pt, bool is_lock);
 Statement *makeDefaultVarStatement(Parameter *var, fline line, char *file_dir, enum DefaultType type);
-Statement *makeLabelStatement(Statement *var, Statement *command, char *label, fline line, char *file_dir);
+Statement *makeLabelStatement(Statement *var, Statement *command, wchar_t *label, fline line, char *file_dir);
 Statement *makeGotoStatement(Statement *return_, Statement *times, Statement *label, fline line, char *file_dir);
 Statement *makeDelStatement(Statement *var, fline line, char *file_dir);
 Token *setOperationFromToken(Statement **st_ad, Token *left, Token *right, enum OperationType type, bool is_right);

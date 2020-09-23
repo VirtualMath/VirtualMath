@@ -7,7 +7,7 @@ struct LexFile{
     bool is_std;  // 是否位stdin
     struct LexFileBack{
         bool is_back;
-        int p;
+        wint_t p;
     } back;
     struct {
         int enter;  // 若计数为0则不忽略enter
@@ -17,9 +17,9 @@ struct LexFile{
 
 struct LexMather{
     int len;
-    int string_type;
-    char *str;
-    char *second_str;
+    wint_t string_type;
+    wchar_t *str;
+    wchar_t *second_str;
     int ascii;
     enum LexMatherStatus{
         LEXMATHER_START=1,
@@ -44,7 +44,7 @@ typedef struct LexFile LexFile;
 typedef struct LexMather LexMather;
 typedef struct LexMathers LexMathers;
 
-int readChar(LexFile *file);
+wint_t readChar(LexFile *file);
 void backChar(LexFile *file);
 void clearLexFile(LexFile *file);
 

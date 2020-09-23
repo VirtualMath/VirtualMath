@@ -964,7 +964,7 @@ ResultType assertCode(INTER_FUNCTIONSIG){
 
 ResultType gotoLabel(INTER_FUNCTIONSIG){
     int times_int = 0;
-    char *label = NULL;
+    wchar_t *label = NULL;
     setResultCore(result);
 
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.label, var_list, result, belong)))
@@ -973,7 +973,7 @@ ResultType gotoLabel(INTER_FUNCTIONSIG){
         setResultErrorSt(E_TypeException, ONLY_ACC(label name, string), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
-    label = memStrcpy(result->value->value->data.str.str);
+    label = memWidecpy(result->value->value->data.str.str);
 
     freeResult(result);
     if (st->u.goto_.times == NULL)

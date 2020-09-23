@@ -11,11 +11,11 @@ Token *makeToken(long int line) {
     return tmp;
 }
 
-Token *makeLexToken(int type, char *str, char *second_str, long int line) {
+Token *makeLexToken(int type, wchar_t *str, wchar_t *second_str, long int line) {
     Token *tmp = makeToken(line);
     tmp->token_type = type;
-    tmp->data.str = memStrcpy(str);
-    tmp->data.second_str = memStrcpy(second_str);
+    tmp->data.str = memWidecpy(str);
+    tmp->data.second_str = memWidecpy(second_str);
     return tmp;
 }
 

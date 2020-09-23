@@ -439,7 +439,7 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
     else
         switch (st->u.base_value.type){
             case number_str:
-                makeNumberValue(strtol(st->u.base_value.str, NULL, 10), st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makeNumberValue(wcstoll(st->u.base_value.str, NULL, 10), st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 break;
             case bool_true:
                 makeBoolValue(true, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

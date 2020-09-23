@@ -45,7 +45,7 @@ ResultType num_init(OFFICAL_FUNCTIONSIG){
             base->value->data.num.num = ap[1].value->value->data.num.num;
             break;
         case string:
-            base->value->data.num.num = strtoll(ap[1].value->value->data.str.str, NULL, 10);
+            base->value->data.num.num = wcstoll(ap[1].value->value->data.str.str, NULL, 10);
             break;
         case bool_:
             base->value->data.num.num = ap[1].value->value->data.bool_.bool_;

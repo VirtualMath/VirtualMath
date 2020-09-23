@@ -352,7 +352,7 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
 ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    char *repo = NULL;
+    wchar_t *repo = NULL;
     Value *value = NULL;
     LinkValue *again = NULL;
     enum ListType lt;
@@ -374,30 +374,30 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         if (!CHECK_RESULT(result))
             return result->type;
         if (again_) {
-            makeStringValue(lt == value_list ? "[...]" : "(...)", 0, "list.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            makeStringValue((lt == value_list ? L"[...]" : L"(...)"), 0, "list.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return result->type;
         }
     }
 
     setBoolAttrible(true, is_repo ? "repo_again" : "str_again", 0, "list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (lt == value_list)
-        repo = memStrcpy("[");
+        repo = memWidecpy(L"[");
     else
-        repo = memStrcpy("(");
+        repo = memWidecpy(L"(");
     for (int i=0;i < value->data.list.size;i++){
-        char *tmp;
+        wchar_t *tmp;
         freeResult(result);
         if (i > 0)
-            repo = memStrcat(repo, ", ", true, false);
+            repo = memWidecat(repo, L", ", true, false);
         tmp = getRepoStr(value->data.list.list[i], is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
-        repo = memStrcat(repo, tmp, true, false);
+        repo = memWidecat(repo, tmp, true, false);
     }
     if (lt == value_list)
-        repo = memStrcat(repo, "]", true, false);
+        repo = memWidecat(repo, L"]", true, false);
     else
-        repo = memStrcat(repo, ")", true, false);
+        repo = memWidecat(repo, L")", true, false);
 
     freeResult(result);
     makeStringValue(repo, 0, "list.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

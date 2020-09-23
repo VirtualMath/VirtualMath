@@ -72,7 +72,7 @@ Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
     return tmp;
 }
 
-Value *makeStringValue(char *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+Value *makeStringValue(wchar_t *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     setResultCore(result);
     callBackCore(inter->data.str, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -80,7 +80,7 @@ Value *makeStringValue(char *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_
         return NULL;
     tmp = result->value->value;
     memFree(tmp->data.str.str);
-    tmp->data.str.str = memStrcpy(str);
+    tmp->data.str.str = memWidecpy(str);
     return tmp;
 }
 
@@ -337,7 +337,7 @@ char *getErrorInfo(LinkValue *exc, int type, Inter *inter){
     char *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
     LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
     if (_info_ != NULL && _info_->value->type == string)
-        return memStrcpy(_info_->value->data.str.str);
+        return wcsToStr(_info_->value->data.str.str, false);  // TODO-szh var使用宽字符
     else
         return type == 1 ? memStrcpy("Error Type: Unknown") : memStrcpy("Error Message: Unknown");
 }
@@ -351,7 +351,9 @@ void callException(LinkValue *exc, char *message, fline line, char *file, INTER_
 
     if (_new_ != NULL){
         Argument *arg = NULL;
-        makeStringValue(message, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        wchar_t *wcs_message = strToWcs(message, false);
+        makeStringValue(wcs_message, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        memFree(wcs_message);
         if (!CHECK_RESULT(result))
             goto return_;
         arg =  makeValueArgument(result->value);
@@ -613,7 +615,7 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
             fprintf(debug, "%lld", value->data.num.num);
             break;
         case string:
-            fprintf(debug, "%s", value->data.str.str);
+            fprintf(debug, "%ls", value->data.str.str);
             break;
         case function:
             if (print_father)

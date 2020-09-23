@@ -11,14 +11,14 @@ int main(int argc, char *argv[]) {
     }
     memVirtualMathUseJmp = true;
 
-    if (getArgs(argc, argv))
+    if (getArgs(argc, argv))  // 命令行参数设定
         return 2;
 
     initVirtualMath();
     inter = makeInter(args.out_file, args.error_file, args.in_file, NULL);
-    runCodeFile(inter, argv + optind);
+    runCodeFile(inter, argv + optind);  // 从文件中运行代码
     if (args.run_commandLine)
-        runCodeStdin(inter, HelloString);
+        runCodeStdin(inter, HelloString);  // 从stdin中运行代码
     freeInter(inter, true);
 
     return 0;

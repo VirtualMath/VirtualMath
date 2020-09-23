@@ -130,7 +130,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
         goto return_;
     }
 
-    file_dir = result->value->value->data.str.str;
+    file_dir = wcsToStr(result->value->value->data.str.str, false);
     freeResult(result);
     if (checkFileDir(&file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)) != 1)
         goto return_;
@@ -148,6 +148,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
         setResultErrorSt(E_BaseException, NULL, false, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:
+    memFree(file_dir);
     freeStatement(new_st);
     freeParserMessage(pm, true);
     return result->type;
@@ -187,7 +188,7 @@ ResultType importFileCore(char **path, char **split, int *status, INTER_FUNCTION
         return error_return;
     }
 
-    *path = memStrcpy(result->value->value->data.str.str);
+    *path = wcsToStr(result->value->value->data.str.str, false);
     *split = splitDir(*path);  // 自动去除末尾路径分隔符
     freeResult(result);
     if ((*status = checkFileDir(path, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) == 0)
@@ -307,9 +308,14 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
         goto return_;
     imp_var = imp_value->value->object.var;
     if (is_new) {
+        wchar_t *wcs;
         LinkValue *string;
         freeResult(result);
-        makeStringValue(split_path, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, imp_value));
+
+        wcs = strToWcs(split_path, false);
+        makeStringValue(wcs, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, imp_value));
+        memFree(wcs);
+
         string = result->value;
         result->value = NULL;
         freeResult(result);

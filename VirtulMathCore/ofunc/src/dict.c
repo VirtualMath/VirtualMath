@@ -17,7 +17,6 @@ ResultType dict_new(OFFICAL_FUNCTIONSIG){
         return error_return;
     }
 
-
     value = make_new(inter, belong, ap[0].value);
     hash = pushVarList(var_list, inter);
     value->value->type = dict;
@@ -174,7 +173,7 @@ ResultType dict_iter(OFFICAL_FUNCTIONSIG){
 ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    char *repo = NULL;
+    wchar_t *repo = NULL;
     Value *value = NULL;
     LinkValue *again = NULL;
     setResultCore(result);
@@ -194,37 +193,37 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         if (!CHECK_RESULT(result))
             return result->type;
         if (again_) {
-            makeStringValue("{...}", 0, "dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            makeStringValue(L"{...}", 0, "dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return result->type;
         }
     }
 
     setBoolAttrible(true, is_repo ? "repo_again" : "str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    repo = memStrcpy("{");
+    repo = memWidecpy((const wchar_t *) L"{");
     for (int i = 0, count = 0; i < MAX_SIZE; i++) {
         for (Var *var = value->data.dict.dict->hashtable[i]; var != NULL; var = var->next, count++) {
-            char *name_tmp;
-            char *value_tmp;
+            wchar_t *name_tmp;
+            wchar_t *value_tmp;
             if (count > 0)
-                repo = memStrcat(repo, ", ", true, false);
+                repo = memWidecat(repo, L", ", true, false);
 
             freeResult(result);
             name_tmp = getRepoStr(var->name_, is_repo, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
-            repo = memStrcat(repo, name_tmp, true, false);
-            repo = memStrcat(repo, ": ", true, false);
+            repo = memWidecat(repo, name_tmp, true, false);
+            repo = memWidecat(repo, L": ", true, false);
 
             freeResult(result);
             value_tmp = getRepoStr(var->value, is_repo, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
-            repo = memStrcat(repo, value_tmp, true, false);
+            repo = memWidecat(repo, value_tmp, true, false);
         }
     }
 
     freeResult(result);
-    repo = memStrcat(repo, "}", true, false);
+    repo = memWidecat(repo, L"}", true, false);
     makeStringValue(repo, 0, "dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:

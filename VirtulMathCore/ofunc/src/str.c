@@ -13,7 +13,7 @@ ResultType str_new(OFFICAL_FUNCTIONSIG){
     setResultCore(result);
     value = make_new(inter, belong, ap[0].value);
     value->value->type = string;
-    value->value->data.str.str = memStrcpy("");
+    value->value->data.str.str = memWidecpy(L"");
     switch (init_new(value, arg, "str.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
         case 1:
             freeResult(result);
@@ -30,7 +30,7 @@ ResultType str_init(OFFICAL_FUNCTIONSIG){
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
     LinkValue *base;
-    char *str = NULL;
+    wchar_t *str = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -43,7 +43,7 @@ ResultType str_init(OFFICAL_FUNCTIONSIG){
         if (!CHECK_RESULT(result))
             return result->type;
         memFree(base->value->data.str.str);
-        base->value->data.str.str = memStrcpy(str);
+        base->value->data.str.str = memWidecpy(str);
     }
     setResultBase(result, inter);
     return result->type;
@@ -69,7 +69,7 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
-    size = memStrlen(ap[0].value->value->data.str.str);
+    size = memWidelen(ap[0].value->value->data.str.str);
 
     first = 0;
     second = size;
@@ -87,9 +87,9 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
         return result->type;
 
     {
-        char *str = NULL;
+        wchar_t *str = NULL;
         for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride)
-            str = memStrCharcpy(str, 1, true, true, ap[0].value->value->data.str.str[i]);
+            str = memWideCharcpy(str, 1, true, true, ap[0].value->value->data.str.str[i]);
         makeStringValue(str, 0, "str.slice", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(str);
     }
@@ -102,7 +102,7 @@ ResultType str_down(OFFICAL_FUNCTIONSIG){
                            {.must=-1}};
     vnum size;
     vnum index;
-    char element[2] = {};
+    wchar_t element[2] = {};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -118,7 +118,7 @@ ResultType str_down(OFFICAL_FUNCTIONSIG){
         return error_return;
     }
 
-    size = memStrlen(ap[0].value->value->data.str.str);
+    size = memWidelen(ap[0].value->value->data.str.str);
     index = ap[1].value->value->data.num.num;
     if (!checkIndex(&index, &size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
         return result->type;
@@ -141,12 +141,12 @@ ResultType str_to_list(OFFICAL_FUNCTIONSIG){
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
-    size = memStrlen(ap[0].value->value->data.str.str);
+    size = memWidelen(ap[0].value->value->data.str.str);
 
     {
         Argument *new_list = NULL;
         for (vnum i = 0; i < size; i ++) {
-            char str[2] = {};
+            wchar_t str[2] = {};
             str[0] = ap[0].value->value->data.str.str[i];
             makeStringValue(str, 0, "str.to_list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             new_list = connectValueArgument(result->value, new_list);
@@ -220,7 +220,7 @@ LinkValue *makeStrFromOf(LinkValue *str, LinkValue *new, LinkValue *init, char *
     LinkValue *return_;
     return_ = callClassOf(str, inter, new, init);
     memFree(return_->value->data.str.str);
-    return_->value->data.str.str = memStrcpy(str_);
+    return_->value->data.str.str = strToWcs(str_, false);
     return return_;
 }
 

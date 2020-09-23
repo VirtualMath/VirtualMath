@@ -6,12 +6,12 @@
  * @param file
  * @return 返回一个字符，若为EOF则返回-1
  */
-int readChar(LexFile *file){
+wint_t readChar(LexFile *file){
     if (file->back.is_back)
         file->back.is_back = false;
     else
-        file->back.p = fgetc(file->file);
-    if (file->back.p == '\n')
+        file->back.p = fgetwc(file->file);
+    if (file->back.p == L'\n')
         file->line++;
     return file->back.p;
 }
@@ -22,14 +22,14 @@ int readChar(LexFile *file){
  */
 void backChar(LexFile *file){
     file->back.is_back = true;
-    if (file->back.p == '\n')
+    if (file->back.p == L'\n')
         file->line --;
 }
 
 void clearLexFile(LexFile *file) {
-    int ch;
+    wint_t ch;
     backChar(file);
-    while ((ch = readChar(file)) != '\n' && ch != EOF)
+    while ((ch = readChar(file)) != L'\n' && ch != WEOF)
         PASS;
 }
 
@@ -41,7 +41,7 @@ LexFile *makeLexFile(char *dir){
     else
         tmp->file = fopen(dir, "r");
     tmp->back.is_back = false;
-    tmp->back.p = EOF;
+    tmp->back.p = WEOF;
     tmp->line = 1;
     tmp->filter_data.enter = 0;
     return tmp;
@@ -65,7 +65,7 @@ void setupMather(LexMather *mather){
     mather->ascii = 0;
     mather->str = NULL;
     mather->second_str = NULL;
-    mather->string_type = '"';
+    mather->string_type = L'"';
     mather->status = LEXMATHER_START;
 }
 
@@ -140,12 +140,10 @@ int checkoutMather(LexMathers *mathers, int max) {
             end_second_count ++;
             end_second_index = i;
         }
-        else if(mathers->mathers[i]->status == LEXMATHER_MISTAKE){
+        else if(mathers->mathers[i]->status == LEXMATHER_MISTAKE)
             mistake_count ++;
-        }
-        else{
+        else
             return_1 = true;
-        }
     }
     if (return_1)
         goto return_;

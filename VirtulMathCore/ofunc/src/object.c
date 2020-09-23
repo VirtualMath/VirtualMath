@@ -27,9 +27,9 @@ ResultType object_new(OFFICAL_FUNCTIONSIG){
 ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    char *repo;
-    char *name;
-    char *type;
+    wchar_t *repo;
+    wchar_t *name;
+    wchar_t *type;
     LinkValue *name_value;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -46,19 +46,19 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
             return result->type;
         freeResult(result);
     } else
-        name = "unknown";
+        name = L"unknown";
 
     if (ap[0].value->value->type == none) {
-        repo = memStrcpy("null");
+        repo = memWidecpy(L"null");
     } else {
         size_t len;
         if (ap[0].value->value->type == class)
-            type = "class";
+            type = L"class";
         else
-            type = "object";
-        len = memStrlen(name) + 30;
+            type = L"object";
+        len = memWidelen(name) + 30;
         repo = memCalloc(len, sizeof(char ));
-        snprintf(repo, len, "(%s: %s on %p)", type, name, ap[0].value->value);
+        swprintf(repo, len, (const wchar_t *) L"(%ls: %ls on %p)", type, name, ap[0].value->value);
     }
 
     makeStringValue(repo, 0, "object.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

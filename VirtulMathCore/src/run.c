@@ -319,9 +319,9 @@ bool blockSafeInterStatement(INTER_FUNCTIONSIG){
     return false;
 }
 
-Statement *checkLabel(Statement *base, char *label){
+Statement *checkLabel(Statement *base, wchar_t *label){
     for (PASS; base != NULL; base = base->next)
-        if (base->type == label_ && eqString(base->u.label_.label, label))
+        if (base->type == label_ && eqWide(base->u.label_.label, label))
             return base;
     return NULL;
 }

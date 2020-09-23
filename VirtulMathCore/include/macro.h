@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <wchar.h>
+#include <wctype.h>
 #include <locale.h>
 
 #ifdef __linux__

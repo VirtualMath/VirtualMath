@@ -2,7 +2,7 @@
 
 
 ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
-    LinkValue *value;
+    wchar_t *wcs_name;
 
     *name = setStrVarName(st->u.base_var.name, false, inter);
     *times = 0;
@@ -20,7 +20,9 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     freeResult(result);
 
     not_times:
-    makeStringValue(st->u.base_var.name, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    wcs_name = strToWcs(st->u.base_var.name, false);
+    makeStringValue(wcs_name, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    memFree(wcs_name);
     return result->type;
 }
 
@@ -77,7 +79,7 @@ char *setNumVarName(vnum num, struct Inter *inter) {
 char *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
         case string:
-            return setStrVarName(value->data.str.str, false, inter);
+            return setStrVarName(wcsToStr(value->data.str.str, false), true, inter);  // TODO-szh VAR使用宽字符
         case number:
             return setNumVarName(value->data.num.num, inter);
         case bool_:
@@ -298,11 +300,12 @@ void addStrVarCore(int setting, char *var_name, LinkValue *name_, LinkValue *val
 }
 
 void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    char *var_name = setStrVarName(name, free_old, inter);
     LinkValue *name_;
+    char *var_name = setStrVarName(name, free_old, inter);
+    wchar_t *wcs_name = strToWcs(name, false);
     setResultCore(result);
 
-    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(wcs_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -313,7 +316,9 @@ void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline 
     addStrVarCore(setting, var_name, name_, value, line, file, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     gc_freeTmpLink(&name_->gc_status);
-    return_: memFree(var_name);
+    return_:
+    memFree(wcs_name);
+    memFree(var_name);
 }
 
 LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter) {
@@ -325,10 +330,11 @@ LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *in
 
 bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     char *var_name = setStrVarName(name, free_old, inter);
+    wchar_t *wcs_name = strToWcs(name, false);
     LinkValue *name_;
     setResultCore(result);
 
-    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(wcs_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -343,6 +349,7 @@ bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char
     gc_freeTmpLink(&name_->gc_status);
     return_:
     memFree(var_name);
+    memFree(wcs_name);
     return CHECK_RESULT(result);
 }
 
@@ -420,7 +427,7 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
     return false;
 }
 
-char *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
     LinkValue *_repo_ = findAttributes(is_repo ? inter->data.object_repo : inter->data.object_str, false, value, inter);
     setResultCore(result);
     if (_repo_ != NULL){

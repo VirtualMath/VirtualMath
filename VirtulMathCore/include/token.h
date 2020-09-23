@@ -98,14 +98,14 @@
 #define MATHER_MAX 84
 
 // 从-6开始是为了避开status的特殊值，尽管这并没有什么影响
-#define COMMAND -6
-#define OPERATION -7
-#define POLYNOMIAL -8
-#define FACTOR -9
-#define BASEVALUE -10
-#define ASSIGNMENT -11
-#define CODE -12
-#define FUNCTION -13
+#define COMMAND (-6)
+#define OPERATION (-7)
+#define POLYNOMIAL (-8)
+#define FACTOR (-9)
+#define BASEVALUE (-10)
+#define ASSIGNMENT (-11)
+#define CODE (-12)
+#define FUNCTION (-13)
 #define CALLBACK -14
 #define IF_BRANCH -15
 #define WHILE_BRANCH -16
@@ -134,8 +134,8 @@ struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配
     fline line;
     struct TokenData{
-        char *str;
-        char *second_str;  // 针对123.4j这种形式设定的，其中second_str存储j
+        wchar_t *str;
+        wchar_t *second_str;  // 针对123.4j这种形式设定的，其中second_str存储j
         struct Statement *st;
     } data;
     struct Token *next;
@@ -163,7 +163,7 @@ void freeTokenMessage(TokenMessage *tm, bool self, bool free_st);
 
 Token *makeToken(long int line);
 long freeToken(Token *tk, bool free_st);
-Token *makeLexToken(int type, char *str, char *second_str, long int line);
+Token *makeLexToken(int type, wchar_t *str, wchar_t *second_str, long int line);
 Token *makeStatementToken(int type, struct Statement *st);
 
 extern Token *getToken(LexFile *file, LexMathers *mathers);

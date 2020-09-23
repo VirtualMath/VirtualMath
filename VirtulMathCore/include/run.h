@@ -23,7 +23,7 @@ bool functionSafeInterStatement(INTER_FUNCTIONSIG);
 bool blockSafeInterStatement(INTER_FUNCTIONSIG);
 bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG);
-Statement *checkLabel(Statement *base, char *label);
+Statement *checkLabel(Statement *base, wchar_t *label);
 
 ResultType operationStatement(INTER_FUNCTIONSIG);
 ResultType setClass(INTER_FUNCTIONSIG);

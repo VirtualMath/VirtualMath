@@ -55,7 +55,7 @@ struct Number {
 };
 
 struct String {
-    char *str;
+    wchar_t *str;
 };
 
 struct Function{
@@ -143,7 +143,7 @@ struct Result {
         goto_return=9,
         yield_return=10,
     } type;
-    char *label;
+    wchar_t *label;
     struct LinkValue *value;
     struct Error *error;
     vnum times;
@@ -201,7 +201,7 @@ Value *useNoneValue(Inter *inter, Result *result);
 Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-Value *makeStringValue(char *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+Value *makeStringValue(wchar_t *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, INTER_FUNCTIONSIG_NOT_ST);
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, OfficialFunction function_init, LinkValue *belong, VarList *var_list, Inter *inter);

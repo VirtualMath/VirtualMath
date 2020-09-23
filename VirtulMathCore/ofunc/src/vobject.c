@@ -7,7 +7,7 @@ void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, Va
     if (left->type == number && right->type == number)
         makeNumberValue(left->data.num.num + right->data.num.num, 0, "vobject.add", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if(left->type == string && right->type == string){
-        char *new_string = memStrcat(left->data.str.str, right->data.str.str, false, false);
+        wchar_t *new_string = memWidecat(left->data.str.str, right->data.str.str, false, false);
         makeStringValue(new_string, 0, "vobject.add", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(new_string);
     }
@@ -34,7 +34,7 @@ void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         goto mul_str;
     }
     else if(left->type == string && right->type == number) mul_str: {
-        char *new_string = memStrcpySelf(left->data.str.str, right->data.num.num);
+        wchar_t *new_string = memWidecpySelf(left->data.str.str, right->data.num.num);
         makeStringValue(new_string, 0, "vobject.mul", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(new_string);
     }
@@ -107,7 +107,7 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
             result_ = value->data.num.num != 0;
             break;
         case string:
-            result_ = memStrlen(value->data.str.str) > 0;
+            result_ = memWidelen(value->data.str.str) > 0;
             break;
         case bool_:
             result_ = value->data.bool_.bool_;
@@ -133,7 +133,7 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
 ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    char *repo = NULL;
+    wchar_t *repo = NULL;
     Value *value = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -146,32 +146,32 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
         case number: {
             char str[30] = {};
             snprintf(str, 30, "%lld", value->data.num.num);
-            repo = memStrcpy(str);
+            repo = strToWcs(str, false);
             break;
         }
         case string:
-            repo = memStrcpy(value->data.str.str);
+            repo = memWidecpy(value->data.str.str);
             break;
         case function: {
             char str[30] = {};
             snprintf(str, 30, "(function on %p)", value);
-            repo = memStrcpy(str);
+            repo = strToWcs(str, false);
             break;
         }
         case class: {
             char str[30] = {};
             snprintf(str, 30, "(class on %p)", value);
-            repo = memStrcpy(str);
+            repo = strToWcs(str, false);
             break;
         }
         case bool_:
             if (value->data.bool_.bool_)
-                repo = memStrcpy("true");
+                repo = strToWcs("true", false);
             else
-                repo = memStrcpy("false");
+                repo = strToWcs("false", false);
             break;
         case pass_:
-            repo = memStrcpy("...");
+            repo = strToWcs("...", false);
             break;
         default:
             setResultError(E_TypeException, CUL_ERROR(repo/str), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
