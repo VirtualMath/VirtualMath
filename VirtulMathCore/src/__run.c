@@ -130,7 +130,6 @@ void updateFunctionYield(Statement *function_st, Statement *node){
     function_st->info.node = node->type == yield_code ? node->next : node;
     function_st->info.have_info = true;
 }
-
 ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
     LinkValue *self;
@@ -193,8 +192,9 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
         case class_static_:
             tmp = makeValueArgument(func);
             if (self->value->type != class) {
+                Inherit *ih = self->value->object.inherit;
                 self = NULL;
-                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)  // 使用循环的方式检查
+                for (PASS; ih != NULL; ih = ih->next)  // 使用循环的方式检查
                     if (ih->value->value->type == class) {
                         self = ih->value;
                         break;
@@ -226,8 +226,9 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             break;
         case class_free_:
             if (self->value->type != class){
+                Inherit *ih = self->value->object.inherit;
                 self = NULL;
-                for (Inherit *ih = self->value->object.inherit; ih != NULL; ih = ih->next)  // 循环检查
+                for (PASS; ih != NULL; ih = ih->next)  // 循环检查
                     if (ih->value->value->type == class) {
                         self = ih->value;
                         break;
