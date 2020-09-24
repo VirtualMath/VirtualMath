@@ -359,11 +359,11 @@ void printHashTableGC(char *tag, Inter *inter, long *tmp_link) {
 void printToken(Token *tk) {
     if (tk->token_type >= 0) {
         wchar_t *tmp = tk->data.str, *second_tmp = tk->data.second_str;
-        if (eqWide(tmp, (wchar_t *)L"\n"))
-            tmp = (wchar_t *) L"\\n";
-        if (eqWide(second_tmp, (wchar_t *)L"\n"))
+        if (eqWide(tmp,  L"\n"))
+            tmp = L"\\n";
+        if (eqWide(second_tmp, L"\n"))
             second_tmp = (wchar_t *)L"\\n";
-        wprintf((wchar_t *)L"<token str = ('%ls','%ls'), type = %d>", tmp, second_tmp, tk->token_type);
+        printf("<token str = ('%ls','%ls'), type = %d>", tmp, second_tmp, tk->token_type);
     }
     else
         printf("<token statement, type = %d>", tk->token_type);

@@ -34,7 +34,7 @@ ResultType vm_input(OFFICAL_FUNCTIONSIG){
     setResultCore(result);
     ArgumentParser ap[] = {{.type=name_value, .name="message", .must=0, .value=NULL},
                            {.must=-1}};
-    wchar_t *str = memWidecpy((wchar_t *) L"\0");
+    wchar_t *str = memWidecpy(L"\0");
     wint_t ch;
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))

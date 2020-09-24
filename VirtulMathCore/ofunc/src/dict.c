@@ -199,7 +199,7 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     }
 
     setBoolAttrible(true, is_repo ? "repo_again" : "str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    repo = memWidecpy((const wchar_t *) L"{");
+    repo = memWidecpy(L"{");
     for (int i = 0, count = 0; i < MAX_SIZE; i++) {
         for (Var *var = value->data.dict.dict->hashtable[i]; var != NULL; var = var->next, count++) {
             wchar_t *name_tmp;

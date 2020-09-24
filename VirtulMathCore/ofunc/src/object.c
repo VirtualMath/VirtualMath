@@ -58,7 +58,7 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
             type = L"object";
         len = memWidelen(name) + 30;
         repo = memCalloc(len, sizeof(char ));
-        swprintf(repo, len, (const wchar_t *) L"(%ls: %ls on %p)", type, name, ap[0].value->value);
+        swprintf(repo, len, L"(%ls: %ls on %p)", type, name, ap[0].value->value);
     }
 
     makeStringValue(repo, 0, "object.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

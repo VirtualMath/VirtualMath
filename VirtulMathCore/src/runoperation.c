@@ -437,7 +437,7 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
         gc_addTmpLink(&result->value->gc_status);
     }
     else
-        switch (st->u.base_value.type){
+        switch (st->u.base_value.type) {
             case number_str:
                 makeNumberValue(wcstoll(st->u.base_value.str, NULL, 10), st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 break;
@@ -483,7 +483,7 @@ ResultType getDict(INTER_FUNCTIONSIG) {
 
     setResultCore(result);
     at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    if (!CHECK_RESULT(result)){
+    if (!CHECK_RESULT(result)) {
         freeArgument(at, false);
         return result->type;
     }
