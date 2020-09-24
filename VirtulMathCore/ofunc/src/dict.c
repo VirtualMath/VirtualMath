@@ -58,12 +58,12 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
     }
     {
         LinkValue *element = NULL;
-        char *name = getNameFromValue(ap[1].value->value, inter);
+        wchar_t *name = getNameFromValue(ap[1].value->value, inter);
         element = findVar(name, get_var, inter, ap[0].value->value->data.dict.dict);
         if (element != NULL)
             setResultOperationBase(result, copyLinkValue(element, inter));
         else {
-            char *message = memStrcat("Dict could not find key value: ", name, false, false);
+            char *message = memStrcat("Dict could not find key value: ", wcsToStr(name, true), false, true);
             setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }
@@ -88,12 +88,12 @@ ResultType dict_down_del(OFFICAL_FUNCTIONSIG){
     }
     {
         LinkValue *element = NULL;
-        char *name = getNameFromValue(ap[1].value->value, inter);
+        wchar_t *name = getNameFromValue(ap[1].value->value, inter);
         element = findVar(name, del_var, inter, ap[0].value->value->data.dict.dict);
         if (element != NULL)
             setResult(result, inter, belong);
         else{
-            char *message = memStrcat("Cannot delete non-existent keys: ", name, false, false);
+            char *message = memStrcat("Cannot delete non-existent keys: ", wcsToStr(name, false), false, true);
             setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }
@@ -107,7 +107,7 @@ ResultType dict_down_assignment(OFFICAL_FUNCTIONSIG){
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    char *name = NULL;
+    wchar_t *name = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -187,7 +187,7 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
     }
-    again = findAttributes(is_repo ? "repo_again" : "str_again", false, ap[0].value, inter);
+    again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, ap[0].value, inter);
     if (again != NULL){
         bool again_ = checkBool(again, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
@@ -198,7 +198,7 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         }
     }
 
-    setBoolAttrible(true, is_repo ? "repo_again" : "str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setBoolAttrible(true, is_repo ? L"repo_again" : L"str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     repo = memWidecpy(L"{");
     for (int i = 0, count = 0; i < MAX_SIZE; i++) {
         for (Var *var = value->data.dict.dict->hashtable[i]; var != NULL; var = var->next, count++) {
@@ -230,7 +230,7 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     {
         Result tmp;
         setResultCore(&tmp);
-        setBoolAttrible(false, is_repo ? "repo_again" : "str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
+        setBoolAttrible(false, is_repo ? L"repo_again" : L"str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
         if (!RUN_TYPE(tmp.type)) {
             freeResult(result);
             *result = tmp;
@@ -251,7 +251,7 @@ ResultType dict_str(OFFICAL_FUNCTIONSIG){
 
 void registeredDict(REGISTERED_FUNCTIONSIG){
     LinkValue *object = inter->data.dict;
-    NameFunc tmp[] = {{"keys", dict_keys, object_free_},
+    NameFunc tmp[] = {{L"keys", dict_keys, object_free_},
                       {inter->data.object_new, dict_new, class_free_},
                       {inter->data.object_down, dict_down, object_free_},
                       {inter->data.object_iter, dict_iter, object_free_},
@@ -261,7 +261,7 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_down_del, dict_down_del, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("dict", object, belong, inter);
+    addBaseClassVar(L"dict", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

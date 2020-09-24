@@ -56,7 +56,7 @@ void registeredBool(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_init, bool_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("bool", object, belong, inter);
+    addBaseClassVar(L"bool", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

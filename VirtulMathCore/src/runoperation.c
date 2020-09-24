@@ -1,7 +1,7 @@
 #include "__run.h"
 
 static bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG);
-static ResultType operationCore(INTER_FUNCTIONSIG, char *name);
+static ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name);
 ResultType assOperation(INTER_FUNCTIONSIG);
 ResultType pointOperation(INTER_FUNCTIONSIG);
 ResultType blockOperation(INTER_FUNCTIONSIG);
@@ -139,7 +139,7 @@ ResultType listDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
 }
 
 ResultType varDel(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
-    char *str_name = NULL;
+    wchar_t *str_name = NULL;
     int int_times = 0;
     setResultCore(result);
     getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
@@ -274,7 +274,7 @@ ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setti
 
 
 ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST) {
-    char *str_name = NULL;
+    wchar_t *str_name = NULL;
     int int_times = 0;
     LinkValue *var_value = NULL;
 
@@ -406,7 +406,7 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
 
 ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     int int_times = 0;
-    char *name = NULL;
+    wchar_t *name = NULL;
     LinkValue *var;
 
     setResultCore(result);
@@ -419,7 +419,7 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     freeResult(result);
     var = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (var == NULL) {
-        char *info = memStrcat("Variable not found: ", name, false, false);
+        char *info = memStrcat("Variable not found: ", wcsToStr(name, false), false, true);
         setResultErrorSt(E_NameExceptiom, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(info);
     }
@@ -513,7 +513,7 @@ ResultType setDefault(INTER_FUNCTIONSIG){
     else if (type == nonlocal_)
         base = 1;
     for (Parameter *pt = st->u.default_var.var; pt != NULL; pt = pt->next){
-        char *name = NULL;
+        wchar_t *name = NULL;
         int times = 0;
         freeResult(result);
         getVarInfo(&name, &times, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list, result, belong));
@@ -540,7 +540,7 @@ bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG){
     return false;
 }
 
-ResultType operationCore(INTER_FUNCTIONSIG, char *name) {
+ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name) {
     Result left;
     Result right;
     LinkValue *_func_ = NULL;
@@ -560,7 +560,7 @@ ResultType operationCore(INTER_FUNCTIONSIG, char *name) {
         freeArgument(arg, true);
     }
     else {
-        char *message = memStrcat("Object not support ", name, false, false);
+        char *message = memStrcat("Object not support ", wcsToStr(name, false), false, true);
         setResultErrorSt(E_TypeException, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(message);
     }

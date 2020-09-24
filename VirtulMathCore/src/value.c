@@ -284,7 +284,7 @@ void setResultBase(Result *ru, Inter *inter) {
     useNoneValue(inter, ru);
 }
 
-void setResultErrorSt(BaseErrorType type, char *error_message, bool new, Statement *st, INTER_FUNCTIONSIG_NOT_ST) {
+void setResultErrorSt(BaseErrorType type, char *error_message, bool new, Statement *st, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 支持宽字符
     setResultError(type, error_message, st->line, st->code_file, new, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
@@ -334,7 +334,7 @@ LinkValue *findBaseError(BaseErrorType type, Inter *inter){
 }
 
 char *getErrorInfo(LinkValue *exc, int type, Inter *inter){
-    char *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
+    wchar_t *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
     LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
     if (_info_ != NULL && _info_->value->type == string)
         return wcsToStr(_info_->value->data.str.str, false);  // TODO-szh var使用宽字符
@@ -647,7 +647,7 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
                         else
                             print_comma = true;
                         printValue(tmp->name_->value, debug, false, false);
-                        fprintf(debug, " ['%s'] : ", tmp->name);
+                        fprintf(debug, " ['%ls'] : ", tmp->name);
                         printValue(tmp->value->value, debug, false, false);
                     }
                 }

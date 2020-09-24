@@ -81,7 +81,7 @@ void registeredObject(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_str,  object_str,  all_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("object", object, belong, inter);
+    addBaseClassVar(L"object", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

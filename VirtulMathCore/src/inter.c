@@ -1,4 +1,5 @@
 #include "__virtualmath.h"
+#define setName(str) strToWcs(str, false);
 
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
@@ -52,38 +53,38 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
 }
 
 void setBaseInterData(struct Inter *inter){
-    inter->data.var_str_prefix = memStrcpy("str_");
-    inter->data.var_num_prefix = memStrcpy("num_");
-    inter->data.var_none = memStrcpy("none");
-    inter->data.var_pass = memStrcpy("ellipsis");
-    inter->data.var_bool_prefix = memStrcpy("bool_");
-    inter->data.var_class_prefix = memStrcpy("class_");
-    inter->data.var_object_prefix = memStrcpy("obj_");
-    inter->data.object_init = memStrcpy("__init__");
-    inter->data.object_enter = memStrcpy("__enter__");
-    inter->data.object_exit = memStrcpy("__exit__");
-    inter->data.object_new = memStrcpy("__new__");
-    inter->data.object_add = memStrcpy("__add__");
-    inter->data.object_sub = memStrcpy("__sub__");
-    inter->data.object_mul = memStrcpy("__mul__");
-    inter->data.object_div = memStrcpy("__div__");
-    inter->data.object_call = memStrcpy("__call__");
-    inter->data.object_del = memStrcpy("__del__");
-    inter->data.object_down = memStrcpy("__down__");
-    inter->data.object_slice = memStrcpy("__slice__");
-    inter->data.object_iter = memStrcpy("__iter__");
-    inter->data.object_next = memStrcpy("__next__");
-    inter->data.object_repo = memStrcpy("__repo__");
-    inter->data.object_bool = memStrcpy("__bool__");
-    inter->data.object_self = memStrcpy("__self__");
-    inter->data.object_name = memStrcpy("__name__");
-    inter->data.object_father = memStrcpy("__father__");
-    inter->data.object_message = memStrcpy("__message__");
-    inter->data.object_str = memStrcpy("__str__");
-    inter->data.object_down_assignment = memStrcpy("__down_assignment__");
-    inter->data.object_slice_assignment = memStrcpy("__slice_assignment__");
-    inter->data.object_down_del = memStrcpy("__down_del__");
-    inter->data.object_slice_del = memStrcpy("__slice_del__");
+    inter->data.var_str_prefix = setName("str_");
+    inter->data.var_num_prefix = setName("num_");
+    inter->data.var_none = setName("none");
+    inter->data.var_pass = setName("ellipsis");
+    inter->data.var_bool_prefix = setName("bool_");
+    inter->data.var_class_prefix = setName("class_");
+    inter->data.var_object_prefix = setName("obj_");
+    inter->data.object_init = setName("__init__");
+    inter->data.object_enter = setName("__enter__");
+    inter->data.object_exit = setName("__exit__");
+    inter->data.object_new = setName("__new__");
+    inter->data.object_add = setName("__add__");
+    inter->data.object_sub = setName("__sub__");
+    inter->data.object_mul = setName("__mul__");
+    inter->data.object_div = setName("__div__");
+    inter->data.object_call = setName("__call__");
+    inter->data.object_del = setName("__del__");
+    inter->data.object_down = setName("__down__");
+    inter->data.object_slice = setName("__slice__");
+    inter->data.object_iter = setName("__iter__");
+    inter->data.object_next = setName("__next__");
+    inter->data.object_repo = setName("__repo__");
+    inter->data.object_bool = setName("__bool__");
+    inter->data.object_self = setName("__self__");
+    inter->data.object_name = setName("__name__");
+    inter->data.object_father = setName("__father__");
+    inter->data.object_message = setName("__message__");
+    inter->data.object_str = setName("__str__");
+    inter->data.object_down_assignment = setName("__down_assignment__");
+    inter->data.object_slice_assignment = setName("__slice_assignment__");
+    inter->data.object_down_del = setName("__down_del__");
+    inter->data.object_slice_del = setName("__slice_del__");
     inter->data.default_pt_type = free_;
 }
 
@@ -325,7 +326,7 @@ void printVarGC(char *tag, Inter *inter){
             printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
         }
 
-        printf("str_name = %s\n", base->name);
+        printf("str_name = %ls\n", base->name);
         printf("name = ");
         printValue(base->name_->value, stdout, false, true);
         printf("\nvalue = ");
@@ -362,7 +363,7 @@ void printToken(Token *tk) {
         if (eqWide(tmp,  L"\n"))
             tmp = L"\\n";
         if (eqWide(second_tmp, L"\n"))
-            second_tmp = (wchar_t *)L"\\n";
+            second_tmp = L"\\n";
         printf("<token str = ('%ls','%ls'), type = %d>", tmp, second_tmp, tk->token_type);
     }
     else

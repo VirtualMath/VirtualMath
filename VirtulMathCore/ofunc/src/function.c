@@ -72,7 +72,7 @@ void registeredFunction(REGISTERED_FUNCTIONSIG){
     LinkValue *object = inter->data.function;
     NameFunc tmp[] = {{NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("function", object, belong, inter);
+    addBaseClassVar(L"function", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

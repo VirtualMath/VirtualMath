@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-LinkValue *registeredFunctionCore(OfficialFunction of, char *name, INTER_FUNCTIONSIG_NOT_ST) {
+LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *value = NULL;
     makeCFunctionValue(of, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     value = result->value;
@@ -158,7 +158,7 @@ bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, INTER_
     return true;
 }
 
-void addBaseClassVar(char *name, LinkValue *obj, LinkValue *belong, Inter *inter) {
+void addBaseClassVar(wchar_t *name, LinkValue *obj, LinkValue *belong, Inter *inter) {
     Result result;
     setResultCore(&result);
     addStrVar(name, false, true, obj, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(inter->var_list, &result, belong));

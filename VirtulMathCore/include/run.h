@@ -14,7 +14,7 @@ typedef struct Parameter Parameter;
 typedef struct Argument Argument;
 typedef struct DecorationStatement DecorationStatement;
 
-typedef ResultType (*VarInfo)(char **name, int *times, INTER_FUNCTIONSIG);
+typedef ResultType (*VarInfo)(wchar_t **name, int *times, INTER_FUNCTIONSIG);
 
 ResultType globalIterStatement(Result *result, Inter *inter, Statement *st);
 bool operationSafeInterStatement(INTER_FUNCTIONSIG);

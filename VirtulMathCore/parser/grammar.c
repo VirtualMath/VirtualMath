@@ -1376,10 +1376,8 @@ void parserBaseValue(PASERSSIGNATURE){
             if (*value_token->data.second_str == NUL)
                 st = tmp;
             else {
-                char *ch = wcsToStr(value_token->data.second_str, false);
-                Statement *second_var = makeBaseVarStatement(ch, NULL, value_token->line, pm->file);
+                Statement *second_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line, pm->file);
                 st = makeCallStatement(second_var, makeValueParameter(tmp));
-                memFree(ch);
             }
             break;
         }
@@ -1390,10 +1388,8 @@ void parserBaseValue(PASERSSIGNATURE){
             if (*value_token->data.second_str == NUL)
                 st = tmp;
             else {
-                char *ch = wcsToStr(value_token->data.second_str, false);
-                Statement *sencod_var = makeBaseVarStatement(ch, NULL, value_token->line, pm->file);
+                Statement *sencod_var = makeBaseVarStatement(value_token->data.second_str, NULL, value_token->line, pm->file);
                 st = makeCallStatement(sencod_var, makeValueParameter(tmp));
-                memFree(ch);
             }
             break;
         }
@@ -1431,12 +1427,9 @@ void parserBaseValue(PASERSSIGNATURE){
             st = makeLambdaStatement(lambda_st, pt);
             break;
         }
-        case MATHER_VAR: {
-            char *ch = wcsToStr(value_token->data.str, false);
-            st = makeBaseVarStatement(ch, NULL, value_token->line, pm->file);
-            memFree(ch);
+        case MATHER_VAR:
+            st = makeBaseVarStatement(value_token->data.str, NULL, value_token->line, pm->file);
             break;
-        }
         case MATHER_SVAR: {
             Statement *svar_st = NULL;
             if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)) {
@@ -1464,12 +1457,9 @@ void parserBaseValue(PASERSSIGNATURE){
             }
             if (MATHER_VAR == readBackToken(pm)) {
                 Token *var_token;
-                char *ch;
                 var_token = popNewToken(pm->tm);
-                ch =  wcsToStr(var_token->data.str, false);
-                st = makeBaseVarStatement(ch, tmp_st, var_token->line, pm->file);
+                st = makeBaseVarStatement(var_token->data.str, tmp_st, var_token->line, pm->file);
                 freeToken(var_token, false);
-                memFree(ch);
             } else {
                 if (tmp_st == NULL)
                     st = makeTupleStatement(NULL, value_list, value_token->line, pm->file);

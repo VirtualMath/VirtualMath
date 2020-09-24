@@ -53,7 +53,7 @@ struct Statement{
             wchar_t *str;
         } base_value;
         struct base_var{
-            char *name;
+            wchar_t *name;
             struct Statement *times;
         } base_var;
         struct{
@@ -270,7 +270,7 @@ Statement *makeOperationStatement(enum OperationType type, Statement *left, Stat
 Statement *makeBaseLinkValueStatement(LinkValue *value, fline line, char *file);
 Statement *makeBaseStrValueStatement(wchar_t *value, enum BaseValueType type, fline line, char *file);
 Statement *makeBaseValueStatement(enum BaseValueType type, fline line, char *file);
-Statement *makeBaseVarStatement(char *name, Statement *times, fline line, char *file);
+Statement *makeBaseVarStatement(wchar_t *name, Statement *times, fline line, char *file);
 Statement *makeBaseSVarStatement(Statement *name, Statement *times);
 Statement *makeBaseDictStatement(Parameter *pt, fline line, char *file);
 Statement *makeTupleStatement(Parameter *pt, enum ListType type, fline line, char *file);

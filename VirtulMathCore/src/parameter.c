@@ -34,12 +34,12 @@ Argument *makeStatementNameArgument(LinkValue *value, Statement *name){
     return tmp;
 }
 
-Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *name) {
+Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, wchar_t *name) {
     Argument *tmp = makeArgument();
     tmp->type = name_arg;
     tmp->name_type = name_char;
     tmp->data.value = value;
-    tmp->data.name_ = memStrcpy(name);
+    tmp->data.name_ = memWidecpy(name);
     tmp->data.name_value = name_value;
     gc_addTmpLink(&value->gc_status);
     gc_addTmpLink(&name_value->gc_status);
@@ -66,7 +66,7 @@ Argument *connectStatementNameArgument(LinkValue *value, Statement *name, Argume
     return connectArgument(new, base);
 }
 
-Argument *connectCharNameArgument(LinkValue *value, LinkValue *name_value, char *name, Argument *base) {
+Argument *connectCharNameArgument(LinkValue *value, LinkValue *name_value, wchar_t *name, Argument *base) {
     Argument *new = makeCharNameArgument(value, name_value, name);
     return connectArgument(new, base);
 }
@@ -225,7 +225,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
     result->value = NULL;
     while (true) {
         LinkValue *name_ = NULL;
-        char *name = NULL;
+        wchar_t *name = NULL;
 
         freeResult(result);
         getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -340,7 +340,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
 
     for (*num = 0, *status = false; function != NULL; function = function->next){
         int int_times;
-        char *str_name = NULL;
+        wchar_t *str_name = NULL;
         Statement *name = function->type == name_par ? function->data.name : function->data.value;
         LinkValue *value = NULL;
         get = true;
@@ -458,7 +458,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
                     gc_freeTmpLink(&value->gc_status);
                     goto return_;
                 }
-                char *name_str = getNameFromValue(result->value->value, inter);
+                wchar_t *name_str = getNameFromValue(result->value->value, inter);
                 base = connectCharNameArgument(value, result->value, name_str, base);
                 memFree(name_str);
                 gc_freeTmpLink(&value->gc_status);
@@ -828,7 +828,8 @@ Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap){
 }
 
 int parserArgumentVar(ArgumentParser *ap, Inter *inter, VarList *var_list){
-    LinkValue *value = findStrVar(ap->name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    LinkValue *value = NULL;
+    findStrVar(ap->name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     ap->value = value;
     if (value != NULL)
         return 1;

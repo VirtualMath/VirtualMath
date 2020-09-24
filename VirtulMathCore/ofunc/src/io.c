@@ -2,7 +2,7 @@
 
 ResultType vm_print(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=true},
-                           {.type=name_value, .name="end", .must=0, .value=NULL},
+                           {.type=name_value, .name=L"end", .must=0, .value=NULL},
                            {.must=-1}};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -32,7 +32,7 @@ ResultType vm_print(OFFICAL_FUNCTIONSIG){
 
 ResultType vm_input(OFFICAL_FUNCTIONSIG){
     setResultCore(result);
-    ArgumentParser ap[] = {{.type=name_value, .name="message", .must=0, .value=NULL},
+    ArgumentParser ap[] = {{.type=name_value, .name=L"message", .must=0, .value=NULL},
                            {.must=-1}};
     wchar_t *str = memWidecpy(L"\0");
     wint_t ch;
@@ -53,8 +53,8 @@ ResultType vm_input(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredIOFunction(REGISTERED_FUNCTIONSIG){
-    NameFunc tmp[] = {{"print", vm_print, free_},
-                      {"input", vm_input, free_},
+    NameFunc tmp[] = {{L"print", vm_print, free_},
+                      {L"input", vm_input, free_},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

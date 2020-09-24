@@ -31,7 +31,7 @@ struct Argument{
     struct ArgumentData{
         struct LinkValue *value;
         struct Statement *name;  // 仅在name-value模式生效
-        char *name_;
+        wchar_t *name_;
         struct LinkValue *name_value;
     } data;
     struct Argument *next;
@@ -40,7 +40,7 @@ struct Argument{
 struct ArgumentParser{
     struct LinkValue *value;
     struct Argument *arg;
-    char *name;
+    wchar_t *name;
     enum ArgumentParserType{
         only_value,
         name_value,
@@ -58,11 +58,11 @@ typedef struct ArgumentParser ArgumentParser;
 Argument *makeArgument(void);
 Argument *makeValueArgument(LinkValue *value);
 Argument *makeStatementNameArgument(LinkValue *value, struct Statement *name);
-Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, char *name);
+Argument *makeCharNameArgument(LinkValue *value, LinkValue *name_value, wchar_t *name);
 Argument *connectArgument(Argument *new, Argument *base);
 Argument *connectValueArgument(LinkValue *value, Argument *base);
 Argument *connectStatementNameArgument(LinkValue *value, struct Statement *name, Argument *base);
-Argument *connectCharNameArgument(LinkValue *value, LinkValue *name_value, char *name, Argument *base);
+Argument *connectCharNameArgument(LinkValue *value, LinkValue *name_value, wchar_t *name, Argument *base);
 void freeArgument(Argument *at, bool free_st);
 
 Parameter *makeParameter(void);

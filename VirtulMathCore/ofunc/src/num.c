@@ -28,7 +28,7 @@ ResultType num_new(OFFICAL_FUNCTIONSIG){
 
 ResultType num_init(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.type=name_value, .name="num", .must=0, .long_arg=false},
+                           {.type=name_value, .name=L"num", .must=0, .long_arg=false},
                            {.must=-1}};
     LinkValue *base = NULL;
     setResultCore(result);
@@ -70,7 +70,7 @@ void registeredNum(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_init, num_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("num", object, belong, inter);
+    addBaseClassVar(L"num", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

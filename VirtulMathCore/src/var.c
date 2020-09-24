@@ -1,11 +1,11 @@
 #include "__virtualmath.h"
 
-Var *makeVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
+Var *makeVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     Var *list_tmp = inter->base_var;
     Var *tmp;
     tmp = memCalloc(1, sizeof(Var));
     setGC(&tmp->gc_status);
-    tmp->name = memStrcpy(name);
+    tmp->name = memWidecpy(name);
     tmp->value = copyLinkValue(value, inter);
     tmp->name_ = copyLinkValue(name_, inter);
     tmp->next = NULL;
@@ -100,10 +100,10 @@ VarList *freeVarList(VarList *vl) {
     return next_var;
 }
 
-DefaultVar *makeDefaultVar(char *name, vnum times) {
+DefaultVar *makeDefaultVar(wchar_t *name, vnum times) {
     DefaultVar *tmp;
     tmp = memCalloc(1, sizeof(DefaultVar));
-    tmp->name = memStrcpy(name);
+    tmp->name = memWidecpy(name);
     tmp->times = times;
     tmp->next = NULL;
     return tmp;
@@ -116,13 +116,13 @@ DefaultVar *freeDefaultVar(DefaultVar *dv) {
     return next;
 }
 
-DefaultVar *connectDefaultVar(DefaultVar *base, char *name, vnum times) {
+DefaultVar *connectDefaultVar(DefaultVar *base, wchar_t *name, vnum times) {
     for (DefaultVar **tmp = &base; PASS; tmp = &(*tmp)->next){
         if (*tmp == NULL){
             *tmp = makeDefaultVar(name, times);
             break;
         }
-        if (eqString((*tmp)->name, name)){
+        if (eqWide((*tmp)->name, name)){
             (*tmp)->times = times;
             break;
         }
@@ -130,9 +130,9 @@ DefaultVar *connectDefaultVar(DefaultVar *base, char *name, vnum times) {
     return base;
 }
 
-vnum findDefault(DefaultVar *base, char *name) {
+vnum findDefault(DefaultVar *base, wchar_t *name) {
     for (DefaultVar **tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
-        if (eqString((*tmp)->name, name))
+        if (eqWide((*tmp)->name, name))
             return (*tmp)->times;
     return 0;
 }
@@ -142,19 +142,19 @@ vnum findDefault(DefaultVar *base, char *name) {
  * @param key
  * @return
  */
-vhashn time33(char *key){ // hash function
+vhashn time33(wchar_t *key){ // hash function
     vhashn hash = 5381;
     while(*key)
         hash += (hash << (vhashn)5) + (*key++);
     return (hash & (vhashn)0x7FFFFFFF) % MAX_SIZE;
 }
 
-static void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name_, Inter *inter) {
+static void addVarCore(Var **base, wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     for (PASS; true; base = &(*base)->next) {
         if (*base == NULL) {
             *base = makeVar(name, value, name_, inter);
             break;
-        } else if (eqString((*base)->name, name)) {
+        } else if (eqWide((*base)->name, name)) {
             (*base)->value->value = value->value;
             (*base)->value->belong = value->belong;
             break;
@@ -162,7 +162,7 @@ static void addVarCore(Var **base, char *name, LinkValue *value, LinkValue *name
     }
 }
 
-void addVar(char *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht) {
+void addVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht) {
     vhashn index = time33(name);
     addVarCore(&ht->hashtable[index], name, value, name_, inter);
 }
@@ -174,11 +174,11 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
 }
 
 
-LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *ht) {
+LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTable *ht) {
     LinkValue *tmp = NULL;
     vhashn index = time33(name);
     for (Var **base = &ht->hashtable[index]; *base != NULL; base = &(*base)->next){
-        if (eqString((*base)->name, name)){
+        if (eqWide((*base)->name, name)){
             tmp = (*base)->value;
             if (operating == del_var) {
                 Var *next = (*base)->next;
@@ -199,7 +199,7 @@ LinkValue *findVar(char *name, VarOperation operating, Inter *inter, HashTable *
  * @param var_list
  * @return
  */
-LinkValue *findFromVarList(char *name, vnum times, VarOperation operating, INTER_FUNCTIONSIG_CORE) {
+LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, INTER_FUNCTIONSIG_CORE) {
     LinkValue *tmp = NULL;
     vnum base = findDefault(var_list->default_var, name) + times;
     for (vnum i = 0; i < base && var_list->next != NULL; i++)
@@ -212,7 +212,7 @@ LinkValue *findFromVarList(char *name, vnum times, VarOperation operating, INTER
     return tmp;
 }
 
-void addFromVarList(char *name, LinkValue *name_, vnum times, LinkValue *value, INTER_FUNCTIONSIG_CORE) {
+void addFromVarList(wchar_t *name, LinkValue *name_, vnum times, LinkValue *value, INTER_FUNCTIONSIG_CORE) {
     vnum base = findDefault(var_list->default_var, name) + times;
     for (vnum i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;

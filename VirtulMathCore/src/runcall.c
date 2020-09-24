@@ -113,7 +113,7 @@ ResultType setLambda(INTER_FUNCTIONSIG) {
 ResultType elementSlice(INTER_FUNCTIONSIG) {
     LinkValue *element = NULL;
     LinkValue *_func_ = NULL;
-    char *func_name = NULL;
+    wchar_t *func_name = NULL;
     setResultCore(result);
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.slice_.element, var_list, result, belong)))
         return result->type;

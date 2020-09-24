@@ -22,7 +22,7 @@ struct Inherit;
 struct Inter;
 
 struct NameFunc{
-    char *name;
+    wchar_t *name;
     OfficialFunction of;
     enum FunctionPtType type;
 };

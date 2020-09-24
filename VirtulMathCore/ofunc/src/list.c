@@ -368,7 +368,7 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         return error_return;
     }
     lt = value->data.list.type;
-    again = findAttributes(is_repo ? "repo_again" : "str_again", false, ap[0].value, inter);
+    again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, ap[0].value, inter);
     if (again != NULL){
         bool again_ = checkBool(again, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
@@ -379,7 +379,7 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         }
     }
 
-    setBoolAttrible(true, is_repo ? "repo_again" : "str_again", 0, "list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setBoolAttrible(true, is_repo ? L"repo_again" : L"str_again", 0, "list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (lt == value_list)
         repo = memWidecpy(L"[");
     else
@@ -405,7 +405,7 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     {
         Result tmp;
         setResultCore(&tmp);
-        setBoolAttrible(false, is_repo ? "repo_again" : "str_again", 0, "list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
+        setBoolAttrible(false, is_repo ? L"repo_again" : L"str_again", 0, "list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
         if (!RUN_TYPE(tmp.type)) {
             freeResult(result);
             *result = tmp;
@@ -437,7 +437,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
                           {inter->data.object_slice_del, list_slice_del, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
-        addBaseClassVar("tuple", object, belong, inter);
+        addBaseClassVar(L"tuple", object, belong, inter);
         iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
         gc_freeTmpLink(&object->gc_status);
     }
@@ -449,7 +449,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
                           {inter->data.object_slice_assignment, list_slice_assignment, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
-        addBaseClassVar("list", object, belong, inter);
+        addBaseClassVar(L"list", object, belong, inter);
         iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
         gc_freeTmpLink(&object->gc_status);
     }

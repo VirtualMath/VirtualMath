@@ -92,10 +92,10 @@ Statement *makeBaseValueStatement(enum BaseValueType type, fline line, char *fil
     return tmp;
 }
 
-Statement *makeBaseVarStatement(char *name, Statement *times, fline line, char *file){
+Statement *makeBaseVarStatement(wchar_t *name, Statement *times, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
     tmp->type = base_var;
-    tmp->u.base_var.name = memStrcpy(name);
+    tmp->u.base_var.name = memWidecpy(name);
     tmp->u.base_var.times = times;
     return tmp;
 }
@@ -536,7 +536,7 @@ Statement *copyStatementCore(Statement *st){
             new->u.operation.left = copyStatement(st->u.operation.left);
             break;
         case base_var:
-            new->u.base_var.name = memStrcpy(st->u.base_var.name);
+            new->u.base_var.name = memWidecpy(st->u.base_var.name);
             new->u.base_var.times = copyStatement(st->u.base_var.times);
             break;
         case del_:

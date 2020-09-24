@@ -56,7 +56,7 @@ ResultType vobject_opt_core(OFFICAL_FUNCTIONSIG, base_opt func){
     Value *left = NULL;
     Value *right = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.type=name_value, .name="right", .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"right", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     {
@@ -193,7 +193,7 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_str, vobject_repo, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("vobject", object, belong, inter);
+    addBaseClassVar(L"vobject", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

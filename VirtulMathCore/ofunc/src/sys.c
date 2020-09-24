@@ -4,8 +4,8 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
     Value *arg_father = NULL;
     Value *arg_child = NULL;
     LinkValue *next_father = NULL;
-    ArgumentParser ap[] = {{.type=name_value, .name="class_", .must=1, .long_arg=false},
-                           {.type=name_value, .name="obj_", .must=1, .long_arg=false},
+    ArgumentParser ap[] = {{.type=name_value, .name=L"class_", .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"obj_", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -46,7 +46,7 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
 
 ResultType vm_setMethodCore(OFFICAL_FUNCTIONSIG, enum FunctionPtType type){
     LinkValue *function_value = NULL;
-    ArgumentParser ap[] = {{.type=name_value, .name="func", .must=1, .long_arg=false}, {.must=-1}};
+    ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
     setResultCore(result);
     {
         parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -103,16 +103,16 @@ ResultType vm_quit(OFFICAL_FUNCTIONSIG){
 }
 
 void registeredSysFunction(REGISTERED_FUNCTIONSIG){
-    NameFunc tmp[] = {{"super", vm_super, free_},
-                      {"freemethod", vm_freemethod, free_},
-                      {"staticmethod", vm_staticmethod, free_},
-                      {"staticclassmethod", vm_classmethod, free_},
-                      {"staticobjectmethod", vm_objectmethod, free_},
-                      {"classmethod", vm_classfreemethod, free_},
-                      {"objectmethod", vm_objectfreemethod, free_},
-                      {"simplemethod", vm_allfreemethod, free_},
-                      {"simplestaticmethod", vm_allstaticmethod, free_},
-                      {"quit", vm_quit, free_},
+    NameFunc tmp[] = {{L"super", vm_super, free_},
+                      {L"freemethod", vm_freemethod, free_},
+                      {L"staticmethod", vm_staticmethod, free_},
+                      {L"staticclassmethod", vm_classmethod, free_},
+                      {L"staticobjectmethod", vm_objectmethod, free_},
+                      {L"classmethod", vm_classfreemethod, free_},
+                      {L"objectmethod", vm_objectfreemethod, free_},
+                      {L"simplemethod", vm_allfreemethod, free_},
+                      {L"simplestaticmethod", vm_allstaticmethod, free_},
+                      {L"quit", vm_quit, free_},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
 }

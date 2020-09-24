@@ -29,7 +29,7 @@ void registeredEllipisis(REGISTERED_FUNCTIONSIG){
     NameFunc tmp[] = {{inter->data.object_new, pass_new, class_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("ellipsis", object, belong, inter);
+    addBaseClassVar(L"ellipsis", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

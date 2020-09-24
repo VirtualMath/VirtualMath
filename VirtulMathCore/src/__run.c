@@ -1,9 +1,6 @@
 #include "__run.h"
 
-
-ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
-    wchar_t *wcs_name;
-
+ResultType getBaseVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     *name = setStrVarName(st->u.base_var.name, false, inter);
     *times = 0;
     if (st->u.base_var.times == NULL){
@@ -20,13 +17,11 @@ ResultType getBaseVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     freeResult(result);
 
     not_times:
-    wcs_name = strToWcs(st->u.base_var.name, false);
-    makeStringValue(wcs_name, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    memFree(wcs_name);
+    makeStringValue(st->u.base_var.name, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
-ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
+ResultType getBaseSVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     freeResult(result);
 
     if (st->u.base_svar.times == NULL){
@@ -52,7 +47,7 @@ ResultType getBaseSVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
+ResultType getVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     if (st->type == base_var)
         getBaseVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     else if (st->type == base_svar)
@@ -66,46 +61,46 @@ ResultType getVarInfo(char **name, int *times, INTER_FUNCTIONSIG){
     return result->type;
 }
 
-char *setStrVarName(char *old, bool free_old, Inter *inter) {
-    return memStrcat(inter->data.var_str_prefix, old, false, free_old);
+wchar_t *setStrVarName(wchar_t *old, bool free_old, Inter *inter) {
+    return memWidecat(inter->data.var_str_prefix, old, false, free_old);
 }
 
-char *setNumVarName(vnum num, struct Inter *inter) {
-    char name[50];
-    snprintf(name, 50, "%lld", num);
-    return memStrcat(inter->data.var_num_prefix, name, false, false);
+wchar_t *setNumVarName(vnum num, struct Inter *inter) {
+    wchar_t name[50];
+    swprintf(name, 50, L"%lld", num);
+    return memWidecat(inter->data.var_num_prefix, name, false, false);
 }
 
-char *getNameFromValue(Value *value, struct Inter *inter) {
+wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
         case string:
-            return setStrVarName(wcsToStr(value->data.str.str, false), true, inter);  // TODO-szh VAR使用宽字符
+            return setStrVarName(value->data.str.str, true, inter);  // TODO-szh VAR使用宽字符
         case number:
             return setNumVarName(value->data.num.num, inter);
         case bool_:
             if (value->data.bool_.bool_)
-                return memStrcat(inter->data.var_bool_prefix, "true", false, false);
+                return memWidecat(inter->data.var_bool_prefix, L"true", false, false);
             else
-                return memStrcat(inter->data.var_bool_prefix, "false", false, false);
+                return memWidecat(inter->data.var_bool_prefix, L"false", false, false);
         case none:
-            return memStrcpy(inter->data.var_none);
+            return memWidecpy(inter->data.var_none);
         case pass_:
-            return memStrcpy(inter->data.var_pass);
+            return memWidecpy(inter->data.var_pass);
         case class:{
-            size_t len = memStrlen(inter->data.var_class_prefix) + 20;
-            char *name = memString(len);
-            char *return_ = NULL;
-            snprintf(name, len, "%s%p", inter->data.var_class_prefix, value);
-            return_ = memStrcpy(name);
+            size_t len = memWidelen(inter->data.var_class_prefix) + 20;  // 预留20个字节给指针
+            wchar_t *name = memWide(len);
+            wchar_t *return_ = NULL;
+            swprintf(name, len, L"%ls%p", inter->data.var_class_prefix, value);
+            return_ = memWidecpy(name);  // 再次复制去除多余的空字节
             memFree(name);
             return return_;
         }
         default:{
-            size_t len = memStrlen(inter->data.var_object_prefix) + 20;
-            char *name = memString(len);
-            char *return_ = NULL;
-            snprintf(name, len, "%s%p", inter->data.var_object_prefix, value);
-            return_ = memStrcpy(name);
+            size_t len = memWidelen(inter->data.var_object_prefix) + 20;
+            wchar_t *name = memWide(len);
+            wchar_t *return_ = NULL;
+            swprintf(name, len, L"%ls%p", inter->data.var_object_prefix, value);
+            return_ = memWidecpy(name);  // 再次复制去除多余的空字节
             memFree(name);
             return return_;
         }
@@ -274,23 +269,23 @@ void freeFunctionArgument(Argument *arg, Argument *base) {
     }
 }
 
-LinkValue *findStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
+LinkValue *findStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     LinkValue *tmp = NULL;
-    char *name_ = setStrVarName(name, free_old, inter);
+    wchar_t *name_ = setStrVarName(name, free_old, inter);
     tmp = findFromVarList(name_, 0, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(name_);
     return tmp;
 }
 
-LinkValue *checkStrVar(char *name, bool free_old, INTER_FUNCTIONSIG_CORE){
+LinkValue *checkStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     LinkValue *tmp = NULL;
-    char *name_ = setStrVarName(name, free_old, inter);
+    wchar_t *name_ = setStrVarName(name, free_old, inter);
     tmp = findFromVarList(name_, 0, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(name_);
     return tmp;
 }
 
-void addStrVarCore(int setting, char *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, INTER_FUNCTIONSIG_NOT_ST) {
+void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, INTER_FUNCTIONSIG_NOT_ST) {
     addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     out_var = out_var == NULL ? var_list : out_var;
     if (setting)
@@ -299,13 +294,12 @@ void addStrVarCore(int setting, char *var_name, LinkValue *name_, LinkValue *val
         setResult(result, inter, belong);
 }
 
-void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *name_;
-    char *var_name = setStrVarName(name, free_old, inter);
-    wchar_t *wcs_name = strToWcs(name, false);
+    wchar_t *var_name = setStrVarName(name, free_old, inter);
     setResultCore(result);
 
-    makeStringValue(wcs_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(var_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -317,24 +311,22 @@ void addStrVar(char *name, bool free_old, bool setting, LinkValue *value, fline 
 
     gc_freeTmpLink(&name_->gc_status);
     return_:
-    memFree(wcs_name);
     memFree(var_name);
 }
 
-LinkValue *findAttributes(char *name, bool free_old, LinkValue *value, Inter *inter) {
+LinkValue *findAttributes(wchar_t *name, bool free_old, LinkValue *value, Inter *inter) {
     LinkValue *attr = findStrVar(name, free_old, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
     if (attr != NULL && (attr->belong == NULL || attr->belong->value != value->value && checkAttribution(value->value, attr->belong->value)))
         attr->belong = value;
     return attr;
 }
 
-bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    char *var_name = setStrVarName(name, free_old, inter);
-    wchar_t *wcs_name = strToWcs(name, false);
+bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    wchar_t *var_name = setStrVarName(name, free_old, inter);
     LinkValue *name_;
     setResultCore(result);
 
-    makeStringValue(wcs_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(var_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -349,7 +341,6 @@ bool addAttributes(char *name, bool free_old, LinkValue *value, fline line, char
     gc_freeTmpLink(&name_->gc_status);
     return_:
     memFree(var_name);
-    memFree(wcs_name);
     return CHECK_RESULT(result);
 }
 
@@ -506,7 +497,7 @@ int init_new(LinkValue *obj, Argument *arg, char *message, INTER_FUNCTIONSIG_NOT
     return CHECK_RESULT(result) ? 1 : -1;
 }
 
-bool setBoolAttrible(bool value, char *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST) {
+bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *bool_value = NULL;
     setResultCore(result);
     makeBoolValue(value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

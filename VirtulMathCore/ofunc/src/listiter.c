@@ -2,7 +2,7 @@
 
 ResultType listiter_init(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.type=name_value, .name="list_", .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"list_", .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *index = NULL;
     setResultCore(result);
@@ -20,9 +20,9 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
 
     freeResult(result);
-    if (addAttributes("__list", false, ap[1].value, 0, "listiter.init", ap[0].value, result, inter, var_list)) {
+    if (addAttributes(L"__list", false, ap[1].value, 0, "listiter.init", ap[0].value, result, inter, var_list)) {
         freeResult(result);
-        addAttributes("__index", false, index, 0, "listiter.init", ap[0].value, result, inter, var_list);
+        addAttributes(L"__index", false, index, 0, "listiter.init", ap[0].value, result, inter, var_list);
     }
 
     setResult(result, inter, belong);
@@ -38,8 +38,8 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
-    list_ = findAttributes("__list", false, ap[0].value, inter);
-    index = findAttributes("__index", false, ap[0].value, inter);
+    list_ = findAttributes(L"__list", false, ap[0].value, inter);
+    index = findAttributes(L"__index", false, ap[0].value, inter);
 
     if (list_->value->type != list){
         setResultError(E_TypeException, VALUE_ERROR(listiter.__list, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -62,7 +62,7 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
         Result tmp_result;
         setResultCore(&tmp_result);
         index->value->data.num.num ++;
-        if (addAttributes("__index", false, index, 0, "listiter.next", ap[0].value, &tmp_result, inter, var_list))
+        if (addAttributes(L"__index", false, index, 0, "listiter.next", ap[0].value, &tmp_result, inter, var_list))
             freeResult(&tmp_result);
         else {
             freeResult(result);
@@ -78,7 +78,7 @@ void registeredListIter(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_next, listiter_next, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar("listiter", object, belong, inter);
+    addBaseClassVar(L"listiter", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

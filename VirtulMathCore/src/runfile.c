@@ -253,8 +253,11 @@ ResultType importFile(INTER_FUNCTIONSIG) {
     if (!getPackage(&imp_value, md5_str, split_path, status, &path, &is_new, is_lock, CALL_INTER_FUNCTIONSIG(file, var_list, result, belong)))
         goto return_;
     freeResult(result);
-    if (st->u.import_file.as == NULL)
-        addStrVar(split_path, false, is_new, imp_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (st->u.import_file.as == NULL) {
+        wchar_t *name_ = strToWcs(split_path, false);
+        addStrVar(name_, false, is_new, imp_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        memFree(name_);
+    }
     else
         assCore(st->u.import_file.as, imp_value, false, is_new, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 

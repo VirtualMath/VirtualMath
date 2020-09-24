@@ -167,7 +167,7 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    to_list = findAttributes("to_list", false, ap[0].value, inter);
+    to_list = findAttributes(L"to_list", false, ap[0].value, inter);
     if (to_list == NULL){
         setResultError(E_TypeException, "String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return error_return;
@@ -188,14 +188,14 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
 
 void registeredStr(REGISTERED_FUNCTIONSIG){
     LinkValue *object = inter->data.str;
-    NameFunc tmp[] = {{"to_list", str_to_list, object_free_},
+    NameFunc tmp[] = {{L"to_list", str_to_list, object_free_},
                       {inter->data.object_iter, str_iter, object_free_},
                       {inter->data.object_down, str_down, object_free_},
                       {inter->data.object_slice, str_slice, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
-    addBaseClassVar("str", object, belong, inter);
+    addBaseClassVar(L"str", object, belong, inter);
     gc_freeTmpLink(&object->gc_status);
 }
 
@@ -216,11 +216,11 @@ LinkValue *callClassOf(LinkValue *obj, Inter *inter, LinkValue *new_func, LinkVa
     return new_name;
 }
 
-LinkValue *makeStrFromOf(LinkValue *str, LinkValue *new, LinkValue *init, char *str_, Inter *inter) {
+LinkValue *makeStrFromOf(LinkValue *str, LinkValue *new, LinkValue *init, wchar_t *str_, Inter *inter) {
     LinkValue *return_;
     return_ = callClassOf(str, inter, new, init);
     memFree(return_->value->data.str.str);
-    return_->value->data.str.str = strToWcs(str_, false);
+    return_->value->data.str.str = memWidecpy(str_);
     return return_;
 }
 
@@ -242,11 +242,11 @@ void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func
 
     LinkValue *new_func = NULL;
     LinkValue *new_name = NULL;
-    char *new_name_ = setStrVarName(inter->data.object_new, false, inter);
+    wchar_t *new_name_ = setStrVarName(inter->data.object_new, false, inter);
 
     LinkValue *init_func = NULL;
     LinkValue *init_name = NULL;
-    char *init_name_ = setStrVarName(inter->data.object_init, false, inter);
+    wchar_t *init_name_ = setStrVarName(inter->data.object_init, false, inter);
 
     new_func = makeFunctionFromValue(func, func_new, func_init, str_new, obj, obj->value->object.var, inter);
     new_func->value->data.function.function_data.pt_type = class_free_;

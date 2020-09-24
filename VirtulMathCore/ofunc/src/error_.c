@@ -9,7 +9,7 @@ static LinkValue *makeException(LinkValue *father, Inter *inter){
 
 ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.type=name_value, .name="message", .must=0, .long_arg=false},
+                           {.type=name_value, .name=L"message", .must=0, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -24,33 +24,33 @@ ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
 
 void registeredExcIter(REGISTERED_FUNCTIONSIG){
     struct {
-        char *name;
+        wchar_t *name;
         LinkValue *value;
-    } setList[] = {{"Exception", inter->data.exc},
-                   {"SystemException", inter->data.sys_exc},
-                   {"KeyboardInterrupt", inter->data.keyInterrupt_exc},
-                   {"QuitException", inter->data.quit_exc},
-                   {"TypeException", inter->data.type_exc},
-                   {"ArgumentException", inter->data.arg_exc},
-                   {"PermissionsException", inter->data.per_exc},
-                   {"ResultException", inter->data.result_exc},
-                   {"GotoException", inter->data.goto_exc},
-                   {"NameException", inter->data.name_exc},
-                   {"AssertException", inter->data.assert_exc},
-                   {"IndexException", inter->data.index_exc},
-                   {"KeyException", inter->data.key_exc},
-                   {"StrideException", inter->data.stride_exc},
-                   {"IncludeException", inter->data.include_exp},
-                   {"ImportException", inter->data.import_exc},
-                   {"IterStopException", inter->data.iterstop_exc},
-                   {"SuperException", inter->data.super_exc},
+    } setList[] = {{L"Exception", inter->data.exc},
+                   {L"SystemException", inter->data.sys_exc},
+                   {L"KeyboardInterrupt", inter->data.keyInterrupt_exc},
+                   {L"QuitException", inter->data.quit_exc},
+                   {L"TypeException", inter->data.type_exc},
+                   {L"ArgumentException", inter->data.arg_exc},
+                   {L"PermissionsException", inter->data.per_exc},
+                   {L"ResultException", inter->data.result_exc},
+                   {L"GotoException", inter->data.goto_exc},
+                   {L"NameException", inter->data.name_exc},
+                   {L"AssertException", inter->data.assert_exc},
+                   {L"IndexException", inter->data.index_exc},
+                   {L"KeyException", inter->data.key_exc},
+                   {L"StrideException", inter->data.stride_exc},
+                   {L"IncludeException", inter->data.include_exp},
+                   {L"ImportException", inter->data.import_exc},
+                   {L"IterStopException", inter->data.iterstop_exc},
+                   {L"SuperException", inter->data.super_exc},
                    {NULL, NULL}};
     {
         LinkValue *object = inter->data.base_exc;
-        NameFunc tmp[] = {{"__init__", base_exception_init, object_free_},
+        NameFunc tmp[] = {{L"__init__", base_exception_init, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
-        addBaseClassVar("BaseException", object, belong, inter);
+        addBaseClassVar(L"BaseException", object, belong, inter);
         iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
         gc_freeTmpLink(&object->gc_status);
     }
