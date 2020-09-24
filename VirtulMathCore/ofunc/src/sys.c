@@ -62,6 +62,14 @@ ResultType vm_setMethodCore(OFFICAL_FUNCTIONSIG, enum FunctionPtType type){
     return operation_return;
 }
 
+ResultType vm_clsfreemethod(OFFICAL_FUNCTIONSIG){
+    return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), cls_free_);
+}
+
+ResultType vm_clsmethod(OFFICAL_FUNCTIONSIG){
+    return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), cls_static_);
+}
+
 ResultType vm_freemethod(OFFICAL_FUNCTIONSIG){
     return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), free_);
 }
@@ -112,6 +120,8 @@ void registeredSysFunction(REGISTERED_FUNCTIONSIG){
                       {L"objectmethod", vm_objectfreemethod, free_},
                       {L"simplemethod", vm_allfreemethod, free_},
                       {L"simplestaticmethod", vm_allstaticmethod, free_},
+                      {L"clsmethod", vm_clsfreemethod, free_},
+                      {L"clsstaticmethod", vm_clsmethod, free_},
                       {L"quit", vm_quit, free_},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));

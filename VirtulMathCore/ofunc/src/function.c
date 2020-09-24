@@ -1,7 +1,8 @@
 #include "__ofunc.h"
 
-static void setFunctionData(Value *value, Inter *inter) {
+static void setFunctionData(Value *value, LinkValue *cls, Inter *inter) {
     value->data.function.function_data.pt_type = inter->data.default_pt_type;
+    value->data.function.function_data.cls = cls;
 }
 
 ResultType function_new(OFFICAL_FUNCTIONSIG){
@@ -28,7 +29,7 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     value->value->data.function.function = NULL;
     value->value->data.function.pt = NULL;
     value->value->data.function.of = NULL;
-    setFunctionData(value->value, inter);
+    setFunctionData(value->value, ap->value, inter);
 
     switch (init_new(value, arg, "function.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
         case 1:

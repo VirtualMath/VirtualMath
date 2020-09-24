@@ -92,6 +92,9 @@ static void gc_iterValue(Value *value){
         case dict:
             gc_iterHashTable(value->data.dict.dict);
             break;
+        case function:
+            gc_iterLinkValue(value->data.function.function_data.cls);
+            break;
         default:
             break;
     }

@@ -140,7 +140,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
     switch (pt_sep) {
         case 0:
             func = _func;
-            self = _func->belong;
+            self = pt_type == cls_free_ || pt_type == cls_static_ ? _func->value->data.function.function_data.cls : _func->belong;
             *base = *arg;
             break;
         case 1: {
@@ -208,6 +208,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
                 tmp->next = *arg;
             *arg = tmp;
             break;
+        case cls_static_:
         case all_static_:
             tmp = makeValueArgument(func);
             tmp->next = makeValueArgument(self);
@@ -248,6 +249,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
                 *arg = tmp;
             }
             break;
+        case cls_free_:
         case all_free_:
             tmp = makeValueArgument(self);
             tmp->next = *arg;

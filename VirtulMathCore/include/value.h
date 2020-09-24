@@ -73,10 +73,13 @@ struct Function{
             object_static_,  // self参数不允许class
             class_static_,  // self参数允许一切，但转换为类
             all_static_, // self参数允许一切
+            cls_static_,  // 使用function自带的cls作为参数
             object_free_,  // 同object_static_但不包含func参数
             class_free_,  // 同object_static_但不包含func参数
             all_free_,  // 允许class或者object
+            cls_free_,  // 使用function自带的cls作为参数
         } pt_type;
+        LinkValue *cls;
     } function_data;
 };
 

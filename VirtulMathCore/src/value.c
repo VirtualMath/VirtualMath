@@ -93,6 +93,7 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, INTER_FUNCTIONSIG_NOT_S
     tmp = result->value->value;
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
+    tmp->data.function.function_data.cls = belong;
     for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
         vl_next = vl->next;
         freeVarList(vl);
@@ -112,6 +113,7 @@ Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, INTER_FUN
     tmp->data.function.type = c_function;
     tmp->data.function.of = of;
     tmp->data.function.function_data.pt_type = inter->data.default_pt_type;
+    tmp->data.function.function_data.cls = belong;
     for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
         vl_next = vl->next;
         freeVarList(vl);
@@ -142,6 +144,7 @@ LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFun
     return_->value->data.function.type = c_function;
     return_->value->data.function.of = of;
     return_->value->data.function.function_data.pt_type = inter->data.default_pt_type;
+    return_->value->data.function.function_data.cls = belong;
     for (VarList *vl = return_->value->object.out_var; vl != NULL; vl = freeVarList(vl))
         PASS;
     return_->value->object.out_var = copyVarList(var_list, false, inter);
