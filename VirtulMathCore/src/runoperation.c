@@ -39,7 +39,7 @@ ResultType operationStatement(INTER_FUNCTIONSIG) {
             blockOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
         default:
-            setResult(result, inter, belong);
+            setResult(result, inter);
             break;
     }
     return result->type;
@@ -51,20 +51,20 @@ ResultType blockOperation(INTER_FUNCTIONSIG) {
     if ((yield_run = popStatementVarList(st, &var_list, var_list, inter)))
         info_st = st->info.node;
     blockSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_st, var_list, result, belong));
-    if (result->type == error_return)
+    if (result->type == R_error)
         return result->type;
     else if (yield_run) {
-        if (result->type == yield_return){
+        if (result->type == R_yield){
             updateFunctionYield(st, result->node);
-            result->type = operation_return;
+            result->type = R_opt;
         }
         else
             freeRunInfo(st);
     }
     else {
-        if (result->type == yield_return){
+        if (result->type == R_yield){
             newFunctionYield(st, result->node, var_list, inter);
-            result->type = operation_return;
+            result->type = R_opt;
         }
         else
             popVarList(var_list);
@@ -155,7 +155,7 @@ ResultType varDel(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
         }
     }
     findFromVarList(str_name, int_times, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return_:
     memFree(str_name);
     return result->type;
@@ -305,7 +305,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     }
 
     freeResult(result);
-    result->type = operation_return;
+    result->type = R_opt;
     result->value = value;
     gc_addTmpLink(&result->value->gc_status);
 
@@ -433,7 +433,7 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
     setResultCore(result);
     if (st->u.base_value.type == link_value) {
         result->value = st->u.base_value.value;
-        result->type = operation_return;
+        result->type = R_opt;
         gc_addTmpLink(&result->value->gc_status);
     }
     else

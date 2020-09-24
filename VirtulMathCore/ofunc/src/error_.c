@@ -2,7 +2,7 @@
 
 
 static LinkValue *makeException(LinkValue *father, Inter *inter){
-    LinkValue *exc = makeBaseChildClass4(father, inter);
+    LinkValue *exc = makeBaseChildClass(father, inter);
     gc_addStatementLink(&exc->gc_status);
     return exc;
 }
@@ -18,7 +18,7 @@ ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
     freeResult(result);
     if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", ap[0].value, result,
                       inter, var_list))
-        setResult(result, inter, belong);
+        setResult(result, inter);
     return result->type;
 }
 

@@ -135,16 +135,16 @@ struct LinkValue {
 
 struct Result {
     enum ResultType {
-        not_return = 1,  // 无返回值
-        function_return=2,  // 函数返回值
-        operation_return=3,  // 表达式返回值
-        error_return=4,  // 错误
-        break_return=5,
-        continue_return=6,
-        rego_return=7,
-        restart_return=8,
-        goto_return=9,
-        yield_return=10,
+        R_not = 1,  // 无返回值
+        R_func=2,  // 函数返回值
+        R_opt=3,  // 表达式返回值
+        R_error=4,  // 错误
+        R_break=5,
+        R_continue=6,
+        R_rego=7,
+        R_restart=8,
+        R_goto=9,
+        R_yield=10,
     } type;
     wchar_t *label;
     struct LinkValue *value;
@@ -154,7 +154,7 @@ struct Result {
 };
 
 struct Error {
-    char *type;
+    char *type;  // TODO-szh 此处使用message
     char *messgae;
     char *file;
     fline line;
@@ -213,7 +213,7 @@ Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, 
 Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 
 void setResultCore(Result *ru);
-void setResult(Result *ru, Inter *inter, LinkValue *belong);
+void setResult(Result *ru, Inter *inter);
 void setResultBase(Result *ru, Inter *inter);
 void setResultErrorSt(BaseErrorType type, char *error_message, bool new, INTER_FUNCTIONSIG);
 void setResultError(BaseErrorType type, char *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST);

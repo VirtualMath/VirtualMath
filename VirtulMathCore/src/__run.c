@@ -42,7 +42,7 @@ ResultType getBaseSVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
         return result->type;
 
     *name = getNameFromValue(result->value->value, inter);
-    result->type = operation_return;  // 执行 operationSafeInterStatement 的时候已经初始化 result
+    result->type = R_opt;  // 执行 operationSafeInterStatement 的时候已经初始化 result
 
     return result->type;
 }
@@ -74,7 +74,7 @@ wchar_t *setNumVarName(vnum num, struct Inter *inter) {
 wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
         case string:
-            return setStrVarName(value->data.str.str, true, inter);  // TODO-szh VAR使用宽字符
+            return setStrVarName(value->data.str.str, true, inter);
         case number:
             return setNumVarName(value->data.num.num, inter);
         case bool_:
@@ -158,7 +158,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             } else {
                 error_:
                 setResultError(E_ArgumentException, FEW_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                return error_return;
+                return R_error;
             }
             break;
         }
@@ -175,12 +175,12 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
         }
         default:
             setResultError(E_ArgumentException, MANY_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            return error_return;
+            return R_error;
     }
 
     if (pt_type != free_ && self == NULL) {
         setResultError(E_ArgumentException, "Function does not belong to anything(not self)", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     switch (pt_type) {
@@ -294,7 +294,7 @@ void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *
     if (setting)
         newObjectSetting(name_, line, file, value, result, inter, out_var);
     else
-        setResult(result, inter, belong);
+        setResult(result, inter);
 }
 
 void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {

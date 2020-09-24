@@ -30,7 +30,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
         tmp->value->object.var->next = var_backup;
         inter->data.default_pt_type = pt_type_bak;
 
-        if (result->type != yield_return && !CHECK_RESULT(result))
+        if (result->type != R_yield && !CHECK_RESULT(result))
             goto error_;
         freeResult(result);
     }
@@ -46,7 +46,7 @@ ResultType setClass(INTER_FUNCTIONSIG) {
 
     assCore(st->u.set_class.name, tmp, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (CHECK_RESULT(result))
-        setResult(result, inter, belong);
+        setResult(result, inter);
 
     gc_freeTmpLink(&tmp->gc_status);
     return result->type;
@@ -76,7 +76,7 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
         functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.set_function.first_do, func->value->object.var, result, func));
         func->value->object.var->next = var_backup;
         inter->data.default_pt_type = pt_type_bak;
-        if (result->type != yield_return && !CHECK_RESULT(result))
+        if (result->type != R_yield && !CHECK_RESULT(result))
             goto error_;
         freeResult(result);
     }
@@ -92,7 +92,7 @@ ResultType setFunction(INTER_FUNCTIONSIG) {
     }
     assCore(st->u.set_function.name, func, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (CHECK_RESULT(result))
-        setResult(result, inter, belong);
+        setResult(result, inter);
 
     error_:
     gc_freeTmpLink(&func->gc_status);
@@ -221,10 +221,10 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
 
     freeResult(result);
     of(CALL_OFFICAL_FUNCTION(arg, function_var, result, function_value->belong));
-    if (result->type == function_return)
-        result->type = operation_return;
-    else if (result->type != operation_return && result->type != error_return)
-        setResult(result, inter, function_value->belong);
+    if (result->type == R_func)
+        result->type = R_opt;
+    else if (result->type != R_opt && result->type != R_error)
+        setResult(result, inter);
 
     gc_freeze(inter, var_list, function_var, false);
     popVarList(function_var);
@@ -244,7 +244,7 @@ static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long 
     st_func = function_value->value->data.function.function;
 
     if (st_func == NULL) {
-        setResult(result, inter, belong);
+        setResult(result, inter);
         return result->type;
     }
 
@@ -276,18 +276,18 @@ static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long 
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st_func, var_func, result, function_value->belong));
     gc_freeze(inter, var_list, var_func, false);
 
-    st_func = function_value->value->data.function.function;  // TODO-szh 提取函数
+    st_func = function_value->value->data.function.function;  // TODO-szh yield 提取函数
     if (yield_run)
-        if (result->type == yield_return){
+        if (result->type == R_yield){
             updateFunctionYield(st_func, result->node);
-            result->type = operation_return;
+            result->type = R_opt;
         }
         else
             freeRunInfo(st_func);
     else
-        if (result->type == yield_return){
+        if (result->type == R_yield){
             newFunctionYield(st_func, result->node, var_func, inter);
-            result->type = operation_return;
+            result->type = R_opt;
         }
         else
             popVarList(var_func);

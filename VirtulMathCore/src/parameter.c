@@ -208,7 +208,7 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUN
         }
         at = connectValueArgument(result->value, at);
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return_:
     gc_freeTmpLink(&iter->gc_status);
     return at;
@@ -254,7 +254,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
         gc_freeTmpLink(&name_->gc_status);
         memFree(name);
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return_:
     gc_freeTmpLink(&iter->gc_status);
     return at;
@@ -287,7 +287,7 @@ ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSI
             goto return_;
         freeResult(result);
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
 
     return_:
     *function_ad = function;
@@ -316,7 +316,7 @@ ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST
         if (!CHECK_RESULT(result))
             goto return_;
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
 
     return_:
     *call_ad = call;
@@ -398,7 +398,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
             (*num)++;
     }
 
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return_:
     *function_ad = function;
     return result->type;
@@ -426,7 +426,7 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
         freeResult(result);
     }
 
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return_:
     *call_ad = call;
     *function_ad = function;
@@ -492,7 +492,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
         }
         freeResult(result);
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
 
     return_:
     *base_ad = base;
@@ -668,7 +668,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
         }
     }
     break_:
-    setResult(result, inter, belong);
+    setResult(result, inter);
 
     return_:
     gc_freeze(inter, function_var, NULL, false);
@@ -794,7 +794,7 @@ int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak,
         return_ = -1;
         goto return_;
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
 
     for (PASS; ap->must != -1 && (ap->type == only_name || ap->type == name_value); ap++) {
         int status = parserArgumentVar(ap, inter, tmp);

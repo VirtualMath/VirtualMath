@@ -67,51 +67,7 @@ void iterBaseClassFunc(NameFunc *list, LinkValue *father, INTER_FUNCTIONSIG_CORE
     freeResult(&result);
 }
 
-Value *makeBaseChildClass(Value *inherit, Inter *inter) {
-    Inherit *father_value = NULL;
-    Value *new = NULL;
-    {
-        LinkValue *father_ = makeLinkValue(inherit, inter->base_belong, inter);
-        Argument *arg = makeValueArgument(father_);
-        gc_addTmpLink(&father_->gc_status);
-        father_value = setFather(arg);
-        freeArgument(arg, true);
-        gc_freeTmpLink(&father_->gc_status);
-    }
-    new = makeClassValue(inter->var_list, inter, father_value);
-    return new;
-}
-
-Value *makeBaseChildClass2(LinkValue *inherit, Inter *inter) {
-    Inherit *father_value = NULL;
-    Value *new = NULL;
-    {
-        Argument *arg = makeValueArgument(inherit);
-        gc_addTmpLink(&inherit->gc_status);
-        father_value = setFather(arg);
-        freeArgument(arg, true);
-        gc_freeTmpLink(&inherit->gc_status);
-    }
-    new = makeClassValue(inter->var_list, inter, father_value);
-    return new;
-}
-
-LinkValue *makeBaseChildClass3(Value *inherit, Inter *inter) {
-    Inherit *father_value = NULL;
-    Value *new = NULL;
-    {
-        LinkValue *father_ = makeLinkValue(inherit, inter->base_belong, inter);
-        Argument *arg = makeValueArgument(father_);
-        gc_addTmpLink(&father_->gc_status);
-        father_value = setFather(arg);
-        freeArgument(arg, true);
-        gc_freeTmpLink(&father_->gc_status);
-    }
-    new = makeClassValue(inter->var_list, inter, father_value);
-    return makeLinkValue(new, inter->base_belong, inter);
-}
-
-LinkValue *makeBaseChildClass4(LinkValue *inherit, Inter *inter) {  // TODO-szh 最终函数
+LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter) {
     Inherit *father_value = NULL;
     Value *new = NULL;
     {

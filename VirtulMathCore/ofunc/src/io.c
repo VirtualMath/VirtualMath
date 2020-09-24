@@ -26,7 +26,7 @@ ResultType vm_print(OFFICAL_FUNCTIONSIG){
     else
         fprintf(inter->data.inter_stdout, "\n");
 
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return result->type;
 }
 

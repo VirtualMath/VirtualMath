@@ -12,7 +12,7 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
     freeResult(result);
     if (ap[1].value->value->type != list){
         setResultError(E_TypeException, ONLY_ACC(listiter, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     index = makeLinkValue(makeNumberValue(0, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)), ap[0].value, inter);
@@ -25,7 +25,7 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         addAttributes(L"__index", false, index, 0, "listiter.init", ap[0].value, result, inter, var_list);
     }
 
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return result->type;
 }
 
@@ -43,11 +43,11 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
 
     if (list_->value->type != list){
         setResultError(E_TypeException, VALUE_ERROR(listiter.__list, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     if (index->value->type != number){
         setResultError(E_TypeException, VALUE_ERROR(listiter.__index, number), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
 
@@ -84,7 +84,7 @@ void registeredListIter(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseListIter(Inter *inter){
-    LinkValue *list_iter = makeBaseChildClass4(inter->data.vobject, inter);
+    LinkValue *list_iter = makeBaseChildClass(inter->data.vobject, inter);
     gc_addStatementLink(&list_iter->gc_status);
     inter->data.list_iter = list_iter;
 }

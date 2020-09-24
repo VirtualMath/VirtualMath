@@ -33,7 +33,7 @@ Value *useNoneValue(Inter *inter, Result *result) {
     LinkValue *tmp = inter->data.none;
     if (result != NULL) {
         setResultCore(result);
-        result->type = operation_return;
+        result->type = R_opt;
         result->value = tmp;
         gc_addTmpLink(&result->value->gc_status);
     }
@@ -51,7 +51,7 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NO
     return tmp;
 }
 
-Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){  // TODO-szh 让切片支持该语法
+Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){  // TODO-szh 让切片支持该语法 检查语法解析器支持 a[::]的语法
     Value *tmp = NULL;
     setResultCore(result);
     callBackCore(inter->data.pass_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -84,7 +84,7 @@ Value *makeStringValue(wchar_t *str, fline line, char *file, INTER_FUNCTIONSIG_N
     return tmp;
 }
 
-Value *makeVMFunctionValue(Statement *st, Parameter *pt, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 设置无var_list的函数 (允许使用装饰器装饰，该功能未测试)
+Value *makeVMFunctionValue(Statement *st, Parameter *pt, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     callBackCore(inter->data.function, NULL, st->line, st->code_file, 0,
                  CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -269,7 +269,7 @@ LinkValue *copyLinkValue(LinkValue *value, Inter *inter) {
 }
 
 void setResultCore(Result *ru) {
-    ru->type = not_return;
+    ru->type = R_not;
     ru->times = 0;
     ru->error = NULL;
     ru->value = NULL;
@@ -277,7 +277,7 @@ void setResultCore(Result *ru) {
     ru->node = NULL;
 }
 
-void setResult(Result *ru, Inter *inter, LinkValue *belong) {
+void setResult(Result *ru, Inter *inter) {
     freeResult(ru);
     setResultBase(ru, inter);
 }
@@ -340,7 +340,7 @@ char *getErrorInfo(LinkValue *exc, int type, Inter *inter){
     wchar_t *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
     LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
     if (_info_ != NULL && _info_->value->type == string)
-        return wcsToStr(_info_->value->data.str.str, false);  // TODO-szh var使用宽字符
+        return wcsToStr(_info_->value->data.str.str, false);
     else
         return type == 1 ? memStrcpy("Error Type: Unknown") : memStrcpy("Error Message: Unknown");
 }
@@ -374,7 +374,7 @@ void callException(LinkValue *exc, char *message, fline line, char *file, INTER_
         gc_addTmpLink(&result->value->gc_status);
     }
 
-    result->type = error_return;
+    result->type = R_error;
     result->error = connectError(makeError(type, error_message, line, file), result->error);
     memFree(type);
     memFree(error_message);
@@ -382,7 +382,7 @@ void callException(LinkValue *exc, char *message, fline line, char *file, INTER_
 }
 
 void setResultError(BaseErrorType type, char *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST) {
-    if (!new && result->type != error_return)
+    if (!new && result->type != R_error)
         return;
     if (new) {
         LinkValue *exc = findBaseError(type, inter);
@@ -396,8 +396,8 @@ void setResultError(BaseErrorType type, char *error_message, fline line, char *f
 }
 
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong) {
-    setResult(ru, inter, belong);
-    ru->type = operation_return;
+    setResult(ru, inter);
+    ru->type = R_opt;
 }
 
 void setResultOperation(Result *ru, LinkValue *value) {
@@ -410,7 +410,7 @@ void setResultOperationBase(Result *ru, LinkValue *value) {
     ru->value = value;
     if (value != NULL)
         gc_addTmpLink(&ru->value->gc_status);
-    ru->type = operation_return;
+    ru->type = R_opt;
 }
 
 void freeResult(Result *ru){

@@ -20,7 +20,7 @@ void runCodeFile(Inter *inter, char *file[]) {
         }
         if (runParser(*file, inter, false, &pst)) {
             globalIterStatement(&result, inter, pst);
-            if (result.type == error_return) {
+            if (result.type == R_error) {
                 printError(&result, inter, true);
                 should_break = true;
             }
@@ -43,7 +43,7 @@ void runCodeStdin(Inter *inter, char *hello_string) {
         fprintf(stdout, ">>> ");
         if (runParser(NULL, inter, true, &pst)) {
             globalIterStatement(&result, inter, pst);
-            if (result.type == error_return && !(should_break = is_quitExc(result.value, inter)))
+            if (result.type == R_error && !(should_break = is_quitExc(result.value, inter)))
                 printError(&result, inter, true);
             freeStatement(pst);
             freeResult(&result);

@@ -142,8 +142,8 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
         goto return_;
 
     functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(new_st, var_list, result, belong));
-    if (result->type == yield_return)
-        setResult(result, inter, belong);
+    if (result->type == R_yield)
+        setResult(result, inter);
     else if (!CHECK_RESULT(result))
         setResultErrorSt(E_BaseException, NULL, false, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
@@ -169,7 +169,7 @@ ResultType importVMFileCore(Inter *import_inter, char *path, fline line, char *c
     if (!CHECK_RESULT(result))
         setResultError(E_BaseException, NULL, line, code_file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
-        setResult(result, inter, belong);
+        setResult(result, inter);
 
     return_:
     freeStatement(run_st);
@@ -185,7 +185,7 @@ ResultType importFileCore(char **path, char **split, int *status, INTER_FUNCTION
 
     if (!isType(result->value->value, string)) {
         setResultErrorSt(E_ImportException, ONLY_ACC(include file dir, string), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     *path = wcsToStr(result->value->value->data.str.str, false);
@@ -262,7 +262,7 @@ ResultType importFile(INTER_FUNCTIONSIG) {
         assCore(st->u.import_file.as, imp_value, false, is_new, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     if (CHECK_RESULT(result))
-        setResult(result, inter, belong);
+        setResult(result, inter);
     gc_freeTmpLink(&imp_value->gc_status);
 
     return_:
@@ -338,7 +338,7 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
     }
     else
         updateHashTable(var_list->hashtable, imp_var->hashtable, inter);
-    setResult(result, inter, belong);
+    setResult(result, inter);
     gc_freeTmpLink(&imp_value->gc_status);
 
     return_:

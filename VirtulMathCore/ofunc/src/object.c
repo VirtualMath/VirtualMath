@@ -9,7 +9,7 @@ ResultType object_new(OFFICAL_FUNCTIONSIG){
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, 0, "object.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     value = make_new(inter, belong, ap[0].value);

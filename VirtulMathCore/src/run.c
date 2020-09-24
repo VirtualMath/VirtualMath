@@ -9,7 +9,7 @@
  */
 ResultType runStatement(INTER_FUNCTIONSIG) {
     setResultCore(result);
-    ResultType type = not_return;
+    ResultType type = R_not;
     switch (st->type) {
         case base_value:
             type = getBaseValue(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
@@ -102,7 +102,7 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
             type = delOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
             break;
         default:
-            setResult(result, inter, belong);
+            setResult(result, inter);
             break;
     }
 
@@ -119,7 +119,7 @@ bool checkSignal(ResultType *type, fline line, char *file, INTER_FUNCTIONSIG_NOT
     if (is_KeyInterrupt == signal_appear){
         is_KeyInterrupt = signal_reset;
         if (type != NULL)
-            *type = error_return;
+            *type = R_error;
         setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return true;
     }
@@ -140,7 +140,7 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
 
     setResultCore(result);
     if (st == NULL){
-        setResult(result, inter, belong);
+        setResult(result, inter);
         return result->type;
     }
 
@@ -155,11 +155,11 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
             type = runStatement(CALL_INTER_FUNCTIONSIG(base, var_list, result, belong));
             if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
                 break;
-            if (type == goto_return && result->times == 0){
+            if (type == R_goto && result->times == 0){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
                     setResultErrorSt(E_GotoException, "Don't find label", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                    type = error_return;
+                    type = R_error;
                     break;
                 }
                 type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
@@ -172,9 +172,9 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
             else
                 base = base->next;
         }
-    } while (type == restart_return && result->times == 0);
+    } while (type == R_restart && result->times == 0);
 
-    if (type == not_return || type == restart_return)
+    if (type == R_not || type == R_restart)
         setResultOperationNone(result, inter, belong);
     result->node = base;
 
@@ -198,7 +198,7 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
     void *bak = NULL;
 
     if (st == NULL){
-        setResult(result, inter, belong);
+        setResult(result, inter);
         return result->type;
     }
 
@@ -215,11 +215,11 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
             type = runStatement(CALL_INTER_FUNCTIONSIG(base, var_list, result, belong));
             if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
                 break;
-            if (type == goto_return){
+            if (type == R_goto){
                 Statement *label_st = checkLabel(st, result->label);
                 if (label_st == NULL){
                     setResultErrorSt(E_GotoException, "Don't find label", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                    type = error_return;
+                    type = R_error;
                     break;
                 }
                 type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
@@ -232,9 +232,9 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
             else
                 base = base->next;
         }
-    } while (type == restart_return && result->times == 0);
+    } while (type == R_restart && result->times == 0);
 
-    if (type != error_return && type != function_return)
+    if (type != R_error && type != R_func)
         setResultOperationNone(result, inter, belong);
     result->node = base;
 
@@ -253,7 +253,7 @@ bool operationSafeInterStatement(INTER_FUNCTIONSIG){
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     if (RUN_TYPE(type))
         return false;
-    else if (type != return_code && type != error_return)
+    else if (type != return_code && type != R_error)
         setResultErrorSt(E_ResultException, "Operation get not support result type", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return true;
 }
@@ -263,12 +263,12 @@ bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG){
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     if (RUN_TYPE(type))
         return false;
-    if (type == rego_return){
+    if (type == R_rego){
         result->times--;
         if (result->times < 0)
             return false;
     }
-    if (type == restart_return || type == goto_return)
+    if (type == R_restart || type == R_goto)
         result->times--;
     return true;
 }
@@ -278,12 +278,12 @@ bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     if (RUN_TYPE(type))
         return false;
-    if (type == break_return || type == continue_return){
+    if (type == R_break || type == R_continue){
         result->times--;
         if (result->times < 0)
             return false;
     }
-    if (type == restart_return || type == goto_return)
+    if (type == R_restart || type == R_goto)
         result->times--;
     return true;
 }
@@ -293,7 +293,7 @@ bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
     if (RUN_TYPE(type))
         return false;
-    if (type == restart_return || type == goto_return)
+    if (type == R_restart || type == R_goto)
         result->times--;
     return true;
 }
@@ -301,21 +301,21 @@ bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
 bool functionSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
-    if (type == error_return || result->type == yield_return)
+    if (type == R_error || result->type == R_yield)
         return true;
-    else if (type == function_return)
-        result->type = operation_return;
+    else if (type == R_func)
+        result->type = R_opt;
     else
-        result->type = not_return;
+        result->type = R_not;
     return false;
 }
 
 bool blockSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
-    if (type == error_return || type == yield_return)
+    if (type == R_error || type == R_yield)
         return true;
-    result->type = operation_return;
+    result->type = R_opt;
     return false;
 }
 

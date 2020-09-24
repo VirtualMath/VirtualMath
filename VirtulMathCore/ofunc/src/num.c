@@ -8,7 +8,7 @@ ResultType num_new(OFFICAL_FUNCTIONSIG){
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, 0, "num", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     setResultCore(result);
@@ -76,7 +76,7 @@ void registeredNum(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseNum(Inter *inter){
-    LinkValue *num = makeBaseChildClass4(inter->data.vobject, inter);
+    LinkValue *num = makeBaseChildClass(inter->data.vobject, inter);
     gc_addStatementLink(&num->gc_status);
     inter->data.num = num;
 }

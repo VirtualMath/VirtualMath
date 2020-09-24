@@ -5,8 +5,8 @@
 // PASS语句的定义
 #define PASS
 
-#define RUN_TYPE(type) (type == not_return || type == operation_return)
-#define CHECK_RESULT(result) (result->type == not_return || result->type == operation_return)
+#define RUN_TYPE(type) (type == R_not || type == R_opt)
+#define CHECK_RESULT(result) (result->type == R_not || result->type == R_opt)
 
 #define FREE_BASE(element, return_) do{if(element == NULL)goto return_;}while(0)
 

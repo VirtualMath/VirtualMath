@@ -124,7 +124,7 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
             break;
         default:
             setResultError(E_TypeException, CUL_ERROR(bool), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            return error_return;
+            return R_error;
     }
     makeBoolValue(result_, 0, "vobject.bool", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
@@ -175,7 +175,7 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
             break;
         default:
             setResultError(E_TypeException, CUL_ERROR(repo/str), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            return error_return;
+            return R_error;
     }
     makeStringValue(repo, 0, "vobject.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     memFree(repo);
@@ -199,7 +199,7 @@ void registeredVObject(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseVObject(Inter *inter){
-    LinkValue *vobject = makeBaseChildClass4(inter->data.object, inter);
+    LinkValue *vobject = makeBaseChildClass(inter->data.object, inter);
     gc_addStatementLink(&vobject->gc_status);
     inter->data.vobject = vobject;
 }

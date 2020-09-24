@@ -60,7 +60,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != list) {
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     size = ap[0].value->value->data.list.size;
 
@@ -72,7 +72,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
             setResultError(E_TypeException, ONLY_ACC(first/second/stride, number or none), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            return error_return;
+            return R_error;
         }
     }
 
@@ -111,7 +111,7 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != list) {
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     size = ap[0].value->value->data.list.size;
     getIter(ap[1].value, 1, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -156,7 +156,7 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
         } else if (!is_iterStop(result->value, inter))
             goto return_;
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return_:
     gc_freeTmpLink(&iter_obj->gc_status);
     return result->type;
@@ -180,7 +180,7 @@ ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != list) {
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     size = ap[0].value->value->data.list.size;
 
@@ -192,7 +192,7 @@ ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
             setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            return error_return;
+            return R_error;
         }
     }
 
@@ -235,11 +235,11 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != list){
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     if (ap[2].value->value->type != number){
         setResultError(E_TypeException, ONLY_ACC(list index, number), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     size = ap[0].value->value->data.list.size;
@@ -248,10 +248,10 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
         index = size + index;
     if (index >= size){
         setResultError(E_IndexException, "Index too max", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     } else if (index < 0){
         setResultError(E_IndexException, "Index less than 0", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     ap[0].value->value->data.list.list[index] = ap[1].value;
     setResultOperationBase(result, ap[1].value);
@@ -272,11 +272,11 @@ ResultType list_down_del(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != list){
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     if (ap[1].value->value->type != number){
         setResultError(E_TypeException, ONLY_ACC(list index, number), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     size = ap[0].value->value->data.list.size;
@@ -292,7 +292,7 @@ ResultType list_down_del(OFFICAL_FUNCTIONSIG){
         ap[0].value->value->data.list.list = new;
         ap[0].value->value->data.list.size --;
     }
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return result->type;
 }
 
@@ -311,11 +311,11 @@ ResultType list_down(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != list){
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     if (ap[1].value->value->type != number){
         setResultError(E_TypeException, ONLY_ACC(list index, number), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     size = ap[0].value->value->data.list.size;
@@ -338,7 +338,7 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != list){
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     {
         Argument *list_iter_arg = makeValueArgument(ap[0].value);
@@ -365,7 +365,7 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
 
     if (value->type != list){
         setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     lt = value->data.list.type;
     again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, ap[0].value, inter);
@@ -456,8 +456,8 @@ void registeredList(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseList(Inter *inter){
-    LinkValue *tuple = makeBaseChildClass4(inter->data.vobject, inter);
-    LinkValue *list = makeBaseChildClass4(tuple, inter);
+    LinkValue *tuple = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *list = makeBaseChildClass(tuple, inter);
     gc_addStatementLink(&tuple->gc_status);
     gc_addStatementLink(&list->gc_status);
     inter->data.tuple = tuple;

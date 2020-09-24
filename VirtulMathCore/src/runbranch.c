@@ -78,7 +78,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
                 set_result = false;
                 goto not_else;
             }
-            if (result->type == rego_return)
+            if (result->type == R_rego)
                 is_rego = true;
             freeResult(result);
             info_vl = NULL;
@@ -116,7 +116,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
                     set_result = false;
                     goto not_else;
                 }
-                if (result->type == rego_return)
+                if (result->type == R_rego)
                     is_rego = true;
                 else {
                     freeResult(result);
@@ -130,7 +130,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
                 set_result = false;
                 goto not_else;
             }
-            if (result->type == rego_return)
+            if (result->type == R_rego)
                 is_rego = true;
             freeResult(result);
         }
@@ -154,17 +154,17 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
         freeResult(&finally_tmp);
 
     if (yield_run)
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             updateBranchYield(st, result->node, if_list, result_from);
         else
             freeRunInfo(st);
     else
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             newBranchYield(st, result->node, if_list, var_list, result_from, inter);
         else
             var_list = popVarList(var_list);
     if (set_result)
-        setResult(result, inter, belong);
+        setResult(result, inter);
     return result->type;
 }
 
@@ -248,7 +248,6 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
             freeResult(result);  // 赋值的返回值被丢弃
         }
 
-        condition = do_while;
         if (!(condition = do_while)){
             condition = checkBool(condition_value, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result)){
@@ -265,7 +264,7 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
                 set_result = false;
                 goto not_else;
             }
-            else if (result->type == break_return)
+            else if (result->type == R_break)
                 is_break = true;
             freeResult(result);
         }
@@ -280,7 +279,7 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
             set_result = false;
             goto not_else;
         }
-        else if (result->type == break_return) {
+        else if (result->type == R_break) {
             freeResult(result);
             goto not_else;
         }
@@ -308,20 +307,22 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
         freeResult(&finally_tmp);
 
     if (yield_run)
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             updateBranchYield(st, result->node, while_list, result_from);
         else
             freeRunInfo(st);
     else
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             newBranchYield(st, result->node, while_list, var_list, result_from, inter);
         else
             var_list = popVarList(var_list);
     if (set_result)
-        setResult(result, inter, belong);
+        setResult(result, inter);
     return result->type;
 }
 
+// TODO-szh 简化函数
+// TODO-szh for循环支持迭代器
 ResultType forBranch(INTER_FUNCTIONSIG) {
     StatementList *for_list = st->u.for_branch.for_list;
     Statement *first = st->u.for_branch.first_do;
@@ -333,7 +334,6 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     Statement *after_vl = NULL;
     bool set_result = true;
     bool is_break = false;
-    bool do_while = st->u.while_branch.type == do_while_;
     int yield_run = false;
     enum StatementInfoStatus result_from = info_vl_branch;
 
@@ -373,7 +373,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
         freeResult(result);
 
     {
-        LinkValue *tmp = NULL;  // TODD-szh 要释放
+        LinkValue *tmp = NULL;
         if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(for_list->condition, var_list, result, belong))){
             set_result = false;
             goto not_else;
@@ -438,7 +438,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             set_result = false;
             goto not_else;
         }
-        else if (result->type == break_return)
+        else if (result->type == R_break)
             is_break = true;
 
         freeResult(result);
@@ -450,7 +450,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             set_result = false;
             goto not_else;
         }
-        else if (result->type == break_return) {
+        else if (result->type == R_break) {
             freeResult(result);
             goto not_else;
         }
@@ -477,7 +477,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
         freeResult(&finally_tmp);
 
     if (yield_run) {
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             if (result_from == info_finally_branch) {
                 freeRunInfo(st);
                 newBranchYield(st, result->node, for_list, var_list, result_from, inter);
@@ -487,7 +487,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             freeRunInfo(st);
         iter = NULL;
     } else {
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             if (result_from == info_finally_branch)
                 newBranchYield(st, result->node, for_list, var_list, result_from, inter);
             else {
@@ -501,7 +501,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     if (iter != NULL)
         gc_freeTmpLink(&iter->gc_status);
     if (set_result)
-        setResult(result, inter, belong);
+        setResult(result, inter);
     return result->type;
 }
 
@@ -608,7 +608,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
         vl_info = with_list->code;
     if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(vl_info, new, result, with_belong))) {
         set_result = false;
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             goto run_finally;
     }
     else
@@ -621,7 +621,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
         set_result = false;
         *result = else_tmp;
         result_from = info_else_branch;
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             goto run_finally;
     }
     else
@@ -658,7 +658,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
 
     gc_freeze(inter, new, var_list, false);
     if (yield_run)
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             if (result_from == info_finally_branch) {
                 freeRunInfo(st);
                 newBranchYield(st, result->node, with_list, NULL, result_from, inter);
@@ -668,7 +668,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
         else
             freeRunInfo(st);
     else {
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             if (result_from == info_finally_branch) {
                 if (value != NULL) {
                     gc_freeTmpLink(&value->gc_status);
@@ -685,7 +685,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
     }
 
     if (set_result)
-        setResult(result, inter, belong);
+        setResult(result, inter);
     return result->type;
 }
 
@@ -725,7 +725,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     }
 
     if (try != NULL && !tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(try, var_list, result, belong))){
-        if (result->type == yield_return) {
+        if (result->type == R_yield) {
             result_from = info_first_do;
             goto run_finally;
         }
@@ -748,7 +748,6 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
         error_value = result->value;
         result->value = NULL;
         for (PASS; except_list != NULL; except_list = except_list->next) {
-            LinkValue *tmp = NULL;
             if (except_list->condition == NULL)
                 break;
             freeResult(result);
@@ -796,18 +795,18 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
         freeResult(&finally_tmp);
 
     if (yield_run)
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             updateBranchYield(st, result->node, except_list, result_from);
         else
             freeRunInfo(st);
     else
-        if (result->type == yield_return)
+        if (result->type == R_yield)
             newBranchYield(st, result->node, except_list, var_list, result_from, inter);
         else
             var_list = popVarList(var_list);
 
     if (set_result)
-        setResult(result, inter, belong);
+        setResult(result, inter);
     return result->type;
 }
 
@@ -826,9 +825,9 @@ ResultType breakCycle(INTER_FUNCTIONSIG){
     freeResult(result);
 
     not_times:
-    setResult(result, inter, belong);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result->type = break_return;
+        result->type = R_break;
         result->times = times_int;
     }
     return result->type;
@@ -848,9 +847,9 @@ ResultType continueCycle(INTER_FUNCTIONSIG){
     freeResult(result);
 
     not_times:
-    setResult(result, inter, belong);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result->type = continue_return;
+        result->type = R_continue;
         result->times = times_int;
     }
     return result->type;
@@ -870,9 +869,9 @@ ResultType regoIf(INTER_FUNCTIONSIG){
     freeResult(result);
 
     not_times:
-    setResult(result, inter, belong);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result->type = rego_return;
+        result->type = R_rego;
         result->times = times_int;
     }
     return result->type;
@@ -892,9 +891,9 @@ ResultType restartCode(INTER_FUNCTIONSIG){
     freeResult(result);
 
     not_times:
-    setResult(result, inter, belong);
+    setResult(result, inter);
     if (times_int >= 0) {
-        result->type = restart_return;
+        result->type = R_restart;
         result->times = times_int;
     }
     return result->type;
@@ -903,7 +902,7 @@ ResultType restartCode(INTER_FUNCTIONSIG){
 ResultType returnCode(INTER_FUNCTIONSIG){
     setResultCore(result);
     if (st->u.return_code.value == NULL) {
-        setResult(result, inter, belong);
+        setResult(result, inter);
         goto set_result;
     }
 
@@ -911,14 +910,14 @@ ResultType returnCode(INTER_FUNCTIONSIG){
         return result->type;
 
     set_result:
-    result->type = function_return;
+    result->type = R_func;
     return result->type;
 }
 
 ResultType yieldCode(INTER_FUNCTIONSIG){
     setResultCore(result);
     if (st->u.yield_code.value == NULL) {
-        setResult(result, inter, belong);
+        setResult(result, inter);
         goto set_result;
     }
 
@@ -926,14 +925,14 @@ ResultType yieldCode(INTER_FUNCTIONSIG){
         return result->type;
 
     set_result:
-    result->type = yield_return;
+    result->type = R_yield;
     return result->type;
 }
 
 ResultType raiseCode(INTER_FUNCTIONSIG){
     setResultCore(result);
     if (st->u.raise_code.value == NULL) {
-        setResult(result, inter, belong);
+        setResult(result, inter);
         goto set_result;
     }
 
@@ -941,7 +940,7 @@ ResultType raiseCode(INTER_FUNCTIONSIG){
         return result->type;
 
     set_result:
-    result->type = error_return;
+    result->type = R_error;
     result->error = connectError(makeError("RaiseException", "Exception was raise by user", st->line, st->code_file), result->error);
     return result->type;
 }
@@ -956,7 +955,7 @@ ResultType assertCode(INTER_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     else if (result_)
-        setResult(result, inter, belong);
+        setResult(result, inter);
     else
         setResultErrorSt(E_AssertException, "Assertion check error", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
@@ -990,14 +989,14 @@ ResultType gotoLabel(INTER_FUNCTIONSIG){
     freeResult(result);
     not_times:
     if (st->u.goto_.return_ == NULL)
-        setResult(result, inter, belong);
+        setResult(result, inter);
     else if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.return_, var_list, result, belong))) {
         memFree(label);
         return result->type;
     }
 
     result->times = times_int;
-    result->type = goto_return;
+    result->type = R_goto;
     result->label = label;
     return result->type;
 }
@@ -1018,7 +1017,7 @@ ResultType runLabel(INTER_FUNCTIONSIG) {
     if (st->u.label_.command != NULL)
         operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.label_.command, var_list, result, belong));
     else
-        setResult(result, inter, belong);
+        setResult(result, inter);
 
     return_:
     popVarList(var_list);

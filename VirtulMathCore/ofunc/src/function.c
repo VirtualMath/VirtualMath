@@ -14,7 +14,7 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, 0, "function.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     {
@@ -55,7 +55,7 @@ ResultType function_init(OFFICAL_FUNCTIONSIG){
     if ((func = ap[0].value)->value->type != function) {
         setResultError(E_TypeException, INSTANCE_ERROR(function), 0, "function", true,
                        CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     if (ap[1].value != NULL) {
@@ -65,7 +65,7 @@ ResultType function_init(OFFICAL_FUNCTIONSIG){
         func->value->data.function.type = vm_function;
     }
 
-    setResult(result, inter, belong);
+    setResult(result, inter);
     return result->type;
 }
 
@@ -79,7 +79,7 @@ void registeredFunction(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseFunction(Inter *inter){
-    LinkValue *function = makeBaseChildClass4(inter->data.vobject, inter);
+    LinkValue *function = makeBaseChildClass(inter->data.vobject, inter);
     gc_addStatementLink(&function->gc_status);
     inter->data.function = function;
 }

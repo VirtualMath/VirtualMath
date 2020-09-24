@@ -79,7 +79,7 @@ Statement *makeBaseStrValueStatement(wchar_t *value, enum BaseValueType type, fl
     tmp->type = base_value;
     tmp->u.base_value.type = type;
     tmp->u.base_value.value = NULL;
-    tmp->u.base_value.str = memWidecpy(value);  // TODO-szh 需要修改运行BaseValue的函数
+    tmp->u.base_value.str = memWidecpy(value);
     return tmp;
 }
 

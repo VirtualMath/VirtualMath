@@ -8,7 +8,7 @@ ResultType bool_new(OFFICAL_FUNCTIONSIG){
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, 0, "bool.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     setResultCore(result);
@@ -62,7 +62,7 @@ void registeredBool(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseBool(Inter *inter){
-    LinkValue *bool_ = makeBaseChildClass4(inter->data.vobject, inter);
+    LinkValue *bool_ = makeBaseChildClass(inter->data.vobject, inter);
     gc_addStatementLink(&bool_->gc_status);
     inter->data.bool_ = bool_;
 }

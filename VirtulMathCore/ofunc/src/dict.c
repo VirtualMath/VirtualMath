@@ -9,12 +9,12 @@ ResultType dict_new(OFFICAL_FUNCTIONSIG){
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, 0, "bool.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     if (arg != NULL && arg->type == value_arg) {
         setResultError(E_ArgumentException, "Too many argument", 0, "dict.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     value = make_new(inter, belong, ap[0].value);
@@ -54,7 +54,7 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != dict){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     {
         LinkValue *element = NULL;
@@ -84,14 +84,14 @@ ResultType dict_down_del(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != dict){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     {
         LinkValue *element = NULL;
         wchar_t *name = getNameFromValue(ap[1].value->value, inter);
         element = findVar(name, del_var, inter, ap[0].value->value->data.dict.dict);
         if (element != NULL)
-            setResult(result, inter, belong);
+            setResult(result, inter);
         else{
             char *message = memStrcat("Cannot delete non-existent keys: ", wcsToStr(name, false), false, true);
             setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -116,7 +116,7 @@ ResultType dict_down_assignment(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != dict){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     name = getNameFromValue(ap[2].value->value, inter);
@@ -136,7 +136,7 @@ ResultType dict_keys(OFFICAL_FUNCTIONSIG){
     freeResult(result);
     if (ap[0].value->value->type != dict){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     for (int index=0; index < MAX_SIZE; index++){
         Var *tmp = ap[0].value->value->data.dict.dict->hashtable[index];
@@ -159,7 +159,7 @@ ResultType dict_iter(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != dict){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     {
         Argument *dict_iter_arg = makeValueArgument(ap[0].value);
@@ -185,7 +185,7 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
 
     if (value->type != dict){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, ap[0].value, inter);
     if (again != NULL){
@@ -267,7 +267,7 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
 }
 
 void makeBaseDict(Inter *inter){
-    LinkValue *dict = makeBaseChildClass4(inter->data.vobject, inter);
+    LinkValue *dict = makeBaseChildClass(inter->data.vobject, inter);
     gc_addStatementLink(&dict->gc_status);
     inter->data.dict = dict;
 }

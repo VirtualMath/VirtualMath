@@ -8,7 +8,7 @@ ResultType str_new(OFFICAL_FUNCTIONSIG){
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, 0, "str.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     setResultCore(result);
     value = make_new(inter, belong, ap[0].value);
@@ -67,7 +67,7 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != string) {
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     size = memWidelen(ap[0].value->value->data.str.str);
 
@@ -79,7 +79,7 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
             setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            return error_return;
+            return R_error;
         }
     }
 
@@ -111,11 +111,11 @@ ResultType str_down(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != string){
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     if (ap[1].value->value->type != number){
         setResultError(E_TypeException, ONLY_ACC(str index, number), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
 
     size = memWidelen(ap[0].value->value->data.str.str);
@@ -139,7 +139,7 @@ ResultType str_to_list(OFFICAL_FUNCTIONSIG){
 
     if (ap[0].value->value->type != string){
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     size = memWidelen(ap[0].value->value->data.str.str);
 
@@ -170,7 +170,7 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
     to_list = findAttributes(L"to_list", false, ap[0].value, inter);
     if (to_list == NULL){
         setResultError(E_TypeException, "String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        return error_return;
+        return R_error;
     }
     gc_addTmpLink(&to_list->gc_status);
     callBackCore(to_list, NULL, 0, "str", 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -267,7 +267,7 @@ void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func
 }
 
 void makeBaseStr(Inter *inter){
-    LinkValue *str = makeBaseChildClass4(inter->data.vobject, inter);
+    LinkValue *str = makeBaseChildClass(inter->data.vobject, inter);
     gc_addStatementLink(&str->gc_status);
     inter->data.str = str;
 }

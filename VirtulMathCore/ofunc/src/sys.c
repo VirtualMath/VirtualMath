@@ -18,7 +18,7 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
     if (arg_child == arg_father) {
         if (arg_child->object.inherit != NULL){
             result->value = copyLinkValue(arg_child->object.inherit->value, inter);
-            result->type = operation_return;
+            result->type = R_opt;
             gc_addTmpLink(&result->value->gc_status);
         } else
             setResultError(E_SuperException, "Object has no next father", 0, "super", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -35,7 +35,7 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
 
     if (next_father != NULL){
         result->value = next_father;
-        result->type = operation_return;
+        result->type = R_opt;
         gc_addTmpLink(&result->value->gc_status);
     }
     else
@@ -58,8 +58,8 @@ ResultType vm_setMethodCore(OFFICAL_FUNCTIONSIG, enum FunctionPtType type){
     function_value->value->data.function.function_data.pt_type = type;
     result->value = function_value;
     gc_addTmpLink(&result->value->gc_status);
-    result->type = operation_return;
-    return operation_return;
+    result->type = R_opt;
+    return R_opt;
 }
 
 ResultType vm_clsfreemethod(OFFICAL_FUNCTIONSIG){
@@ -107,7 +107,7 @@ ResultType vm_quit(OFFICAL_FUNCTIONSIG){
         setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
         setResultError(E_QuitException, "VirtualMath Quit", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    return error_return;
+    return R_error;
 }
 
 void registeredSysFunction(REGISTERED_FUNCTIONSIG){
