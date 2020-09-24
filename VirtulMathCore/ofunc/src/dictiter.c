@@ -21,7 +21,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         LinkValue *listiter_class = NULL;
 
         if (keys == NULL){
-            setResultError(E_TypeException, "Object non-key-value pairs (there is no keys method)", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, L"Object non-key-value pairs (there is no keys method)", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return R_error;
         }
 
@@ -83,7 +83,7 @@ ResultType dictiter_next(OFFICAL_FUNCTIONSIG){
 
     list_next = findAttributes(inter->data.object_next, false, list_, inter);
     if (list_next == NULL){
-        setResultError(E_TypeException, "Object is not iterable", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, L"Object is not iterable", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 

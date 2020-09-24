@@ -169,7 +169,7 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
     to_list = findAttributes(L"to_list", false, ap[0].value, inter);
     if (to_list == NULL){
-        setResultError(E_TypeException, "String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, L"String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     gc_addTmpLink(&to_list->gc_status);

@@ -661,7 +661,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             case error_unknown:
-                setResultError(E_ArgumentException, "Argument Unknown Exception", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, L"Argument Unknown Exception", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             default:
                 goto break_;

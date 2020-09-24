@@ -141,7 +141,7 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
             freeResult(result);
             getIter(iter_obj, 0, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (is_iterStop(result->value, inter)){
-                setResultError(E_TypeException, "Iter Object Too Short", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_TypeException, L"Iter Object Too Short", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             }
             else if (!CHECK_RESULT(result))
@@ -151,7 +151,7 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
         freeResult(result);
         getIter(iter_obj, 0, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (CHECK_RESULT(result)) {
-            setResultError(E_TypeException, "Iter Object Too Long", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, L"Iter Object Too Long", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto return_;
         } else if (!is_iterStop(result->value, inter))
             goto return_;
@@ -247,10 +247,10 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     if (index < 0)
         index = size + index;
     if (index >= size){
-        setResultError(E_IndexException, "Index too max", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index too max", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     } else if (index < 0){
-        setResultError(E_IndexException, "Index less than 0", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index less than 0", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     ap[0].value->value->data.list.list[index] = ap[1].value;

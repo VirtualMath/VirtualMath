@@ -1,5 +1,5 @@
 #include "__virtualmath.h"
-#define setName(str) strToWcs(str, false);
+#define setName(str) memStrToWcs(str, false)
 
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
@@ -371,18 +371,5 @@ void printToken(Token *tk) {
 
 }
 
-void printTokenStream(TokenStream *ts) {
-    printf("token_list: ");
-    Token *tmp = ts->token_list;
-    int i = 0;
-    while (tmp != NULL){
-        if (i > 0)
-            printf("-");
-        printToken(tmp);
-        tmp = tmp->next;
-        i++;
-    }
-    printf("\n");
-}
 #endif  // START_GC
 #endif  // DBUG

@@ -10,17 +10,14 @@ void *memCalloc(size_t num, size_t size);
 void *memRealloc(void *old, size_t size);
 char *memStrcpy(const char *str);
 wchar_t *memWidecpy(const wchar_t *str);
-char *memStrCharcpy(char *str, size_t nsize, bool free_old, bool write, ...);
 wchar_t *memWideCharcpy(wchar_t *str, size_t nsize, bool free_old, bool write, ...);
 char *memStrcatIter(char *base, bool free_base, ...);
 char *memStrcat(char *first, char *second, bool free_first, bool free_last);
 wchar_t *memWidecat(wchar_t *first, wchar_t *second, bool free_first, bool free_last);
-char *memStrcpySelf(char *str, long times);
 wchar_t *memWidecpySelf(wchar_t *str, long times);
-char *memStrrev(const char *str);
 wchar_t *memWiderev(wchar_t *str);
-char *wcsToStr(wchar_t *wcs, bool free_old);
-wchar_t *strToWcs(char *str, bool free_old);
+char *memWcsToStr(wchar_t *wcs, bool free_old);
+wchar_t *memStrToWcs(char *str, bool free_old);
 
 #define memFree(p) ((p)=((p) != NULL ? (free(p), NULL) : NULL))
 #define eqString(str1, str2) (!strcmp(str1, str2))

@@ -2,7 +2,7 @@
 
 static bool checkNumber(INTER_FUNCTIONSIG){
     if (!isType(result->value->value, number)) {
-        setResultErrorSt(E_TypeException, "Don't get a number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, L"Don't get a number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;
@@ -570,7 +570,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
                 _enter_ = NULL;
                 _exit_ = NULL;
                 value = NULL;
-                setResultErrorSt(E_TypeException, "Get Not Support Value to Enter with", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(__enter__/__exit__), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 set_result = false;
                 goto run_finally;
             }
@@ -941,7 +941,7 @@ ResultType raiseCode(INTER_FUNCTIONSIG){
 
     set_result:
     result->type = R_error;
-    result->error = connectError(makeError("RaiseException", "Exception was raise by user", st->line, st->code_file), result->error);
+    result->error = connectError(makeError(L"RaiseException", L"Exception was raise by user", st->line, st->code_file), result->error);
     return result->type;
 }
 
@@ -957,7 +957,7 @@ ResultType assertCode(INTER_FUNCTIONSIG){
     else if (result_)
         setResult(result, inter);
     else
-        setResultErrorSt(E_AssertException, "Assertion check error", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_AssertException, L"Assertion check error", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 

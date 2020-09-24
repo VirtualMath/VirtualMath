@@ -90,7 +90,7 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
         object = left->value->object.out_var;
 
     if (object == NULL) {
-        setResultError(E_TypeException, "object not support . / ->", st->line, st->code_file, true,
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), st->line, st->code_file, true,
                        CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
@@ -175,7 +175,7 @@ ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
     object = name->u.operation.OperationType == OPT_POINT ? left.value->value->object.var : left.value->value->object.out_var;
 
     if (object == NULL) {
-        setResultError(E_TypeException, "object not support . / ->", name->line, name->code_file, true,
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true,
                        CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
@@ -387,7 +387,7 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     object = name->u.operation.OperationType == OPT_POINT ? left.value->value->object.var : left.value->value->object.out_var;
 
     if (object == NULL) {
-        setResultError(E_TypeException, "object not support . / ->", name->line, name->code_file, true,
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true,
                        CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
@@ -419,9 +419,9 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     freeResult(result);
     var = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (var == NULL) {
-        char *info = memStrcat("Variable not found: ", wcsToStr(name, false), false, true);
-        setResultErrorSt(E_NameExceptiom, info, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        memFree(info);
+        wchar_t *message = memWidecat(L"Variable not found: ", name, false, false);
+        setResultErrorSt(E_NameExceptiom, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        memFree(message);
     }
     else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
         setResultOperationBase(result, var);
@@ -560,7 +560,7 @@ ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name) {
         freeArgument(arg, true);
     }
     else {
-        char *message = memStrcat("Object not support ", wcsToStr(name, false), false, true);
+        wchar_t *message = memWidecat(L"Object not support ", name, false, false);
         setResultErrorSt(E_TypeException, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(message);
     }

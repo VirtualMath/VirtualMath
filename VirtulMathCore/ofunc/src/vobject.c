@@ -146,7 +146,7 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
         case number: {
             char str[30] = {};
             snprintf(str, 30, "%lld", value->data.num.num);
-            repo = strToWcs(str, false);
+            repo = memStrToWcs(str, false);
             break;
         }
         case string:
@@ -155,23 +155,23 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
         case function: {
             char str[30] = {};
             snprintf(str, 30, "(function on %p)", value);
-            repo = strToWcs(str, false);
+            repo = memStrToWcs(str, false);
             break;
         }
         case class: {
             char str[30] = {};
             snprintf(str, 30, "(class on %p)", value);
-            repo = strToWcs(str, false);
+            repo = memStrToWcs(str, false);
             break;
         }
         case bool_:
             if (value->data.bool_.bool_)
-                repo = strToWcs("true", false);
+                repo = memStrToWcs("true", false);
             else
-                repo = strToWcs("false", false);
+                repo = memStrToWcs("false", false);
             break;
         case pass_:
-            repo = strToWcs("...", false);
+            repo = memStrToWcs("...", false);
             break;
         default:
             setResultError(E_TypeException, CUL_ERROR(repo/str), 0, "vobject", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

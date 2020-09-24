@@ -5,8 +5,11 @@ bool importRunParser(ParserMessage *pm, fline line, char *file, Statement *run_s
     parserCommandList(pm, inter, true, false, run_st);
     if (pm->status == int_error)
         setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (pm->status != success)
-        setResultError(E_TypeException, pm->status_message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    else if (pm->status != success) {
+        wchar_t *wcs_message = memStrToWcs(pm->status_message, false);
+        setResultError(E_TypeException, wcs_message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        memFree(wcs_message);
+    }
     return CHECK_RESULT(result);
 }
 
@@ -112,7 +115,7 @@ int checkFileDir(char **file_dir, INTER_FUNCTIONSIG) {
         return 2;
 
     error_:
-    setResultErrorSt(E_ImportException, "import/include file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setResultErrorSt(E_ImportException, L"import/include file is not readable", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return 0;
 }
 
@@ -130,7 +133,7 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
         goto return_;
     }
 
-    file_dir = wcsToStr(result->value->value->data.str.str, false);
+    file_dir = memWcsToStr(result->value->value->data.str.str, false);
     freeResult(result);
     if (checkFileDir(&file_dir, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)) != 1)
         goto return_;
@@ -188,7 +191,7 @@ ResultType importFileCore(char **path, char **split, int *status, INTER_FUNCTION
         return R_error;
     }
 
-    *path = wcsToStr(result->value->value->data.str.str, false);
+    *path = memWcsToStr(result->value->value->data.str.str, false);
     *split = splitDir(*path);  // 自动去除末尾路径分隔符
     freeResult(result);
     if ((*status = checkFileDir(path, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) == 0)
@@ -254,7 +257,7 @@ ResultType importFile(INTER_FUNCTIONSIG) {
         goto return_;
     freeResult(result);
     if (st->u.import_file.as == NULL) {
-        wchar_t *name_ = strToWcs(split_path, false);
+        wchar_t *name_ = memStrToWcs(split_path, false);
         addStrVar(name_, false, is_new, imp_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(name_);
     }
@@ -315,7 +318,7 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
         LinkValue *string;
         freeResult(result);
 
-        wcs = strToWcs(split_path, false);
+        wcs = memStrToWcs(split_path, false);
         makeStringValue(wcs, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, imp_value));
         memFree(wcs);
 

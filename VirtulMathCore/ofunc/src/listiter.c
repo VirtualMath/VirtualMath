@@ -55,7 +55,7 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     getElement(list_, index, 0, "listiter", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         if (is_indexException(result->value, inter))
-            setResultError(E_StopIterException, "Stop Iter", 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_StopIterException, L"Stop Iter", 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         else
             return result->type;
     else {

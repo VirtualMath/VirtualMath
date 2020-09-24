@@ -30,7 +30,6 @@ void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link);
 void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link);
 void printVarGC(char *tag, Inter *inter);
 void printHashTableGC(char *tag, Inter *inter, long *tmp_link);
-void printTokenStream(TokenStream *ts);
 #endif
 
 #endif //VIRTUALMATH___VIRTUALMATH_H

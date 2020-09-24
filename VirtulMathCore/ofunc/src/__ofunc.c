@@ -86,10 +86,10 @@ bool checkIndex(vnum *index, const vnum *size, INTER_FUNCTIONSIG_NOT_ST){
     if (*index < 0)
         *index = *size + *index;
     if (*index >= *size){
-        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     } else if (*index < 0){
-        setResultError(E_IndexException, "Index is less than 0", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index is less than 0", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;  // true - 保持result为setResultCore的结果
@@ -100,15 +100,15 @@ bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, INTER_
     *first = *first < 0 ? *first + size : *first;
     *second = *second < 0 ? *second + size : *second;
     if (*second > size || *first >= size){
-        setResultError(E_IndexException, "Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index too max", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     } else if (*first < 0 || *second <= 0){
-        setResultError(E_IndexException, "Index is less than 0", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index is less than 0", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
 
     if (*stride == 0 || *first > *second && stride > 0 || *first < *second && stride < 0){
-        setResultError(E_StrideException, "Stride is 0 or Unfinished iteration", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_StrideException, L"Stride is 0 or Unfinished iteration", 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;

@@ -287,7 +287,7 @@ void setResultBase(Result *ru, Inter *inter) {
     useNoneValue(inter, ru);
 }
 
-void setResultErrorSt(BaseErrorType type, char *error_message, bool new, Statement *st, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 支持宽字符
+void setResultErrorSt(BaseErrorType type, wchar_t *error_message, bool new, Statement *st, INTER_FUNCTIONSIG_NOT_ST) {
     setResultError(type, error_message, st->line, st->code_file, new, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 }
 
@@ -336,27 +336,25 @@ LinkValue *findBaseError(BaseErrorType type, Inter *inter){
     }
 }
 
-char *getErrorInfo(LinkValue *exc, int type, Inter *inter){
+wchar_t *getErrorInfo(LinkValue *exc, int type, Inter *inter){
     wchar_t *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
     LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
     if (_info_ != NULL && _info_->value->type == string)
-        return wcsToStr(_info_->value->data.str.str, false);
+        return memWidecpy(_info_->value->data.str.str);
     else
-        return type == 1 ? memStrcpy("Error Type: Unknown") : memStrcpy("Error Message: Unknown");
+        return type == 1 ? memWidecpy(L"Error Type: Unknown") : memWidecpy(L"Error Message: Unknown");
 }
 
-void callException(LinkValue *exc, char *message, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+void callException(LinkValue *exc, wchar_t *message, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_new_ = findAttributes(inter->data.object_new, false, exc, inter);
-    char *type = NULL;
-    char *error_message = NULL;
+    wchar_t *type = NULL;
+    wchar_t *error_message = NULL;
     setResultCore(result);
     gc_addTmpLink(&exc->gc_status);
 
     if (_new_ != NULL){
         Argument *arg = NULL;
-        wchar_t *wcs_message = strToWcs(message, false);
-        makeStringValue(wcs_message, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-        memFree(wcs_message);
+        makeStringValue(message, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
         arg =  makeValueArgument(result->value);
@@ -381,7 +379,7 @@ void callException(LinkValue *exc, char *message, fline line, char *file, INTER_
     return_: gc_freeTmpLink(&exc->gc_status);
 }
 
-void setResultError(BaseErrorType type, char *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST) {
+void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST) {
     if (!new && result->type != R_error)
         return;
     if (new) {
@@ -429,11 +427,11 @@ void freeResultSafe(Result *ru){
     ru->error = NULL;
 }
 
-Error *makeError(char *type, char *message, fline line, char *file) {
+Error *makeError(wchar_t *type, wchar_t *message, fline line, char *file) {
     Error *tmp = memCalloc(1, sizeof(Error));
     tmp->line = line;
-    tmp->type = memStrcpy(type);
-    tmp->messgae = memStrcpy(message);
+    tmp->type = memWidecpy(type);
+    tmp->messgae = memWidecpy(message);
     tmp->file = memStrcpy(file);
     tmp->next = NULL;
     return tmp;
@@ -461,7 +459,7 @@ void printError(Result *result, Inter *inter, bool free) {
         if (base->next != NULL)
             fprintf(inter->data.inter_stderr, "Error Backtracking:  On Line: %lld In file: %s Error ID: %p\n", base->line, base->file, base);
         else
-            fprintf(inter->data.inter_stderr, "%s\n%s\nOn Line: %lld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
+            fprintf(inter->data.inter_stderr, "%ls\n%ls\nOn Line: %lld\nIn File: %s\nError ID: %p\n", base->type, base->messgae, base->line, base->file, base);
     }
     if (free)
         freeError(result);

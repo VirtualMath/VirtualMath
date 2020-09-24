@@ -13,7 +13,7 @@ ResultType dict_new(OFFICAL_FUNCTIONSIG){
     }
 
     if (arg != NULL && arg->type == value_arg) {
-        setResultError(E_ArgumentException, "Too many argument", 0, "dict.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, L"Too many argument", 0, "dict.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -63,7 +63,7 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
         if (element != NULL)
             setResultOperationBase(result, copyLinkValue(element, inter));
         else {
-            char *message = memStrcat("Dict could not find key value: ", wcsToStr(name, true), false, true);
+            wchar_t *message = memWidecat(L"Dict could not find key value: ", name, false, false);
             setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }
@@ -93,7 +93,7 @@ ResultType dict_down_del(OFFICAL_FUNCTIONSIG){
         if (element != NULL)
             setResult(result, inter);
         else{
-            char *message = memStrcat("Cannot delete non-existent keys: ", wcsToStr(name, false), false, true);
+            wchar_t *message = memWidecat(L"Cannot delete non-existent keys: ", name, false, false);
             setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }

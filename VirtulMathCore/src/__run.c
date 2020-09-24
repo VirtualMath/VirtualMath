@@ -10,7 +10,7 @@ ResultType getBaseVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(E_TypeException, "Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, L"Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -31,7 +31,7 @@ ResultType getBaseSVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, number)){
-        setResultErrorSt(E_TypeException, "Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, L"Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -179,7 +179,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
     }
 
     if (pt_type != free_ && self == NULL) {
-        setResultError(E_ArgumentException, "Function does not belong to anything(not self)", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, L"Function does not belong to anything(not self)", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -454,9 +454,9 @@ bool is_indexException(LinkValue *value, Inter *inter) {
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST) {
     if ((value == public_aut || (!pri_auto && value == auto_aut)) && (base != public_aut && base != auto_aut)) {
         if (name == NULL)
-            setResultError(E_PermissionsException, "Wrong Permissions: access variables as public", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_PermissionsException, L"Wrong Permissions: access variables as public", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         else {
-            char *message = memStrcat("Wrong Permissions: access variables as public: ", name, false, false);
+            wchar_t *message = memWidecat(L"Wrong Permissions: access variables as public: ", memStrToWcs(name, false), false, true);
             setResultError(E_PermissionsException, message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }
@@ -464,9 +464,9 @@ bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, c
     }
     else if ((value == protect_aut) && (base == private_aut)) {
         if (name == NULL)
-            setResultError(E_PermissionsException, "Wrong Permissions: access variables as protect", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_PermissionsException, L"Wrong Permissions: access variables as protect", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         else {
-            char *message = memStrcat("Wrong Permissions: access variables as protect: ", name, false, false);
+            wchar_t *message = memWidecat(L"Wrong Permissions: access variables as protect: ", memStrToWcs(name, false), false, true);
             setResultError(E_PermissionsException, message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }

@@ -3,16 +3,16 @@
 #include "__macro.h"
 
 // 标准错误信息定义
-#define INSTANCE_ERROR(class) "Instance error when calling function, call non-"#class" "#class" method"
-#define VALUE_ERROR(value, acc) #value" value is not a "#acc" (may be modified by an external program)"
-#define ONLY_ACC(var, value) #var" only accepts "#value
-#define ERROR_INIT(class) #class" get wrong initialization parameters"
-#define MANY_ARG "Too many parameters"
-#define FEW_ARG "Too few parameters"
-#define CUL_ERROR(opt) #opt" operation gets incorrect value"
-#define OBJ_NOTSUPPORT(opt) "Object does not support "#opt" operation"
-#define RETURN_ERROR(func, type) #func" function should return "#type" type data"
-#define KEY_INTERRUPT "KeyInterrupt"
+#define INSTANCE_ERROR(class) L##"Instance error when calling function, call non-"#class" "#class" method"
+#define VALUE_ERROR(value, acc) L###value" value is not a "#acc" (may be modified by an external program)"
+#define ONLY_ACC(var, value) L###var" only accepts "#value
+#define ERROR_INIT(class) L###class" get wrong initialization parameters"
+#define MANY_ARG L##"Too many parameters"
+#define FEW_ARG L##"Too few parameters"
+#define CUL_ERROR(opt) L###opt" operation gets incorrect value"
+#define OBJ_NOTSUPPORT(opt) L##"Object does not support "#opt" operation"
+#define RETURN_ERROR(func, type) L###func" function should return "#type" type data"
+#define KEY_INTERRUPT L##"KeyInterrupt"
 
 typedef struct Argument Argument;
 typedef struct Inter Inter;
@@ -154,8 +154,8 @@ struct Result {
 };
 
 struct Error {
-    char *type;  // TODO-szh 此处使用message
-    char *messgae;
+    wchar_t *type;
+    wchar_t *messgae;
     char *file;
     fline line;
     struct Error *next;
@@ -215,8 +215,8 @@ Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, INTER
 void setResultCore(Result *ru);
 void setResult(Result *ru, Inter *inter);
 void setResultBase(Result *ru, Inter *inter);
-void setResultErrorSt(BaseErrorType type, char *error_message, bool new, INTER_FUNCTIONSIG);
-void setResultError(BaseErrorType type, char *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST);
+void setResultErrorSt(BaseErrorType type, wchar_t *error_message, bool new, INTER_FUNCTIONSIG);
+void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST);
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong);
 void setResultOperation(Result *ru, LinkValue *value);
 void setResultOperationBase(Result *ru, LinkValue *value);
@@ -227,7 +227,7 @@ Package *makePackage(Value *value, char *md5, char *name, Package *base);
 void freePackage(Package *base);
 Value *checkPackage(Package *base, char *md5, char *name);
 
-Error *makeError(char *type, char *message, fline line, char *file);
+Error *makeError(wchar_t *type, wchar_t *message, fline line, char *file);
 void freeError(Result *base);
 Error *connectError(Error *new, Error *base);
 void printError(Result *result, Inter *inter, bool free);
