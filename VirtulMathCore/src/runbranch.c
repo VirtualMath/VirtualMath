@@ -322,7 +322,6 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
 }
 
 // TODO-szh 简化函数
-// TODO-szh for循环支持迭代器
 ResultType forBranch(INTER_FUNCTIONSIG) {
     StatementList *for_list = st->u.for_branch.for_list;
     Statement *first = st->u.for_branch.first_do;

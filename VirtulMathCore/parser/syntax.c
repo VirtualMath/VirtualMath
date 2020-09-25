@@ -342,7 +342,7 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         strMatherMacro(MATHER_NULL, "null");
 
         strMatherMacro(MATHER_DEF, "def");
-        strMatherMacro(MATHER_CLASS, "V_class");
+        strMatherMacro(MATHER_CLASS, "class");
         strMatherMacro(MATHER_BLOCK, "block");
         strMatherMacro(MATHER_BREAK, "break");
         strMatherMacro(MATHER_CONTINUE, "continue");
