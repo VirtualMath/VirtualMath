@@ -13,7 +13,7 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "V_func.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "func.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -31,14 +31,7 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     value->value->data.function.of = NULL;
     setFunctionData(value->value, ap->value, inter);
 
-    switch (init_new(value, arg, "V_func.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
-        case 1:
-            freeResult(result);
-            setResultOperation(result, value);
-            break;
-        default:
-            break;
-    }
+    run_init(value, arg, 0, "func.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -53,7 +46,7 @@ ResultType function_init(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if ((func = ap[0].value)->value->type != V_func) {
-        setResultError(E_TypeException, INSTANCE_ERROR(V_func), 0, "V_func", true,
+        setResultError(E_TypeException, INSTANCE_ERROR(func), 0, "func", true,
                        CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
@@ -73,7 +66,7 @@ void registeredFunction(REGISTERED_FUNCTIONSIG){
     LinkValue *object = inter->data.function;
     NameFunc tmp[] = {{NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar(L"V_func", object, belong, inter);
+    addBaseClassVar(L"func", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

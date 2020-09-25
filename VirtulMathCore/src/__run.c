@@ -482,22 +482,33 @@ LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
     return makeLinkValue(new_object, belong, inter);
 }
 
-int init_new(LinkValue *obj, Argument *arg, char *message, INTER_FUNCTIONSIG_NOT_ST){
+static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_init_ = NULL;
     _init_ = findAttributes(inter->data.object_init, false, obj, inter);
 
     if (_init_ == NULL) {
         if (arg != NULL) {
-            setResultError(E_ArgumentException, MANY_ARG, 0, message, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return 0;
         } else
             return 1;
     }
     _init_->belong = obj;
     gc_addTmpLink(&_init_->gc_status);
-    callBackCore(_init_, arg, 0, message, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
+    callBackCore(_init_, arg, 0, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
     gc_freeTmpLink(&_init_->gc_status);
     return CHECK_RESULT(result) ? 1 : -1;
+}
+
+int run_init(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    int return_;
+    setResultCore(result);
+    return_ = init_new(obj, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (return_ == 1) {
+        freeResult(result);
+        setResultOperation(result, obj);
+    }
+    return return_;
 }
 
 bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST) {

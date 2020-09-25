@@ -3,16 +3,16 @@
 #include "__macro.h"
 
 // 标准错误信息定义
-#define INSTANCE_ERROR(class) L##"Instance error when calling V_func, call non-"#class" "#class" method"
+#define INSTANCE_ERROR(class) L"Instance error when calling func, call non-"#class" "#class" method"
 #define VALUE_ERROR(value, acc) L###value" value is not a "#acc" (may be modified by an external program)"
 #define ONLY_ACC(var, value) L###var" only accepts "#value
 #define ERROR_INIT(class) L###class" get wrong initialization parameters"
-#define MANY_ARG L##"Too many parameters"
-#define FEW_ARG L##"Too few parameters"
+#define MANY_ARG L"Too many parameters"
+#define FEW_ARG L"Too few parameters"
 #define CUL_ERROR(opt) L###opt" operation gets incorrect value"
-#define OBJ_NOTSUPPORT(opt) L##"Object does not support "#opt" operation"
-#define RETURN_ERROR(func, type) L###func" V_func should return "#type" type data"
-#define KEY_INTERRUPT L##"KeyInterrupt"
+#define OBJ_NOTSUPPORT(opt) L"Object does not support "#opt" operation"
+#define RETURN_ERROR(func, type) L###func" func should return "#type" type data"
+#define KEY_INTERRUPT L"KeyInterrupt"
 
 typedef struct Argument Argument;
 typedef struct Inter Inter;

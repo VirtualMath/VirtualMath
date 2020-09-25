@@ -13,14 +13,7 @@ ResultType pass_new(OFFICAL_FUNCTIONSIG){
     }
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_ell;
-    switch (init_new(value, arg, "pass.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
-        case 1:
-            freeResult(result);
-            setResultOperation(result, value);
-            break;
-        default:
-            break;
-    }
+    run_init(value, arg, 0, "pass.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 

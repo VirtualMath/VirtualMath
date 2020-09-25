@@ -11,7 +11,7 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[1].value->value->type != V_list){
-        setResultError(E_TypeException, ONLY_ACC(listiter, V_list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(listiter, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -42,7 +42,7 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     index = findAttributes(L"__index", false, ap[0].value, inter);
 
     if (list_->value->type != V_list){
-        setResultError(E_TypeException, VALUE_ERROR(listiter.__list, V_list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, VALUE_ERROR(listiter.__list, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     if (index->value->type != V_num){

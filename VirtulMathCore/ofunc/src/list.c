@@ -23,14 +23,7 @@ ResultType tuple_list_newCore(OFFICAL_FUNCTIONSIG, enum ListType type){
         value->value->data.list.list[value->value->data.list.size - 1] = at->data.value;
     }
 
-    switch (init_new(value, NULL, "V_list.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
-        case 1:
-            freeResult(result);
-            setResultOperation(result, value);
-            break;
-        default:
-            break;
-    }  // TODO-szh 提取成函数
+    run_init(value, arg, 0, "list/tuple.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -59,7 +52,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_list) {
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     size = ap[0].value->value->data.list.size;
@@ -71,7 +64,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
-            setResultError(E_TypeException, ONLY_ACC(first/second/stride, V_num or V_none), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ONLY_ACC(first/second/stride, V_num or V_none), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return R_error;
         }
     }
@@ -85,7 +78,7 @@ ResultType list_slice(OFFICAL_FUNCTIONSIG){
             LinkValue *element = ap[0].value->value->data.list.list[i];
             new_list = connectValueArgument(element, new_list);
         }
-        makeListValue(new_list, 0, "V_list.slice", L_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeListValue(new_list, 0, "list.slice", L_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(new_list, true);
     }
     return result->type;
@@ -110,11 +103,11 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_list) {
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     size = ap[0].value->value->data.list.size;
-    getIter(ap[1].value, 1, 0, "V_list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    getIter(ap[1].value, 1, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     iter_obj = result->value;
@@ -128,7 +121,7 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
         if (ap[i + 2].value != NULL && ap[i + 2].value->value->type == V_num)
             *(list[i]) = ap[i + 2].value->value->data.num.num;
         else if (ap[i + 2].value != NULL && ap[i + 2].value->value->type != V_none) {
-            setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto return_;
         }
     }
@@ -139,9 +132,9 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
     {
         for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
             freeResult(result);
-            getIter(iter_obj, 0, 0, "V_list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            getIter(iter_obj, 0, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (is_iterStop(result->value, inter)){
-                setResultError(E_TypeException, L"Iter Object Too Short", 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_TypeException, L"Iter Object Too Short", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 goto return_;
             }
             else if (!CHECK_RESULT(result))
@@ -149,9 +142,9 @@ ResultType list_slice_assignment(OFFICAL_FUNCTIONSIG){
             ap[0].value->value->data.list.list[i] = result->value;
         }
         freeResult(result);
-        getIter(iter_obj, 0, 0, "V_list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getIter(iter_obj, 0, 0, "list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (CHECK_RESULT(result)) {
-            setResultError(E_TypeException, L"Iter Object Too Long", 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, L"Iter Object Too Long", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             goto return_;
         } else if (!is_iterStop(result->value, inter))
             goto return_;
@@ -179,7 +172,7 @@ ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_list) {
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     size = ap[0].value->value->data.list.size;
@@ -191,7 +184,7 @@ ResultType list_slice_del(OFFICAL_FUNCTIONSIG){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
-            setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return R_error;
         }
     }
@@ -234,11 +227,11 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_list){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     if (ap[2].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(V_list index, V_num), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(list index, V_num), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -247,10 +240,10 @@ ResultType list_down_assignment(OFFICAL_FUNCTIONSIG){
     if (index < 0)
         index = size + index;
     if (index >= size){
-        setResultError(E_IndexException, L"Index too max", 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index too max", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     } else if (index < 0){
-        setResultError(E_IndexException, L"Index less than 0", 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_IndexException, L"Index less than 0", 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     ap[0].value->value->data.list.list[index] = ap[1].value;
@@ -271,11 +264,11 @@ ResultType list_down_del(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_list){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     if (ap[1].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(V_list index, V_num), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(list index, V_num), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -310,11 +303,11 @@ ResultType list_down(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_list){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     if (ap[1].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(V_list index, V_num), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(list index, V_num), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -337,12 +330,12 @@ ResultType list_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_list){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "V_list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     {
         Argument *list_iter_arg = makeValueArgument(ap[0].value);
-        callBackCore(inter->data.list_iter, list_iter_arg, 0, "V_list", 0,
+        callBackCore(inter->data.list_iter, list_iter_arg, 0, "list", 0,
                      CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(list_iter_arg, true);
     }
@@ -364,7 +357,7 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     value = ap[0].value->value;
 
     if (value->type != V_list){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     lt = value->data.list.type;
@@ -374,12 +367,12 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         if (!CHECK_RESULT(result))
             return result->type;
         if (again_) {
-            makeStringValue((lt == L_list ? L"[...]" : L"(...)"), 0, "V_list.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            makeStringValue((lt == L_list ? L"[...]" : L"(...)"), 0, "list.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return result->type;
         }
     }
 
-    setBoolAttrible(true, is_repo ? L"repo_again" : L"str_again", 0, "V_list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setBoolAttrible(true, is_repo ? L"repo_again" : L"str_again", 0, "list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (lt == L_list)
         repo = memWidecpy(L"[");
     else
@@ -400,12 +393,12 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         repo = memWidecat(repo, L")", true, false);
 
     freeResult(result);
-    makeStringValue(repo, 0, "V_list.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(repo, 0, "list.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return_:
     {
         Result tmp;
         setResultCore(&tmp);
-        setBoolAttrible(false, is_repo ? L"repo_again" : L"str_again", 0, "V_list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
+        setBoolAttrible(false, is_repo ? L"repo_again" : L"str_again", 0, "list.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
         if (!RUN_TYPE(tmp.type)) {
             freeResult(result);
             *result = tmp;
@@ -449,7 +442,7 @@ void registeredList(REGISTERED_FUNCTIONSIG){
                           {inter->data.object_slice_assignment, list_slice_assignment, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
-        addBaseClassVar(L"V_list", object, belong, inter);
+        addBaseClassVar(L"list", object, belong, inter);
         iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
         gc_freeTmpLink(&object->gc_status);
     }

@@ -37,6 +37,6 @@ bool is_iterStop(LinkValue *value, Inter *inter);
 bool is_indexException(LinkValue *value, Inter *inter);
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class);
-int init_new(LinkValue *obj, Argument *arg, char *message, INTER_FUNCTIONSIG_NOT_ST);
+int run_init(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH___RUN_H

@@ -620,9 +620,9 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
             break;
         case V_func:
             if (print_father)
-                fprintf(debug, "V_func");
+                fprintf(debug, "func");
             else
-                fprintf(debug, "(V_func on %p)", value);
+                fprintf(debug, "(func on %p)", value);
             break;
         case V_list:
             if (print_in){
@@ -634,7 +634,7 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
                 }
                 fprintf(debug, " ]", NULL);
             } else
-                fprintf(debug, "[V_list]", NULL);
+                fprintf(debug, "[list]", NULL);
             break;
         case V_dict:
             if (print_in){
@@ -654,7 +654,7 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
                 }
                 fprintf(debug, " }", NULL);
             } else
-                fprintf(debug, "[V_dict]", NULL);
+                fprintf(debug, "[dict]", NULL);
             break;
         case V_none:
             fprintf(debug, "(null)", NULL);

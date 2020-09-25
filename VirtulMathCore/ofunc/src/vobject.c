@@ -154,7 +154,7 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
             break;
         case V_func: {
             char str[30] = {};
-            snprintf(str, 30, "(V_func on %p)", value);
+            snprintf(str, 30, "(func on %p)", value);
             repo = memStrToWcs(str, false);
             break;
         }

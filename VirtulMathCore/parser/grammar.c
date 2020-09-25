@@ -33,7 +33,7 @@ void freeParserMessage(ParserMessage *pm, bool self) {
 void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st) {
     int token_type;
     int save_enter = pm->tm->file->filter_data.enter;
-    char *command_message = global ? "ERROR from command V_list(get parserCommand)" : NULL;
+    char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
     void *bak = NULL;
     fline line = 0;
     bool should_break = false;
@@ -75,7 +75,7 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
                 if (global) {
                     Token *tk = popNewToken(pm->tm);
                     freeToken(tk, true);
-                    syntaxError(pm, command_list_error, command_token->line, 1, "ERROR from parserCommand V_list(get stop)");
+                    syntaxError(pm, command_list_error, command_token->line, 1, "ERROR from parserCommand list(get stop)");
                     freeToken(command_token, true);
                 }
                 else{
@@ -535,7 +535,7 @@ void parserDo(PASERSSIGNATURE){
                 st->u.for_branch.first_do = do_code;
                 break;
             case MATHER_DEF:
-                if (!callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Don't get a V_func def after do"))
+                if (!callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Don't get a func def after do"))
                     goto error_;
                 st->u.set_function.first_do = do_code;
                 break;
@@ -1025,23 +1025,23 @@ void parserDef(PASERSSIGNATURE){
     long int line = delToken(pm);
 
     if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &name_tmp,
-                            "Don't get a V_func/V_class name"))
+                            "Don't get a func/V_class name"))
         goto error_;
 
     if (!checkToken(pm, MATHER_LP))
         goto get_code;
     if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, type==MATHER_DEF ? MATHER_SEMICOLON : -1)) {
         lexEnter(pm, false);
-        syntaxError(pm, syntax_error, line, 1, "Don't get a V_func/V_class parameter");
+        syntaxError(pm, syntax_error, line, 1, "Don't get a func/V_class parameter");
         goto error_;
     }
     if (!checkToken(pm, MATHER_RP)) {
-        syntaxError(pm, syntax_error, line, 1, "Don't get a V_func/V_class ) after parameter");
+        syntaxError(pm, syntax_error, line, 1, "Don't get a func/V_class ) after parameter");
         goto error_;
     }
     get_code:
-    if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a V_func code", line)) {
-        syntaxError(pm, syntax_error, line, 1, "Don't get a V_func code");
+    if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a func code", line)) {
+        syntaxError(pm, syntax_error, line, 1, "Don't get a func code");
         goto error_;
     }
 
@@ -1119,7 +1119,7 @@ void parserOperation(PASERSSIGNATURE){
  */
 bool checkAssignmentLeft(PASERSSIGNATURE, Statement *left){
     if (left->type == call_function && !checkFormal(left->u.call_function.parameter)){
-        syntaxError(pm, syntax_error, left->line, 1, "Don't get success V_func definition from Assignment22");
+        syntaxError(pm, syntax_error, left->line, 1, "Don't get success func definition from Assignment22");
         return false;
     }
     return true;
@@ -1345,9 +1345,9 @@ void parserCallBack(PASERSSIGNATURE){
  * | MATHER_VAR
  * | MATHER_LAMBDA parserParameter MATHER_COLON parserOperation
  * | MATHER_LP parserOperation MATHER_LP
- * | MATHER_LP parserOperation MATHER_LP -> V_list
+ * | MATHER_LP parserOperation MATHER_LP -> list
  * | MATHER_LP parserOperation MATHER_LP MATHER_VAR
- * | MATHER_LC parserParameter(V_dict) MATHER_LC
+ * | MATHER_LC parserParameter(dict) MATHER_LC
  */
 int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     *st = NULL;
@@ -1452,7 +1452,7 @@ void parserBaseValue(PASERSSIGNATURE){
                 goto return_;
             } else if (tmp == -1) {
                 freeToken(value_token, true);
-                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ] from V_list/var");
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ] from list/var");
                 goto return_;  // 优化goto return freeToken
             }
             if (MATHER_VAR == readBackToken(pm)) {
@@ -1494,13 +1494,13 @@ void parserBaseValue(PASERSSIGNATURE){
                                             MATHER_COLON, -1);
             if (!parser_status) {
                 freeToken(value_token, true);
-                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a V_dict parameter");
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");
                 goto return_;
             }
             if (!checkToken(pm, MATHER_RC)) {
                 freeToken(value_token, true);
                 freeParameter(pt, true);
-                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a } after V_dict");
+                syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a } after dict");
                 goto return_;
             }
             st = makeBaseDictStatement(pt, value_token->line, pm->file);

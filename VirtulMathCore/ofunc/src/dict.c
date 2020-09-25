@@ -13,7 +13,7 @@ ResultType dict_new(OFFICAL_FUNCTIONSIG){
     }
 
     if (arg != NULL && arg->type == value_arg) {
-        setResultError(E_ArgumentException, L"Too many argument", 0, "V_dict.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, L"Too many argument", 0, "dict.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -29,16 +29,7 @@ ResultType dict_new(OFFICAL_FUNCTIONSIG){
     popVarList(hash);
 
     freeResult(result);
-    switch (init_new(value, NULL, "V_dict.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
-        case 1:
-            freeResult(result);
-            setResultOperation(result, value);
-            break;
-        default:
-            break;
-    }
-    freeResult(result);
-    setResultOperation(result, value);
+    run_init(value, arg, 0, "dict.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 
@@ -53,7 +44,7 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_dict){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_dict), 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     {
@@ -64,7 +55,7 @@ ResultType dict_down(OFFICAL_FUNCTIONSIG){
             setResultOperationBase(result, copyLinkValue(element, inter));
         else {
             wchar_t *message = memWidecat(L"Dict could not find key value: ", name, false, false);
-            setResultError(E_KeyException, message, 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }
         memFree(name);
@@ -83,7 +74,7 @@ ResultType dict_down_del(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_dict){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_dict), 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     {
@@ -94,7 +85,7 @@ ResultType dict_down_del(OFFICAL_FUNCTIONSIG){
             setResult(result, inter);
         else{
             wchar_t *message = memWidecat(L"Cannot delete non-existent keys: ", name, false, false);
-            setResultError(E_KeyException, message, 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_KeyException, message, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             memFree(message);
         }
         memFree(name);
@@ -115,7 +106,7 @@ ResultType dict_down_assignment(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_dict){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_dict), 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -135,7 +126,7 @@ ResultType dict_keys(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
     if (ap[0].value->value->type != V_dict){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_dict), 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     for (int index=0; index < MAX_SIZE; index++){
@@ -143,7 +134,7 @@ ResultType dict_keys(OFFICAL_FUNCTIONSIG){
         for (PASS; tmp != NULL; tmp = tmp->next)
             list = connectValueArgument(copyLinkValue(tmp->name_, inter), list);
     }
-    makeListValue(list, 0, "V_dict", L_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeListValue(list, 0, "dict", L_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     freeArgument(list, true);
     return result->type;
 }
@@ -158,12 +149,12 @@ ResultType dict_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
 
     if (ap[0].value->value->type != V_dict){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_dict), 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     {
         Argument *dict_iter_arg = makeValueArgument(ap[0].value);
-        callBackCore(inter->data.dict_iter, dict_iter_arg, 0, "V_dict", 0,
+        callBackCore(inter->data.dict_iter, dict_iter_arg, 0, "dict", 0,
                      CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(dict_iter_arg, true);
     }
@@ -184,7 +175,7 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     value = ap[0].value->value;
 
     if (value->type != V_dict){
-        setResultError(E_TypeException, INSTANCE_ERROR(V_dict), 0, "V_dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, ap[0].value, inter);
@@ -193,12 +184,12 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         if (!CHECK_RESULT(result))
             return result->type;
         if (again_) {
-            makeStringValue(L"{...}", 0, "V_dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            makeStringValue(L"{...}", 0, "dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return result->type;
         }
     }
 
-    setBoolAttrible(true, is_repo ? L"repo_again" : L"str_again", 0, "V_dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setBoolAttrible(true, is_repo ? L"repo_again" : L"str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     repo = memWidecpy(L"{");
     for (int i = 0, count = 0; i < MAX_SIZE; i++) {
         for (Var *var = value->data.dict.dict->hashtable[i]; var != NULL; var = var->next, count++) {
@@ -208,14 +199,14 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
                 repo = memWidecat(repo, L", ", true, false);
 
             freeResult(result);
-            name_tmp = getRepoStr(var->name_, is_repo, 0, "V_dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            name_tmp = getRepoStr(var->name_, is_repo, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
             repo = memWidecat(repo, name_tmp, true, false);
             repo = memWidecat(repo, L": ", true, false);
 
             freeResult(result);
-            value_tmp = getRepoStr(var->value, is_repo, 0, "V_dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            value_tmp = getRepoStr(var->value, is_repo, 0, "dict", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 goto return_;
             repo = memWidecat(repo, value_tmp, true, false);
@@ -224,13 +215,13 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
 
     freeResult(result);
     repo = memWidecat(repo, L"}", true, false);
-    makeStringValue(repo, 0, "V_dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(repo, 0, "dict.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
     return_:
     {
         Result tmp;
         setResultCore(&tmp);
-        setBoolAttrible(false, is_repo ? L"repo_again" : L"str_again", 0, "V_dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
+        setBoolAttrible(false, is_repo ? L"repo_again" : L"str_again", 0, "dict.repo", ap[0].value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp, belong));
         if (!RUN_TYPE(tmp.type)) {
             freeResult(result);
             *result = tmp;
@@ -261,7 +252,7 @@ void registeredDict(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_down_del, dict_down_del, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar(L"V_dict", object, belong, inter);
+    addBaseClassVar(L"dict", object, belong, inter);
     iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
