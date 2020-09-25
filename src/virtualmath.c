@@ -13,7 +13,7 @@ void runCodeFile(Inter *inter, char *file[]) {
 #if __linux__
             *file = memStrcat(*file, (*file)[memStrlen(*file) - 1] != '/' ? "/__main__.vm" : "__main__.vm", false, false);
 #else
-            *file = memStrcat(*file, (*file)[memStrlen(*file) - 1] != '\\' ? "\\__main__.vm" : "__main__.vm", false, false);
+            *file = memStrcat(*file, ((*file)[memStrlen(*file) - 1] != '\\' ? "\\__main__.vm" : "__main__.vm"), false, false);
 #endif
             if (checkFileReadble(*file) != 1)
                 continue;

@@ -78,6 +78,7 @@ char *memStrcat(char *first, char *second, bool free_first, bool free_last) {
     }
 
     char *new = memString(memStrlen(first) + memStrlen(second));
+    strcat(new, first);
     if (second != NULL)
         strcat(new, second);
 
