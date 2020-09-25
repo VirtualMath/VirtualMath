@@ -281,6 +281,7 @@ static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long 
         if (result->type == R_yield){
             updateFunctionYield(st_func, result->node);
             result->type = R_opt;
+            result->is_yield = true;
         }
         else
             freeRunInfo(st_func);
@@ -288,6 +289,7 @@ static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long 
         if (result->type == R_yield){
             newFunctionYield(st_func, result->node, var_func, inter);
             result->type = R_opt;
+            result->is_yield = true;
         }
         else
             popVarList(var_func);

@@ -151,6 +151,7 @@ struct Result {
     struct Error *error;
     vnum times;
     struct Statement *node;
+    bool is_yield;  // 执行的函数是否为生成器
 };
 
 struct Error {

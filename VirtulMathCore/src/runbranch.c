@@ -334,7 +334,8 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     Statement *after_vl = NULL;
     bool set_result = true;
     bool is_break = false;
-    int yield_run = false;
+    bool yield_run = false;
+    LinkValue *first_yield = NULL;
     enum StatementInfoStatus result_from = info_vl_branch;
 
     Result finally_tmp;
@@ -378,6 +379,13 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             set_result = false;
             goto not_else;
         }
+        if (result->is_yield){
+            iter = NULL;
+            first_yield = result->value;
+            result->value = NULL;
+            goto do_for;
+        }
+
         tmp = result->value;
         result->value = NULL;
         freeResult(result);
@@ -393,7 +401,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     }
 
     do_for:
-    while (!is_break){
+    while (!is_break){  // 循环执行的本体
         Statement *for_st = for_list->code;
         Statement *after_st = after;
         freeResult(result);
@@ -410,19 +418,38 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
 
         {
             LinkValue *element = NULL;
-            getIter(iter, 0, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            if (!CHECK_RESULT(result)) {
-                if (is_iterStop(result->value, inter)){
-                    freeResult(result);
-                    break;
-                } else {
+            if (iter != NULL) {
+                getIter(iter, 0, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                if (!CHECK_RESULT(result)) {
+                    if (is_iterStop(result->value, inter)) {
+                        freeResult(result);
+                        break;
+                    } else {
+                        set_result = false;
+                        goto not_else;
+                    }
+                }
+                element = result->value;
+                result->value = NULL;
+                freeResult(result);
+            } else if (first_yield != NULL){
+                element = first_yield;
+                first_yield = NULL;
+            } else {
+                if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(for_list->condition, var_list, result, belong))){
                     set_result = false;
                     goto not_else;
                 }
+                if (result->is_yield){
+                    element = result->value;
+                    result->value = NULL;
+                    freeResult(result);
+                } else {
+                    freeResult(result);
+                    break;
+                }
             }
-            element = result->value;
-            result->value = NULL;
-            freeResult(result);
+
             assCore(for_list->var, element, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             gc_freeTmpLink(&element->gc_status);
             if (!CHECK_RESULT(result)){

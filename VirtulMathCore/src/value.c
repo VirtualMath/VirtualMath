@@ -271,6 +271,7 @@ LinkValue *copyLinkValue(LinkValue *value, Inter *inter) {
 void setResultCore(Result *ru) {
     ru->type = R_not;
     ru->times = 0;
+    ru->is_yield = false;
     ru->error = NULL;
     ru->value = NULL;
     ru->label = NULL;
