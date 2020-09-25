@@ -115,15 +115,28 @@ ResultType runStatement(INTER_FUNCTIONSIG) {
     return type;
 }
 
-bool checkSignal(ResultType *type, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static bool checkSignal(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     if (is_KeyInterrupt == signal_appear){
         is_KeyInterrupt = signal_reset;
-        if (type != NULL)
-            *type = R_error;
         setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return true;
     }
     return false;
+}
+
+static bool gotoStatement(Statement **next, INTER_FUNCTIONSIG) {
+    Statement *label_st = checkLabel(st, result->label);
+
+    if (label_st == NULL){
+        setResultErrorSt(E_GotoException, L"Don't find label", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return false;
+    }
+
+    runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
+    if (!CHECK_RESULT(result))
+        return false;
+    *next = label_st->next;
+    return true;
 }
 
 /**
@@ -148,24 +161,22 @@ ResultType iterStatement(INTER_FUNCTIONSIG) {
     bak = signal(SIGINT, signalStopInter);
     do {
         base = st;
-        if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        if (checkSignal(base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+            type = result->type;
             break;
+        }
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CALL_INTER_FUNCTIONSIG(base, var_list, result, belong));
-            if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            if (checkSignal(base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+                type = result->type;
                 break;
+            }
             if (type == R_goto && result->times == 0){
-                Statement *label_st = checkLabel(st, result->label);
-                if (label_st == NULL){
-                    setResultErrorSt(E_GotoException, L"Don't find label", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                    type = R_error;
+                if (!gotoStatement(&base, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) {
+                    type = result->type;
                     break;
                 }
-                type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
-                if (!RUN_TYPE(type))
-                    break;
-                base = label_st->next;
             }
             else if (!RUN_TYPE(type))
                 break;
@@ -208,24 +219,22 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
     do {
         base = st;
         var_list = inter->var_list;
-        if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        if (checkSignal(base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+            type = result->type;
             break;
+        }
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CALL_INTER_FUNCTIONSIG(base, var_list, result, belong));
-            if (checkSignal(&type, base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            if (checkSignal(base->line, base->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+                type = result->type;
                 break;
+            }
             if (type == R_goto){
-                Statement *label_st = checkLabel(st, result->label);
-                if (label_st == NULL){
-                    setResultErrorSt(E_GotoException, L"Don't find label", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                    type = R_error;
+                if (!gotoStatement(&base, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) {
+                    type = result->type;
                     break;
                 }
-                type = runLabel(CALL_INTER_FUNCTIONSIG(label_st, var_list, result, belong));
-                if (!RUN_TYPE(type))
-                    break;
-                base = label_st->next;
             }
             else if (!RUN_TYPE(type))
                 break;

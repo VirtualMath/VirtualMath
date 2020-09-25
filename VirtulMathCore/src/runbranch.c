@@ -1028,16 +1028,16 @@ ResultType gotoLabel(INTER_FUNCTIONSIG){
 }
 
 ResultType runLabel(INTER_FUNCTIONSIG) {
-    // goto的值通过result传入
-    LinkValue *goto_value = result->value;
+    LinkValue *goto_value = result->value;  // goto的值通过result传入, 因此不能进行setResultCore
     result->value = NULL;
     freeResult(result);
-    var_list = pushVarList(var_list, inter);
+
     if (st->u.label_.as != NULL)
         assCore(st->u.label_.as, goto_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
     gc_freeTmpLink(&goto_value->gc_status);
     if (st->u.label_.as != NULL && !CHECK_RESULT(result))
-        goto return_;
+        return result->type;
 
     freeResult(result);
     if (st->u.label_.command != NULL)
@@ -1045,7 +1045,5 @@ ResultType runLabel(INTER_FUNCTIONSIG) {
     else
         setResult(result, inter);
 
-    return_:
-    popVarList(var_list);
     return result->type;
 }
