@@ -302,7 +302,7 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
     wchar_t *var_name = setStrVarName(name, free_old, inter);
     setResultCore(result);
 
-    makeStringValue(var_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -329,7 +329,7 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
     LinkValue *name_;
     setResultCore(result);
 
-    makeStringValue(var_name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
