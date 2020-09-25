@@ -21,7 +21,7 @@ ResultType vm_print(OFFICAL_FUNCTIONSIG){
         fprintf(inter->data.inter_stdout, "%ls", tmp);
     }
 
-    if (ap[1].value != NULL && ap[1].value->value->type == string)
+    if (ap[1].value != NULL && ap[1].value->value->type == V_str)
         fprintf(inter->data.inter_stdout, "%ls", ap[1].value->value->data.str.str);
     else
         fprintf(inter->data.inter_stdout, "\n");

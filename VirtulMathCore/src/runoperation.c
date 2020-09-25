@@ -78,7 +78,7 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     LinkValue *left;
     VarList *object = NULL;
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == none)
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return result->type;
     left = result->value;
     result->value = NULL;
@@ -117,7 +117,7 @@ ResultType delOperation(INTER_FUNCTIONSIG) {
 
 ResultType delCore(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
     setResultCore(result);
-    if (name->type == base_list && name->u.base_list.type == value_tuple)
+    if (name->type == base_list && name->u.base_list.type == L_tuple)
         listDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if (name->type == slice_)
         downDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -259,7 +259,7 @@ ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setti
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
-    if (name->type == base_list && name->u.base_list.type == value_tuple)
+    if (name->type == base_list && name->u.base_list.type == L_tuple)
         listAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else if (name->type == slice_)
         downAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -329,7 +329,7 @@ ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (CHECK_RESULT(result)){
         freeResult(result);
-        makeListValue(call, name->line, name->code_file, value_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeListValue(call, name->line, name->code_file, L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
     return_:
     freeArgument(call, false);
@@ -528,12 +528,12 @@ ResultType setDefault(INTER_FUNCTIONSIG){
 }
 
 bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG){
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == none)
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return true;
     *left = *result;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)) || result->value->value->type == none)
+    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)) || result->value->value->type == V_none)
         return true;
     *right = *result;
     setResultCore(result);

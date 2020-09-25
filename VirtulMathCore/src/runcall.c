@@ -299,11 +299,11 @@ static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long 
 ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
-    if (function_value->value->type == function && function_value->value->data.function.type == vm_function)
+    if (function_value->value->type == V_func && function_value->value->data.function.type == vm_func)
         callVMFunction(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (function_value->value->type == function && function_value->value->data.function.type == c_function)
+    else if (function_value->value->type == V_func && function_value->value->data.function.type == c_func)
         callCFunction(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if (function_value->value->type == class)
+    else if (function_value->value->type == V_class)
         callClass(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
         callObject(function_value, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

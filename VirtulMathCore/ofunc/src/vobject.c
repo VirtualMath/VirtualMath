@@ -4,9 +4,9 @@ typedef void (*base_opt)(LinkValue *, Result *, struct Inter *, VarList *var_lis
 
 void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == number && right->type == number)
+    if (left->type == V_num && right->type == V_num)
         makeNumberValue(left->data.num.num + right->data.num.num, 0, "vobject.add", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if(left->type == string && right->type == string){
+    else if(left->type == V_str && right->type == V_str){
         wchar_t *new_string = memWidecat(left->data.str.str, right->data.str.str, false, false);
         makeStringValue(new_string, 0, "vobject.add", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(new_string);
@@ -17,7 +17,7 @@ void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, Va
 
 void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == number && right->type == number)
+    if (left->type == V_num && right->type == V_num)
         makeNumberValue(left->data.num.num - right->data.num.num, 0, "vobject.sub", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
         setResultError(E_TypeException, CUL_ERROR(Sub), 0, "vobject.sub", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -25,15 +25,15 @@ void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, Va
 
 void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == number && right->type == number)
+    if (left->type == V_num && right->type == V_num)
         makeNumberValue(left->data.num.num * right->data.num.num, 0, "vobject.mul", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-    else if(left->type == number && right->type == string) {
+    else if(left->type == V_num && right->type == V_str) {
         Value *tmp = left;
         left = right;
         right = tmp;
         goto mul_str;
     }
-    else if(left->type == string && right->type == number) mul_str: {
+    else if(left->type == V_str && right->type == V_num) mul_str: {
         wchar_t *new_string = memWidecpySelf(left->data.str.str, right->data.num.num);
         makeStringValue(new_string, 0, "vobject.mul", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(new_string);
@@ -44,7 +44,7 @@ void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Va
 
 void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == number && right->type == number) {
+    if (left->type == V_num && right->type == V_num) {
         lldiv_t div_result = lldiv(left->data.num.num, right->data.num.num);
         makeNumberValue(div_result.quot, 0, "vobject.div", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
@@ -103,23 +103,23 @@ ResultType vobject_bool(OFFICAL_FUNCTIONSIG){
     }
     value = ap[0].value->value;
     switch (value->type) {
-        case number:
+        case V_num:
             result_ = value->data.num.num != 0;
             break;
-        case string:
+        case V_str:
             result_ = memWidelen(value->data.str.str) > 0;
             break;
-        case bool_:
+        case V_bool:
             result_ = value->data.bool_.bool_;
             break;
-        case pass_:
-        case none:
+        case V_ell:
+        case V_none:
             result_ = false;
             break;
-        case list:
+        case V_list:
             result_ = value->data.list.size > 0;
             break;
-        case dict:
+        case V_dict:
             result_ = value->data.dict.size > 0;
             break;
         default:
@@ -143,34 +143,34 @@ ResultType vobject_repo(OFFICAL_FUNCTIONSIG){
     value = ap[0].value->value;
 
     switch (value->type){
-        case number: {
+        case V_num: {
             char str[30] = {};
             snprintf(str, 30, "%lld", value->data.num.num);
             repo = memStrToWcs(str, false);
             break;
         }
-        case string:
+        case V_str:
             repo = memWidecpy(value->data.str.str);
             break;
-        case function: {
+        case V_func: {
             char str[30] = {};
-            snprintf(str, 30, "(function on %p)", value);
+            snprintf(str, 30, "(V_func on %p)", value);
             repo = memStrToWcs(str, false);
             break;
         }
-        case class: {
+        case V_class: {
             char str[30] = {};
-            snprintf(str, 30, "(class on %p)", value);
+            snprintf(str, 30, "(V_class on %p)", value);
             repo = memStrToWcs(str, false);
             break;
         }
-        case bool_:
+        case V_bool:
             if (value->data.bool_.bool_)
                 repo = memStrToWcs("true", false);
             else
                 repo = memStrToWcs("false", false);
             break;
-        case pass_:
+        case V_ell:
             repo = memStrToWcs("...", false);
             break;
         default:

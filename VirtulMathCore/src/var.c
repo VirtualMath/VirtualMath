@@ -142,7 +142,7 @@ vnum findDefault(DefaultVar *base, wchar_t *name) {
  * @param key
  * @return
  */
-vhashn time33(wchar_t *key){ // hash function
+vhashn time33(wchar_t *key){ // hash V_func
     vhashn hash = 5381;
     while(*key)
         hash += (hash << (vhashn)5) + (*key++);

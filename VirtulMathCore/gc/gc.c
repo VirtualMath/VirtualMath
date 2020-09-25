@@ -85,14 +85,14 @@ static void gc_iterValue(Value *value){
     gc_fatherValue(value->object.inherit);
     gc_resetValue(value);
     switch (value->type) {
-        case list:
+        case V_list:
             for (int i=0;i < value->data.list.size;i++)
                 gc_iterLinkValue(value->data.list.list[i]);
             break;
-        case dict:
+        case V_dict:
             gc_iterHashTable(value->data.dict.dict);
             break;
-        case function:
+        case V_func:
             gc_iterLinkValue(value->data.function.function_data.cls);
             break;
         default:

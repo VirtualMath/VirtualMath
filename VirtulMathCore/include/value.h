@@ -3,7 +3,7 @@
 #include "__macro.h"
 
 // 标准错误信息定义
-#define INSTANCE_ERROR(class) L##"Instance error when calling function, call non-"#class" "#class" method"
+#define INSTANCE_ERROR(class) L##"Instance error when calling V_func, call non-"#class" "#class" method"
 #define VALUE_ERROR(value, acc) L###value" value is not a "#acc" (may be modified by an external program)"
 #define ONLY_ACC(var, value) L###var" only accepts "#value
 #define ERROR_INIT(class) L###class" get wrong initialization parameters"
@@ -11,7 +11,7 @@
 #define FEW_ARG L##"Too few parameters"
 #define CUL_ERROR(opt) L###opt" operation gets incorrect value"
 #define OBJ_NOTSUPPORT(opt) L##"Object does not support "#opt" operation"
-#define RETURN_ERROR(func, type) L###func" function should return "#type" type data"
+#define RETURN_ERROR(func, type) L###func" V_func should return "#type" type data"
 #define KEY_INTERRUPT L##"KeyInterrupt"
 
 typedef struct Argument Argument;
@@ -38,16 +38,16 @@ enum ValueAuthority {
 };
 
 enum ValueType {
-    none=0,
-    number=1,
-    string=2,
-    function=3,
-    list=4,
-    dict=5,
-    class=6,
-    object_=7,
-    bool_=8,
-    pass_=9,
+    V_none=0,
+    V_num=1,
+    V_str=2,
+    V_func=3,
+    V_list=4,
+    V_dict=5,
+    V_class=6,
+    V_obj=7,
+    V_bool=8,
+    V_ell=9,
 };
 
 struct Number {
@@ -60,8 +60,8 @@ struct String {
 
 struct Function{
     enum {
-        c_function,
-        vm_function,
+        c_func,
+        vm_func,
     } type;
     struct Statement *function;
     struct Parameter *pt;
@@ -85,8 +85,8 @@ struct Function{
 
 struct List {
     enum ListType {
-        value_tuple,
-        value_list,
+        L_tuple,
+        L_list,
     } type;
     struct LinkValue **list;
     vnum size;

@@ -1,8 +1,8 @@
 #include "__run.h"
 
 static bool checkNumber(INTER_FUNCTIONSIG){
-    if (!isType(result->value->value, number)) {
-        setResultErrorSt(E_TypeException, L"Don't get a number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!isType(result->value->value, V_num)) {
+        setResultErrorSt(E_TypeException, L"Don't get a V_num of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return false;
     }
     return true;
@@ -968,8 +968,8 @@ ResultType gotoLabel(INTER_FUNCTIONSIG){
 
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.label, var_list, result, belong)))
         return result->type;
-    if (!isType(result->value->value, string)) {
-        setResultErrorSt(E_TypeException, ONLY_ACC(label name, string), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!isType(result->value->value, V_str)) {
+        setResultErrorSt(E_TypeException, ONLY_ACC(label name, V_str), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     label = memWidecpy(result->value->value->data.str.str);

@@ -11,8 +11,8 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    if (ap[1].value->value->type != dict){
-        setResultError(E_TypeException, ONLY_ACC(dictiter, dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (ap[1].value->value->type != V_dict){
+        setResultError(E_TypeException, ONLY_ACC(dictiter, V_dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     {
@@ -101,8 +101,8 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     dict_ = findAttributes(L"__dict", false, ap[0].value, inter);
-    if (dict_ == NULL || dict_->value->type != dict){
-        setResultError(E_TypeException, VALUE_ERROR(__dict, dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (dict_ == NULL || dict_->value->type != V_dict){
+        setResultError(E_TypeException, VALUE_ERROR(__dict, V_dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 

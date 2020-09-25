@@ -621,7 +621,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
 
                 backup = call->next;
                 call->next = NULL;  // 断开Argument，只把value_arg部分传入makeListValue
-                makeListValue(base, 0, "sys", value_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makeListValue(base, 0, "sys", L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
                 call->next = backup;
                 call = backup;
 
@@ -680,7 +680,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
 Inherit *setFather(Argument *call) {
     Inherit *father_tmp = NULL;
     for (Argument *tmp = call; tmp != NULL && tmp->type == value_arg; tmp = tmp->next)
-        if (tmp->data.value->value->type == class) {
+        if (tmp->data.value->value->type == V_class) {
             father_tmp = connectInherit(father_tmp, makeInherit(tmp->data.value));
             father_tmp = connectInherit(father_tmp, copyInherit(tmp->data.value->value->object.inherit));
         }

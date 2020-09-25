@@ -48,12 +48,12 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     } else
         name = L"unknown";
 
-    if (ap[0].value->value->type == none) {
+    if (ap[0].value->value->type == V_none) {
         repo = memWidecpy(L"null");
     } else {
         size_t len;
-        if (ap[0].value->value->type == class)
-            type = L"class";
+        if (ap[0].value->value->type == V_class)
+            type = L"V_class";
         else
             type = L"object";
         len = memWidelen(name) + 30;
@@ -111,7 +111,7 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
         setResultCore(&result);
         object_new(CALL_OFFICAL_FUNCTION(arg, inter->var_list, &result, g_belong));
 
-        result.value->value->type = none;
+        result.value->value->type = V_none;
         inter->data.none = result.value;
         gc_addStatementLink(&inter->data.none->gc_status);
 

@@ -128,8 +128,8 @@ ResultType includeFile(INTER_FUNCTIONSIG) {
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.include_file.file, var_list, result, belong)))
         return result->type;
 
-    if (!isType(result->value->value, string)){
-        setResultErrorSt(E_TypeException, ONLY_ACC(include file dir, string), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!isType(result->value->value, V_str)){
+        setResultErrorSt(E_TypeException, ONLY_ACC(include file dir, V_str), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         goto return_;
     }
 
@@ -186,8 +186,8 @@ ResultType importFileCore(char **path, char **split, int *status, INTER_FUNCTION
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
         return result->type;
 
-    if (!isType(result->value->value, string)) {
-        setResultErrorSt(E_ImportException, ONLY_ACC(include file dir, string), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!isType(result->value->value, V_str)) {
+        setResultErrorSt(E_ImportException, ONLY_ACC(include file dir, V_str), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 

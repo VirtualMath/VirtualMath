@@ -10,8 +10,8 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    if (ap[1].value->value->type != list){
-        setResultError(E_TypeException, ONLY_ACC(listiter, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (ap[1].value->value->type != V_list){
+        setResultError(E_TypeException, ONLY_ACC(listiter, V_list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -41,12 +41,12 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     list_ = findAttributes(L"__list", false, ap[0].value, inter);
     index = findAttributes(L"__index", false, ap[0].value, inter);
 
-    if (list_->value->type != list){
-        setResultError(E_TypeException, VALUE_ERROR(listiter.__list, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (list_->value->type != V_list){
+        setResultError(E_TypeException, VALUE_ERROR(listiter.__list, V_list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
-    if (index->value->type != number){
-        setResultError(E_TypeException, VALUE_ERROR(listiter.__index, number), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (index->value->type != V_num){
+        setResultError(E_TypeException, VALUE_ERROR(listiter.__index, V_num), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 

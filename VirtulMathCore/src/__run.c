@@ -9,8 +9,8 @@ ResultType getBaseVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     }
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, belong)))
         return result->type;
-    if (!isType(result->value->value, number)){
-        setResultErrorSt(E_TypeException, L"Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!isType(result->value->value, V_num)){
+        setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -30,8 +30,8 @@ ResultType getBaseSVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     }
     if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, belong)))
         return result->type;
-    if (!isType(result->value->value, number)){
-        setResultErrorSt(E_TypeException, L"Variable operation got unsupported number of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (!isType(result->value->value, V_num)){
+        setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
@@ -73,20 +73,20 @@ wchar_t *setNumVarName(vnum num, struct Inter *inter) {
 
 wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
-        case string:
+        case V_str:
             return setStrVarName(value->data.str.str, true, inter);
-        case number:
+        case V_num:
             return setNumVarName(value->data.num.num, inter);
-        case bool_:
+        case V_bool:
             if (value->data.bool_.bool_)
                 return memWidecat(inter->data.var_bool_prefix, L"true", false, false);
             else
                 return memWidecat(inter->data.var_bool_prefix, L"false", false, false);
-        case none:
+        case V_none:
             return memWidecpy(inter->data.var_none);
-        case pass_:
+        case V_ell:
             return memWidecpy(inter->data.var_pass);
-        case class:{
+        case V_class:{
             size_t len = memWidelen(inter->data.var_class_prefix) + 20;  // 预留20个字节给指针
             wchar_t *name = memWide(len);
             wchar_t *return_ = NULL;
@@ -191,11 +191,11 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             break;
         case class_static_:
             tmp = makeValueArgument(func);
-            if (self->value->type != class) {
+            if (self->value->type != V_class) {
                 Inherit *ih = self->value->object.inherit;
                 self = NULL;
                 for (PASS; ih != NULL; ih = ih->next)  // 使用循环的方式检查
-                    if (ih->value->value->type == class) {
+                    if (ih->value->value->type == V_class) {
                         self = ih->value;
                         break;
                     }
@@ -217,7 +217,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             break;
         case object_static_:
             tmp = makeValueArgument(func);
-            if (self->value->type != class){
+            if (self->value->type != V_class){
                 tmp->next = makeValueArgument(self);
                 tmp->next->next = *arg;
             }
@@ -226,11 +226,11 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             *arg = tmp;
             break;
         case class_free_:
-            if (self->value->type != class){
+            if (self->value->type != V_class){
                 Inherit *ih = self->value->object.inherit;
                 self = NULL;
                 for (PASS; ih != NULL; ih = ih->next)  // 循环检查
-                    if (ih->value->value->type == class) {
+                    if (ih->value->value->type == V_class) {
                         self = ih->value;
                         break;
                     }
@@ -243,7 +243,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             }  // 若无class则不对arg做任何调整
             break;
         case object_free_:
-            if (self->value->type != class) {
+            if (self->value->type != V_class) {
                 tmp = makeValueArgument(self);
                 tmp->next = *arg;
                 *arg = tmp;
@@ -410,7 +410,7 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
         gc_addTmpLink(&_bool_->gc_status);
         callBackCore(_bool_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_bool_->gc_status);
-        if (result->value->value->type != bool_)
+        if (result->value->value->type != V_bool)
             setResultError(E_TypeException, RETURN_ERROR(__bool__, bool), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         else
             return result->value->value->data.bool_.bool_;
@@ -432,7 +432,7 @@ wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTE
         gc_freeTmpLink(&value->gc_status);
         if (!CHECK_RESULT(result))
             return NULL;
-        else if (result->value->value->type != string){
+        else if (result->value->value->type != V_str){
             setResultError(E_TypeException, OBJ_NOTSUPPORT(repo(str)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return NULL;
         }

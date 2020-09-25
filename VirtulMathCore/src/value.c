@@ -4,7 +4,7 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
     setGC(&tmp->gc_status);
-    tmp->type = object_;
+    tmp->type = V_obj;
     tmp->gc_next = NULL;
     if (inter->data.object != NULL && inherit == NULL)
         inherit = makeInherit(inter->data.object);
@@ -110,7 +110,7 @@ Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, INTER_FUN
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
-    tmp->data.function.type = c_function;
+    tmp->data.function.type = c_func;
     tmp->data.function.of = of;
     tmp->data.function.function_data.pt_type = inter->data.default_pt_type;
     tmp->data.function.function_data.cls = belong;
@@ -141,7 +141,7 @@ LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFun
     freeArgument(init_arg, true);
     freeArgument(arg, true);
 
-    return_->value->data.function.type = c_function;
+    return_->value->data.function.type = c_func;
     return_->value->data.function.of = of;
     return_->value->data.function.function_data.pt_type = inter->data.default_pt_type;
     return_->value->data.function.function_data.cls = belong;
@@ -157,14 +157,14 @@ Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
     Value *tmp;
     VarList *new_var = copyVarList(var_list, false, inter);
     tmp = makeObject(inter, NULL, new_var, father);
-    tmp->type = class;
+    tmp->type = V_class;
     return tmp;
 }
 
 Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, INTER_FUNCTIONSIG_NOT_ST) {
     Value *tmp = NULL;
     setResultCore(result);
-    if (type == value_list)
+    if (type == L_list)
         callBackCore(inter->data.list, arg, line, file, 0,
                      CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     else
@@ -200,15 +200,15 @@ void freeValue(Value **value) {
     for (struct Inherit *tmp = free_value->object.inherit; tmp != NULL; tmp = freeInherit(tmp))
         PASS;
     switch (free_value->type) {
-        case string:
+        case V_str:
             memFree(free_value->data.str.str);
             break;
-        case function: {
+        case V_func: {
             freeParameter(free_value->data.function.pt, true);
             freeStatement(free_value->data.function.function);
             break;
         }
-        case list:
+        case V_list:
             memFree(free_value->data.list.list);
             break;
         default:
@@ -339,7 +339,7 @@ LinkValue *findBaseError(BaseErrorType type, Inter *inter){
 wchar_t *getErrorInfo(LinkValue *exc, int type, Inter *inter){
     wchar_t *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
     LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
-    if (_info_ != NULL && _info_->value->type == string)
+    if (_info_ != NULL && _info_->value->type == V_str)
         return memWidecpy(_info_->value->data.str.str);
     else
         return type == 1 ? memWidecpy(L"Error Type: Unknown") : memWidecpy(L"Error Message: Unknown");
@@ -574,7 +574,7 @@ bool needDel(Value *object_value, Inter *inter) {
     if (_del_ == NULL)
         return false;
     type = _del_->value->data.function.function_data.pt_type;
-    if ((type == object_free_ || type == object_static_) && object_value->type == class)
+    if ((type == object_free_ || type == object_static_) && object_value->type == V_class)
         return false;
     if (_del_->belong == NULL || _del_->belong->value == object_value || checkAttribution(object_value, _del_->belong->value))
         return true;
@@ -612,19 +612,19 @@ bool checkAttribution(Value *self, Value *father){
 
 void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
     switch (value->type){
-        case number:
+        case V_num:
             fprintf(debug, "%lld", value->data.num.num);
             break;
-        case string:
+        case V_str:
             fprintf(debug, "%ls", value->data.str.str);
             break;
-        case function:
+        case V_func:
             if (print_father)
-                fprintf(debug, "function");
+                fprintf(debug, "V_func");
             else
-                fprintf(debug, "(function on %p)", value);
+                fprintf(debug, "(V_func on %p)", value);
             break;
-        case list:
+        case V_list:
             if (print_in){
                 fprintf(debug, "[");
                 for (int i = 0; i < value->data.list.size; i++) {
@@ -634,9 +634,9 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
                 }
                 fprintf(debug, " ]", NULL);
             } else
-                fprintf(debug, "[list]", NULL);
+                fprintf(debug, "[V_list]", NULL);
             break;
-        case dict:
+        case V_dict:
             if (print_in){
                 Var *tmp = NULL;
                 bool print_comma = false;
@@ -654,30 +654,30 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
                 }
                 fprintf(debug, " }", NULL);
             } else
-                fprintf(debug, "[dict]", NULL);
+                fprintf(debug, "[V_dict]", NULL);
             break;
-        case none:
+        case V_none:
             fprintf(debug, "(null)", NULL);
             break;
-        case class:
+        case V_class:
             if (print_father)
-                fprintf(debug, "class");
+                fprintf(debug, "V_class");
             else
-                fprintf(debug, "(class on %p)", value);
+                fprintf(debug, "(V_class on %p)", value);
             break;
-        case object_:
+        case V_obj:
             if (print_father)
                 fprintf(debug, "object");
             else
                 fprintf(debug, "(object on %p)", value);
             break;
-        case bool_:
+        case V_bool:
             if (value->data.bool_.bool_)
                 fprintf(debug, "true");
             else
                 fprintf(debug, "false");
             break;
-        case pass_:
+        case V_ell:
             fprintf(debug, "...");
             break;
         default:

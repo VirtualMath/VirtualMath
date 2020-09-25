@@ -13,7 +13,7 @@ ResultType num_new(OFFICAL_FUNCTIONSIG){
 
     setResultCore(result);
     value = make_new(inter, belong, ap[0].value);
-    value->value->type = number;
+    value->value->type = V_num;
     value->value->data.num.num = 0;
     switch (init_new(value, arg, "num", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
         case 1:
@@ -41,17 +41,17 @@ ResultType num_init(OFFICAL_FUNCTIONSIG){
     if (ap[1].value == NULL)
         goto return_;
     switch (ap[1].value->value->type){
-        case number:
+        case V_num:
             base->value->data.num.num = ap[1].value->value->data.num.num;
             break;
-        case string:
+        case V_str:
             base->value->data.num.num = wcstoll(ap[1].value->value->data.str.str, NULL, 10);
             break;
-        case bool_:
+        case V_bool:
             base->value->data.num.num = ap[1].value->value->data.bool_.bool_;
             break;
-        case none:
-        case pass_:
+        case V_none:
+        case V_ell:
             base->value->data.num.num = 0;
             break;
         default:

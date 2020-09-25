@@ -55,9 +55,9 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
 void setBaseInterData(struct Inter *inter){
     inter->data.var_str_prefix = setName("str_");
     inter->data.var_num_prefix = setName("num_");
-    inter->data.var_none = setName("none");
+    inter->data.var_none = setName("V_none");
     inter->data.var_pass = setName("ellipsis");
-    inter->data.var_bool_prefix = setName("bool_");
+    inter->data.var_bool_prefix = setName("V_bool");
     inter->data.var_class_prefix = setName("class_");
     inter->data.var_object_prefix = setName("obj_");
     inter->data.object_init = setName("__init__");

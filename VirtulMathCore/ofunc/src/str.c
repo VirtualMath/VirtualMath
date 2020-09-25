@@ -12,7 +12,7 @@ ResultType str_new(OFFICAL_FUNCTIONSIG){
     }
     setResultCore(result);
     value = make_new(inter, belong, ap[0].value);
-    value->value->type = string;
+    value->value->type = V_str;
     value->value->data.str.str = memWidecpy(L"");
     switch (init_new(value, arg, "str.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
         case 1:
@@ -65,7 +65,7 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != string) {
+    if (ap[0].value->value->type != V_str) {
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
@@ -75,9 +75,9 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
     second = size;
     stride = 1;
     for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
-        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == number)
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
-        else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != none) {
+        else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
             setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return R_error;
         }
@@ -109,12 +109,12 @@ ResultType str_down(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != string){
+    if (ap[0].value->value->type != V_str){
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
-    if (ap[1].value->value->type != number){
-        setResultError(E_TypeException, ONLY_ACC(str index, number), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    if (ap[1].value->value->type != V_num){
+        setResultError(E_TypeException, ONLY_ACC(str index, V_num), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
@@ -137,7 +137,7 @@ ResultType str_to_list(OFFICAL_FUNCTIONSIG){
         return result->type;
     freeResult(result);
 
-    if (ap[0].value->value->type != string){
+    if (ap[0].value->value->type != V_str){
         setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
@@ -152,7 +152,7 @@ ResultType str_to_list(OFFICAL_FUNCTIONSIG){
             new_list = connectValueArgument(result->value, new_list);
             freeResult(result);
         }
-        makeListValue(new_list, 0, "str", value_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeListValue(new_list, 0, "str", L_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         freeArgument(new_list, true);
     }
     return result->type;
@@ -169,7 +169,7 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
     freeResult(result);
     to_list = findAttributes(L"to_list", false, ap[0].value, inter);
     if (to_list == NULL){
-        setResultError(E_TypeException, L"String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, L"String cannot be converted to V_list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     gc_addTmpLink(&to_list->gc_status);
@@ -227,7 +227,7 @@ LinkValue *makeStrFromOf(LinkValue *str, LinkValue *new, LinkValue *init, wchar_
 LinkValue *makeFunctionFromValue(LinkValue *func, LinkValue *new, LinkValue *init, OfficialFunction of, LinkValue *belong, VarList *var_list, Inter *inter) {
     LinkValue *new_func;
     new_func = callClassOf(func, inter, new, init);
-    new_func->value->data.function.type = c_function;
+    new_func->value->data.function.type = c_func;
     new_func->value->data.function.of = of;
     new_func->value->data.function.function_data.pt_type = inter->data.default_pt_type;
     for (VarList *vl = new_func->value->object.out_var; vl != NULL; vl = freeVarList(vl))
