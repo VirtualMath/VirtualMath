@@ -23,7 +23,7 @@ ResultType tuple_list_newCore(OFFICAL_FUNCTIONSIG, enum ListType type){
         value->value->data.list.list[value->value->data.list.size - 1] = at->data.value;
     }
 
-    run_init(value, arg, 0, "list/tuple.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    run_init(value, NULL, 0, "list/tuple.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
 

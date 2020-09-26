@@ -20,6 +20,7 @@ void setRunInfo(Statement *st){
     st->info.branch.with_.value = NULL;
     st->info.branch.with_._exit_ = NULL;
     st->info.branch.with_._enter_ = NULL;
+    st->info.branch.with_.with_belong = NULL;
     st->info.branch.for_.iter = NULL;
 }
 
@@ -34,6 +35,8 @@ void freeRunInfo(Statement *st) {
         gc_freeTmpLink(&st->info.branch.with_._exit_->gc_status);
     if (st->info.branch.with_._enter_ != NULL)
         gc_freeTmpLink(&st->info.branch.with_._enter_->gc_status);
+    if (st->info.branch.with_.with_belong != NULL)
+        gc_freeTmpLink(&st->info.branch.with_.with_belong->gc_status);
     if (st->info.branch.for_.iter != NULL)
         gc_freeTmpLink(&st->info.branch.for_.iter->gc_status);
     setRunInfo(st);
@@ -515,6 +518,7 @@ Statement *copyStatement(Statement *st){
 
 Statement *copyStatementCore(Statement *st){
     Statement *new = makeStatement(st->line, st->code_file);
+    // copyStatement的时候不会复制runInfo的信息
     new->type = st->type;
     new->aut = st->aut;
     new->next = NULL;

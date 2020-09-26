@@ -234,67 +234,85 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
     return result->type;
 }
 
-static ResultType callVMFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
+static void updateFunctionYield(Statement *func_st, Statement *node){
+    func_st->info.node = node->type == yield_code ? node->next : node;
+    func_st->info.have_info = true;
+}
+
+static void newFunctionYield(Statement *func_st, Statement *node, VarList *new_var, Inter *inter){
+    new_var->next = NULL;
+    gc_freeze(inter, new_var, NULL, true);
+    func_st->info.var_list = new_var;
+    func_st->info.node = node->type == yield_code ? node->next : node;
+    func_st->info.have_info = true;
+}
+
+static void setFunctionResult(LinkValue *func_value, bool yield_run, Result *result, INTER_FUNCTIONSIG_CORE) {
+    Statement *st_func = func_value->value->data.function.function;
+    if (yield_run) {
+        if (result->type == R_yield) {
+            updateFunctionYield(st_func, result->node);
+            result->type = R_opt;
+            result->is_yield = true;
+        } else
+            freeRunInfo(st_func);
+    } else {
+        if (result->type == R_yield) {
+            newFunctionYield(st_func, result->node, var_list, inter);
+            result->type = R_opt;
+            result->is_yield = true;
+        } else
+            popVarList(var_list);
+    }
+}
+
+static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
+    Argument *bak;
     VarList *var_func = NULL;
     Statement *st_func = NULL;
-    Argument *bak;
-    Parameter *pt_func = function_value->value->data.function.pt;
+    Parameter *pt_func = func_value->value->data.function.pt;
     bool yield_run = false;
     setResultCore(result);
-    st_func = function_value->value->data.function.function;
+    st_func = func_value->value->data.function.function;
 
     if (st_func == NULL) {
         setResult(result, inter);
         return result->type;
     }
 
-    gc_addTmpLink(&function_value->gc_status);
-    if ((yield_run = popStatementVarList(st_func, &var_func, (function_value->value->object.out_var != NULL ? function_value->value->object.out_var : var_list), inter)))  // 当out_var等于空的时候为内联函数
+    gc_addTmpLink(&func_value->gc_status);
+    {
+        VarList *out_var;
+        if (func_value->value->object.out_var == NULL)
+            out_var = var_list;  // 当out_var等于空的时候为内联函数
+        else
+            out_var = func_value->value->object.out_var;
+        yield_run = popYieldVarList(st_func, &var_func, out_var, inter);
+    }
+    if (yield_run)
         st_func = st_func->info.node;
 
     gc_freeze(inter, var_list, var_func, true);
-
-    setFunctionArgument(&arg, &bak, function_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setFunctionArgument(&arg, &bak, func_value, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
+
     gc_addTmpLink(&var_func->hashtable->gc_status);
-    setParameterCore(line, file, arg, pt_func, var_func, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, function_value->belong));
+    setParameterCore(line, file, arg, pt_func, var_func, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, func_value->belong));
     freeFunctionArgument(arg, bak);
     gc_freeTmpLink(&var_func->hashtable->gc_status);
-    if (!CHECK_RESULT(result)) {
-        gc_freeze(inter, var_list, var_func, false);
-        st_func = function_value->value->data.function.function;
-        if (yield_run)
-            freeRunInfo(st_func);
-        else
-            popVarList(var_func);
+
+    if (!CHECK_RESULT(result))
         goto return_;
-    }
 
     freeResult(result);
-    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st_func, var_func, result, function_value->belong));
-    gc_freeze(inter, var_list, var_func, false);
+    functionSafeInterStatement(CALL_INTER_FUNCTIONSIG(st_func, var_func, result, func_value->belong));
 
-    st_func = function_value->value->data.function.function;  // TODO-szh yield 提取函数
-    if (yield_run)
-        if (result->type == R_yield){
-            updateFunctionYield(st_func, result->node);
-            result->type = R_opt;
-            result->is_yield = true;
-        }
-        else
-            freeRunInfo(st_func);
-    else
-        if (result->type == R_yield){
-            newFunctionYield(st_func, result->node, var_func, inter);
-            result->type = R_opt;
-            result->is_yield = true;
-        }
-        else
-            popVarList(var_func);
     return_:
-    gc_freeTmpLink(&function_value->gc_status);
+    gc_freeze(inter, var_list, var_func, false);
+    setFunctionResult(func_value, yield_run, result, CALL_INTER_FUNCTIONSIG_CORE(var_func));
+    gc_freeTmpLink(&func_value->gc_status);
     return result->type;
 }
 

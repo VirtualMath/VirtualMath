@@ -45,30 +45,50 @@ ResultType operationStatement(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-ResultType blockOperation(INTER_FUNCTIONSIG) {
-    Statement *info_st = st->u.operation.left;
-    bool yield_run;
-    if ((yield_run = popStatementVarList(st, &var_list, var_list, inter)))
-        info_st = st->info.node;
-    blockSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_st, var_list, result, belong));
-    if (result->type == R_error)
-        return result->type;
-    else if (yield_run) {
+static void updateBlockYield(Statement *block_st, Statement *node){
+    block_st->info.node = node->type == yield_code ? node->next : node;
+    block_st->info.have_info = true;
+}
+
+static void newBlockYield(Statement *block_st, Statement *node, VarList *new_var, Inter *inter){
+    new_var->next = NULL;
+    gc_freeze(inter, new_var, NULL, true);
+    block_st->info.var_list = new_var;
+    block_st->info.node = node->type == yield_code ? node->next : node;
+    block_st->info.have_info = true;
+}
+
+static void setBlockResult(Statement *st, bool yield_run, Result *result, INTER_FUNCTIONSIG_CORE) {
+    if (yield_run) {
         if (result->type == R_yield){
-            updateFunctionYield(st, result->node);
+            updateBlockYield(st, result->node);
             result->type = R_opt;
+            result->is_yield = true;
         }
         else
             freeRunInfo(st);
     }
     else {
         if (result->type == R_yield){
-            newFunctionYield(st, result->node, var_list, inter);
+            newBlockYield(st, result->node, var_list, inter);
             result->type = R_opt;
+            result->is_yield = true;
         }
         else
             popVarList(var_list);
     }
+}
+
+ResultType blockOperation(INTER_FUNCTIONSIG) {
+    Statement *info_st = st->u.operation.left;
+    bool yield_run;
+    if ((yield_run = popYieldVarList(st, &var_list, var_list, inter)))
+        info_st = st->info.node;
+    blockSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_st, var_list, result, belong));
+    if (result->type == R_error)
+        return result->type;
+    else
+        setBlockResult(st, yield_run, result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (CHECK_RESULT(result) && st->aut != auto_aut)
         result->value->aut = st->aut;
     return result->type;

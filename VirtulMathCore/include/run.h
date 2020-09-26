@@ -22,6 +22,7 @@ bool ifBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool functionSafeInterStatement(INTER_FUNCTIONSIG);
 bool blockSafeInterStatement(INTER_FUNCTIONSIG);
 bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG);
+bool withBranchSafeInterStatement(INTER_FUNCTIONSIG);
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG);
 Statement *checkLabel(Statement *base, wchar_t *label);
 

@@ -9,16 +9,7 @@ ResultType getBaseVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG);
 ResultType getBaseSVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG);
 ResultType getVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG);
 
-bool popStatementVarList(Statement *funtion_st, VarList **function_var, VarList *out_var, Inter *inter);
-
-void newFunctionYield(Statement *funtion_st, Statement *node, VarList *new_var, Inter *inter);
-void updateFunctionYield(Statement *function_st, Statement *node);
-
-void updateBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status);
-void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
-                        Inter *inter, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_);
-void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
-                       Inter *inter, LinkValue *iter);
+bool popYieldVarList(Statement *st, VarList **return_, VarList *out_var, Inter *inter);
 
 ResultType setFunctionArgument(struct Argument **arg, struct Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST);
 void freeFunctionArgument(Argument *arg, Argument *base);

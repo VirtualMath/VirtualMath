@@ -107,29 +107,22 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
     }
 }
 
-bool popStatementVarList(Statement *funtion_st, VarList **function_var, VarList *out_var, Inter *inter){
+/**
+ * 获取Statement的VarList(若yield)， 否则push out_var(若不为yield)
+ * @param return_ VarList的返回值
+ * @return 是否位yield模式
+ */
+bool popYieldVarList(Statement *st, VarList **return_, VarList *out_var, Inter *inter){
     bool yield_run;
-    if ((yield_run = funtion_st->info.have_info)) {
-        *function_var = funtion_st->info.var_list;
-        (*function_var)->next = out_var;
+    if ((yield_run = st->info.have_info)) {
+        *return_ = st->info.var_list;
+        (*return_)->next = out_var;
     }
     else
-        *function_var = pushVarList(out_var, inter);
+        *return_ = pushVarList(out_var, inter);
     return yield_run;
 }
 
-void newFunctionYield(Statement *funtion_st, Statement *node, VarList *new_var, Inter *inter){
-    new_var->next = NULL;
-    gc_freeze(inter, new_var, NULL, true);
-    funtion_st->info.var_list = new_var;
-    funtion_st->info.node = node->type == yield_code ? node->next : node;
-    funtion_st->info.have_info = true;
-}
-
-void updateFunctionYield(Statement *function_st, Statement *node){
-    function_st->info.node = node->type == yield_code ? node->next : node;
-    function_st->info.have_info = true;
-}
 ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
     Argument *tmp = NULL;
     LinkValue *self;

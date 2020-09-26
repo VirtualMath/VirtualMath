@@ -297,6 +297,16 @@ bool cycleBranchSafeInterStatement(INTER_FUNCTIONSIG){
     return true;
 }
 
+bool withBranchSafeInterStatement(INTER_FUNCTIONSIG){
+    ResultType type;
+    type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+    if (RUN_TYPE(type))
+        return false;
+    if (type == R_restart || type == R_goto)
+        result->times--;
+    return true;
+}
+
 bool tryBranchSafeInterStatement(INTER_FUNCTIONSIG){
     ResultType type;
     type = iterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));

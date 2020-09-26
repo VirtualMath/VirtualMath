@@ -221,6 +221,7 @@ struct Statement{
                 LinkValue *value;
                 LinkValue *_exit_;
                 LinkValue *_enter_;
+                LinkValue *with_belong;
             } with_;
             struct{
                 LinkValue *iter;
