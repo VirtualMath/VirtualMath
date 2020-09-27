@@ -334,7 +334,6 @@ ResultType fromImportFile(INTER_FUNCTIONSIG) {
     if (pt != NULL) {
         importParameter(st->line, st->code_file, pt, as, var_list, belong, CALL_INTER_FUNCTIONSIG_NOT_ST(imp_var, result, imp_value));
         if (!CHECK_RESULT(result)) {
-            printf("TAG A\n");
             gc_freeTmpLink(&imp_value->gc_status);
             goto return_;
         }

@@ -160,12 +160,13 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
             if_list = st->info.branch.sl_node;
             info_vl = st->info.node;
             else_st = st->u.if_branch.else_list;
-        }
-        else if (st->info.branch.status == info_else_branch) {
+            finally = st->u.if_branch.finally;
+            if (info_vl == NULL)
+                if_list = NULL;  // 证明if分支的yield已经到头了
+        } else if (st->info.branch.status == info_else_branch) {
             else_st = st->info.node;
             finally = st->u.if_branch.finally;
-        }
-        else if (st->info.branch.status == info_finally_branch)
+        } else if (st->info.branch.status == info_finally_branch)
             finally = st->info.node;
         else {
             var_list = popVarList(var_list);
@@ -679,13 +680,17 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             new->next = var_list;
         }
 
-        if (st->info.branch.status == info_vl_branch)
+        if (st->info.branch.status == info_vl_branch) {
             vl_info = st->info.node;
+            if (vl_info == NULL)
+                run_block = false;
+        }
         else if (st->info.branch.status == info_else_branch) {
             run_block = false;
             else_st = st->info.node;
         }
         else if (st->info.branch.status == info_finally_branch){
+            run_block = false;
             else_st = NULL;
             finally = st->info.node;
         }
