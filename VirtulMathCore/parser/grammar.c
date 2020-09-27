@@ -1342,7 +1342,6 @@ void parserBaseValue(PASERSSIGNATURE){
             }
             break;
         }
-
         case MATHER_STRING:{
             Statement *tmp = NULL;
             tmp = makeBaseStrValueStatement(value_token->data.str, string_str, value_token->line, pm->file);
@@ -1446,6 +1445,10 @@ void parserBaseValue(PASERSSIGNATURE){
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get ) from Base Value");
                 goto return_;
             }
+            if (st->type == base_var)
+                st->u.base_var.run = false;
+            else if (st->type == base_svar)
+                st->u.base_svar.run = false;
             break;
         }
         case MATHER_LC: {

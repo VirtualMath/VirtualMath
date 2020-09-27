@@ -443,9 +443,21 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
         setResultErrorSt(E_NameExceptiom, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(message);
     }
-    else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
-        setResultOperationBase(result, var);
+    else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+        bool run = false;
+        if (st->type == base_var)
+            run = st->u.base_var.run;
+        else if (st->type == base_svar)
+            run = st->u.base_svar.run;
+        if (run && var->value->type == V_func && var->value->data.function.function_data.run) {  // TODO-szh 封装成函数, 其他获取变量的地方可以调用
+            gc_addTmpLink(&var->gc_status);
+            callBackCore(var, NULL, st->line, st->code_file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            gc_freeTmpLink(&var->gc_status);
+        } else
+            setResultOperationBase(result, var);
+    }
     memFree(name);
+
     return result->type;
 }
 

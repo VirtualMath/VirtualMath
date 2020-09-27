@@ -3,6 +3,7 @@
 static void setFunctionData(Value *value, LinkValue *cls, Inter *inter) {
     value->data.function.function_data.pt_type = inter->data.default_pt_type;
     value->data.function.function_data.cls = cls;
+    value->data.function.function_data.run = false;
 }
 
 ResultType function_new(OFFICAL_FUNCTIONSIG){

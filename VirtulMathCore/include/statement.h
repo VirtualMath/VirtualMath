@@ -55,6 +55,7 @@ struct Statement{
         struct base_var{
             wchar_t *name;
             struct Statement *times;
+            bool run;
         } base_var;
         struct{
             struct Statement *var;
@@ -62,6 +63,7 @@ struct Statement{
         struct base_svar{
             struct Statement *name;
             struct Statement *times;
+            bool run;
         } base_svar;
         struct {
             enum ListType type;

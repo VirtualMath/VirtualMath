@@ -100,6 +100,7 @@ Statement *makeBaseVarStatement(wchar_t *name, Statement *times, fline line, cha
     tmp->type = base_var;
     tmp->u.base_var.name = memWidecpy(name);
     tmp->u.base_var.times = times;
+    tmp->u.base_var.run = true;
     return tmp;
 }
 
@@ -108,6 +109,7 @@ Statement *makeBaseSVarStatement(Statement *name, Statement *times){
     tmp->type = base_svar;
     tmp->u.base_svar.name = name;
     tmp->u.base_svar.times = times;
+    tmp->u.base_svar.run = true;
     return tmp;
 }
 
@@ -542,6 +544,7 @@ Statement *copyStatementCore(Statement *st){
         case base_var:
             new->u.base_var.name = memWidecpy(st->u.base_var.name);
             new->u.base_var.times = copyStatement(st->u.base_var.times);
+            new->u.base_var.run = st->u.base_var.run;
             break;
         case del_:
             new->u.del_.var = copyStatement(st->u.del_.var);
@@ -549,6 +552,7 @@ Statement *copyStatementCore(Statement *st){
         case base_svar:
             new->u.base_svar.name = copyStatement(st->u.base_svar.name);
             new->u.base_svar.times = copyStatement(st->u.base_svar.times);
+            new->u.base_svar.run = st->u.base_svar.run;
             break;
         case base_lambda:
             new->u.base_lambda.function = copyStatement(st->u.base_lambda.function);

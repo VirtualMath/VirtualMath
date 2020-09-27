@@ -206,9 +206,10 @@ LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, IN
         var_list = var_list->next;
     if (operating == del_var && var_list != NULL)
         tmp = findVar(name, del_var, inter, var_list->hashtable);
-    else
+    else {
         for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
             tmp = findVar(name, operating, inter, var_list->hashtable);
+    }
     return tmp;
 }
 

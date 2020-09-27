@@ -44,6 +44,24 @@ ResultType vm_super(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
+ResultType vm_setNowRunCore(OFFICAL_FUNCTIONSIG, bool type){
+    LinkValue *function_value = NULL;
+    ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+    function_value = ap[0].value;
+    function_value->value->data.function.function_data.run = type;
+    result->value = function_value;
+    gc_addTmpLink(&result->value->gc_status);
+    result->type = R_opt;
+    return R_opt;
+}
+
 ResultType vm_setMethodCore(OFFICAL_FUNCTIONSIG, enum FunctionPtType type){
     LinkValue *function_value = NULL;
     ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
@@ -102,6 +120,14 @@ ResultType vm_allstaticmethod(OFFICAL_FUNCTIONSIG){
     return vm_setMethodCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), all_static_);
 }
 
+ResultType vm_isnowrun(OFFICAL_FUNCTIONSIG){
+    return vm_setNowRunCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), true);
+}
+
+ResultType vm_disnowrun(OFFICAL_FUNCTIONSIG){
+    return vm_setNowRunCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), false);
+}
+
 ResultType vm_quit(OFFICAL_FUNCTIONSIG){
     if (arg != NULL)
         setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -122,6 +148,8 @@ void registeredSysFunction(REGISTERED_FUNCTIONSIG){
                       {L"simplestaticmethod", vm_allstaticmethod, free_},
                       {L"clsmethod", vm_clsfreemethod, free_},
                       {L"clsstaticmethod", vm_clsmethod, free_},
+                      {L"isnowrun", vm_isnowrun, free_},
+                      {L"disnowrun", vm_disnowrun, free_},
                       {L"quit", vm_quit, free_},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));

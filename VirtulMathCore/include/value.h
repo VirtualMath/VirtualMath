@@ -80,6 +80,7 @@ struct Function{
             cls_free_,  // 使用function自带的cls作为参数
         } pt_type;
         LinkValue *cls;
+        bool run;  // 是否为即时调用
     } function_data;
 };
 
