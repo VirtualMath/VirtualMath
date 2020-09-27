@@ -13,7 +13,8 @@ bool popYieldVarList(Statement *st, VarList **return_, VarList *out_var, Inter *
 
 ResultType setFunctionArgument(struct Argument **arg, struct Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST);
 void freeFunctionArgument(Argument *arg, Argument *base);
-LinkValue *findStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE);
+LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, INTER_FUNCTIONSIG_NOT_ST);
+LinkValue *findStrVarOnly(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 LinkValue *checkStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *findAttributes(wchar_t *name, bool free_old, LinkValue *value, Inter *inter);
@@ -30,4 +31,6 @@ bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, c
 LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class);
 int run_init(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST);
+bool runVarFunc(LinkValue *var, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+bool setVarFunc(LinkValue *var, LinkValue *new, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 #endif //VIRTUALMATH___RUN_H

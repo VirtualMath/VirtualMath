@@ -583,7 +583,7 @@ bool needDel(Value *object_value, Inter *inter) {
 }
 
 bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_list) {
-    LinkValue *_del_ = findStrVar(inter->data.object_del, false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
+    LinkValue *_del_ = findStrVarOnly(inter->data.object_del, false, CALL_INTER_FUNCTIONSIG_CORE(object_value->object.var));
     setResultCore(result);
 
     if (_del_ != NULL){

@@ -652,7 +652,6 @@ static void setWithResult(bool yield_run, StatementList *sl, Statement *st, Resu
     }
 }
 
-// TODO-szh 检查yield是否能为代码的最后一个
 ResultType withBranch(INTER_FUNCTIONSIG) {
     StatementList *with_list = st->u.with_branch.with_list;
     Statement *else_st = st->u.with_branch.else_list;

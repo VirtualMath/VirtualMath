@@ -296,7 +296,9 @@ ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setti
 ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST) {
     wchar_t *str_name = NULL;
     int int_times = 0;
-    LinkValue *var_value = NULL;
+    LinkValue *name_ = NULL;
+    LinkValue *tmp;
+    bool run = name->type == base_var ? name->u.base_var.run : name->type == base_svar ? name->u.base_svar.run : false;
 
     setResultCore(result);
     getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
@@ -304,19 +306,24 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
         memFree(str_name);
         return result->type;
     }
-    var_value = copyLinkValue(value, inter);
+    name_ = result->value;
+    result->value = NULL;
+    freeResult(result);
+
     if (name->aut != auto_aut)
-        var_value->aut = name->aut;
+        value->aut = name->aut;
+
+    tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (check_aut) {
-        LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
         if (tmp != NULL && !checkAut(value->aut, tmp->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
             goto error_;
-    } else if (name->aut != auto_aut){
-        LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (tmp != NULL)
-            tmp->aut = name->aut;
-    }
-    addFromVarList(str_name, result->value, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    } else if (name->aut != auto_aut && tmp != NULL)
+        tmp->aut = value->aut;
+
+    if (tmp == NULL || !run || !setVarFunc(tmp, value, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))  // TODO-szh 其他变量获取函数也使用改方法
+        addFromVarList(str_name, name_, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (CHECK_RESULT(result))
+        goto error_;
     if (setting) {
         freeResult(result);
         newObjectSetting(value, name->line, name->code_file, value, result, inter, var_list);
@@ -330,6 +337,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     gc_addTmpLink(&result->value->gc_status);
 
     error_:
+    gc_freeTmpLink(&name_->gc_status);
     memFree(str_name);
     return result->type;
 }
@@ -444,16 +452,8 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
         memFree(message);
     }
     else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
-        bool run = false;
-        if (st->type == base_var)
-            run = st->u.base_var.run;
-        else if (st->type == base_svar)
-            run = st->u.base_svar.run;
-        if (run && var->value->type == V_func && var->value->data.function.function_data.run) {  // TODO-szh 封装成函数, 其他获取变量的地方可以调用
-            gc_addTmpLink(&var->gc_status);
-            callBackCore(var, NULL, st->line, st->code_file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-            gc_freeTmpLink(&var->gc_status);
-        } else
+        bool run = st->type == base_var ? st->u.base_var.run : st->type == base_svar ? st->u.base_svar.run : false;
+        if (!run || !runVarFunc(var, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
             setResultOperationBase(result, var);
     }
     memFree(name);

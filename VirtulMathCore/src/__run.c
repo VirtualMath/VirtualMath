@@ -265,12 +265,21 @@ void freeFunctionArgument(Argument *arg, Argument *base) {
     }
 }
 
-LinkValue *findStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE){
+LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, INTER_FUNCTIONSIG_NOT_ST){
     LinkValue *tmp = NULL;
     wchar_t *name_ = setStrVarName(name, free_old, inter);
     tmp = findFromVarList(name_, 0, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(name_);
+    if (nowrun) {
+        setResultCore(result);
+        if (!runVarFunc(tmp, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            setResultOperationBase(result, tmp);
+    }
     return tmp;
+}
+
+LinkValue *findStrVarOnly(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE) {
+    return findStrVar(name, free_old, 0, "sys", false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, NULL, NULL));
 }
 
 LinkValue *checkStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE){
@@ -311,7 +320,7 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
 }
 
 LinkValue *findAttributes(wchar_t *name, bool free_old, LinkValue *value, Inter *inter) {
-    LinkValue *attr = findStrVar(name, free_old, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
+    LinkValue *attr = findStrVarOnly(name, free_old, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
     if (attr != NULL && (attr->belong == NULL || attr->belong->value != value->value && checkAttribution(value->value, attr->belong->value)))
         attr->belong = value;
     return attr;
@@ -517,3 +526,31 @@ bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue
     freeResult(result);
     return true;
 }
+
+bool runVarFunc(LinkValue *var, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    setResultCore(result);
+    if (var->value->type != V_func || !var->value->data.function.function_data.run)
+        return false;
+    gc_addTmpLink(&var->gc_status);
+    callBackCore(var, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    gc_freeTmpLink(&var->gc_status);
+    return true;
+}
+
+bool setVarFunc(LinkValue *var, LinkValue *new, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+    Argument *arg;
+    setResultCore(result);
+    if (var->value->type != V_func || !var->value->data.function.function_data.run)
+        return false;
+    gc_addTmpLink(&var->gc_status);
+    gc_addTmpLink(&new->gc_status);
+
+    arg = makeValueArgument(new);
+    callBackCore(var, arg, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    freeArgument(arg, true);
+
+    gc_freeTmpLink(&var->gc_status);
+    gc_freeTmpLink(&new->gc_status);
+    return true;
+}
+

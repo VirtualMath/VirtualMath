@@ -369,7 +369,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
         }
 
         freeResult(result);
-        value = findFromVarList(str_name, int_times, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        value = findFromVarList(str_name, int_times, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));  // 形式参数取值不需要执行变量式函数
         memFree(str_name);
 
         if(value == NULL) {
@@ -565,9 +565,9 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
             status = default_status;
         else if (call == NULL && function->type == kwargs_par)
             status = space_kwargs;
-        else if (function->type == args_par)  // 根据前面的条件, 已经决定call不会为NULL
+        else if (function->type == args_par)
             status = mul_par;
-        else if (call->type == value_arg)
+        else if (call->type == value_arg)  // 根据前面的条件, 已经决定call不会为NULL
             status = match_status;
         else if (call->type == name_arg) {
             if (checkIsSep(function))
@@ -614,16 +614,19 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
             }
             case mul_par: {
                 LinkValue *tmp;
-                Argument *backup;
-                Argument *base = call;
-                for (PASS; call->next != NULL && call->next->type == value_arg; call = call->next)
-                    PASS;
 
-                backup = call->next;
-                call->next = NULL;  // 断开Argument，只把value_arg部分传入makeListValue
-                makeListValue(base, 0, "sys", L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-                call->next = backup;
-                call = backup;
+                if (call != NULL) {
+                    Argument *backup;
+                    Argument *base = call;
+                    for (PASS; call->next != NULL && call->next->type == value_arg; call = call->next)
+                            PASS;
+                    backup = call->next;
+                    call->next = NULL;
+                    makeListValue(base, 0, "sys", L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                    call->next = backup;
+                    call = backup;
+                } else
+                    makeListValue(NULL, 0, "sys", L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
                 returnResult(result);
                 tmp = result->value;
@@ -829,7 +832,7 @@ Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap){
 
 int parserArgumentVar(ArgumentParser *ap, Inter *inter, VarList *var_list){
     LinkValue *value = NULL;
-    findStrVar(ap->name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    findStrVarOnly(ap->name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));  // 参数取值不执行变量式函数
     ap->value = value;
     if (value != NULL)
         return 1;
