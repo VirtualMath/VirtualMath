@@ -90,8 +90,8 @@ void functionPresettingLast(LinkValue *func, LinkValue *func_new, LinkValue *fun
     VarList *object_var = func->value->object.var;
     setResultCore(&result);
 
-    addStrVar(inter->data.object_new, false, true, func_new, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(object_var, &result, func));
+    addStrVar(inter->data.object_new, false, true, func_new, 0, "sys", false, CALL_INTER_FUNCTIONSIG_NOT_ST(object_var, &result, func));
     freeResult(&result);
-    addStrVar(inter->data.object_init, false, true, func_init, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(object_var, &result, func));
+    addStrVar(inter->data.object_init, false, true, func_init, 0, "sys", false, CALL_INTER_FUNCTIONSIG_NOT_ST(object_var, &result, func));
     freeResult(&result);
 }

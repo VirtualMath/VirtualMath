@@ -308,7 +308,7 @@ ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST
 
     for (*num = 0; call != NULL && call->type == name_arg; (*num)++, call = call->next){
         if (call->name_type == name_char){
-            addFromVarList(call->data.name_, call->data.name_value, 0, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+            addFromVarList(call->data.name_, call->data.name_value, 0, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));  // 参数赋值不需要处理变量式参数
             continue;
         }
         freeResult(result);

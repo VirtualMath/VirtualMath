@@ -16,8 +16,8 @@ ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", ap[0].value, result,
-                      inter, var_list))
+    if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", true,
+                      CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value)))
         setResult(result, inter);
     return result->type;
 }

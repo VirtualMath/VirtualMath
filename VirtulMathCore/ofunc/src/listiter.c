@@ -20,9 +20,9 @@ ResultType listiter_init(OFFICAL_FUNCTIONSIG){
         return result->type;
 
     freeResult(result);
-    if (addAttributes(L"__list", false, ap[1].value, 0, "listiter.init", ap[0].value, result, inter, var_list)) {
+    if (addAttributes(L"__list", false, ap[1].value, 0, "listiter.init", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value))) {
         freeResult(result);
-        addAttributes(L"__index", false, index, 0, "listiter.init", ap[0].value, result, inter, var_list);
+        addAttributes(L"__index", false, index, 0, "listiter.init", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
     }
 
     setResult(result, inter);
@@ -62,7 +62,7 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
         Result tmp_result;
         setResultCore(&tmp_result);
         index->value->data.num.num ++;
-        if (addAttributes(L"__index", false, index, 0, "listiter.next", ap[0].value, &tmp_result, inter, var_list))
+        if (addAttributes(L"__index", false, index, 0, "listiter.next", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &tmp_result, ap[0].value)))
             freeResult(&tmp_result);
         else {
             freeResult(result);

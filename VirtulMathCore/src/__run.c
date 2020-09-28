@@ -290,7 +290,7 @@ LinkValue *checkStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE){
     return tmp;
 }
 
-void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, INTER_FUNCTIONSIG_NOT_ST) {
+static void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, INTER_FUNCTIONSIG_NOT_ST) {
     addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     out_var = out_var == NULL ? var_list : out_var;
     if (setting)
@@ -299,10 +299,16 @@ void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *
         setResult(result, inter);
 }
 
-void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, bool run, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *name_;
     wchar_t *var_name = setStrVarName(name, free_old, inter);
     setResultCore(result);
+
+    if (run) {
+        LinkValue *tmp = findFromVarList(name, 0, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        if (tmp != NULL && !setVarFunc(tmp, value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            goto return_;
+    }
 
     makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -311,25 +317,30 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
     name_ = result->value;
     result->value = NULL;
     freeResult(result);
-
     addStrVarCore(setting, var_name, name_, value, line, file, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
-
     gc_freeTmpLink(&name_->gc_status);
+
     return_:
     memFree(var_name);
 }
 
-LinkValue *findAttributes(wchar_t *name, bool free_old, LinkValue *value, Inter *inter) {
+LinkValue *findAttributes(wchar_t *name, bool free_old, LinkValue *value, Inter *inter) {  // TODO-szh 此处使用findStrVar替代findStrVarOnly
     LinkValue *attr = findStrVarOnly(name, free_old, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
     if (attr != NULL && (attr->belong == NULL || attr->belong->value != value->value && checkAttribution(value->value, attr->belong->value)))
         attr->belong = value;
     return attr;
 }
 
-bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, char *file, bool run, INTER_FUNCTIONSIG_NOT_ST) {
     wchar_t *var_name = setStrVarName(name, free_old, inter);
     LinkValue *name_;
     setResultCore(result);
+
+    if (run) {
+        LinkValue *tmp = findFromVarList(name, 0, read_var, CALL_INTER_FUNCTIONSIG_CORE(belong->value->object.var));
+        if (tmp != NULL && !setVarFunc(tmp, value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong)))
+            goto return_;
+    }
 
     makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -351,15 +362,15 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
 
 void newObjectSetting(LinkValue *name, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     setResultCore(result);
-    addAttributes(inter->data.object_name, false, name, line, file, belong, result, inter, var_list);
+    addAttributes(inter->data.object_name, false, name, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (CHECK_RESULT(result))
         return;
     freeResult(result);
-    addAttributes(inter->data.object_self, false, belong, line, file, belong, result, inter, var_list);
+    addAttributes(inter->data.object_self, false, belong, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (CHECK_RESULT(result) && belong->value->object.inherit != NULL) {
         freeResult(result);
-        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, line, file, belong,
-                      result, inter, var_list);
+        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, line, file, false,
+                      CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     }
 }
 
@@ -521,7 +532,7 @@ bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue
         return false;
     bool_value = result->value;
     freeResult(result);
-    if (!addAttributes(var, false, bool_value, line, file, obj, result, inter, var_list))
+    if (!addAttributes(var, false, bool_value, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj)))
         return false;
     freeResult(result);
     return true;

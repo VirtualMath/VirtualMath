@@ -463,7 +463,6 @@ static void setForResult(bool yield_run, StatementList *sl, Statement *st, Resul
     }
 }
 
-// TODO-szh 简化函数
 ResultType forBranch(INTER_FUNCTIONSIG) {
     StatementList *for_list = st->u.for_branch.for_list;
     Statement *first = st->u.for_branch.first_do;

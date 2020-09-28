@@ -258,7 +258,7 @@ ResultType importFile(INTER_FUNCTIONSIG) {
     freeResult(result);
     if (st->u.import_file.as == NULL) {
         wchar_t *name_ = memStrToWcs(split_path, false);
-        addStrVar(name_, false, is_new, imp_value, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        addStrVar(name_, false, is_new, imp_value, 0, "sys", false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         memFree(name_);
     }
     else

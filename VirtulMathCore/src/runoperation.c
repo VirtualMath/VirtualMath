@@ -320,7 +320,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     } else if (name->aut != auto_aut && tmp != NULL)
         tmp->aut = value->aut;
 
-    if (tmp == NULL || !run || !setVarFunc(tmp, value, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))  // TODO-szh 其他变量获取函数也使用改方法
+    if (tmp == NULL || !run || !setVarFunc(tmp, value, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
         addFromVarList(str_name, name_, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     if (CHECK_RESULT(result))
         goto error_;
@@ -388,8 +388,7 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
             goto daerror_;
 
         freeResult(result);
-        callBackCore(_func_, arg, name->line, name->code_file, 0,
-                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, name->line, name->code_file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
         daerror_:
         freeArgument(arg, true);

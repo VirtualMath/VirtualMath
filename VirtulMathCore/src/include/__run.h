@@ -16,10 +16,10 @@ void freeFunctionArgument(Argument *arg, Argument *base);
 LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *findStrVarOnly(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE);
 LinkValue *checkStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE);
-void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, bool run, INTER_FUNCTIONSIG_NOT_ST);
 LinkValue *findAttributes(wchar_t *name, bool free_old, LinkValue *value, Inter *inter);
 
-bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, char *file, bool run, INTER_FUNCTIONSIG_NOT_ST);
 void newObjectSetting(LinkValue *name, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
 ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
