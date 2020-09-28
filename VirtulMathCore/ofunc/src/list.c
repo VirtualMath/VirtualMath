@@ -362,6 +362,8 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     }
     lt = value->data.list.type;
     again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, 0, "list.repo", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
     if (again != NULL){
         bool again_ = checkBool(again, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))

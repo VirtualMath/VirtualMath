@@ -123,6 +123,10 @@ ResultType elementSlice(INTER_FUNCTIONSIG) {
 
     func_name = st->u.slice_.type == SliceType_down_ ? inter->data.object_down : inter->data.object_slice;
     _func_ = findAttributes(func_name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, element));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
+
     if (_func_ != NULL){
         gc_addTmpLink(&_func_->gc_status);
         callBackCorePt(_func_, st->u.slice_.index, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -131,6 +135,7 @@ ResultType elementSlice(INTER_FUNCTIONSIG) {
     else
         setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(__down__/__slice__), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
+    return_:
     gc_freeTmpLink(&element->gc_status);
     return result->type;
 }
@@ -175,23 +180,37 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
 }
 
 static ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *_new_ = findAttributes(inter->data.object_new, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, class_value));
+    LinkValue *_new_;
     setResultCore(result);
+    gc_addTmpLink(&class_value->gc_status);
+
+    _new_ = findAttributes(inter->data.object_new, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, class_value));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
+
     if (_new_ != NULL){
         gc_addTmpLink(&_new_->gc_status);
         callBackCore(_new_, arg, line, file, pt_sep, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_new_->gc_status);
     }
     else
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(new(__new__)), line, file, true,
-                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(new(__new__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
+    return_:
+    gc_freeTmpLink(&class_value->gc_status);
     return result->type;
 }
 
 static ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *_call_ = findAttributes(inter->data.object_call, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, object_value));
+    LinkValue *_call_;
     setResultCore(result);
+    gc_addTmpLink(&object_value->gc_status);
+
+    _call_ = findAttributes(inter->data.object_call, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, object_value));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
 
     if (_call_ != NULL){
         gc_addTmpLink(&_call_->gc_status);
@@ -201,6 +220,8 @@ static ResultType callObject(LinkValue *object_value, Argument *arg, fline line,
     else
         setResultError(E_TypeException, OBJ_NOTSUPPORT(call(__call__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
 
+    return_:
+    gc_freeTmpLink(&object_value->gc_status);
     return result->type;
 }
 

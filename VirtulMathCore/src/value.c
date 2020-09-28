@@ -78,6 +78,7 @@ Value *makeStringValue(wchar_t *str, fline line, char *file, INTER_FUNCTIONSIG_N
     callBackCore(inter->data.str, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
+
     tmp = result->value->value;
     memFree(tmp->data.str.str);
     tmp->data.str.str = memWidecpy(str);
@@ -339,7 +340,15 @@ LinkValue *findBaseError(BaseErrorType type, Inter *inter){
 
 static wchar_t *getErrorInfo(LinkValue *exc, int type, INTER_FUNCTIONSIG_NOT_ST){
     wchar_t *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
-    LinkValue *_info_ = findAttributes(str_name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, exc));
+    LinkValue *_info_;
+    setResultCore(result);
+    gc_addTmpLink(&exc->gc_status);
+
+    _info_ = findAttributes(str_name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, exc));
+    gc_freeTmpLink(&exc->gc_status);
+    if (!CHECK_RESULT(result))
+        return NULL;
+
     if (_info_ != NULL && _info_->value->type == V_str)
         return memWidecpy(_info_->value->data.str.str);
     else
@@ -347,11 +356,16 @@ static wchar_t *getErrorInfo(LinkValue *exc, int type, INTER_FUNCTIONSIG_NOT_ST)
 }
 
 void callException(LinkValue *exc, wchar_t *message, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *_new_ = findAttributes(inter->data.object_new, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, exc));
+    LinkValue *_new_;
     wchar_t *type = NULL;
     wchar_t *error_message = NULL;
     setResultCore(result);
     gc_addTmpLink(&exc->gc_status);
+
+    _new_ = findAttributes(inter->data.object_new, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, exc));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
 
     if (_new_ != NULL){
         Argument *arg = NULL;
@@ -625,10 +639,10 @@ bool checkAttribution(Value *self, Value *father){
 void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
     switch (value->type){
         case V_num:
-            fprintf(debug, "%lld", value->data.num.num);
+            fprintf(debug, "(%lld)", value->data.num.num);
             break;
         case V_str:
-            fprintf(debug, "%ls", value->data.str.str);
+            fprintf(debug, "'%ls'", value->data.str.str);
             break;
         case V_func:
             if (print_father)
@@ -673,9 +687,9 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
             break;
         case V_class:
             if (print_father)
-                fprintf(debug, "V_class");
+                fprintf(debug, "class");
             else
-                fprintf(debug, "(V_class on %p)", value);
+                fprintf(debug, "(class on %p)", value);
             break;
         case V_obj:
             if (print_father)

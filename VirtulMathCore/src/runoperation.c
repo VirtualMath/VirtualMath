@@ -223,10 +223,15 @@ ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
     iter = result->value;
     result->value = NULL;
     freeResult(result);
+
     if (name->u.slice_.type == SliceType_down_)
         _func_ = findAttributes(inter->data.object_down_del, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
     else
         _func_ = findAttributes(inter->data.object_slice_del, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
+
     if (_func_ != NULL){
         Argument *arg = NULL;
         gc_addTmpLink(&_func_->gc_status);
@@ -243,6 +248,8 @@ ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
     }
     else
         setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(del(__down_del__/__slice_del__)), true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+    return_:
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
@@ -376,10 +383,15 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     iter = result->value;
     result->value = NULL;
     freeResult(result);
+
     if (name->u.slice_.type == SliceType_down_)
         _func_ = findAttributes(inter->data.object_down_assignment, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
     else
         _func_ = findAttributes(inter->data.object_slice_assignment, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
+
     if (_func_ != NULL){
         Argument *arg = makeValueArgument(value);
         gc_addTmpLink(&_func_->gc_status);
@@ -396,6 +408,8 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     }
     else
         setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(assignment(__down_assignment__/__slice_assignment__)), true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+
+    return_:
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
@@ -578,15 +592,18 @@ ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name) {
     setResultCore(&left);
     setResultCore(&right);
 
-    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))  // 不需要释放result
         return result->type;
 
     _func_ = findAttributes(name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, left.value));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
+
     if (_func_ != NULL){
         Argument *arg = makeValueArgument(right.value);
         gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, arg, st->line, st->code_file, 0,
-                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, st->line, st->code_file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
         freeArgument(arg, true);
     }
@@ -596,6 +613,7 @@ ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name) {
         memFree(message);
     }
 
+    return_:
     freeResult(&left);
     freeResult(&right);
     return result->type;

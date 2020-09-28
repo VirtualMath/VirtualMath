@@ -16,10 +16,14 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         return R_error;
     }
     {
-        LinkValue *keys = findAttributes(L"keys", false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[1].value));
+        LinkValue *keys = NULL;
         Argument *list_arg = NULL;
         LinkValue *listiter_class = NULL;
 
+        freeResult(result);
+        keys = findAttributes(L"keys", false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[1].value));
+        if (!CHECK_RESULT(result))
+            return result->type;
         if (keys == NULL){
             setResultError(E_TypeException, L"Object non-key-value pairs (there is no keys method)", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
             return R_error;
@@ -75,18 +79,26 @@ ResultType dictiter_next(OFFICAL_FUNCTIONSIG){
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
+    freeResult(result);
+
     list_ = findAttributes(L"__list", false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
     if (list_ == NULL){
         setResultError(E_TypeException, VALUE_ERROR(__list, listiter), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
+    freeResult(result);
     list_next = findAttributes(inter->data.object_next, false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, list_));
+    if (!CHECK_RESULT(result))
+        return result->type;
     if (list_next == NULL){
         setResultError(E_TypeException, L"Object is not iterable", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
+    freeResult(result);
     callBackCore(list_next, NULL, 0, "sys", 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     return result->type;
 }
@@ -100,7 +112,11 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
+    freeResult(result);
+
     dict_ = findAttributes(L"__dict", false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
     if (dict_ == NULL || dict_->value->type != V_dict){
         setResultError(E_TypeException, VALUE_ERROR(__dict, dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;

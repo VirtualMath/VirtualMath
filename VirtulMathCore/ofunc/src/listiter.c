@@ -38,8 +38,24 @@ ResultType listiter_next(OFFICAL_FUNCTIONSIG){
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
+    freeResult(result);
+
     list_ = findAttributes(L"__list", false, 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    if (list_ == NULL){
+        setResultError(E_TypeException, VALUE_ERROR(__list, listiter), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return R_error;
+    }
+
+    freeResult(result);
     index = findAttributes(L"__index", false, 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    if (index == NULL){
+        setResultError(E_TypeException, VALUE_ERROR(__index, listiter), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        return R_error;
+    }
 
     if (list_->value->type != V_list){
         setResultError(E_TypeException, VALUE_ERROR(listiter.__list, list), 0, "listiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

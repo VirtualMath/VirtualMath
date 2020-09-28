@@ -28,6 +28,7 @@ void presetting(Inter *inter) {
 
     functionPresetting(func, &func_new, &func_init, inter);
     strFunctionPresetting(func, func_new, func_init, inter);
+
     functionPresettingLast(func, func_new, func_init, inter);
 }
 
@@ -35,6 +36,7 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
     makeBaseObject(inter, belong);
 
     makeBaseVObject(inter);
+
     makeBaseNum(inter);
     makeBaseBool(inter);
     makeBaseEllipisis(inter);
@@ -47,6 +49,7 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
 
     makeBaseStr(inter);
     presetting(inter);
+
     registeredObject(inter->base_belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
     registeredBaseFunction(inter->base_belong, inter);
 }

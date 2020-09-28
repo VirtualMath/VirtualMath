@@ -31,6 +31,10 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     freeResult(result);
 
     name_value = findAttributes(inter->data.object_name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
     if (name_value != NULL){
         gc_addTmpLink(&name_value->gc_status);
         name = getRepoStr(name_value, is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));

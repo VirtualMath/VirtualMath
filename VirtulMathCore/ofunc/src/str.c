@@ -5,12 +5,14 @@ ResultType str_new(OFFICAL_FUNCTIONSIG){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     int status = 1;
+    setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, 0, "str.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
-    setResultCore(result);
+    freeResult(result);
+
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_str;
     value->value->data.str.str = memWidecpy(L"");
@@ -160,7 +162,10 @@ ResultType str_iter(OFFICAL_FUNCTIONSIG){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
+
     to_list = findAttributes(L"to_list", false, 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
     if (to_list == NULL){
         setResultError(E_TypeException, L"String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
