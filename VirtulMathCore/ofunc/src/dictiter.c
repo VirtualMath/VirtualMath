@@ -16,7 +16,7 @@ ResultType dictiter_init(OFFICAL_FUNCTIONSIG){
         return R_error;
     }
     {
-        LinkValue *keys = findAttributes(L"keys", false, ap[1].value, inter);
+        LinkValue *keys = findAttributes(L"keys", false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[1].value));
         Argument *list_arg = NULL;
         LinkValue *listiter_class = NULL;
 
@@ -75,13 +75,13 @@ ResultType dictiter_next(OFFICAL_FUNCTIONSIG){
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
-    list_ = findAttributes(L"__list", false, ap[0].value, inter);
+    list_ = findAttributes(L"__list", false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
     if (list_ == NULL){
         setResultError(E_TypeException, VALUE_ERROR(__list, listiter), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
 
-    list_next = findAttributes(inter->data.object_next, false, list_, inter);
+    list_next = findAttributes(inter->data.object_next, false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, list_));
     if (list_next == NULL){
         setResultError(E_TypeException, L"Object is not iterable", 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
@@ -100,7 +100,7 @@ ResultType dictiter_down(OFFICAL_FUNCTIONSIG){
     parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
-    dict_ = findAttributes(L"__dict", false, ap[0].value, inter);
+    dict_ = findAttributes(L"__dict", false, 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
     if (dict_ == NULL || dict_->value->type != V_dict){
         setResultError(E_TypeException, VALUE_ERROR(__dict, dict), 0, "dictiter", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;

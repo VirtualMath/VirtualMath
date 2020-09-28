@@ -357,11 +357,11 @@ ResultType listRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     value = ap[0].value->value;
 
     if (value->type != V_list){
-        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(list), 0, "list.repo", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
     lt = value->data.list.type;
-    again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, ap[0].value, inter);
+    again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, 0, "list.repo", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
     if (again != NULL){
         bool again_ = checkBool(again, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))

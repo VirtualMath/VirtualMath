@@ -337,9 +337,9 @@ LinkValue *findBaseError(BaseErrorType type, Inter *inter){
     }
 }
 
-wchar_t *getErrorInfo(LinkValue *exc, int type, Inter *inter){
+static wchar_t *getErrorInfo(LinkValue *exc, int type, INTER_FUNCTIONSIG_NOT_ST){
     wchar_t *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
-    LinkValue *_info_ = findAttributes(str_name, false, exc, inter);
+    LinkValue *_info_ = findAttributes(str_name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, exc));
     if (_info_ != NULL && _info_->value->type == V_str)
         return memWidecpy(_info_->value->data.str.str);
     else
@@ -347,7 +347,7 @@ wchar_t *getErrorInfo(LinkValue *exc, int type, Inter *inter){
 }
 
 void callException(LinkValue *exc, wchar_t *message, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *_new_ = findAttributes(inter->data.object_new, false, exc, inter);
+    LinkValue *_new_ = findAttributes(inter->data.object_new, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, exc));
     wchar_t *type = NULL;
     wchar_t *error_message = NULL;
     setResultCore(result);
@@ -355,6 +355,7 @@ void callException(LinkValue *exc, wchar_t *message, fline line, char *file, INT
 
     if (_new_ != NULL){
         Argument *arg = NULL;
+        LinkValue *error;
         makeStringValue(message, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
@@ -363,10 +364,20 @@ void callException(LinkValue *exc, wchar_t *message, fline line, char *file, INT
 
         gc_addTmpLink(&_new_->gc_status);
         callBackCore(_new_, arg, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        error = result->value;
+        result->value = NULL;
+        freeResult(result);
         gc_freeTmpLink(&_new_->gc_status);
         freeArgument(arg, true);
-        type = getErrorInfo(result->value, 1, inter);
-        error_message = getErrorInfo(result->value, 2, inter);
+
+        type = getErrorInfo(error, 1, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            goto return_;
+        freeResult(result);
+        error_message = getErrorInfo(error, 2, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        if (!CHECK_RESULT(result))
+            goto return_;
+        freeResult(result);
     }
     else {
         result->value = exc;

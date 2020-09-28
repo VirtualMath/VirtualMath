@@ -178,7 +178,11 @@ ResultType dictRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         setResultError(E_TypeException, INSTANCE_ERROR(dict), 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         return R_error;
     }
-    again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, ap[0].value, inter);
+    again = findAttributes(is_repo ? L"repo_again" : L"str_again", false, 0, "dict", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
     if (again != NULL){
         bool again_ = checkBool(again, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
         if (!CHECK_RESULT(result))

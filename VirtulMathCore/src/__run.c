@@ -270,7 +270,7 @@ LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool
     wchar_t *name_ = setStrVarName(name, free_old, inter);
     tmp = findFromVarList(name_, 0, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
     memFree(name_);
-    if (nowrun) {
+    if (tmp != NULL && nowrun) {
         setResultCore(result);
         if (!runVarFunc(tmp, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
             setResultOperationBase(result, tmp);
@@ -324,10 +324,13 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
     memFree(var_name);
 }
 
-LinkValue *findAttributes(wchar_t *name, bool free_old, LinkValue *value, Inter *inter) {  // TODO-szh 此处使用findStrVar替代findStrVarOnly
-    LinkValue *attr = findStrVarOnly(name, free_old, CALL_INTER_FUNCTIONSIG_CORE(value->value->object.var));
-    if (attr != NULL && (attr->belong == NULL || attr->belong->value != value->value && checkAttribution(value->value, attr->belong->value)))
-        attr->belong = value;
+LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 处理调用该函数的地方释放result
+    LinkValue *attr;
+    gc_freeze(inter, var_list, belong->value->object.var, true);
+    attr = findStrVar(name, free_old, line, file, nowrun, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong));
+    if (attr != NULL && (attr->belong == NULL || attr->belong->value != belong->value && checkAttribution(belong->value, attr->belong->value)))
+        attr->belong = belong;
+    gc_freeze(inter, var_list, belong->value->object.var, false);
     return attr;
 }
 
@@ -381,7 +384,7 @@ ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file,
     gc_addTmpLink(&from->gc_status);
     gc_addTmpLink(&index->gc_status);
 
-    _func_ = findAttributes(inter->data.object_down, false, from, inter);
+    _func_ = findAttributes(inter->data.object_down, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, from));
     if (_func_ != NULL){
         Argument *arg = NULL;
         gc_addTmpLink(&_func_->gc_status);
@@ -402,9 +405,9 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
     LinkValue *_func_ = NULL;
     setResultCore(result);
     if (status == 1)
-        _func_ = findAttributes(inter->data.object_iter, false, value, inter);
+        _func_ = findAttributes(inter->data.object_iter, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
     else
-        _func_ = findAttributes(inter->data.object_next, false, value, inter);
+        _func_ = findAttributes(inter->data.object_next, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
 
     if (_func_ != NULL){
         gc_addTmpLink(&_func_->gc_status);
@@ -418,7 +421,7 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_F
 }
 
 bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, value, inter);
+    LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
     if (_bool_ != NULL){
         gc_addTmpLink(&_bool_->gc_status);
         callBackCore(_bool_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -435,7 +438,7 @@ bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_S
 }
 
 wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    LinkValue *_repo_ = findAttributes(is_repo ? inter->data.object_repo : inter->data.object_str, false, value, inter);
+    LinkValue *_repo_ = findAttributes(is_repo ? inter->data.object_repo : inter->data.object_str, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
     setResultCore(result);
     if (_repo_ != NULL){
         gc_addTmpLink(&value->gc_status);
@@ -497,7 +500,7 @@ LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
 
 static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
     LinkValue *_init_ = NULL;
-    _init_ = findAttributes(inter->data.object_init, false, obj, inter);
+    _init_ = findAttributes(inter->data.object_init, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
 
     if (_init_ == NULL) {
         if (arg != NULL) {

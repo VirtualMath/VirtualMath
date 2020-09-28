@@ -122,7 +122,7 @@ ResultType elementSlice(INTER_FUNCTIONSIG) {
     freeResult(result);
 
     func_name = st->u.slice_.type == SliceType_down_ ? inter->data.object_down : inter->data.object_slice;
-    _func_ = findAttributes(func_name, false, element, inter);
+    _func_ = findAttributes(func_name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, element));
     if (_func_ != NULL){
         gc_addTmpLink(&_func_->gc_status);
         callBackCorePt(_func_, st->u.slice_.index, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
@@ -175,7 +175,7 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
 }
 
 static ResultType callClass(LinkValue *class_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *_new_ = findAttributes(inter->data.object_new, false, class_value, inter);
+    LinkValue *_new_ = findAttributes(inter->data.object_new, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, class_value));
     setResultCore(result);
     if (_new_ != NULL){
         gc_addTmpLink(&_new_->gc_status);
@@ -190,7 +190,7 @@ static ResultType callClass(LinkValue *class_value, Argument *arg, fline line, c
 }
 
 static ResultType callObject(LinkValue *object_value, Argument *arg, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST) {
-    LinkValue *_call_ = findAttributes(inter->data.object_call, false, object_value, inter);
+    LinkValue *_call_ = findAttributes(inter->data.object_call, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, object_value));
     setResultCore(result);
 
     if (_call_ != NULL){

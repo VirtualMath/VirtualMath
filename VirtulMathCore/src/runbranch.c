@@ -565,8 +565,8 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
 }
 
 static bool getEnterExit(LinkValue *value, LinkValue **_enter_, LinkValue **_exit_, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    *_enter_ = findAttributes(inter->data.object_enter, false, value, inter);
-    *_exit_ = findAttributes(inter->data.object_exit, false, value, inter);
+    *_enter_ = findAttributes(inter->data.object_enter, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+    *_exit_ = findAttributes(inter->data.object_exit, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
     if (*_enter_ == NULL || *_exit_ == NULL) {
         *_enter_ = NULL;
         *_exit_ = NULL;
@@ -599,8 +599,8 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
         *with_belong = belong;
         gc_addTmpLink(&(*with_belong)->gc_status);
 
-        *_enter_ = findAttributes(inter->data.object_enter, false, *value, inter);
-        *_exit_ = findAttributes(inter->data.object_exit, false, *value, inter);
+        *_enter_ = findAttributes(inter->data.object_enter, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, *value));
+        *_exit_ = findAttributes(inter->data.object_exit, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, *value));
 
         if (!getEnterExit(*value, _enter_, _exit_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
             gc_freeTmpLink(&(*value)->gc_status);
