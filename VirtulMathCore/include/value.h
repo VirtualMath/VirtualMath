@@ -27,8 +27,8 @@ typedef struct Error Error;
 typedef struct Inherit Inherit;
 typedef struct Package Package;
 
-typedef enum ResultType (*OfficialFunction)(OFFICAL_FUNCTIONSIG);
-typedef void (*Registered)(REGISTERED_FUNCTIONSIG);
+typedef enum ResultType (*OfficialFunction)(O_FUNC);
+typedef void (*Registered)(R_FUNC);
 
 enum ValueAuthority {
     auto_aut,
@@ -203,27 +203,26 @@ LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter);
 void freeLinkValue(LinkValue **value);
 LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *useNoneValue(Inter *inter, Result *result);
-Value *makeBoolValue(bool bool_num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-Value *makePassValue(fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-Value *makeNumberValue(vnum num, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-Value *makeStringValue(wchar_t *str, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, INTER_FUNCTIONSIG_NOT_ST);
-Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT);
+Value *makePassValue(fline line, char *file, FUNC_NT);
+Value *makeNumberValue(vnum num, fline line, char *file, FUNC_NT);
+Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT);
+Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, FUNC_NT);
+Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT);
 LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, OfficialFunction function_init, LinkValue *belong, VarList *var_list, Inter *inter);
 Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father);
-Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, INTER_FUNCTIONSIG_NOT_ST);
-Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, FUNC_NT);
+Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, FUNC_NT);
 
 void setResultCore(Result *ru);
 void setResult(Result *ru, Inter *inter);
 void setResultBase(Result *ru, Inter *inter);
-void setResultErrorSt(BaseErrorType type, wchar_t *error_message, bool new, INTER_FUNCTIONSIG);
-void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char *file, bool new, INTER_FUNCTIONSIG_NOT_ST);
+void setResultErrorSt(BaseErrorType type, wchar_t *error_message, bool new, FUNC);
+void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char *file, bool new, FUNC_NT);
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong);
 void setResultOperation(Result *ru, LinkValue *value);
 void setResultOperationBase(Result *ru, LinkValue *value);
 void freeResult(Result *ru);
-void freeResultSafe(Result *ru);
 
 Package *makePackage(Value *value, char *md5, char *name, Package *base);
 void freePackage(Package *base);

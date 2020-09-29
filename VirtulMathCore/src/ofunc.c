@@ -18,7 +18,7 @@ static Registered base_func_list[] = {registeredVObject,
 
 void registeredBaseFunction(struct LinkValue *father, Inter *inter){
     for (Registered *list = base_func_list; *list != NULL; list++)
-        (*list)(CALL_REGISTERED_FUNCTION(father, inter->var_list));
+        (*list)(CR_FUNC(father, inter->var_list));
 }
 
 void presetting(Inter *inter) {
@@ -50,6 +50,6 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
     makeBaseStr(inter);
     presetting(inter);
 
-    registeredObject(inter->base_belong, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    registeredObject(inter->base_belong, CFUNC_CORE(inter->var_list));
     registeredBaseFunction(inter->base_belong, inter);
 }

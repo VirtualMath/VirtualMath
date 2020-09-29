@@ -7,22 +7,22 @@ static LinkValue *makeException(LinkValue *father, Inter *inter){
     return exc;
 }
 
-ResultType base_exception_init(OFFICAL_FUNCTIONSIG){
+ResultType base_exception_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"message", .must=0, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
     if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", true,
-                      CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value)))
+                      CFUNC_NT(var_list, result, ap[0].value)))
         setResult(result, inter);
     return result->type;
 }
 
-void registeredExcIter(REGISTERED_FUNCTIONSIG){
+void registeredExcIter(R_FUNC){
     struct {
         wchar_t *name;
         LinkValue *value;
@@ -51,7 +51,7 @@ void registeredExcIter(REGISTERED_FUNCTIONSIG){
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addBaseClassVar(L"BaseException", object, belong, inter);
-        iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+        iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
         gc_freeTmpLink(&object->gc_status);
     }
     for (int i=0; setList[i].name != NULL; i++)

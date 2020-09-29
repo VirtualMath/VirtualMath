@@ -30,7 +30,7 @@ void freeParserMessage(ParserMessage *pm, bool self) {
  * | parserCommand MATHER_SEMICOLON
  * | parserCommand MATHER_EOF
  */
-void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st) {
+void parserCommandList(P_FUNC, bool global, bool is_one, Statement *st) {
     int token_type;
     int save_enter = pm->tm->file->filter_data.enter;
     char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
@@ -60,7 +60,7 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
             Token *command_token = NULL;
             int stop;
             have_command = true;
-            if (!callChildToken(CALLPASERSSIGNATURE, parserCommand, COMMAND, &command_token, command_message, command_list_error))
+            if (!callChildToken(CP_FUNC, parserCommand, COMMAND, &command_token, command_message, command_list_error))
                 break;
             line = command_token->line;
             stop = readBackToken(pm);
@@ -113,83 +113,83 @@ void parserCommandList(PASERSSIGNATURE, bool global, bool is_one, Statement *st)
  * | MATHER_RAISE parserControl
  * | parserOperation
  */
-void parserCommand(PASERSSIGNATURE){
+void parserCommand(P_FUNC){
     int token_type, status;
     Statement *st = NULL;
     token_type = readBackToken(pm);
     switch (token_type) {
         case MATHER_AT :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserDecoration, DECORATION, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserDecoration, DECORATION, &st, NULL);
             break;
         case MATHER_NONLOCAL :
         case MATHER_GLOBAL :
         case MATHER_DEFAULT :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserVarControl, VARCONTROL, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserVarControl, VARCONTROL, &st, NULL);
             break;
         case MATHER_CLASS :
         case MATHER_DEF :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserDef, FUNCTION, &st, NULL);
             break;
         case MATHER_GOTO :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserGoto, GOTO, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserGoto, GOTO, &st, NULL);
             break;
         case MATHER_LABEL :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserLabel, LABEL, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserLabel, LABEL, &st, NULL);
             break;
         case MATHER_DO :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserDo, DO_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserDo, DO_BRANCH, &st, NULL);
             break;
         case MATHER_WITH :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserWith, WITH_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserWith, WITH_BRANCH, &st, NULL);
             break;
         case MATHER_IF :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserIf, IF_BRANCH, &st, NULL);
             break;
         case MATHER_FOR :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserFor, FOR_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserFor, FOR_BRANCH, &st, NULL);
             break;
         case MATHER_WHILE :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, NULL);
             break;
         case MATHER_TRY :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserTry, TRY_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserTry, TRY_BRANCH, &st, NULL);
             break;
         case MATHER_BREAK :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeBreakStatement, BREAK, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeBreakStatement, BREAK, &st, false, NULL);
             break;
         case MATHER_CONTINUE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeContinueStatement, CONTINUE, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeContinueStatement, CONTINUE, &st, false, NULL);
             break;
         case MATHER_RESTART :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRestartStatement, RESTART, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeRestartStatement, RESTART, &st, false, NULL);
             break;
         case MATHER_REGO :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRegoStatement, REGO, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeRegoStatement, REGO, &st, false, NULL);
             break;
         case MATHER_RETURN :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeReturnStatement, RETURN, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeReturnStatement, RETURN, &st, false, NULL);
             break;
         case MATHER_YIELD :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeYieldStatement, YIELD, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeYieldStatement, YIELD, &st, false, NULL);
             break;
         case MATHER_RAISE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeRaiseStatement, RAISE, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeRaiseStatement, RAISE, &st, false, NULL);
             break;
         case MATHER_ASSERT :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeAssertStatement, ASSERT, &st, true,
+            status = commandCallControl_(CP_FUNC, makeAssertStatement, ASSERT, &st, true,
                                          "parserAssert: Don't get conditions after assert");
             break;
         case MATHER_INCLUDE :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeIncludeStatement, INCLUDE, &st, true,
+            status = commandCallControl_(CP_FUNC, makeIncludeStatement, INCLUDE, &st, true,
                                          "parserInclude: Don't get file after include");
             break;
         case MATHER_DEL :
-            status = commandCallControl_(CALLPASERSSIGNATURE, makeDelStatement, DEL, &st, true,
+            status = commandCallControl_(CP_FUNC, makeDelStatement, DEL, &st, true,
                                          "parserInclude: Don't get operation after del");
             break;
         case MATHER_FROM :
         case MATHER_IMPORT :
-            status = callChildStatement(CALLPASERSSIGNATURE, parserImport, IMPORT, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserImport, IMPORT, &st, NULL);
             break;
         case MATHER_STRING:
         case MATHER_NUMBER:
@@ -203,7 +203,7 @@ void parserCommand(PASERSSIGNATURE){
         case MATHER_PRIVATE:
         case MATHER_PUBLIC:
         case MATHER_PASSVALUE:
-            status = callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserOperation, OPERATION, &st, NULL);
             break;
         default:
             status = false;
@@ -215,7 +215,7 @@ void parserCommand(PASERSSIGNATURE){
     return_: return;
 }
 
-void parserDecoration(PASERSSIGNATURE){
+void parserDecoration(P_FUNC){
     Statement *st = NULL;
     DecorationStatement *ds = NULL;
     int tmp;
@@ -225,7 +225,7 @@ void parserDecoration(PASERSSIGNATURE){
         line = delToken(pm);
         if (tmp == MATHER_ENTER)
             continue;
-        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &dst, "Don't get a decoration operation"))
+        if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &dst, "Don't get a decoration operation"))
             goto error_;
         ds = connectDecorationStatement(dst, ds);
     }
@@ -233,7 +233,7 @@ void parserDecoration(PASERSSIGNATURE){
         syntaxError(pm, syntax_error, line, 1, "Don't get a decoration object");
         goto error_;
     }
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Don't get a decoration object"))
+    if (!callChildStatement(CP_FUNC, parserDef, FUNCTION, &st, "Don't get a decoration object"))
         goto error_;
     if (tmp == MATHER_CLASS)
         st->u.set_class.decoration = ds;
@@ -256,7 +256,7 @@ void parserDecoration(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserLabel(PASERSSIGNATURE){
+void parserLabel(P_FUNC){
     Statement *st = NULL;
     Statement *var = NULL;
     Statement *command = NULL;
@@ -273,10 +273,10 @@ void parserLabel(PASERSSIGNATURE){
         goto error_;
     }
 
-    if (checkToken(pm, MATHER_AS) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &var, "Don't get a label var"))
+    if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &var, "Don't get a label var"))
         goto error_;
 
-    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &command, "Don't get a label command"))
+    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &command, "Don't get a label command"))
         goto error_;
 
 
@@ -299,20 +299,20 @@ void parserLabel(PASERSSIGNATURE){
  * | MATHER_GOTO parserOperation MATHER_AT parserOperation [缺省return_参数]
  * | MATHER_GOTO parserOperation MATHER_AT parserOperation MATHER_COLON parserOperation
  */
-void parserGoto(PASERSSIGNATURE){
+void parserGoto(P_FUNC){
     Statement *st = NULL;
     Statement *label = NULL;
     Statement *times = NULL;
     Statement *return_ = NULL;
     long int line = delToken(pm);
 
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &label, "Don't get a goto label"))
+    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &label, "Don't get a goto label"))
         goto error_;
 
-    if (checkToken(pm, MATHER_AT) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &times, "Don't get a goto times"))
+    if (checkToken(pm, MATHER_AT) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &times, "Don't get a goto times"))
         goto error_;
 
-    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &return_, "Don't get a goto return"))
+    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &return_, "Don't get a goto return"))
         goto error_;
 
     st = makeGotoStatement(return_, times, label, line, pm->file);
@@ -333,7 +333,7 @@ void parserGoto(PASERSSIGNATURE){
  * @param type 输出token的类型
  * @param must_operation 必须匹配 operation
  */
-void parserImport(PASERSSIGNATURE) {
+void parserImport(P_FUNC) {
     Statement *opt = NULL;
     Statement *st = NULL;
     bool is_lock = false;
@@ -355,11 +355,11 @@ void parserImport(PASERSSIGNATURE) {
         delToken(pm);
     }
 
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &opt, "Don't get a import file"))
+    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &opt, "Don't get a import file"))
         goto return_;
     if (token_type == MATHER_IMPORT) {
         Statement *as = NULL;
-        if (checkToken(pm, MATHER_AS) && !callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &as, "Don't get a as after import")) {
+        if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &as, "Don't get a as after import")) {
             freeStatement(opt);
             goto return_;
         }
@@ -375,13 +375,13 @@ void parserImport(PASERSSIGNATURE) {
         }
         if (checkToken(pm, MATHER_MUL))  // 导入所有
             goto mul_;
-        if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT,
+        if (!parserParameter(CP_FUNC, &pt, false, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT,
                              -1) || pt == NULL) {
             syntaxError(pm, syntax_error, line, 1, "Don't get any value to import");
             freeStatement(opt);
             goto return_;
         }
-        if (checkToken(pm, MATHER_AS) && (!parserParameter(CALLPASERSSIGNATURE, &as, false, true, false, false,
+        if (checkToken(pm, MATHER_AS) && (!parserParameter(CP_FUNC, &as, false, true, false, false,
                                                            MATHER_COMMA, MATHER_ASSIGNMENT, -1) || as == NULL)) {
             freeParameter(pt, true);
             syntaxError(pm, syntax_error, opt->line, 1, "Don't get any value after import");
@@ -414,13 +414,13 @@ void parserImport(PASERSSIGNATURE) {
  * @param type 输出token的类型
  * @param must_operation 必须匹配 operation
  */
-void parserVarControl(PASERSSIGNATURE) {
+void parserVarControl(P_FUNC) {
     Parameter *var = NULL;
     Statement *st = NULL;
     Token *tmp = NULL;
     int token_type = readBackToken(pm);
     long int line = delToken(pm);
-    if (!parserParameter(CALLPASERSSIGNATURE, &var, false, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT, -1) || var == NULL) {
+    if (!parserParameter(CP_FUNC, &var, false, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT, -1) || var == NULL) {
         syntaxError(pm, syntax_error, line, 1, "Don't get any var");
         goto return_;
     }
@@ -439,12 +439,12 @@ void parserVarControl(PASERSSIGNATURE) {
  * @param type 输出token的类型
  * @param must_operation 必须匹配 operation
  */
-void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool must_operation, char *message) {
+void parserControl(P_FUNC, MakeControlFunction callBack, int type, bool must_operation, char *message) {
     Statement *opt = NULL;
     Statement *st = NULL;
     Token *tmp = NULL;
     long int line = delToken(pm);
-    parserOperation(CALLPASERSSIGNATURE);
+    parserOperation(CP_FUNC);
     if (call_success(pm) && readBackToken(pm) == OPERATION){
         tmp = popNewToken(pm->tm);
         opt = tmp->data.st;
@@ -461,24 +461,24 @@ void parserControl(PASERSSIGNATURE, MakeControlFunction callBack, int type, bool
     syntaxError(pm, syntax_error, line, 1, message);
 }
 
-void parserDo(PASERSSIGNATURE){
+void parserDo(P_FUNC){
     Statement *st = NULL;
     Statement *do_code = NULL;
     long int line = delToken(pm);
     if (readBackToken(pm) == MATHER_WHILE){  // do...while语句
-        if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
+        if (!callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
             goto error_;
         st->u.while_branch.type = do_while_;
     }
     else {
-        if (!callParserCode(CALLPASERSSIGNATURE, &do_code, "Don't get a if...else code", line))
+        if (!callParserCode(CP_FUNC, &do_code, "Don't get a if...else code", line))
             goto error_;
 
         again:
         switch (readBackToken(pm)){
             case MATHER_IF: {
                 StatementList *do_sl = NULL;
-                if (!callChildStatement(CALLPASERSSIGNATURE, parserIf, IF_BRANCH, &st, "Don't get a if code after do"))
+                if (!callChildStatement(CP_FUNC, parserIf, IF_BRANCH, &st, "Don't get a if code after do"))
                     goto error_;
                 do_sl = makeStatementList(NULL, NULL, do_code, do_b);
                 do_sl->next = st->u.if_branch.if_list;
@@ -486,17 +486,17 @@ void parserDo(PASERSSIGNATURE){
                 break;
             }
             case MATHER_WHILE:
-                if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a while code after do"))
+                if (!callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, "Don't get a while code after do"))
                     goto error_;
                 st->u.while_branch.first = do_code;
                 break;
             case MATHER_FOR:
-                if (!callChildStatement(CALLPASERSSIGNATURE, parserFor, FOR_BRANCH, &st, "Don't get a for code after do"))
+                if (!callChildStatement(CP_FUNC, parserFor, FOR_BRANCH, &st, "Don't get a for code after do"))
                     goto error_;
                 st->u.for_branch.first_do = do_code;
                 break;
             case MATHER_DEF:
-                if (!callChildStatement(CALLPASERSSIGNATURE, parserDef, FUNCTION, &st, "Don't get a func def after do"))
+                if (!callChildStatement(CP_FUNC, parserDef, FUNCTION, &st, "Don't get a func def after do"))
                     goto error_;
                 st->u.set_function.first_do = do_code;
                 break;
@@ -506,7 +506,7 @@ void parserDo(PASERSSIGNATURE){
                     syntaxError(pm, syntax_error, tmp_line, 1, "Don't get while after do");
                     goto error_;
                 }
-                if (!callChildStatement(CALLPASERSSIGNATURE, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
+                if (!callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
                     goto error_;
                 st->u.while_branch.type = do_while_;
                 st->u.while_branch.first = do_code;
@@ -532,7 +532,7 @@ void parserDo(PASERSSIGNATURE){
     freeStatement(st);
 }
 
-void parserFor(PASERSSIGNATURE){
+void parserFor(P_FUNC){
     Statement *st = NULL;
     Statement *else_st = NULL;
     Statement *finally_st = NULL;
@@ -541,18 +541,18 @@ void parserFor(PASERSSIGNATURE){
     long int line = delToken(pm);
     {
         Statement *code_tmp = NULL, *var_tmp = NULL, *iter_tmp = NULL;
-        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &var_tmp, "Don't get a for var"))
+        if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &var_tmp, "Don't get a for var"))
             goto error_;
         if (!checkToken(pm, MATHER_IN)){
             freeStatement(var_tmp);
             syntaxError(pm, syntax_error, line, 1, "Don't get in after for");
             goto error_;
         }
-        if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &iter_tmp, "Don't get a for condition")) {
+        if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &iter_tmp, "Don't get a for condition")) {
             freeStatement(var_tmp);
             goto error_;
         }
-        if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a for code", line)) {
+        if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a for code", line)) {
             freeStatement(iter_tmp);
             freeStatement(var_tmp);
             goto error_;
@@ -566,7 +566,7 @@ void parserFor(PASERSSIGNATURE){
             if (do_st != NULL || else_st != NULL)
                 goto default_;
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &do_st, "Don't get a for...do code", tmp_line))
+            if (!callParserCode(CP_FUNC, &do_st, "Don't get a for...do code", tmp_line))
                 goto error_;
             goto again;
         }
@@ -576,13 +576,13 @@ void parserFor(PASERSSIGNATURE){
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else\n");
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a for...else code", tmp_line))
+            if (!callParserCode(CP_FUNC, &else_st, "Don't get a for...else code", tmp_line))
                 goto error_;
             goto again;
         }
         case MATHER_FINALLY: {
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a for...finally code", tmp_line))
+            if (!callParserCode(CP_FUNC, &finally_st, "Don't get a for...finally code", tmp_line))
                 goto error_;
             break;
         }
@@ -613,7 +613,7 @@ void parserFor(PASERSSIGNATURE){
     freeStatementList(sl);
 }
 
-void parserWith(PASERSSIGNATURE){
+void parserWith(P_FUNC){
     Statement *st = NULL;
     Statement *code_tmp = NULL;
     Statement *var_tmp = NULL;
@@ -625,11 +625,11 @@ void parserWith(PASERSSIGNATURE){
     long int tmp_line;
 
     line = delToken(pm);
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, "Don't get a with operation"))
+    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, "Don't get a with operation"))
         goto error_;
-    if (!callParserAs(CALLPASERSSIGNATURE, &var_tmp, "Don't get a with var"))
+    if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a with var"))
         goto error_;
-    if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a with code", line))
+    if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a with code", line))
         goto error_;
     sl = connectStatementList(sl, makeStatementList(condition_tmp, var_tmp, code_tmp, with_b));
     condition_tmp = NULL;
@@ -641,7 +641,7 @@ void parserWith(PASERSSIGNATURE){
 
     if (readBackToken(pm) == MATHER_ELSE) {
         tmp_line = delToken(pm);
-        if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a with...else code", tmp_line))
+        if (!callParserCode(CP_FUNC, &else_st, "Don't get a with...else code", tmp_line))
             goto error_;
     }
 
@@ -650,7 +650,7 @@ void parserWith(PASERSSIGNATURE){
 
     if (readBackToken(pm) == MATHER_FINALLY) {
         tmp_line = delToken(pm);
-        if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a wilt...finally code", tmp_line))
+        if (!callParserCode(CP_FUNC, &finally_st, "Don't get a wilt...finally code", tmp_line))
             goto error_;
     }
 
@@ -685,7 +685,7 @@ void parserWith(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserIf(PASERSSIGNATURE){
+void parserIf(P_FUNC){
     Statement *st = NULL;
     Statement *else_st = NULL;
     Statement *finally_st = NULL;
@@ -710,15 +710,15 @@ void parserIf(PASERSSIGNATURE){
             }
 
             not_del:
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, "Don't get a if condition"))
+            if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, "Don't get a if condition"))
                 goto error_;
 
-            if (!callParserAs(CALLPASERSSIGNATURE, &var_tmp, "Don't get a while var")) {
+            if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a while var")) {
                 freeStatement(condition_tmp);
                 goto error_;
             }
 
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if code", tmp_line)) {
+            if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a if code", tmp_line)) {
                 freeStatement(condition_tmp);
                 freeStatement(var_tmp);
                 goto error_;
@@ -731,7 +731,7 @@ void parserIf(PASERSSIGNATURE){
                 goto default_;
             Statement *code_tmp = NULL;
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a if...do code", tmp_line))
+            if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a if...do code", tmp_line))
                 goto error_;
             sl = connectStatementList(sl, makeStatementList(NULL, NULL, code_tmp, do_b));
             goto again;
@@ -742,13 +742,13 @@ void parserIf(PASERSSIGNATURE){
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else");
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a if...else code", tmp_line))
+            if (!callParserCode(CP_FUNC, &else_st, "Don't get a if...else code", tmp_line))
                 goto error_;
             goto again;
         }
         case MATHER_FINALLY: {
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a if...finally code", tmp_line))
+            if (!callParserCode(CP_FUNC, &finally_st, "Don't get a if...finally code", tmp_line))
                 goto error_;
             break;
         }
@@ -789,7 +789,7 @@ void parserIf(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserWhile(PASERSSIGNATURE){
+void parserWhile(P_FUNC){
     Statement *st = NULL;
     Statement *else_st = NULL;
     Statement *finally_st = NULL;
@@ -807,14 +807,14 @@ void parserWhile(PASERSSIGNATURE){
 
             Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
             line = delToken(pm);
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, "Don't get a while condition"))
+            if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, "Don't get a while condition"))
                 goto error_;
 
-            if (!callParserAs(CALLPASERSSIGNATURE, &var_tmp, "Don't get a while var")){
+            if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a while var")){
                 freeStatement(condition_tmp);
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a while code", line)) {
+            if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a while code", line)) {
                 freeStatement(condition_tmp);
                 freeStatement(var_tmp);
                 goto error_;
@@ -828,7 +828,7 @@ void parserWhile(PASERSSIGNATURE){
             if (do_st != NULL || else_st != NULL)
                 goto default_;
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &do_st, "Don't get a while...do code", tmp_line))
+            if (!callParserCode(CP_FUNC, &do_st, "Don't get a while...do code", tmp_line))
                 goto error_;
             goto again;
         }
@@ -838,13 +838,13 @@ void parserWhile(PASERSSIGNATURE){
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else\n");
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a while...else code", tmp_line))
+            if (!callParserCode(CP_FUNC, &else_st, "Don't get a while...else code", tmp_line))
                 goto error_;
             goto again;
         }
         case MATHER_FINALLY: {
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a while...finally code", tmp_line))
+            if (!callParserCode(CP_FUNC, &finally_st, "Don't get a while...finally code", tmp_line))
                 goto error_;
             break;
         }
@@ -887,7 +887,7 @@ void parserWhile(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserTry(PASERSSIGNATURE){
+void parserTry(P_FUNC){
     Statement *st = NULL;
     Statement *try_st = NULL;
     Statement *else_st = NULL;
@@ -900,7 +900,7 @@ void parserTry(PASERSSIGNATURE){
             if (try_st != NULL)
                 goto default_;
             line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &try_st, "Don't get a try code", line))
+            if (!callParserCode(CP_FUNC, &try_st, "Don't get a try code", line))
                 goto error_;
             goto again;
         }
@@ -912,13 +912,13 @@ void parserTry(PASERSSIGNATURE){
                 goto error_;
             }
             if (readBackToken(pm) != MATHER_LC)
-                callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &condition_tmp, NULL);
+                callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, NULL);
 
-            if (!callParserAs(CALLPASERSSIGNATURE, &var_tmp, "Don't get a except var")){
+            if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a except var")){
                 freeStatement(condition_tmp);
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a except code", tmp_line)) {
+            if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a except code", tmp_line)) {
                 freeStatement(condition_tmp);
                 freeStatement(var_tmp);
                 goto error_;
@@ -932,13 +932,13 @@ void parserTry(PASERSSIGNATURE){
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else");
                 goto error_;
             }
-            if (!callParserCode(CALLPASERSSIGNATURE, &else_st, "Don't get a try...else code", tmp_line))
+            if (!callParserCode(CP_FUNC, &else_st, "Don't get a try...else code", tmp_line))
                 goto error_;
             goto again;
         }
         case MATHER_FINALLY: {
             long int tmp_line = delToken(pm);
-            if (!callParserCode(CALLPASERSSIGNATURE, &finally_st, "Don't get a try...finally code", tmp_line))
+            if (!callParserCode(CP_FUNC, &finally_st, "Don't get a try...finally code", tmp_line))
                 goto error_;
             break;
         }
@@ -977,7 +977,7 @@ void parserTry(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserDef(PASERSSIGNATURE){
+void parserDef(P_FUNC){
     Statement *st = NULL;
     Statement *name_tmp = NULL;
     Statement *code_tmp = NULL;
@@ -985,13 +985,13 @@ void parserDef(PASERSSIGNATURE){
     int type = readBackToken(pm);
     long int line = delToken(pm);
 
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &name_tmp,
+    if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &name_tmp,
                             "Don't get a func/V_class name"))
         goto error_;
 
     if (!checkToken(pm, MATHER_LP))
         goto get_code;
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, type==MATHER_DEF ? MATHER_SEMICOLON : -1)) {
+    if (!parserParameter(CP_FUNC, &pt, true, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, type == MATHER_DEF ? MATHER_SEMICOLON : -1)) {
         lexEnter(pm, false);
         syntaxError(pm, syntax_error, line, 1, "Don't get a func/V_class parameter");
         goto error_;
@@ -1001,7 +1001,7 @@ void parserDef(PASERSSIGNATURE){
         goto error_;
     }
     get_code:
-    if (!callParserCode(CALLPASERSSIGNATURE, &code_tmp, "Don't get a func code", line)) {
+    if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a func code", line)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get a func code");
         goto error_;
     }
@@ -1028,7 +1028,7 @@ void parserDef(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserCode(PASERSSIGNATURE) {
+void parserCode(P_FUNC) {
     long int line = 0;
     Statement *st = makeStatement(line, pm->file);
     while (true){
@@ -1040,7 +1040,7 @@ void parserCode(PASERSSIGNATURE) {
         if (!checkToken(pm, MATHER_ENTER))
             goto return_;
     }
-    parserCommandList(CALLPASERSSIGNATURE, false, false, st);
+    parserCommandList(CP_FUNC, false, false, st);
     if (!call_success(pm))
         goto error_;
 
@@ -1062,9 +1062,9 @@ void parserCode(PASERSSIGNATURE) {
  * parserOperation：
  * | parserAssignment
  */
-void parserOperation(PASERSSIGNATURE){
+void parserOperation(P_FUNC){
     Statement *operation_st = NULL;
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserAssignment, ASSIGNMENT, &operation_st, NULL))
+    if (!callChildStatement(CP_FUNC, parserAssignment, ASSIGNMENT, &operation_st, NULL))
         goto return_;
     addStatementToken(OPERATION, operation_st, pm);
     return_:
@@ -1078,7 +1078,7 @@ void parserOperation(PASERSSIGNATURE){
  * | parserAssignment ASSIGNMENT parserTuple [2]
  * 注意：在链接statement的时候, 模式[2]相当于 parserTuple ASSIGNMENT parserAssignment
  */
-bool checkAssignmentLeft(PASERSSIGNATURE, Statement *left){
+bool checkAssignmentLeft(P_FUNC, Statement *left){
     if (left->type == call_function && !checkFormal(left->u.call_function.parameter)){
         syntaxError(pm, syntax_error, left->line, 1, "Don't get success func definition from Assignment22");
         return false;
@@ -1086,7 +1086,7 @@ bool checkAssignmentLeft(PASERSSIGNATURE, Statement *left){
     return true;
 }
 
-bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
+bool switchAssignment(P_FUNC, int symbol, Statement **st){
     switch (symbol) {  // 此处保持使用switch分支
         case MATHER_ASSIGNMENT:
             *st = makeOperationBaseStatement(OPT_ASS, 0, pm->file);
@@ -1097,8 +1097,8 @@ bool switchAssignment(PASERSSIGNATURE, int symbol, Statement **st){
     return true;
 }
 
-void parserAssignment(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserTuple, switchAssignment, checkAssignmentLeft, TUPLE, ASSIGNMENT,
+void parserAssignment(P_FUNC){
+    return twoOperation(CP_FUNC, parserTuple, switchAssignment, checkAssignmentLeft, TUPLE, ASSIGNMENT,
                         "polynomial", "assignment", true);
 }
 
@@ -1110,7 +1110,7 @@ void parserAssignment(PASERSSIGNATURE){
  * @param pm
  * @param inter
  */
-void parserTuple(PASERSSIGNATURE){
+void parserTuple(P_FUNC){
     Parameter *pt = NULL;
     Statement *st = NULL;
     Token *tmp = NULL;
@@ -1120,7 +1120,7 @@ void parserTuple(PASERSSIGNATURE){
         goto parserPt;
     }
 
-    if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, NULL, syntax_error))
+    if (!callChildToken(CP_FUNC, parserPolynomial, POLYNOMIAL, &tmp, NULL, syntax_error))
         goto return_;
     if (readBackToken(pm) != MATHER_COMMA){
         tmp->token_type = TUPLE;
@@ -1131,7 +1131,7 @@ void parserTuple(PASERSSIGNATURE){
     addToken_(pm ,tmp);
 
     parserPt:
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, false, true, false, MATHER_COMMA, MATHER_ASSIGNMENT, -1)) {
+    if (!parserParameter(CP_FUNC, &pt, false, false, true, false, MATHER_COMMA, MATHER_ASSIGNMENT, -1)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get tuple element");
         goto return_;
     }
@@ -1149,7 +1149,7 @@ void parserTuple(PASERSSIGNATURE){
  * | parserPolynomial OPT_ADD parserFactor
  * | parserPolynomial OPT_SUB parserFactor
  */
-bool switchPolynomial(PASERSSIGNATURE, int symbol, Statement **st){
+bool switchPolynomial(P_FUNC, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_ADD:
             *st = makeOperationBaseStatement(OPT_ADD, 0, pm->file);
@@ -1162,8 +1162,8 @@ bool switchPolynomial(PASERSSIGNATURE, int symbol, Statement **st){
     }
     return true;
 }
-void parserPolynomial(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserFactor, switchPolynomial, NULL, FACTOR, POLYNOMIAL,
+void parserPolynomial(P_FUNC){
+    return twoOperation(CP_FUNC, parserFactor, switchPolynomial, NULL, FACTOR, POLYNOMIAL,
                         "factor", "polynomial", false);
 }
 
@@ -1174,7 +1174,7 @@ void parserPolynomial(PASERSSIGNATURE){
  * | switchFactor OPT_ADD parserCallBack
  * | switchFactor OPT_SUB parserCallBack
  */
-bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
+bool switchFactor(P_FUNC, int symbol, Statement **st){
     switch (symbol) {
         case MATHER_MUL:
             *st = makeOperationBaseStatement(OPT_MUL, 0, pm->file);
@@ -1187,8 +1187,8 @@ bool switchFactor(PASERSSIGNATURE, int symbol, Statement **st){
     }
     return true;
 }
-void parserFactor(PASERSSIGNATURE){
-    return twoOperation(CALLPASERSSIGNATURE, parserCallBack, switchFactor, NULL, CALLBACK, FACTOR,
+void parserFactor(P_FUNC){
+    return twoOperation(CP_FUNC, parserCallBack, switchFactor, NULL, CALLBACK, FACTOR,
                         "call back", "factor", false);
 }
 
@@ -1198,13 +1198,13 @@ void parserFactor(PASERSSIGNATURE){
  * | parserBaseValue
  * | parserCallBack MATHER_LP parserParameter MATHER_RP
  */
-bool tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
+bool tailCall(P_FUNC, Token *left_token, Statement **st){
     Parameter *pt = NULL;
     long int line = delToken(pm);
 
     if (checkToken(pm, MATHER_RP))
         goto not_pt;
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, MATHER_SEMICOLON)) {
+    if (!parserParameter(CP_FUNC, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, MATHER_SEMICOLON)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get call parameter");
         return false;
     }
@@ -1219,13 +1219,13 @@ bool tailCall(PASERSSIGNATURE, Token *left_token, Statement **st){
     return true;
 }
 
-bool tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
+bool tailSlice(P_FUNC, Token *left_token, Statement **st){
     Parameter *pt = NULL;
     Token *tmp = NULL;
     enum SliceType type;  // 0-slice  1-down
     long int line = delToken(pm);
 
-    if (!callChildToken(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
+    if (!callChildToken(CP_FUNC, parserPolynomial, POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
         return false;
     else if (readBackToken(pm) == MATHER_COLON)
         type = SliceType_slice_;
@@ -1234,7 +1234,7 @@ bool tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
     line = tmp->line;
     addToken_(pm ,tmp);
 
-    if (!parserParameter(CALLPASERSSIGNATURE, &pt, true, true, true, true,
+    if (!parserParameter(CP_FUNC, &pt, true, true, true, true,
                          (type == SliceType_down_ ? MATHER_COMMA : MATHER_COLON), MATHER_ASSIGNMENT, -1)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get slice element");
         return false;
@@ -1248,25 +1248,25 @@ bool tailSlice(PASERSSIGNATURE, Token *left_token, Statement **st){
     return true;
 }
 
-bool taliPoint(PASERSSIGNATURE, Token *left_token, Statement **st){
+bool taliPoint(P_FUNC, Token *left_token, Statement **st){
     Statement *right_st = NULL;
     delToken(pm);
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after point"))
+    if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after point"))
         return false;
     *st = makeOperationStatement(OPT_POINT, left_token->data.st, right_st);
     return true;
 }
 
-bool taliLink(PASERSSIGNATURE, Token *left_token, Statement **st){
+bool taliLink(P_FUNC, Token *left_token, Statement **st){
     Statement *right_st = NULL;
     delToken(pm);
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after link"))
+    if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after link"))
         return false;
     *st = makeOperationStatement(OPT_LINK, left_token->data.st, right_st);
     return true;
 }
 
-void parserCallBack(PASERSSIGNATURE){
+void parserCallBack(P_FUNC){
     while(true){
         int tk;
         Token *left_token = NULL;
@@ -1274,7 +1274,7 @@ void parserCallBack(PASERSSIGNATURE){
 
         if (readBackToken(pm) != CALLBACK){
 
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st, NULL))
+            if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &st, NULL))
                 goto return_;
             addStatementToken(CALLBACK, st, pm);
             continue;
@@ -1282,10 +1282,10 @@ void parserCallBack(PASERSSIGNATURE){
         left_token = popNewToken(pm->tm);
 
         tk = readBackToken(pm);
-        if (tk == MATHER_LB && !tailSlice(CALLPASERSSIGNATURE, left_token, &st) ||
-            tk == MATHER_LP && !tailCall(CALLPASERSSIGNATURE, left_token, &st) ||
-            tk == MATHER_POINT && !taliPoint(CALLPASERSSIGNATURE, left_token, &st) ||
-            tk == MATHER_LINK && !taliLink(CALLPASERSSIGNATURE, left_token, &st)) {
+        if (tk == MATHER_LB && !tailSlice(CP_FUNC, left_token, &st) ||
+            tk == MATHER_LP && !tailCall(CP_FUNC, left_token, &st) ||
+            tk == MATHER_POINT && !taliPoint(CP_FUNC, left_token, &st) ||
+            tk == MATHER_LINK && !taliLink(CP_FUNC, left_token, &st)) {
             freeToken(left_token, true);
             goto return_;
         } else if (tk != MATHER_LB && tk != MATHER_LP && tk != MATHER_POINT && tk != MATHER_LINK) {
@@ -1310,12 +1310,12 @@ void parserCallBack(PASERSSIGNATURE){
  * | MATHER_LP parserOperation MATHER_LP MATHER_VAR
  * | MATHER_LC parserParameter(dict) MATHER_LC
  */
-int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
+int getOperation(P_FUNC, int right_type, Statement **st, char *name){
     *st = NULL;
     if (checkToken(pm, right_type))
         goto return_;
 
-    if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, st, NULL))
+    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, st, NULL))
         return 0;
 
     if (!checkToken(pm, right_type)){
@@ -1327,7 +1327,7 @@ int getOperation(PASERSSIGNATURE, int right_type, Statement **st, char *name){
     return 1;
 }
 
-void parserBaseValue(PASERSSIGNATURE){
+void parserBaseValue(P_FUNC){
     Token *value_token = popNewToken(pm->tm);
     Statement *st = NULL;
     switch (value_token->token_type) {
@@ -1368,7 +1368,7 @@ void parserBaseValue(PASERSSIGNATURE){
         case MATHER_LAMBDA:  {
             Parameter *pt = NULL;
             Statement *lambda_st = NULL;
-            if (!parserParameter(CALLPASERSSIGNATURE, &pt, false, true, false, false, MATHER_COMMA,
+            if (!parserParameter(CP_FUNC, &pt, false, true, false, false, MATHER_COMMA,
                                  MATHER_ASSIGNMENT, -1)) {
                 freeToken(value_token, true);
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a lambda parameter");
@@ -1378,7 +1378,7 @@ void parserBaseValue(PASERSSIGNATURE){
                 lambda_st = makeStatement(value_token->line, pm->file);
                 goto not_lambda_st;
             }
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, &lambda_st,
+            if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &lambda_st,
                                     "Don't get a lambda operation")) {
                 freeToken(value_token, true);
                 goto return_;
@@ -1392,7 +1392,7 @@ void parserBaseValue(PASERSSIGNATURE){
             break;
         case MATHER_SVAR: {
             Statement *svar_st = NULL;
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &svar_st, NULL)) {
+            if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &svar_st, NULL)) {
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
                 freeToken(value_token, true);
                 goto return_;
@@ -1404,7 +1404,7 @@ void parserBaseValue(PASERSSIGNATURE){
             int tmp;
             Statement *tmp_st = NULL;
             lexEnter(pm, true);
-            tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RB, &tmp_st, "base value");
+            tmp = getOperation(CP_FUNC, MATHER_RB, &tmp_st, "base value");
             lexEnter(pm, false);
             if (tmp == 0) {
                 freeToken(value_token, true);
@@ -1434,7 +1434,7 @@ void parserBaseValue(PASERSSIGNATURE){
         case MATHER_LP: {
             int tmp;
             lexEnter(pm, true);
-            tmp = getOperation(CALLPASERSSIGNATURE, MATHER_RP, &st, "base value");
+            tmp = getOperation(CP_FUNC, MATHER_RP, &st, "base value");
             lexEnter(pm, false);
             if (tmp == 0) {
                 freeToken(value_token, true);
@@ -1454,7 +1454,7 @@ void parserBaseValue(PASERSSIGNATURE){
         case MATHER_LC: {
             Parameter *pt = NULL;
             int parser_status;
-            parser_status = parserParameter(CALLPASERSSIGNATURE, &pt, true, false, false, true, MATHER_COMMA,
+            parser_status = parserParameter(CP_FUNC, &pt, true, false, false, true, MATHER_COMMA,
                                             MATHER_COLON, -1);
             if (!parser_status) {
                 freeToken(value_token, true);
@@ -1472,7 +1472,7 @@ void parserBaseValue(PASERSSIGNATURE){
         }
         case MATHER_BLOCK: {
             Statement *block = NULL;
-            if (!callParserCode(CALLPASERSSIGNATURE, &block, "Don't get a while code", value_token->line)) {
+            if (!callParserCode(CP_FUNC, &block, "Don't get a while code", value_token->line)) {
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get block command");
                 freeToken(value_token, true);
                 goto return_;
@@ -1489,7 +1489,7 @@ void parserBaseValue(PASERSSIGNATURE){
                 goto return_;
             }
             delToken(pm);
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserBaseValue, BASEVALUE, &st, "Don't get Base Value after aut token")) {
+            if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &st, "Don't get Base Value after aut token")) {
                 freeToken(value_token, true);
                 goto return_;
             }

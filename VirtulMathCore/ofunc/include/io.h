@@ -1,4 +1,4 @@
 #ifndef VIRTUALMATH_IO_H
 #define VIRTUALMATH_IO_H
-void registeredIOFunction(REGISTERED_FUNCTIONSIG);
+void registeredIOFunction(R_FUNC);
 #endif //VIRTUALMATH_IO_H

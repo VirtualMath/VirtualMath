@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType pass_new(OFFICAL_FUNCTIONSIG){
+ResultType pass_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -8,22 +8,22 @@ ResultType pass_new(OFFICAL_FUNCTIONSIG){
     setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "pass.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "pass.new", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_ell;
-    run_init(value, arg, 0, "pass.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    run_init(value, arg, 0, "pass.new", CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-void registeredEllipisis(REGISTERED_FUNCTIONSIG){
+void registeredEllipisis(R_FUNC){
     LinkValue *object = inter->data.pass_;
     NameFunc tmp[] = {{inter->data.object_new, pass_new, class_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"ellipsis", object, belong, inter);
-    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

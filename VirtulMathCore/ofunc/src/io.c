@@ -1,11 +1,11 @@
 #include "__ofunc.h"
 
-ResultType vm_print(OFFICAL_FUNCTIONSIG){
+ResultType vm_print(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=true},
                            {.type=name_value, .name=L"end", .must=0, .value=NULL},
                            {.must=-1}};
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -13,7 +13,7 @@ ResultType vm_print(OFFICAL_FUNCTIONSIG){
     arg = ap[0].arg;
     for (int i=0; i < ap[0].c_count; arg = arg->next,i++){
         freeResult(result);
-        wchar_t *tmp = getRepoStr(arg->data.value, true, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        wchar_t *tmp = getRepoStr(arg->data.value, true, 0, "sys", CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result))
             return result->type;
         if (i != 0)
@@ -30,13 +30,13 @@ ResultType vm_print(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType vm_input(OFFICAL_FUNCTIONSIG){
+ResultType vm_input(O_FUNC){
     setResultCore(result);
     ArgumentParser ap[] = {{.type=name_value, .name=L"message", .must=0, .value=NULL},
                            {.must=-1}};
     wchar_t *str = memWidecpy(L"\0");
     wint_t ch;
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -47,14 +47,14 @@ ResultType vm_input(OFFICAL_FUNCTIONSIG){
     while ((ch = fgetwc(inter->data.inter_stdin)) != '\n' && ch != WEOF)
         str = memWideCharcpy(str, 1, true, true, ch);
 
-    makeStringValue(str, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(str, 0, "sys", CFUNC_NT(var_list, result, belong));
     memFree(str);
     return result->type;
 }
 
-void registeredIOFunction(REGISTERED_FUNCTIONSIG){
+void registeredIOFunction(R_FUNC){
     NameFunc tmp[] = {{L"print", vm_print, free_},
                       {L"input", vm_input, free_},
                       {NULL, NULL}};
-    iterBaseNameFunc(tmp, belong, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }

@@ -185,18 +185,18 @@ void freeParameter(Parameter *pt, bool free_st) {
     }
 }
 
-Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+Argument *listToArgument(LinkValue *list_value, long line, char *file, FUNC_NT){
     Argument *at = NULL;
     LinkValue *iter = NULL;
     setResultCore(result);
-    getIter(list_value, 1, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    getIter(list_value, 1, line, file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     iter = result->value;
     result->value = NULL;
     while (true) {
         freeResult(result);
-        getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getIter(iter, 0, line, file, CFUNC_NT(var_list, result, belong));
         if (is_iterStop(result->value, inter)){
             freeResult(result);
             break;
@@ -214,11 +214,11 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUN
     return at;
 }
 
-Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) {
     Argument *at = NULL;
     LinkValue *iter = NULL;
     setResultCore(result);
-    getIter(dict_value, 1, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    getIter(dict_value, 1, line, file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return NULL;
     iter = result->value;
@@ -228,7 +228,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
         wchar_t *name = NULL;
 
         freeResult(result);
-        getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getIter(iter, 0, line, file, CFUNC_NT(var_list, result, belong));
         if (is_iterStop(result->value, inter)){
             freeResult(result);
             break;
@@ -242,7 +242,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
         result->value = NULL;
         freeResult(result);
 
-        getElement(iter, name_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getElement(iter, name_, line, file, CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result)) {
             gc_freeTmpLink(&name_->gc_status);
             freeArgument(at, true);
@@ -269,19 +269,19 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUN
  * @param num
  * @return
  */
-ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType defaultParameter(Parameter **function_ad, vnum *num, FUNC_NT) {
     Parameter *function = *function_ad;
     setResultCore(result);
 
     for (*num = 0; function != NULL && function->type == name_par; (*num)++, function = function->next){
         LinkValue *value = NULL;
-        if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(function->data.value, var_list, result, belong)))
+        if(operationSafeInterStatement(CFUNC(function->data.value, var_list, result, belong)))
             goto return_;
 
         value = result->value;
         result->value = NULL;
         freeResult(result);
-        assCore(function->data.name, value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(function->data.name, value, false, false, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&value->gc_status);
         if (!CHECK_RESULT(result))
             goto return_;
@@ -302,17 +302,17 @@ ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSI
  * @param num
  * @return
  */
-ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType argumentToVar(Argument **call_ad, vnum *num, FUNC_NT) {
     Argument *call = *call_ad;
     setResultCore(result);
 
     for (*num = 0; call != NULL && call->type == name_arg; (*num)++, call = call->next){
         if (call->name_type == name_char){
-            addFromVarList(call->data.name_, call->data.name_value, 0, call->data.value, CALL_INTER_FUNCTIONSIG_CORE(var_list));  // 参数赋值不需要处理变量式参数
+            addFromVarList(call->data.name_, call->data.name_value, 0, call->data.value, CFUNC_CORE(var_list));  // 参数赋值不需要处理变量式参数
             continue;
         }
         freeResult(result);
-        assCore(call->data.name, call->data.value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(call->data.name, call->data.value, false, false, CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
     }
@@ -333,7 +333,7 @@ ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST
  * @return
  */
 ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum *num, vnum max, bool *status,
-                            INTER_FUNCTIONSIG_NOT_ST) {
+                            FUNC_NT) {
     Parameter *function = *function_ad;
     bool get = true;
     setResultCore(result);
@@ -346,7 +346,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
         get = true;
 
         if (function->type == kwargs_par){
-            makeDictValue(NULL, false, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            makeDictValue(NULL, false, 0, "sys", CFUNC_NT(var_list, result, belong));
             if (!CHECK_RESULT(result))
                 return result->type;
 
@@ -361,7 +361,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
             goto not_return;
         }
 
-        getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
+        getVarInfo(&str_name, &int_times, CFUNC(name, var_list, result, belong));
         if (!CHECK_RESULT(result)) {
             memFree(str_name);
             *function_ad = function;
@@ -369,24 +369,24 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
         }
 
         freeResult(result);
-        value = findFromVarList(str_name, int_times, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));  // 形式参数取值不需要执行变量式函数
+        value = findFromVarList(str_name, int_times, del_var, CFUNC_CORE(var_list));  // 形式参数取值不需要执行变量式函数
         memFree(str_name);
 
         if(value == NULL) {
             get = false;
-            if (function->type == name_par && !operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(function->data.value, var_list, result, belong))) {
+            if (function->type == name_par && !operationSafeInterStatement(CFUNC(function->data.value, var_list, result, belong))) {
                 value = result->value;
                 goto not_return;
             }
-            setResultErrorSt(E_ArgumentException, FEW_ARG, true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultErrorSt(E_ArgumentException, FEW_ARG, true, name, CFUNC_NT(var_list, result, belong));
             goto return_;
         }
-        else if (!checkAut(name->aut, value->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        else if (!checkAut(name->aut, value->aut, name->line, name->code_file, NULL, false, CFUNC_NT(var_list, result, belong)))
             goto return_;
 
         not_return:
         freeResult(result);
-        assCore(name, value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+        assCore(name, value, false, false, CFUNC_NT(function_var, result, belong));
 
         if (!CHECK_RESULT(result)) {
             *function_ad = function;
@@ -413,14 +413,14 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
  * @param var_list
  * @return
  */
-ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST){
+ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, FUNC_NT){
     Argument *call = *call_ad;
     Parameter *function = *function_ad;
     setResultCore(result);
 
     for (PASS; call != NULL && function != NULL && (call->type == value_arg) && function->type != args_par; call = call->next, function = function->next){
         Statement *name = function->type == value_par ? function->data.value : function->data.name;
-        assCore(name, call->data.value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+        assCore(name, call->data.value, false, false, CFUNC_NT(function_var, result, belong));
         if (!CHECK_RESULT(result))
             goto return_;
         freeResult(result);
@@ -440,12 +440,12 @@ ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarL
  * @param var_list
  * @return
  */
-ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTER_FUNCTIONSIG_NOT_ST){
+ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC_NT){
     Argument *base = *base_ad;
     setResultCore(result);
 
     for (PASS; call != NULL; call = call->next){
-        if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(call->data.value, var_list, result, belong)))
+        if(operationSafeInterStatement(CFUNC(call->data.value, var_list, result, belong)))
             goto return_;
 
         if (call->type == value_par)
@@ -454,7 +454,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
             if (is_dict){
                 LinkValue *value = result->value;
                 setResultCore(result);
-                if(operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(call->data.name, var_list, result, belong))) {
+                if(operationSafeInterStatement(CFUNC(call->data.name, var_list, result, belong))) {
                     gc_freeTmpLink(&value->gc_status);
                     goto return_;
                 }
@@ -472,7 +472,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
             start = result->value;
             result->value = NULL;
             freeResult(result);
-            tmp_at = listToArgument(start, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            tmp_at = listToArgument(start, 0, "sys", CFUNC_NT(var_list, result, belong));
             gc_freeTmpLink(&start->gc_status);
             if (!CHECK_RESULT(result))
                 goto return_;
@@ -484,7 +484,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
             start = result->value;
             result->value = NULL;
             freeResult(result);
-            tmp_at = dictToArgument(start, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            tmp_at = dictToArgument(start, 0, "sys", CFUNC_NT(var_list, result, belong));
             gc_freeTmpLink(&start->gc_status);
             if (!CHECK_RESULT(result))
                 goto return_;
@@ -499,10 +499,10 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTE
     return result->type;
 }
 
-Argument * getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST) {
+Argument * getArgument(Parameter *call, bool is_dict, FUNC_NT) {
     Argument *new_arg = NULL;
     setResultCore(result);
-    iterParameter(call, &new_arg, is_dict, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    iterParameter(call, &new_arg, is_dict, CFUNC_NT(var_list, result, belong));
     return new_arg;
 }
 
@@ -531,7 +531,7 @@ bool checkIsSep(Parameter *pt) {
  * @return
  */
 ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *function_base, VarList *function_var,
-                        INTER_FUNCTIONSIG_NOT_ST) {
+                            FUNC_NT) {
     Parameter *function = NULL;
     Parameter *tmp_function = NULL;  // 释放使用
     enum {
@@ -580,13 +580,13 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
         freeResult(result);
         switch (status) {
             case match_status: {
-                argumentToParameter(&call, &function, function_var, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                argumentToParameter(&call, &function, function_var, CFUNC_NT(var_list, result, belong));
                 returnResult(result);
                 break;
             }
             case default_status: {
                 vnum num = 0;
-                defaultParameter(&function, &num, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                defaultParameter(&function, &num, CFUNC_NT(function_var, result, belong));
                 returnResult(result);
                 break;
             }
@@ -596,14 +596,14 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 bool dict_status = false;
                 VarList *tmp = makeVarList(inter, true);
 
-                argumentToVar(&call, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, belong));
+                argumentToVar(&call, &set_num, CFUNC_NT(tmp, result, belong));
                 if (!CHECK_RESULT(result)) {
                     freeVarList(tmp);
                     goto return_;
                 }
 
                 freeResult(result);
-                parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, belong));
+                parameterFromVar(&function, function_var, &get_num, set_num, &dict_status, CFUNC_NT(tmp, result, belong));
                 freeVarList(tmp);
                 if (!CHECK_RESULT(result))
                     goto return_;
@@ -622,18 +622,18 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                             PASS;
                     backup = call->next;
                     call->next = NULL;
-                    makeListValue(base, 0, "sys", L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                    makeListValue(base, 0, "sys", L_tuple, CFUNC_NT(var_list, result, belong));
                     call->next = backup;
                     call = backup;
                 } else
-                    makeListValue(NULL, 0, "sys", L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                    makeListValue(NULL, 0, "sys", L_tuple, CFUNC_NT(var_list, result, belong));
 
                 returnResult(result);
                 tmp = result->value;
                 result->value = NULL;
                 freeResult(result);
 
-                assCore(function->data.value, tmp, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                assCore(function->data.value, tmp, false, false, CFUNC_NT(function_var, result, belong));
                 gc_freeTmpLink(&tmp->gc_status);
                 returnResult(result);
                 function = function->next;
@@ -641,30 +641,30 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
             }
             case space_kwargs:{
                 LinkValue *tmp;
-                makeDictValue(NULL, true, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makeDictValue(NULL, true, 0, "sys", CFUNC_NT(var_list, result, belong));
                 returnResult(result);
                 tmp = result->value;
                 result->value = NULL;
                 freeResult(result);
 
-                assCore(function->data.value, tmp, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(function_var, result, belong));
+                assCore(function->data.value, tmp, false, false, CFUNC_NT(function_var, result, belong));
                 gc_freeTmpLink(&tmp->gc_status);
                 returnResult(result);
                 function = function->next;
                 break;
             }
             case error_to_less:
-                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CFUNC_NT(var_list, result, belong));
                 goto return_;
             case error_to_more:
             to_more:
-                setResultError(E_ArgumentException, MANY_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, MANY_ARG, line, file, true, CFUNC_NT(var_list, result, belong));
                 goto return_;
             case error_kw:
-                setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CFUNC_NT(var_list, result, belong));
                 goto return_;
             case error_unknown:
-                setResultError(E_ArgumentException, L"Argument Unknown Exception", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, L"Argument Unknown Exception", line, file, true, CFUNC_NT(var_list, result, belong));
                 goto return_;
             default:
                 goto break_;
@@ -715,14 +715,14 @@ bool checkFormal(Parameter *pt) {
     return true;
 }
 
-int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NOT_ST){
+int parserArgumentUnion(ArgumentParser ap[], Argument *arg, FUNC_NT){
     setResultCore(result);
     if (ap->type != only_name){
         ArgumentParser *bak = NULL;
         int status = 1;
         arg = parserValueArgument(ap, arg, &status, &bak);
         if (status != 1){
-            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
             return 0;
         }
         ap = bak;
@@ -732,29 +732,29 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NO
         int status;
 
         if (arg != NULL && arg->type != name_arg) {
-            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
             return -6;
         }
 
-        status = parserNameArgument(ap, arg, &bak, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        status = parserNameArgument(ap, arg, &bak, CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result))
             return -1;
         if (status == -3){
             if (parserArgumentNameDefault(ap)->must != -1){
-                setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
                 return -7;
             }
         }
         else if (status == 0){
-            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
             return -2;
         } else if (status == -4){
-            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
             return -3;
         }
     } else{
         if (arg != NULL) {
-            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
             return -4;
         }
     }
@@ -776,7 +776,7 @@ Argument *parserValueArgument(ArgumentParser *ap, Argument *arg, int *status, Ar
     return arg;
 }
 
-int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, INTER_FUNCTIONSIG_NOT_ST){
+int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, FUNC_NT){
     VarList *tmp = NULL;
     vnum set_num = 0;
     vnum get_num = 0;
@@ -792,7 +792,7 @@ int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak,
     }
 
     tmp = makeVarList(inter, true);
-    argumentToVar(&arg, &set_num, CALL_INTER_FUNCTIONSIG_NOT_ST(tmp, result, belong));
+    argumentToVar(&arg, &set_num, CFUNC_NT(tmp, result, belong));
     if (!CHECK_RESULT(result)) {
         return_ = -1;
         goto return_;
@@ -832,7 +832,7 @@ Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap){
 
 int parserArgumentVar(ArgumentParser *ap, Inter *inter, VarList *var_list){
     LinkValue *value = NULL;
-    findStrVarOnly(ap->name, false, CALL_INTER_FUNCTIONSIG_CORE(var_list));  // 参数取值不执行变量式函数
+    findStrVarOnly(ap->name, false, CFUNC_CORE(var_list));  // 参数取值不执行变量式函数
     ap->value = value;
     if (value != NULL)
         return 1;

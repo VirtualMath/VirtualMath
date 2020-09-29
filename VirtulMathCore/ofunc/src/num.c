@@ -1,13 +1,13 @@
 #include "__ofunc.h"
 
-ResultType num_new(OFFICAL_FUNCTIONSIG){
+ResultType num_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "num", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "num", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
 
@@ -15,17 +15,17 @@ ResultType num_new(OFFICAL_FUNCTIONSIG){
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_num;
     value->value->data.num.num = 0;
-    run_init(value, arg, 0, "num.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    run_init(value, arg, 0, "num.new", CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType num_init(OFFICAL_FUNCTIONSIG){
+ResultType num_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"num", .must=0, .long_arg=false},
                            {.must=-1}};
     LinkValue *base = NULL;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -48,7 +48,7 @@ ResultType num_init(OFFICAL_FUNCTIONSIG){
             base->value->data.num.num = 0;
             break;
         default:
-            setResultError(E_TypeException, ERROR_INIT(num), 0, "num", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, ERROR_INIT(num), 0, "num", true, CFUNC_NT(var_list, result, belong));
             return result->type;
     }
 
@@ -57,14 +57,14 @@ ResultType num_init(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
-void registeredNum(REGISTERED_FUNCTIONSIG){
+void registeredNum(R_FUNC){
     LinkValue *object = inter->data.num;
     NameFunc tmp[] = {{inter->data.object_new, num_new, class_free_},
                       {inter->data.object_init, num_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"num", object, belong, inter);
-    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 

@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType object_new(OFFICAL_FUNCTIONSIG){
+ResultType object_new(O_FUNC){
     LinkValue *value = NULL;
     setResultCore(result);
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -8,16 +8,16 @@ ResultType object_new(OFFICAL_FUNCTIONSIG){
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "object.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "object.new", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
 
     value = make_new(inter, belong, ap[0].value);
-    run_init(value, arg, 0, "obj.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    run_init(value, arg, 0, "obj.new", CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
+ResultType objectRepoStrCore(O_FUNC, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     wchar_t *repo;
@@ -25,19 +25,19 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
     wchar_t *type;
     LinkValue *name_value;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
-    name_value = findAttributes(inter->data.object_name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    name_value = findAttributes(inter->data.object_name, false, 0, "sys", true, CFUNC_NT(var_list, result, ap[0].value));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (name_value != NULL){
         gc_addTmpLink(&name_value->gc_status);
-        name = getRepoStr(name_value, is_repo, 0, "sys", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        name = getRepoStr(name_value, is_repo, 0, "sys", CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&name_value->gc_status);
         if (!CHECK_RESULT(result))
             return result->type;
@@ -58,20 +58,20 @@ ResultType objectRepoStrCore(OFFICAL_FUNCTIONSIG, bool is_repo){
         swprintf(repo, len, L"(%ls: %ls on %p)", type, name, ap[0].value->value);
     }
 
-    makeStringValue(repo, 0, "object.repo", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(repo, 0, "object.repo", CFUNC_NT(var_list, result, belong));
     memFree(repo);
     return result->type;
 }
 
-ResultType object_repo(OFFICAL_FUNCTIONSIG){
-    return objectRepoStrCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), true);
+ResultType object_repo(O_FUNC){
+    return objectRepoStrCore(CO_FUNC(arg, var_list, result, belong), true);
 }
 
-ResultType object_str(OFFICAL_FUNCTIONSIG){
-    return objectRepoStrCore(CALL_OFFICAL_FUNCTION(arg, var_list, result, belong), false);
+ResultType object_str(O_FUNC){
+    return objectRepoStrCore(CO_FUNC(arg, var_list, result, belong), false);
 }
 
-void registeredObject(REGISTERED_FUNCTIONSIG){
+void registeredObject(R_FUNC){
     LinkValue *object = inter->data.object;
     NameFunc tmp[] = {{inter->data.object_new,  object_new,  class_free_},
                       {inter->data.object_repo, object_repo, all_free_},
@@ -79,7 +79,7 @@ void registeredObject(REGISTERED_FUNCTIONSIG){
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"object", object, belong, inter);
-    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 
@@ -106,7 +106,7 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
         Result result;
         Argument *arg = makeValueArgument(makeLinkValue(object, g_belong, inter));
         setResultCore(&result);
-        object_new(CALL_OFFICAL_FUNCTION(arg, inter->var_list, &result, g_belong));
+        object_new(CO_FUNC(arg, inter->var_list, &result, g_belong));
 
         result.value->value->type = V_none;
         inter->data.none = result.value;

@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType str_new(OFFICAL_FUNCTIONSIG){
+ResultType str_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -8,7 +8,7 @@ ResultType str_new(OFFICAL_FUNCTIONSIG){
     setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "str.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "str.new", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
     freeResult(result);
@@ -16,25 +16,25 @@ ResultType str_new(OFFICAL_FUNCTIONSIG){
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_str;
     value->value->data.str.str = memWidecpy(L"");
-    run_init(value, arg, 0, "str.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    run_init(value, arg, 0, "str.new", CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType str_init(OFFICAL_FUNCTIONSIG){
+ResultType str_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
     LinkValue *base;
     wchar_t *str = NULL;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     base = ap[0].value;
     if (ap[1].value != NULL){
-        str = getRepoStr(ap[1].value, false, 0, "str.init", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        str = getRepoStr(ap[1].value, false, 0, "str.init", CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result))
             return result->type;
         memFree(base->value->data.str.str);
@@ -44,7 +44,7 @@ ResultType str_init(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType str_slice(OFFICAL_FUNCTIONSIG){
+ResultType str_slice(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
@@ -55,13 +55,13 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
     vnum second;
     vnum stride;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (ap[0].value->value->type != V_str) {
-        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
     size = memWidelen(ap[0].value->value->data.str.str);
@@ -73,25 +73,25 @@ ResultType str_slice(OFFICAL_FUNCTIONSIG){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
-            setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), 0, "str", true, CFUNC_NT(var_list, result, belong));
             return R_error;
         }
     }
 
-    if (!checkSlice(&first, &second, &stride, size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+    if (!checkSlice(&first, &second, &stride, size, CFUNC_NT(var_list, result, belong)))
         return result->type;
 
     {
         wchar_t *str = NULL;
         for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride)
             str = memWideCharcpy(str, 1, true, true, ap[0].value->value->data.str.str[i]);
-        makeStringValue(str, 0, "str.slice", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeStringValue(str, 0, "str.slice", CFUNC_NT(var_list, result, belong));
         memFree(str);
     }
     return result->type;
 }
 
-ResultType str_down(OFFICAL_FUNCTIONSIG){
+ResultType str_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -99,41 +99,41 @@ ResultType str_down(OFFICAL_FUNCTIONSIG){
     vnum index;
     wchar_t element[2] = {};
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (ap[0].value->value->type != V_str){
-        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
     if (ap[1].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(str index, V_num), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(str index, V_num), 0, "str", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
 
     size = memWidelen(ap[0].value->value->data.str.str);
     index = ap[1].value->value->data.num.num;
-    if (!checkIndex(&index, &size, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+    if (!checkIndex(&index, &size, CFUNC_NT(var_list, result, belong)))
         return result->type;
     *element = ap[0].value->value->data.str.str[index];
-    makeStringValue(element, 0, "str.down", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(element, 0, "str.down", CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType str_to_list(OFFICAL_FUNCTIONSIG){
+ResultType str_to_list(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     vnum size;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (ap[0].value->value->type != V_str){
-        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
     size = memWidelen(ap[0].value->value->data.str.str);
@@ -143,48 +143,48 @@ ResultType str_to_list(OFFICAL_FUNCTIONSIG){
         for (vnum i = 0; i < size; i ++) {
             wchar_t str[2] = {};
             str[0] = ap[0].value->value->data.str.str[i];
-            makeStringValue(str, 0, "str.to_list", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            makeStringValue(str, 0, "str.to_list", CFUNC_NT(var_list, result, belong));
             new_list = connectValueArgument(result->value, new_list);
             freeResult(result);
         }
-        makeListValue(new_list, 0, "str", L_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeListValue(new_list, 0, "str", L_list, CFUNC_NT(var_list, result, belong));
         freeArgument(new_list, true);
     }
     return result->type;
 }
 
-ResultType str_iter(OFFICAL_FUNCTIONSIG){
+ResultType str_iter(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *to_list = NULL;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
-    to_list = findAttributes(L"to_list", false, 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, ap[0].value));
+    to_list = findAttributes(L"to_list", false, 0, "str", true, CFUNC_NT(var_list, result, ap[0].value));
     if (!CHECK_RESULT(result))
         return result->type;
     if (to_list == NULL){
-        setResultError(E_TypeException, L"String cannot be converted to list", 0, "str", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, L"String cannot be converted to list", 0, "str", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
     gc_addTmpLink(&to_list->gc_status);
-    callBackCore(to_list, NULL, 0, "str", 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    callBackCore(to_list, NULL, 0, "str", 0, CFUNC_NT(var_list, result, belong));
     gc_freeTmpLink(&to_list->gc_status);
     if (CHECK_RESULT(result)) {
         LinkValue *str_list = NULL;
         str_list = result->value;
         result->value = NULL;
         freeResult(result);
-        getIter(str_list, 1, 0, "str", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getIter(str_list, 1, 0, "str", CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&str_list->gc_status);
     }
     return result->type;
 }
 
-void registeredStr(REGISTERED_FUNCTIONSIG){
+void registeredStr(R_FUNC){
     LinkValue *object = inter->data.str;
     NameFunc tmp[] = {{L"to_list", str_to_list, object_free_},
                       {inter->data.object_iter, str_iter, object_free_},
@@ -192,7 +192,7 @@ void registeredStr(REGISTERED_FUNCTIONSIG){
                       {inter->data.object_slice, str_slice, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
     addBaseClassVar(L"str", object, belong, inter);
     gc_freeTmpLink(&object->gc_status);
 }
@@ -255,8 +255,8 @@ void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func
     new_name = makeStrFromOf(obj, new_func, init_func, inter->data.object_new, inter);
     init_name = makeStrFromOf(obj, new_func, init_func, inter->data.object_init, inter);
 
-    addFromVarList(new_name_, new_name, 0, new_func, CALL_INTER_FUNCTIONSIG_CORE(obj->value->object.var));
-    addFromVarList(init_name_, init_name, 0, init_func, CALL_INTER_FUNCTIONSIG_CORE(obj->value->object.var));
+    addFromVarList(new_name_, new_name, 0, new_func, CFUNC_CORE(obj->value->object.var));
+    addFromVarList(init_name_, init_name, 0, init_func, CFUNC_CORE(obj->value->object.var));
 
     newObjectSettingPresetting(new_func, new_name, inter);
     newObjectSettingPresetting(init_func, init_name, inter);

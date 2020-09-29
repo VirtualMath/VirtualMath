@@ -1,10 +1,10 @@
 #include "__run.h"
 
-static bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG);
-static ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name);
-ResultType assOperation(INTER_FUNCTIONSIG);
-ResultType pointOperation(INTER_FUNCTIONSIG);
-ResultType blockOperation(INTER_FUNCTIONSIG);
+static bool getLeftRightValue(Result *left, Result *right, FUNC);
+static ResultType operationCore(FUNC, wchar_t *name);
+ResultType assOperation(FUNC);
+ResultType pointOperation(FUNC);
+ResultType blockOperation(FUNC);
 
 /**
  * operation的整体操作
@@ -13,30 +13,30 @@ ResultType blockOperation(INTER_FUNCTIONSIG);
  * @param var_list
  * @return
  */
-ResultType operationStatement(INTER_FUNCTIONSIG) {
+ResultType operationStatement(FUNC) {
     setResultCore(result);
     switch (st->u.operation.OperationType) {
         case OPT_ADD:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_add);
+            operationCore(CFUNC(st, var_list, result, belong), inter->data.object_add);
             break;
         case OPT_SUB:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_sub);
+            operationCore(CFUNC(st, var_list, result, belong), inter->data.object_sub);
             break;
         case OPT_MUL:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_mul);
+            operationCore(CFUNC(st, var_list, result, belong), inter->data.object_mul);
             break;
         case OPT_DIV:
-            operationCore(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong), inter->data.object_div);
+            operationCore(CFUNC(st, var_list, result, belong), inter->data.object_div);
             break;
         case OPT_ASS:
-            assOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+            assOperation(CFUNC(st, var_list, result, belong));
             break;
         case OPT_LINK:
         case OPT_POINT:
-            pointOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+            pointOperation(CFUNC(st, var_list, result, belong));
             break;
         case OPT_BLOCK:
-            blockOperation(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+            blockOperation(CFUNC(st, var_list, result, belong));
             break;
         default:
             setResult(result, inter);
@@ -58,7 +58,7 @@ static void newBlockYield(Statement *block_st, Statement *node, VarList *new_var
     block_st->info.have_info = true;
 }
 
-static void setBlockResult(Statement *st, bool yield_run, Result *result, INTER_FUNCTIONSIG_CORE) {
+static void setBlockResult(Statement *st, bool yield_run, Result *result, FUNC_CORE) {
     if (yield_run) {
         if (result->type == R_yield){
             updateBlockYield(st, result->node);
@@ -79,26 +79,26 @@ static void setBlockResult(Statement *st, bool yield_run, Result *result, INTER_
     }
 }
 
-ResultType blockOperation(INTER_FUNCTIONSIG) {
+ResultType blockOperation(FUNC) {
     Statement *info_st = st->u.operation.left;
     bool yield_run;
     if ((yield_run = popYieldVarList(st, &var_list, var_list, inter)))
         info_st = st->info.node;
-    blockSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_st, var_list, result, belong));
+    blockSafeInterStatement(CFUNC(info_st, var_list, result, belong));
     if (result->type == R_error)
         return result->type;
     else
-        setBlockResult(st, yield_run, result, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        setBlockResult(st, yield_run, result, CFUNC_CORE(var_list));
     if (CHECK_RESULT(result) && st->aut != auto_aut)
         result->value->aut = st->aut;
     return result->type;
 }
 
-ResultType pointOperation(INTER_FUNCTIONSIG) {
+ResultType pointOperation(FUNC) {
     LinkValue *left;
     VarList *object = NULL;
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
+    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return result->type;
     left = result->value;
     result->value = NULL;
@@ -111,12 +111,12 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
 
     if (object == NULL) {
         setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), st->line, st->code_file, true,
-                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                       CFUNC_NT(var_list, result, belong));
         goto return_;
     }
     gc_freeze(inter, var_list, object, true);
-    operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, object, result, left));
-    if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+    operationSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));
+    if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, false, CFUNC_NT(var_list, result, belong)))
         PASS;
     else if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))
         result->value->belong = left;
@@ -127,67 +127,67 @@ ResultType pointOperation(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-ResultType delOperation(INTER_FUNCTIONSIG) {
+ResultType delOperation(FUNC) {
     Statement *var;
     setResultCore(result);
     var = st->u.del_.var;
-    delCore(var, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    delCore(var, false, CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType delCore(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType delCore(Statement *name, bool check_aut, FUNC_NT) {
     setResultCore(result);
     if (name->type == base_list && name->u.base_list.type == L_tuple)
-        listDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        listDel(name, CFUNC_NT(var_list, result, belong));
     else if (name->type == slice_)
-        downDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        downDel(name, CFUNC_NT(var_list, result, belong));
     else if (name->type == operation && (name->u.operation.OperationType == OPT_POINT || name->u.operation.OperationType == OPT_LINK))
-        pointDel(name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        pointDel(name, CFUNC_NT(var_list, result, belong));
     else
-        varDel(name, check_aut, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        varDel(name, check_aut, CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType listDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType listDel(Statement *name, FUNC_NT) {
     setResultCore(result);
     for (Parameter *pt = name->u.base_list.list; pt != NULL; pt = pt->next){
-        delCore(pt->data.value, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        delCore(pt->data.value, false, CFUNC_NT(var_list, result, belong));
         freeResult(result);
     }
     setResultBase(result, inter);
     return result->type;
 }
 
-ResultType varDel(Statement *name, bool check_aut, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType varDel(Statement *name, bool check_aut, FUNC_NT) {
     wchar_t *str_name = NULL;
     int int_times = 0;
     setResultCore(result);
-    getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
+    getVarInfo(&str_name, &int_times, CFUNC(name, var_list, result, belong));
     if (!CHECK_RESULT(result)) {
         memFree(str_name);
         return result->type;
     }
     if (check_aut) {
-        LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+        LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CFUNC_CORE(var_list));
         freeResult(result);
-        if (tmp != NULL && !checkAut(name->aut, tmp->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+        if (tmp != NULL && !checkAut(name->aut, tmp->aut, name->line, name->code_file, NULL, false, CFUNC_NT(var_list, result, belong))) {
             goto return_;
         }
     }
-    findFromVarList(str_name, int_times, del_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    findFromVarList(str_name, int_times, del_var, CFUNC_CORE(var_list));
     setResult(result, inter);
     return_:
     memFree(str_name);
     return result->type;
 }
 
-ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType pointDel(Statement *name, FUNC_NT) {
     Result left;
     VarList *object = NULL;
     Statement *right = name->u.operation.right;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.operation.left, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
         return result->type;
     left = *result;
     setResultCore(result);
@@ -196,15 +196,15 @@ ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
 
     if (object == NULL) {
         setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true,
-                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                       CFUNC_NT(var_list, result, belong));
         goto return_;
     }
 
     gc_freeze(inter, var_list, object, true);
     if (right->type == OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
-        pointDel(name->u.operation.right, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
+        pointDel(name->u.operation.right, CFUNC_NT(object, result, belong));
     else
-        delCore(name->u.operation.right, true, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
+        delCore(name->u.operation.right, true, CFUNC_NT(object, result, belong));
     gc_freeze(inter, var_list, object, false);
 
     return_:
@@ -212,22 +212,22 @@ ResultType pointDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
     return result->type;
 }
 
-ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType downDel(Statement *name, FUNC_NT) {
     LinkValue *iter = NULL;
     LinkValue *_func_ = NULL;
     Parameter *pt = name->u.slice_.index;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.slice_.element, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
         return result->type;
     iter = result->value;
     result->value = NULL;
     freeResult(result);
 
     if (name->u.slice_.type == SliceType_down_)
-        _func_ = findAttributes(inter->data.object_down_del, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
+        _func_ = findAttributes(inter->data.object_down_del, false, 0, "sys", true, CFUNC_NT(var_list, result, iter));
     else
-        _func_ = findAttributes(inter->data.object_slice_del, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
+        _func_ = findAttributes(inter->data.object_slice_del, false, 0, "sys", true, CFUNC_NT(var_list, result, iter));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -235,72 +235,72 @@ ResultType downDel(Statement *name, INTER_FUNCTIONSIG_NOT_ST) {
     if (_func_ != NULL){
         Argument *arg = NULL;
         gc_addTmpLink(&_func_->gc_status);
-        arg = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        arg = getArgument(pt, false, CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto dderror_;
         freeResult(result);
         callBackCore(_func_, arg, name->line, name->code_file, 0,
-                     CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                     CFUNC_NT(var_list, result, belong));
 
         dderror_:
         gc_freeTmpLink(&_func_->gc_status);
         freeArgument(arg, true);
     }
     else
-        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(del(__down_del__/__slice_del__)), true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(del(__down_del__/__slice_del__)), true, name, CFUNC_NT(var_list, result, belong));
 
     return_:
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
 
-ResultType assOperation(INTER_FUNCTIONSIG) {
+ResultType assOperation(FUNC) {
     LinkValue *value = NULL;
     setResultCore(result);
     if (st->u.operation.left->type == call_function){
         Statement *return_st = makeReturnStatement(st->u.operation.right, st->line, st->code_file);
         LinkValue *func = NULL;
-        makeVMFunctionValue(return_st, st->u.operation.left->u.call_function.parameter, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeVMFunctionValue(return_st, st->u.operation.left->u.call_function.parameter, CFUNC_NT(var_list, result, belong));
         return_st->u.return_code.value = NULL;
         freeStatement(return_st);
 
         func = result->value;
         result->value = NULL;
         freeResult(result);
-        assCore(st->u.operation.left->u.call_function.function, func, false, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.operation.left->u.call_function.function, func, false, true, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&func->gc_status);
     }
     else{
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)))
+        if (operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)))
             return result->type;
         value = result->value;
 
         freeResult(result);
         assCore(st->u.operation.left, value, false, false,
-                CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                CFUNC_NT(var_list, result, belong));
     }
     return result->type;
 }
 
-ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType assCore(Statement *name, LinkValue *value, bool check_aut, bool setting, FUNC_NT) {
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
     if (name->type == base_list && name->u.base_list.type == L_tuple)
-        listAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        listAss(name, value, CFUNC_NT(var_list, result, belong));
     else if (name->type == slice_)
-        downAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        downAss(name, value, CFUNC_NT(var_list, result, belong));
     else if (name->type == operation && (name->u.operation.OperationType == OPT_POINT || name->u.operation.OperationType == OPT_LINK))
-        pointAss(name, value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        pointAss(name, value, CFUNC_NT(var_list, result, belong));
     else
-        varAss(name, value, check_aut, setting, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        varAss(name, value, check_aut, setting, CFUNC_NT(var_list, result, belong));
 
     gc_freeTmpLink(&value->gc_status);
     return result->type;
 }
 
 
-ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool setting, FUNC_NT) {
     wchar_t *str_name = NULL;
     int int_times = 0;
     LinkValue *name_ = NULL;
@@ -308,7 +308,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     bool run = name->type == base_var ? name->u.base_var.run : name->type == base_svar ? name->u.base_svar.run : false;
 
     setResultCore(result);
-    getVarInfo(&str_name, &int_times, CALL_INTER_FUNCTIONSIG(name, var_list, result, belong));
+    getVarInfo(&str_name, &int_times, CFUNC(name, var_list, result, belong));
     if (!CHECK_RESULT(result)) {
         memFree(str_name);
         return result->type;
@@ -320,15 +320,15 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     if (name->aut != auto_aut)
         value->aut = name->aut;
 
-    tmp = findFromVarList(str_name, int_times, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    tmp = findFromVarList(str_name, int_times, read_var, CFUNC_CORE(var_list));
     if (check_aut) {
-        if (tmp != NULL && !checkAut(value->aut, tmp->aut, name->line, name->code_file, NULL, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        if (tmp != NULL && !checkAut(value->aut, tmp->aut, name->line, name->code_file, NULL, false, CFUNC_NT(var_list, result, belong)))
             goto error_;
     } else if (name->aut != auto_aut && tmp != NULL)
         tmp->aut = value->aut;
 
-    if (tmp == NULL || !run || !setVarFunc(tmp, value, name->line, name->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
-        addFromVarList(str_name, name_, int_times, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    if (tmp == NULL || !run || !setVarFunc(tmp, value, name->line, name->code_file, CFUNC_NT(var_list, result, belong)))
+        addFromVarList(str_name, name_, int_times, value, CFUNC_CORE(var_list));
     if (CHECK_RESULT(result))
         goto error_;
     if (setting) {
@@ -349,22 +349,22 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     return result->type;
 }
 
-ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType listAss(Statement *name, LinkValue *value, FUNC_NT) {
     Parameter *pt = NULL;
     Argument *call = NULL;
     Statement *tmp_st = makeBaseLinkValueStatement(value, name->line, name->code_file);
 
     setResultCore(result);
     pt = makeArgsParameter(tmp_st);
-    call = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    call = getArgument(pt, false, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
     freeResult(result);
-    setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    setParameterCore(name->line, name->code_file, call, name->u.base_list.list, var_list, CFUNC_NT(var_list, result, belong));
     if (CHECK_RESULT(result)){
         freeResult(result);
-        makeListValue(call, name->line, name->code_file, L_tuple, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeListValue(call, name->line, name->code_file, L_tuple, CFUNC_NT(var_list, result, belong));
     }
     return_:
     freeArgument(call, false);
@@ -372,22 +372,22 @@ ResultType listAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     return result->type;
 }
 
-ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType downAss(Statement *name, LinkValue *value, FUNC_NT) {
     LinkValue *iter = NULL;
     LinkValue *_func_ = NULL;
     Parameter *pt = name->u.slice_.index;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.slice_.element, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
         return result->type;
     iter = result->value;
     result->value = NULL;
     freeResult(result);
 
     if (name->u.slice_.type == SliceType_down_)
-        _func_ = findAttributes(inter->data.object_down_assignment, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
+        _func_ = findAttributes(inter->data.object_down_assignment, false, 0, "sys", true, CFUNC_NT(var_list, result, iter));
     else
-        _func_ = findAttributes(inter->data.object_slice_assignment, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, iter));
+        _func_ = findAttributes(inter->data.object_slice_assignment, false, 0, "sys", true, CFUNC_NT(var_list, result, iter));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -395,32 +395,32 @@ ResultType downAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) 
     if (_func_ != NULL){
         Argument *arg = makeValueArgument(value);
         gc_addTmpLink(&_func_->gc_status);
-        arg->next = getArgument(pt, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        arg->next = getArgument(pt, false, CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result))
             goto daerror_;
 
         freeResult(result);
-        callBackCore(_func_, arg, name->line, name->code_file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, name->line, name->code_file, 0, CFUNC_NT(var_list, result, belong));
 
         daerror_:
         freeArgument(arg, true);
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(assignment(__down_assignment__/__slice_assignment__)), true, name, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(assignment(__down_assignment__/__slice_assignment__)), true, name, CFUNC_NT(var_list, result, belong));
 
     return_:
     gc_freeTmpLink(&iter->gc_status);
     return result->type;
 }
 
-ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType pointAss(Statement *name, LinkValue *value, FUNC_NT) {
     Result left;
     Statement *right = name->u.operation.right;
     VarList *object = NULL;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(name->u.operation.left, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
         return result->type;
     left = *result;
     setResultCore(result);
@@ -429,15 +429,15 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
 
     if (object == NULL) {
         setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true,
-                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                       CFUNC_NT(var_list, result, belong));
         goto return_;
     }
 
     gc_freeze(inter, var_list, object, true);
     if (right->type == OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
-        pointAss(name->u.operation.right, value, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
+        pointAss(name->u.operation.right, value, CFUNC_NT(object, result, belong));
     else
-        assCore(name->u.operation.right, value, true, false, CALL_INTER_FUNCTIONSIG_NOT_ST(object, result, belong));
+        assCore(name->u.operation.right, value, true, false, CFUNC_NT(object, result, belong));
     gc_freeze(inter, var_list, object, false);
 
     return_:
@@ -445,28 +445,28 @@ ResultType pointAss(Statement *name, LinkValue *value, INTER_FUNCTIONSIG_NOT_ST)
     return result->type;
 }
 
-ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
+ResultType getVar(FUNC, VarInfo var_info) {
     int int_times = 0;
     wchar_t *name = NULL;
     LinkValue *var;
 
     setResultCore(result);
-    var_info(&name, &int_times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+    var_info(&name, &int_times, CFUNC(st, var_list, result, belong));
     if (!CHECK_RESULT(result)) {
         memFree(name);
         return result->type;
     }
 
     freeResult(result);
-    var = findFromVarList(name, int_times, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    var = findFromVarList(name, int_times, get_var, CFUNC_CORE(var_list));
     if (var == NULL) {
         wchar_t *message = memWidecat(L"Variable not found: ", name, false, false);
-        setResultErrorSt(E_NameExceptiom, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_NameExceptiom, message, true, st, CFUNC_NT(var_list, result, belong));
         memFree(message);
     }
-    else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+    else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CFUNC_NT(var_list, result, belong))) {
         bool run = st->type == base_var ? st->u.base_var.run : st->type == base_svar ? st->u.base_svar.run : false;
-        if (!run || !runVarFunc(var, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        if (!run || !runVarFunc(var, st->line, st->code_file, CFUNC_NT(var_list, result, belong)))
             setResultOperationBase(result, var);
     }
     memFree(name);
@@ -474,7 +474,7 @@ ResultType getVar(INTER_FUNCTIONSIG, VarInfo var_info) {
     return result->type;
 }
 
-ResultType getBaseValue(INTER_FUNCTIONSIG) {
+ResultType getBaseValue(FUNC) {
     setResultCore(result);
     if (st->u.base_value.type == link_value) {
         result->value = st->u.base_value.value;
@@ -484,57 +484,57 @@ ResultType getBaseValue(INTER_FUNCTIONSIG) {
     else
         switch (st->u.base_value.type) {
             case number_str:
-                makeNumberValue(wcstoll(st->u.base_value.str, NULL, 10), st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makeNumberValue(wcstoll(st->u.base_value.str, NULL, 10), st->line, st->code_file, CFUNC_NT(var_list, result, belong));
                 break;
             case bool_true:
-                makeBoolValue(true, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makeBoolValue(true, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
                 break;
             case bool_false:
-                makeBoolValue(false, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makeBoolValue(false, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
                 break;
             case pass_value:
-                makePassValue(st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makePassValue(st->line, st->code_file, CFUNC_NT(var_list, result, belong));
                 break;
             case null_value:
                 useNoneValue(inter, result);
                 break;
             default:
-                makeStringValue(st->u.base_value.str, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                makeStringValue(st->u.base_value.str, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
                 break;
         }
     return result->type;
 }
 
-ResultType getList(INTER_FUNCTIONSIG) {
+ResultType getList(FUNC) {
     Argument *at = NULL;
     Argument *at_tmp = NULL;
 
     setResultCore(result);
-    at = getArgument(st->u.base_list.list, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    at = getArgument(st->u.base_list.list, false, CFUNC_NT(var_list, result, belong));
     at_tmp = at;
     if (!CHECK_RESULT(result)){
         freeArgument(at_tmp, false);
         return result->type;
     }
     freeResult(result);
-    makeListValue(at, st->line, st->code_file, st->u.base_list.type, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeListValue(at, st->line, st->code_file, st->u.base_list.type, CFUNC_NT(var_list, result, belong));
     freeArgument(at_tmp, false);
 
     return result->type;
 }
 
-ResultType getDict(INTER_FUNCTIONSIG) {
+ResultType getDict(FUNC) {
     Argument *at = NULL;
 
     setResultCore(result);
-    at = getArgument(st->u.base_dict.dict, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    at = getArgument(st->u.base_dict.dict, true, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result)) {
         freeArgument(at, false);
         return result->type;
     }
 
     freeResult(result);
-    Value *tmp_value = makeDictValue(at, true, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    Value *tmp_value = makeDictValue(at, true, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result)) {
         freeArgument(at, false);
         return result->type;
@@ -548,7 +548,7 @@ ResultType getDict(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-ResultType setDefault(INTER_FUNCTIONSIG){
+ResultType setDefault(FUNC){
     enum DefaultType type = st->u.default_var.default_type;
     int base = 0;  // 用于nonlocal和global
     setResultCore(result);
@@ -561,7 +561,7 @@ ResultType setDefault(INTER_FUNCTIONSIG){
         wchar_t *name = NULL;
         int times = 0;
         freeResult(result);
-        getVarInfo(&name, &times, CALL_INTER_FUNCTIONSIG(pt->data.value, var_list, result, belong));
+        getVarInfo(&name, &times, CFUNC(pt->data.value, var_list, result, belong));
         if (!CHECK_RESULT(result))
             break;
         if (type != default_)
@@ -572,30 +572,30 @@ ResultType setDefault(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-bool getLeftRightValue(Result *left, Result *right, INTER_FUNCTIONSIG){
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
+bool getLeftRightValue(Result *left, Result *right, FUNC){
+    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return true;
     *left = *result;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.operation.right, var_list, result, belong)) || result->value->value->type == V_none)
+    if (operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)) || result->value->value->type == V_none)
         return true;
     *right = *result;
     setResultCore(result);
     return false;
 }
 
-ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name) {
+ResultType operationCore(FUNC, wchar_t *name) {
     Result left;
     Result right;
     LinkValue *_func_ = NULL;
     setResultCore(&left);
     setResultCore(&right);
 
-    if (getLeftRightValue(&left, &right, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))  // 不需要释放result
+    if (getLeftRightValue(&left, &right, CFUNC(st, var_list, result, belong)))  // 不需要释放result
         return result->type;
 
-    _func_ = findAttributes(name, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, left.value));
+    _func_ = findAttributes(name, false, 0, "sys", true, CFUNC_NT(var_list, result, left.value));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -603,13 +603,13 @@ ResultType operationCore(INTER_FUNCTIONSIG, wchar_t *name) {
     if (_func_ != NULL){
         Argument *arg = makeValueArgument(right.value);
         gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, arg, st->line, st->code_file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, st->line, st->code_file, 0, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
         freeArgument(arg, true);
     }
     else {
         wchar_t *message = memWidecat(L"Object not support ", name, false, false);
-        setResultErrorSt(E_TypeException, message, true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, message, true, st, CFUNC_NT(var_list, result, belong));
         memFree(message);
     }
 

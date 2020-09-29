@@ -1,8 +1,8 @@
 #include "__run.h"
 
-static bool checkNumber(INTER_FUNCTIONSIG){
+static bool checkNumber(FUNC){
     if (!isType(result->value->value, V_num)) {
-        setResultErrorSt(E_TypeException, L"Don't get a V_num of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, L"Don't get a V_num of layers", true, st, CFUNC_NT(var_list, result, belong));
         return false;
     }
     return true;
@@ -42,7 +42,7 @@ static void updateBranchYield(Statement *branch_st, Statement *node, StatementLi
     branch_st->info.have_info = true;
 }
 
-static void setBranchResult(bool yield_run, StatementList *sl, Statement *st, Result *result, enum StatementInfoStatus status, INTER_FUNCTIONSIG_CORE) {
+static void setBranchResult(bool yield_run, StatementList *sl, Statement *st, Result *result, enum StatementInfoStatus status, FUNC_CORE) {
     if (yield_run) {
         if (result->type == R_yield)
             updateBranchYield(st, result->node, sl, status);
@@ -56,16 +56,16 @@ static void setBranchResult(bool yield_run, StatementList *sl, Statement *st, Re
     }
 }
 
-static bool runBranchHeard(Statement *condition, Statement *var, LinkValue **condition_value, INTER_FUNCTIONSIG_NOT_ST) {
+static bool runBranchHeard(Statement *condition, Statement *var, LinkValue **condition_value, FUNC_NT) {
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(condition, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(condition, var_list, result, belong)))
         return false;
 
     *condition_value = result->value;
     if (var != NULL) {
         result->value = NULL;
         freeResult(result);
-        assCore(var, *condition_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(var, *condition_value, false, false, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&(*condition_value)->gc_status);
 
         if (!CHECK_RESULT(result))
@@ -74,21 +74,21 @@ static bool runBranchHeard(Statement *condition, Statement *var, LinkValue **con
     return true;
 }
 
-static int checkCondition(bool is_rego, LinkValue *condition_value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static int checkCondition(bool is_rego, LinkValue *condition_value, fline line, char *file, FUNC_NT) {
     bool return_;
     if (is_rego)
         return 1;
 
-    return_ = checkBool(condition_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    return_ = checkBool(condition_value, line, file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return -1;
     return return_;
 }
 
-static bool runFinally(bool set_result, bool (*run)(INTER_FUNCTIONSIG), INTER_FUNCTIONSIG) {
+static bool runFinally(bool set_result, bool (*run)(FUNC), FUNC) {
     Result finally_tmp;
     setResultCore(&finally_tmp);
-    if (run(CALL_INTER_FUNCTIONSIG(st, var_list, &finally_tmp, belong))) {
+    if (run(CFUNC(st, var_list, &finally_tmp, belong))) {
         if (!set_result)
             freeResult(result);
         *result = finally_tmp;
@@ -98,32 +98,32 @@ static bool runFinally(bool set_result, bool (*run)(INTER_FUNCTIONSIG), INTER_FU
     return true;
 }
 
-static int runIfList(StatementList *if_list, Statement *info_vl, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static int runIfList(StatementList *if_list, Statement *info_vl, fline line, char *file, FUNC_NT) {
     bool is_rego = false;
     setResultCore(result);
 
     for (PASS; if_list != NULL; if_list = if_list->next){
         bool condition;
         if (info_vl != NULL){
-            if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_vl, var_list, result, belong)))
+            if (ifBranchSafeInterStatement(CFUNC(info_vl, var_list, result, belong)))
                 return -1;
             if (result->type == R_rego)
                 is_rego = true;
             info_vl = NULL;
         } else if (if_list->type == if_b){
             LinkValue *condition_value = NULL;
-            if (!runBranchHeard(if_list->condition, if_list->var, &condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            if (!runBranchHeard(if_list->condition, if_list->var, &condition_value, CFUNC_NT(var_list, result, belong)))
                 return -1;
 
             freeResult(result);
-            condition = checkCondition(is_rego, condition_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            condition = checkCondition(is_rego, condition_value, line, file, CFUNC_NT(var_list, result, belong));
 
             if (condition == -1)
                 return -1;
             else if (condition == 1){
                 is_rego = false;
                 freeResult(result);
-                if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(if_list->code, var_list, result, belong)))
+                if (ifBranchSafeInterStatement(CFUNC(if_list->code, var_list, result, belong)))
                     return -1;
                 if (result->type == R_rego)
                     is_rego = true;
@@ -133,7 +133,7 @@ static int runIfList(StatementList *if_list, Statement *info_vl, fline line, cha
                 }
             }
         } else{
-            if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(if_list->code, var_list, result, belong)))
+            if (ifBranchSafeInterStatement(CFUNC(if_list->code, var_list, result, belong)))
                return -1;
             if (result->type == R_rego)
                 is_rego = true;
@@ -143,7 +143,7 @@ static int runIfList(StatementList *if_list, Statement *info_vl, fline line, cha
     return 1;
 }
 
-ResultType ifBranch(INTER_FUNCTIONSIG) {
+ResultType ifBranch(FUNC) {
     StatementList *if_list = NULL;
     Statement *else_st = NULL;
     Statement *finally = NULL;
@@ -170,7 +170,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
             finally = st->info.node;
         else {
             var_list = popVarList(var_list);
-            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CFUNC_NT(var_list, result, belong));
             return R_error;
         }
     } else {
@@ -180,7 +180,7 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
     }
 
     if (if_list != NULL) {
-        int status = runIfList(if_list, info_vl, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        int status = runIfList(if_list, info_vl, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
         if (status == -1 || status == 0)
             else_st = NULL;
 
@@ -189,25 +189,25 @@ ResultType ifBranch(INTER_FUNCTIONSIG) {
     }
 
     if (else_st != NULL) {
-        if (ifBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, belong))) {
+        if (ifBranchSafeInterStatement(CFUNC(else_st, var_list, result, belong))) {
             set_result = false;
             result_from = info_else_branch;
         }
         freeResult(result);
     }
 
-    if (finally != NULL && !runFinally(set_result, ifBranchSafeInterStatement, finally, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+    if (finally != NULL && !runFinally(set_result, ifBranchSafeInterStatement, finally, CFUNC_NT(var_list, result, belong))) {
         set_result = false;
         result_from = info_finally_branch;
     }
 
-    setBranchResult(yield_run, if_list, st, result, result_from, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    setBranchResult(yield_run, if_list, st, result, result_from, CFUNC_CORE(var_list));
     if (set_result)
         setResult(result, inter);
     return result->type;
 }
 
-static int runWhileList(StatementList *while_list, Statement *after, Statement *info_vl, Statement *after_vl, bool do_while, fline line, char *file, enum StatementInfoStatus *from, INTER_FUNCTIONSIG_NOT_ST) {
+static int runWhileList(StatementList *while_list, Statement *after, Statement *info_vl, Statement *after_vl, bool do_while, fline line, char *file, enum StatementInfoStatus *from, FUNC_NT) {
     bool is_break = false;
     setResultCore(result);
 
@@ -227,11 +227,11 @@ static int runWhileList(StatementList *while_list, Statement *after, Statement *
             after_st = after_vl;
             after_vl = NULL;
         } else{
-            if (!runBranchHeard(while_list->condition, while_list->var, &condition_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+            if (!runBranchHeard(while_list->condition, while_list->var, &condition_value, CFUNC_NT(var_list, result, belong)))
                 return -1;
 
             freeResult(result);
-            condition = checkCondition(do_while, condition_value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            condition = checkCondition(do_while, condition_value, line, file, CFUNC_NT(var_list, result, belong));
         }
 
         do_while = false;
@@ -239,7 +239,7 @@ static int runWhileList(StatementList *while_list, Statement *after, Statement *
             return -1;
         else if (condition == 1){
             freeResult(result);
-            if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(while_st, var_list, result, belong)))
+            if (cycleBranchSafeInterStatement(CFUNC(while_st, var_list, result, belong)))
                 return -1;
             else if (result->type == R_break)
                 is_break = true;
@@ -251,7 +251,7 @@ static int runWhileList(StatementList *while_list, Statement *after, Statement *
         if (after_st != NULL) {
             *from = info_after_do;
             freeResult(result);
-            if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(after_st, var_list, result, belong)))
+            if (cycleBranchSafeInterStatement(CFUNC(after_st, var_list, result, belong)))
                 return -1;
             else if (result->type == R_break) {
                 freeResult(result);
@@ -263,7 +263,7 @@ static int runWhileList(StatementList *while_list, Statement *after, Statement *
     return is_break ? 0 : 1;
 }
 
-ResultType whileBranch(INTER_FUNCTIONSIG) {
+ResultType whileBranch(FUNC) {
     StatementList *while_list = st->u.while_branch.while_list;
     Statement *first = st->u.while_branch.first;
     Statement *after = st->u.while_branch.after;
@@ -303,13 +303,13 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
             finally = st->info.node;
         } else {
             var_list = popVarList(var_list);
-            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CFUNC_NT(var_list, result, belong));
             return R_error;
         }
     }
 
     if (first != NULL) {
-        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(first, var_list, result, belong))) {
+        if (cycleBranchSafeInterStatement(CFUNC(first, var_list, result, belong))) {
             set_result = false;
             while_list = NULL;
             else_st = NULL;
@@ -318,7 +318,7 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
     }
 
     if (while_list != NULL){
-        int status = runWhileList(while_list, after, info_vl, after_vl, do_while, st->line, st->code_file, &result_from, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        int status = runWhileList(while_list, after, info_vl, after_vl, do_while, st->line, st->code_file, &result_from, CFUNC_NT(var_list, result, belong));
         if (status == -1 || status == 0)
             else_st = NULL;
 
@@ -327,29 +327,29 @@ ResultType whileBranch(INTER_FUNCTIONSIG) {
     }
 
     if (else_st != NULL) {
-        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, belong))) {
+        if (cycleBranchSafeInterStatement(CFUNC(else_st, var_list, result, belong))) {
             result_from = info_else_branch;
             set_result = false;
         } else
             freeResult(result);
     }
 
-    if (finally != NULL && !runFinally(set_result, cycleBranchSafeInterStatement, finally, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+    if (finally != NULL && !runFinally(set_result, cycleBranchSafeInterStatement, finally, CFUNC_NT(var_list, result, belong))) {
         set_result = false;
         result_from = info_finally_branch;
     }
 
-    setBranchResult(yield_run, while_list, st, result, result_from, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    setBranchResult(yield_run, while_list, st, result, result_from, CFUNC_CORE(var_list));
     if (set_result)
         setResult(result, inter);
     return result->type;
 }
 
-static int getForHeard(LinkValue **iter, LinkValue **first_yield, StatementList *for_list, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static int getForHeard(LinkValue **iter, LinkValue **first_yield, StatementList *for_list, fline line, char *file, FUNC_NT) {
     LinkValue *tmp = NULL;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(for_list->condition, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(for_list->condition, var_list, result, belong)))
         return -1;
     if (result->is_yield){
         iter = NULL;
@@ -362,7 +362,7 @@ static int getForHeard(LinkValue **iter, LinkValue **first_yield, StatementList 
     result->value = NULL;
     freeResult(result);
 
-    getIter(tmp, 1, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    getIter(tmp, 1, line, file, CFUNC_NT(var_list, result, belong));
     gc_freeTmpLink(&tmp->gc_status);
     if (!CHECK_RESULT(result))
         return -1;
@@ -371,10 +371,10 @@ static int getForHeard(LinkValue **iter, LinkValue **first_yield, StatementList 
     return 0;
 }
 
-static int runForHeard(LinkValue *iter, LinkValue *first_yield, StatementList *for_list, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static int runForHeard(LinkValue *iter, LinkValue *first_yield, StatementList *for_list, fline line, char *file, FUNC_NT) {
     LinkValue *element = NULL;
     if (iter != NULL) {
-        getIter(iter, 0, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        getIter(iter, 0, line, file, CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result)) {
             if (is_iterStop(result->value, inter)) {
                 freeResult(result);
@@ -388,7 +388,7 @@ static int runForHeard(LinkValue *iter, LinkValue *first_yield, StatementList *f
     } else if (first_yield != NULL)
         element = first_yield;
     else {
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(for_list->condition, var_list, result, belong)))
+        if (operationSafeInterStatement(CFUNC(for_list->condition, var_list, result, belong)))
             return -1;
         element = result->value;
         result->value = NULL;
@@ -397,7 +397,7 @@ static int runForHeard(LinkValue *iter, LinkValue *first_yield, StatementList *f
             return 1;
     }
 
-    assCore(for_list->var, element, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    assCore(for_list->var, element, false, false, CFUNC_NT(var_list, result, belong));
     gc_freeTmpLink(&element->gc_status);
     if (!CHECK_RESULT(result))
         return -1;
@@ -405,7 +405,7 @@ static int runForHeard(LinkValue *iter, LinkValue *first_yield, StatementList *f
     return 0;
 }
 
-static int runForList(StatementList *for_list, Statement *after, Statement *info_vl, Statement *after_vl, LinkValue *iter, LinkValue *first_yield, fline line, char *file, enum StatementInfoStatus *from, INTER_FUNCTIONSIG_NOT_ST) {
+static int runForList(StatementList *for_list, Statement *after, Statement *info_vl, Statement *after_vl, LinkValue *iter, LinkValue *first_yield, fline line, char *file, enum StatementInfoStatus *from, FUNC_NT) {
     bool is_break = false;
     while (!is_break){  // 循环执行的本体
         Statement *for_st = for_list->code;
@@ -421,7 +421,7 @@ static int runForList(StatementList *for_list, Statement *after, Statement *info
             after_vl = NULL;
             for_st = NULL;
         } else {
-            int status = runForHeard(iter, first_yield, for_list, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            int status = runForHeard(iter, first_yield, for_list, line, file, CFUNC_NT(var_list, result, belong));
             first_yield = NULL;
             if (status == -1)
                 return -1;
@@ -430,7 +430,7 @@ static int runForList(StatementList *for_list, Statement *after, Statement *info
         }
 
         if (for_st != NULL) {
-            if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(for_st, var_list, result, belong)))
+            if (cycleBranchSafeInterStatement(CFUNC(for_st, var_list, result, belong)))
                 return -1;
             else if (result->type == R_break)
                 is_break = true;
@@ -439,7 +439,7 @@ static int runForList(StatementList *for_list, Statement *after, Statement *info
         *from = info_after_do;
         if (after_st != NULL) {
             freeResult(result);
-            if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(after_st, var_list, result, belong)))
+            if (cycleBranchSafeInterStatement(CFUNC(after_st, var_list, result, belong)))
                 return -1;
             else if (result->type == R_break)
                 is_break = true;
@@ -449,7 +449,7 @@ static int runForList(StatementList *for_list, Statement *after, Statement *info
     return is_break ? 0 : 1;
 }
 
-static void setForResult(bool yield_run, StatementList *sl, Statement *st, Result *result, LinkValue *iter, enum StatementInfoStatus status, INTER_FUNCTIONSIG_CORE) {
+static void setForResult(bool yield_run, StatementList *sl, Statement *st, Result *result, LinkValue *iter, enum StatementInfoStatus status, FUNC_CORE) {
     if (yield_run) {
         if (result->type == R_yield)
             updateBranchYield(st, result->node, sl, status);
@@ -463,7 +463,7 @@ static void setForResult(bool yield_run, StatementList *sl, Statement *st, Resul
     }
 }
 
-ResultType forBranch(INTER_FUNCTIONSIG) {
+ResultType forBranch(FUNC) {
     StatementList *for_list = st->u.for_branch.for_list;
     Statement *first = st->u.for_branch.first_do;
     Statement *after = st->u.for_branch.after_do;
@@ -507,13 +507,13 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             finally = st->info.node;
         } else {
             var_list = popVarList(var_list);
-            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CFUNC_NT(var_list, result, belong));
             return R_error;
         }
     }
 
     if (first != NULL) {
-        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(first, var_list, result, belong))) {
+        if (cycleBranchSafeInterStatement(CFUNC(first, var_list, result, belong))) {
             set_result = false;
             heard = false;
             for_list = NULL;
@@ -523,7 +523,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     }
 
     if (heard){
-        int status = getForHeard(&iter, &first_yield, for_list, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        int status = getForHeard(&iter, &first_yield, for_list, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
         if (status == -1) {
             set_result = false;
             for_list = NULL;
@@ -533,7 +533,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     }
 
     if (for_list != NULL){
-        int status = runForList(for_list, after, info_vl, after_vl, iter, first_yield, st->line, st->code_file, &result_from, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        int status = runForList(for_list, after, info_vl, after_vl, iter, first_yield, st->line, st->code_file, &result_from, CFUNC_NT(var_list, result, belong));
         if (status == -1 || status == 0)
             else_st = NULL;
 
@@ -542,7 +542,7 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     }
 
     if (else_st != NULL) {
-        if (cycleBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, belong))) {
+        if (cycleBranchSafeInterStatement(CFUNC(else_st, var_list, result, belong))) {
             result_from = info_else_branch;
             set_result = false;
         }
@@ -550,12 +550,12 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
             freeResult(result);
     }
 
-    if (finally != NULL && !runFinally(set_result, cycleBranchSafeInterStatement, finally, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+    if (finally != NULL && !runFinally(set_result, cycleBranchSafeInterStatement, finally, CFUNC_NT(var_list, result, belong))) {
         set_result = false;
         result_from = info_finally_branch;
     }
 
-    setForResult(yield_run, for_list, st, result, iter, result_from, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    setForResult(yield_run, for_list, st, result, iter, result_from, CFUNC_CORE(var_list));
     if (!yield_run && iter != NULL)
         gc_freeTmpLink(&iter->gc_status);
 
@@ -564,15 +564,15 @@ ResultType forBranch(INTER_FUNCTIONSIG) {
     return result->type;
 }
 
-static bool getEnterExit(LinkValue *value, LinkValue **_enter_, LinkValue **_exit_, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static bool getEnterExit(LinkValue *value, LinkValue **_enter_, LinkValue **_exit_, fline line, char *file, FUNC_NT) {
     setResultCore(result);
 
-    *_enter_ = findAttributes(inter->data.object_enter, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+    *_enter_ = findAttributes(inter->data.object_enter, false, 0, "sys", true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         return false;
     freeResult(result);
 
-    *_exit_ = findAttributes(inter->data.object_exit, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+    *_exit_ = findAttributes(inter->data.object_exit, false, 0, "sys", true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         return false;
     freeResult(result);
@@ -580,7 +580,7 @@ static bool getEnterExit(LinkValue *value, LinkValue **_enter_, LinkValue **_exi
     if (*_enter_ == NULL || *_exit_ == NULL) {
         *_enter_ = NULL;
         *_exit_ = NULL;
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(__enter__/__exit__), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(__enter__/__exit__), line, file, true, CFUNC_NT(var_list, result, belong));
         return false;
     }
     gc_addTmpLink(&(*_enter_)->gc_status);
@@ -588,8 +588,8 @@ static bool getEnterExit(LinkValue *value, LinkValue **_enter_, LinkValue **_exi
     return true;
 }
 
-static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkValue **value, VarList **new, LinkValue **_enter_, LinkValue **_exit_, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(with_list->condition, var_list, result, belong)))
+static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkValue **value, VarList **new, LinkValue **_enter_, LinkValue **_exit_, fline line, char *file, FUNC_NT) {
+    if (operationSafeInterStatement(CFUNC(with_list->condition, var_list, result, belong)))
         return -1;
 
     *value = result->value;
@@ -609,17 +609,17 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
         *with_belong = belong;
         gc_addTmpLink(&(*with_belong)->gc_status);
 
-        *_enter_ = findAttributes(inter->data.object_enter, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, *value));
+        *_enter_ = findAttributes(inter->data.object_enter, false, 0, "sys", true, CFUNC_NT(var_list, result, *value));
         if (!CHECK_RESULT(result))
             goto error_;
         freeResult(result);
 
-        *_exit_ = findAttributes(inter->data.object_exit, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, *value));
+        *_exit_ = findAttributes(inter->data.object_exit, false, 0, "sys", true, CFUNC_NT(var_list, result, *value));
         if (!CHECK_RESULT(result))
             goto error_;
         freeResult(result);
 
-        if (!getEnterExit(*value, _enter_, _exit_, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+        if (!getEnterExit(*value, _enter_, _exit_, line, file, CFUNC_NT(var_list, result, belong))) {
             error_:
             gc_freeTmpLink(&(*value)->gc_status);
             gc_freeTmpLink(&(*with_belong)->gc_status);
@@ -627,14 +627,14 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
             return -1;
         }
 
-        callBackCore(*_enter_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, *value));
+        callBackCore(*_enter_, NULL, line, file, 0, CFUNC_NT(var_list, result, *value));
         if (!CHECK_RESULT(result))
             return 0;
 
         *new = pushVarList(var_list, inter);
         enter_value = result->value;
         freeResult(result);
-        assCore(with_list->var, enter_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(*new, result, belong));
+        assCore(with_list->var, enter_value, false, false, CFUNC_NT(*new, result, belong));
         if (!CHECK_RESULT(result)) {
             *new = popVarList(*new);
             return 0;
@@ -644,7 +644,7 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
     return 1;
 }
 
-static void setWithResult(bool yield_run, StatementList *sl, Statement *st, Result *result, LinkValue *value, LinkValue *_enter_, LinkValue *_exit_, LinkValue *with, enum StatementInfoStatus status, INTER_FUNCTIONSIG_CORE) {
+static void setWithResult(bool yield_run, StatementList *sl, Statement *st, Result *result, LinkValue *value, LinkValue *_enter_, LinkValue *_exit_, LinkValue *with, enum StatementInfoStatus status, FUNC_CORE) {
     if (yield_run) {
         if (result->type == R_yield)
             if (status == info_finally_branch) {
@@ -669,7 +669,7 @@ static void setWithResult(bool yield_run, StatementList *sl, Statement *st, Resu
     }
 }
 
-ResultType withBranch(INTER_FUNCTIONSIG) {
+ResultType withBranch(FUNC) {
     StatementList *with_list = st->u.with_branch.with_list;
     Statement *else_st = st->u.with_branch.else_list;
     Statement *finally = st->u.with_branch.finally;
@@ -711,7 +711,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             finally = st->info.node;
         }
     } else {
-        int status = runWithList(with_list, &with_belong, &value, &new, &_enter_, &_exit_, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        int status = runWithList(with_list, &with_belong, &value, &new, &_enter_, &_exit_, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
         if (status == -1) {
             set_result = false;
             run_block = false;
@@ -731,7 +731,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
     if (run_block) {
         if (vl_info == NULL)
             vl_info = with_list->code;
-        if (withBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(vl_info, new, result, with_belong))) {
+        if (withBranchSafeInterStatement(CFUNC(vl_info, new, result, with_belong))) {
             set_result = false;
             if (result->type == R_yield) {
                 run_exit = false;
@@ -744,7 +744,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
     if (else_st != NULL){
         Result else_tmp;
         setResultCore(&else_tmp);
-        if (withBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, new, &else_tmp, with_belong))) {
+        if (withBranchSafeInterStatement(CFUNC(else_st, new, &else_tmp, with_belong))) {
             if (!set_result)
                 freeResult(result);
             set_result = false;
@@ -761,7 +761,7 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
             Result exit_tmp;
             setResultCore(&exit_tmp);
 
-            callBackCore(_exit_, NULL, st->line, st->code_file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, &exit_tmp, value));
+            callBackCore(_exit_, NULL, st->line, st->code_file, 0, CFUNC_NT(var_list, &exit_tmp, value));
             if (!RUN_TYPE(exit_tmp.type)) {
                 if (!set_result)
                     freeResult(result);
@@ -786,19 +786,19 @@ ResultType withBranch(INTER_FUNCTIONSIG) {
         }
     }
 
-    if (finally != NULL && !runFinally(set_result, withBranchSafeInterStatement, finally, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+    if (finally != NULL && !runFinally(set_result, withBranchSafeInterStatement, finally, CFUNC_NT(var_list, result, belong))) {
         set_result = false;
         result_from = info_finally_branch;
     }
 
     gc_freeze(inter, new, var_list, false);
-    setWithResult(yield_run, with_list, st, result, value, _enter_, _exit_, with_belong, result_from, CALL_INTER_FUNCTIONSIG_CORE(new));
+    setWithResult(yield_run, with_list, st, result, value, _enter_, _exit_, with_belong, result_from, CFUNC_CORE(new));
     if (set_result)
         setResult(result, inter);
     return result->type;
 }
 
-static int checkError(StatementList **except_list, LinkValue *error_value, INTER_FUNCTIONSIG_NOT_ST) {
+static int checkError(StatementList **except_list, LinkValue *error_value, FUNC_NT) {
     setResultCore(result);
     if (*except_list == NULL)
         return -1;
@@ -806,7 +806,7 @@ static int checkError(StatementList **except_list, LinkValue *error_value, INTER
         freeResult(result);
         if ((*except_list)->condition == NULL)
             break;
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG((*except_list)->condition, var_list, result, belong)))
+        if (operationSafeInterStatement(CFUNC((*except_list)->condition, var_list, result, belong)))
             return 0;
         if (result->value->value == error_value->value || checkAttribution(error_value->value, result->value->value))
             break;
@@ -814,7 +814,7 @@ static int checkError(StatementList **except_list, LinkValue *error_value, INTER
     return *except_list == NULL ? -1 : 1;
 }
 
-ResultType tryBranch(INTER_FUNCTIONSIG) {
+ResultType tryBranch(FUNC) {
     StatementList *except_list = NULL;
     Statement *try = st->u.try_branch.try;
     Statement *else_st = st->u.try_branch.else_list;
@@ -844,7 +844,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     }
 
     if (try != NULL){
-        if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(try, var_list, result, belong))) {
+        if (tryBranchSafeInterStatement(CFUNC(try, var_list, result, belong))) {
             if (result->type == R_yield) {
                 result_from = info_first_do;
                 set_result = false;
@@ -856,7 +856,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
                 freeResult(result);
 
                 except_list = st->u.try_branch.except_list;
-                status = checkError(&except_list, error_value, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                status = checkError(&except_list, error_value, CFUNC_NT(var_list, result, belong));
                 if (status == -1 || status == 0) {
                     set_result = false;
                     result_from = info_vl_branch;
@@ -873,7 +873,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     if (except_list != NULL) {
         if (except_list->var != NULL) {
             gc_addTmpLink(&error_value->gc_status);
-            assCore(except_list->var, error_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            assCore(except_list->var, error_value, false, false, CFUNC_NT(var_list, result, belong));
             gc_freeTmpLink(&error_value->gc_status);
 
             if (!CHECK_RESULT(result)) {
@@ -887,7 +887,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
 
     if (info_vl != NULL) {
         freeResult(result);
-        if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(info_vl, var_list, result, belong))) {
+        if (tryBranchSafeInterStatement(CFUNC(info_vl, var_list, result, belong))) {
             result_from = info_vl_branch;
             set_result = false;
         } else
@@ -895,7 +895,7 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
     }
 
     if (else_st != NULL) {
-        if (tryBranchSafeInterStatement(CALL_INTER_FUNCTIONSIG(else_st, var_list, result, belong))) {
+        if (tryBranchSafeInterStatement(CFUNC(else_st, var_list, result, belong))) {
             set_result = false;
             result_from = info_else_branch;
         }
@@ -903,28 +903,28 @@ ResultType tryBranch(INTER_FUNCTIONSIG) {
             freeResult(result);
     }
 
-    if (finally != NULL && !runFinally(set_result, ifBranchSafeInterStatement, finally, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong))) {
+    if (finally != NULL && !runFinally(set_result, ifBranchSafeInterStatement, finally, CFUNC_NT(var_list, result, belong))) {
         set_result = false;
         result_from = info_finally_branch;
     }
 
-    setBranchResult(yield_run, except_list, st, result, result_from, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    setBranchResult(yield_run, except_list, st, result, result_from, CFUNC_CORE(var_list));
 
     if (set_result)
         setResult(result, inter);
     return result->type;
 }
 
-ResultType breakCycle(INTER_FUNCTIONSIG){
+ResultType breakCycle(FUNC){
     int times_int = 0;
     setResultCore(result);
     if (st->u.break_cycle.times == NULL)
         goto not_times;
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.break_cycle.times, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.break_cycle.times, var_list, result, belong)))
         return result->type;
 
-    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+    if (!checkNumber(CFUNC(st, var_list, result, belong)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -938,15 +938,15 @@ ResultType breakCycle(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType continueCycle(INTER_FUNCTIONSIG){
+ResultType continueCycle(FUNC){
     int times_int = 0;
     setResultCore(result);
     if (st->u.continue_cycle.times == NULL)
         goto not_times;
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.continue_cycle.times, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.continue_cycle.times, var_list, result, belong)))
         return result->type;
 
-    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+    if (!checkNumber(CFUNC(st, var_list, result, belong)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -960,15 +960,15 @@ ResultType continueCycle(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType regoIf(INTER_FUNCTIONSIG){
+ResultType regoIf(FUNC){
     int times_int = 0;
     setResultCore(result);
     if (st->u.rego_if.times == NULL)
         goto not_times;
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.rego_if.times, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.rego_if.times, var_list, result, belong)))
         return result->type;
 
-    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+    if (!checkNumber(CFUNC(st, var_list, result, belong)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -982,15 +982,15 @@ ResultType regoIf(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType restartCode(INTER_FUNCTIONSIG){
+ResultType restartCode(FUNC){
     int times_int = 0;
     setResultCore(result);
     if (st->u.restart.times == NULL)
         goto not_times;
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.restart.times, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.restart.times, var_list, result, belong)))
         return result->type;
 
-    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+    if (!checkNumber(CFUNC(st, var_list, result, belong)))
         return result->type;
     times_int = (int)result->value->value->data.num.num;
     freeResult(result);
@@ -1004,14 +1004,14 @@ ResultType restartCode(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType returnCode(INTER_FUNCTIONSIG){
+ResultType returnCode(FUNC){
     setResultCore(result);
     if (st->u.return_code.value == NULL) {
         setResult(result, inter);
         goto set_result;
     }
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.return_code.value, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.return_code.value, var_list, result, belong)))
         return result->type;
 
     set_result:
@@ -1019,14 +1019,14 @@ ResultType returnCode(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType yieldCode(INTER_FUNCTIONSIG){
+ResultType yieldCode(FUNC){
     setResultCore(result);
     if (st->u.yield_code.value == NULL) {
         setResult(result, inter);
         goto set_result;
     }
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.yield_code.value, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.yield_code.value, var_list, result, belong)))
         return result->type;
 
     set_result:
@@ -1034,14 +1034,14 @@ ResultType yieldCode(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType raiseCode(INTER_FUNCTIONSIG){
+ResultType raiseCode(FUNC){
     setResultCore(result);
     if (st->u.raise_code.value == NULL) {
         setResult(result, inter);
         goto set_result;
     }
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.raise_code.value, var_list, result, belong)))
         return result->type;
 
     set_result:
@@ -1050,31 +1050,31 @@ ResultType raiseCode(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType assertCode(INTER_FUNCTIONSIG){
+ResultType assertCode(FUNC){
     bool result_;
     setResultCore(result);
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.raise_code.value, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.raise_code.value, var_list, result, belong)))
         return result->type;
 
-    result_ = checkBool(result->value, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    result_ = checkBool(result->value, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     else if (result_)
         setResult(result, inter);
     else
-        setResultErrorSt(E_AssertException, L"Assertion check error", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_AssertException, L"Assertion check error", true, st, CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType gotoLabel(INTER_FUNCTIONSIG){
+ResultType gotoLabel(FUNC){
     int times_int = 0;
     wchar_t *label = NULL;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.label, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.goto_.label, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, V_str)) {
-        setResultErrorSt(E_TypeException, ONLY_ACC(label name, V_str), true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, ONLY_ACC(label name, V_str), true, st, CFUNC_NT(var_list, result, belong));
         return result->type;
     }
     label = memWidecpy(result->value->value->data.str.str);
@@ -1082,11 +1082,11 @@ ResultType gotoLabel(INTER_FUNCTIONSIG){
     freeResult(result);
     if (st->u.goto_.times == NULL)
         goto not_times;
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.times, var_list, result, belong))) {
+    if (operationSafeInterStatement(CFUNC(st->u.goto_.times, var_list, result, belong))) {
         memFree(label);
         return result->type;
     }
-    if (!checkNumber(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong))) {
+    if (!checkNumber(CFUNC(st, var_list, result, belong))) {
         memFree(label);
         return result->type;
     }
@@ -1095,7 +1095,7 @@ ResultType gotoLabel(INTER_FUNCTIONSIG){
     not_times:
     if (st->u.goto_.return_ == NULL)
         setResult(result, inter);
-    else if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.goto_.return_, var_list, result, belong))) {
+    else if (operationSafeInterStatement(CFUNC(st->u.goto_.return_, var_list, result, belong))) {
         memFree(label);
         return result->type;
     }
@@ -1106,13 +1106,13 @@ ResultType gotoLabel(INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType runLabel(INTER_FUNCTIONSIG) {
+ResultType runLabel(FUNC) {
     LinkValue *goto_value = result->value;  // goto的值通过result传入, 因此不能进行setResultCore
     result->value = NULL;
     freeResult(result);
 
     if (st->u.label_.as != NULL)
-        assCore(st->u.label_.as, goto_value, false, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        assCore(st->u.label_.as, goto_value, false, false, CFUNC_NT(var_list, result, belong));
 
     gc_freeTmpLink(&goto_value->gc_status);
     if (st->u.label_.as != NULL && !CHECK_RESULT(result))
@@ -1120,7 +1120,7 @@ ResultType runLabel(INTER_FUNCTIONSIG) {
 
     freeResult(result);
     if (st->u.label_.command != NULL)
-        operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.label_.command, var_list, result, belong));
+        operationSafeInterStatement(CFUNC(st->u.label_.command, var_list, result, belong));
     else
         setResult(result, inter);
 

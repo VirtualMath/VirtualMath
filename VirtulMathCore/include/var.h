@@ -55,10 +55,10 @@ VarList *freeVarList(VarList *vl);
 
 vhashn time33(wchar_t *key);
 LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTable *ht);
-LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, INTER_FUNCTIONSIG_CORE);
+LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, FUNC_CORE);
 void addVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht);
 void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
-void addFromVarList(wchar_t *name, LinkValue *name_, vnum times, LinkValue *value, INTER_FUNCTIONSIG_CORE);
+void addFromVarList(wchar_t *name, LinkValue *name_, vnum times, LinkValue *value, FUNC_CORE);
 
 VarList *pushVarList(VarList *base, Inter *inter);
 VarList *popVarList(VarList *base);

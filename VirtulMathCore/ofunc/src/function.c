@@ -6,7 +6,7 @@ static void setFunctionData(Value *value, LinkValue *cls, Inter *inter) {
     value->data.function.function_data.run = false;
 }
 
-ResultType function_new(OFFICAL_FUNCTIONSIG){
+ResultType function_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -14,7 +14,7 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "func.new", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, 0, "func.new", true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
 
@@ -32,23 +32,23 @@ ResultType function_new(OFFICAL_FUNCTIONSIG){
     value->value->data.function.of = NULL;
     setFunctionData(value->value, ap->value, inter);
 
-    run_init(value, arg, 0, "func.new", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    run_init(value, arg, 0, "func.new", CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType function_init(OFFICAL_FUNCTIONSIG){
+ResultType function_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
     LinkValue *func;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
     if ((func = ap[0].value)->value->type != V_func) {
         setResultError(E_TypeException, INSTANCE_ERROR(func), 0, "func", true,
-                       CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                       CFUNC_NT(var_list, result, belong));
         return R_error;
     }
 
@@ -63,12 +63,12 @@ ResultType function_init(OFFICAL_FUNCTIONSIG){
     return result->type;
 }
 
-void registeredFunction(REGISTERED_FUNCTIONSIG){
+void registeredFunction(R_FUNC){
     LinkValue *object = inter->data.function;
     NameFunc tmp[] = {{NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"func", object, belong, inter);
-    iterBaseClassFunc(tmp, object, CALL_INTER_FUNCTIONSIG_CORE(inter->var_list));
+    iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }
 
@@ -90,8 +90,8 @@ void functionPresettingLast(LinkValue *func, LinkValue *func_new, LinkValue *fun
     VarList *object_var = func->value->object.var;
     setResultCore(&result);
 
-    addStrVar(inter->data.object_new, false, true, func_new, 0, "sys", false, CALL_INTER_FUNCTIONSIG_NOT_ST(object_var, &result, func));
+    addStrVar(inter->data.object_new, false, true, func_new, 0, "sys", false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
-    addStrVar(inter->data.object_init, false, true, func_init, 0, "sys", false, CALL_INTER_FUNCTIONSIG_NOT_ST(object_var, &result, func));
+    addStrVar(inter->data.object_init, false, true, func_init, 0, "sys", false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
 }

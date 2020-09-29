@@ -77,26 +77,26 @@ Parameter *connectNameParameter(struct Statement *value, struct Statement *name,
 Parameter *connectArgsParameter(Statement *st, Parameter *base, bool is_sep);
 Parameter *connectKwargsParameter(struct Statement *st, Parameter *base);
 void freeParameter(Parameter *pt, bool free_st);
-Argument *listToArgument(LinkValue *list_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
-Argument *dictToArgument(LinkValue *dict_value, long line, char *file, INTER_FUNCTIONSIG_NOT_ST);
+Argument *listToArgument(LinkValue *list_value, long line, char *file, FUNC_NT);
+Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT);
 
-ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *function_base, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
-ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, INTER_FUNCTIONSIG_NOT_ST);
-Argument *getArgument(Parameter *call, bool is_dict, INTER_FUNCTIONSIG_NOT_ST);
+ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *function_base, VarList *function_var, FUNC_NT);
+ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC_NT);
+Argument *getArgument(Parameter *call, bool is_dict, FUNC_NT);
 
-ResultType defaultParameter(Parameter **function_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST);
-ResultType argumentToVar(Argument **call_ad, vnum *num, INTER_FUNCTIONSIG_NOT_ST);
+ResultType defaultParameter(Parameter **function_ad, vnum *num, FUNC_NT);
+ResultType argumentToVar(Argument **call_ad, vnum *num, FUNC_NT);
 ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum *num, vnum max, bool *status,
-                            INTER_FUNCTIONSIG_NOT_ST);
-ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, INTER_FUNCTIONSIG_NOT_ST);
+                            FUNC_NT);
+ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, FUNC_NT);
 
 Inherit *setFatherCore(Inherit *father_tmp);
 Inherit *setFather(Argument *call);
 bool checkFormal(Parameter *pt);
 
 Argument *parserValueArgument(ArgumentParser *ap, Argument *arg, int *status, ArgumentParser **bak);
-int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, INTER_FUNCTIONSIG_NOT_ST);
-int parserArgumentUnion(ArgumentParser ap[], Argument *arg, INTER_FUNCTIONSIG_NOT_ST);
+int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, FUNC_NT);
+int parserArgumentUnion(ArgumentParser ap[], Argument *arg, FUNC_NT);
 Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap);
 ArgumentParser *parserArgumentNameDefault(ArgumentParser *ap);
 ArgumentParser *parserArgumentValueDefault(ArgumentParser *ap);

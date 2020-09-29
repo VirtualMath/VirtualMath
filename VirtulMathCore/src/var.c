@@ -199,7 +199,7 @@ LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTabl
  * @param var_list
  * @return
  */
-LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, INTER_FUNCTIONSIG_CORE) {
+LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, FUNC_CORE) {
     LinkValue *tmp = NULL;
     vnum base = findDefault(var_list->default_var, name) + times;
     for (vnum i = 0; i < base && var_list->next != NULL; i++)
@@ -213,7 +213,7 @@ LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, IN
     return tmp;
 }
 
-void addFromVarList(wchar_t *name, LinkValue *name_, vnum times, LinkValue *value, INTER_FUNCTIONSIG_CORE) {
+void addFromVarList(wchar_t *name, LinkValue *name_, vnum times, LinkValue *value, FUNC_CORE) {
     vnum base = findDefault(var_list->default_var, name) + times;
     for (vnum i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;

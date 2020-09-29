@@ -14,9 +14,9 @@ bool checkCLib(char *file) {
     return false;
 }
 
-void importClibCore(char *file, struct LinkValue *belong, INTER_FUNCTIONSIG_CORE){
+void importClibCore(char *file, struct LinkValue *belong, FUNC_CORE){
     for (struct InFo *info = ManagerInFo; info->name != NULL; info++) {
         if (eqString(file, info->name))
-            info->reg(CALL_REGISTERED_FUNCTION(belong, var_list));
+            info->reg(CR_FUNC(belong, var_list));
     }
 }

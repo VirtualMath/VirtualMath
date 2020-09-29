@@ -10,18 +10,18 @@
 
 #define FREE_BASE(element, return_) do{if(element == NULL)goto return_;}while(0)
 
-#define INTER_FUNCTIONSIG_CORE struct Inter *inter, struct VarList *var_list
-#define INTER_FUNCTIONSIG_NOT_ST struct LinkValue *belong, struct Result *result, INTER_FUNCTIONSIG_CORE
-#define INTER_FUNCTIONSIG struct Statement *st, INTER_FUNCTIONSIG_NOT_ST
+#define FUNC_CORE struct Inter *inter, struct VarList *var_list
+#define FUNC_NT struct LinkValue *belong, struct Result *result, FUNC_CORE
+#define FUNC struct Statement *st, FUNC_NT
 
-#define CALL_INTER_FUNCTIONSIG_CORE(var_list) inter, var_list
-#define CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong) belong, result, CALL_INTER_FUNCTIONSIG_CORE(var_list)
-#define CALL_INTER_FUNCTIONSIG(st, var_list, result, belong) st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)
+#define CFUNC_CORE(var_list) inter, var_list
+#define CFUNC_NT(var_list, result, belong) belong, result, CFUNC_CORE(var_list)
+#define CFUNC(st, var_list, result, belong) st, CFUNC_NT(var_list, result, belong)
 
-#define OFFICAL_FUNCTIONSIG struct Argument *arg, INTER_FUNCTIONSIG_NOT_ST
-#define CALL_OFFICAL_FUNCTION(arg, var_list, result, belong) arg, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)
-#define REGISTERED_FUNCTIONSIG struct LinkValue *belong, INTER_FUNCTIONSIG_CORE
-#define CALL_REGISTERED_FUNCTION(belong, var_list) belong, CALL_INTER_FUNCTIONSIG_CORE(var_list)
+#define O_FUNC struct Argument *arg, FUNC_NT
+#define CO_FUNC(arg, var_list, result, belong) arg, CFUNC_NT(var_list, result, belong)
+#define R_FUNC struct LinkValue *belong, FUNC_CORE
+#define CR_FUNC(belong, var_list) belong, CFUNC_CORE(var_list)
 
 #define MD5_SIZE (16)
 #define MD5_STR_LEN (MD5_SIZE * 2)

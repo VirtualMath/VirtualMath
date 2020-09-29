@@ -5,16 +5,16 @@
 #include "__run.h"
 
 void newObjectSettingPresetting(LinkValue *func, LinkValue *name, Inter *inter);
-LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, INTER_FUNCTIONSIG_NOT_ST);
+LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, FUNC_NT);
 
-bool iterNameFunc(NameFunc *list, INTER_FUNCTIONSIG_NOT_ST);
-bool iterClassFunc(NameFunc *list, INTER_FUNCTIONSIG_NOT_ST);
+bool iterNameFunc(NameFunc *list, FUNC_NT);
+bool iterClassFunc(NameFunc *list, FUNC_NT);
 
-void iterBaseNameFunc(NameFunc *list, struct LinkValue *father, INTER_FUNCTIONSIG_CORE);
-void iterBaseClassFunc(NameFunc *list, LinkValue *father, INTER_FUNCTIONSIG_CORE);
+void iterBaseNameFunc(NameFunc *list, struct LinkValue *father, FUNC_CORE);
+void iterBaseClassFunc(NameFunc *list, LinkValue *father, FUNC_CORE);
 LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter);
 
-bool checkIndex(vnum *index, const vnum *size, INTER_FUNCTIONSIG_NOT_ST);
-bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, INTER_FUNCTIONSIG_NOT_ST);
+bool checkIndex(vnum *index, const vnum *size, FUNC_NT);
+bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, FUNC_NT);
 void addBaseClassVar(wchar_t *name, LinkValue *obj, LinkValue *belong, Inter *inter);
 #endif //VIRTUALMATH___OFUNC_H

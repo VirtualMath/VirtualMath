@@ -1,44 +1,44 @@
 #include "__run.h"
 
-ResultType getBaseVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
+ResultType getBaseVarInfo(wchar_t **name, int *times, FUNC){
     *name = setStrVarName(st->u.base_var.name, false, inter);
     *times = 0;
     if (st->u.base_var.times == NULL){
         *times = 0;
         goto not_times;
     }
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_var.times, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.base_var.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, V_num)){
-        setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CFUNC_NT(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
     freeResult(result);
 
     not_times:
-    makeStringValue(st->u.base_var.name, st->line, st->code_file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(st->u.base_var.name, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
     return result->type;
 }
 
-ResultType getBaseSVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
+ResultType getBaseSVarInfo(wchar_t **name, int *times, FUNC){
     freeResult(result);
 
     if (st->u.base_svar.times == NULL){
         *times = 0;
         goto not_times;
     }
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.times, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.base_svar.times, var_list, result, belong)))
         return result->type;
     if (!isType(result->value->value, V_num)){
-        setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CFUNC_NT(var_list, result, belong));
         return result->type;
     }
     *times = (int)result->value->value->data.num.num;
 
     freeResult(result);
     not_times:
-    if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st->u.base_svar.name, var_list, result, belong)))
+    if (operationSafeInterStatement(CFUNC(st->u.base_svar.name, var_list, result, belong)))
         return result->type;
 
     *name = getNameFromValue(result->value->value, inter);
@@ -47,13 +47,13 @@ ResultType getBaseSVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
     return result->type;
 }
 
-ResultType getVarInfo(wchar_t **name, int *times, INTER_FUNCTIONSIG){
+ResultType getVarInfo(wchar_t **name, int *times, FUNC){
     if (st->type == base_var)
-        getBaseVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+        getBaseVarInfo(name, times, CFUNC(st, var_list, result, belong));
     else if (st->type == base_svar)
-        getBaseSVarInfo(name, times, CALL_INTER_FUNCTIONSIG(st, var_list, result, belong));
+        getBaseSVarInfo(name, times, CFUNC(st, var_list, result, belong));
     else{
-        if (operationSafeInterStatement(CALL_INTER_FUNCTIONSIG(st, var_list, result, belong)))
+        if (operationSafeInterStatement(CFUNC(st, var_list, result, belong)))
             return result->type;
         *name = getNameFromValue(result->value->value, inter);
         *times = 0;
@@ -123,7 +123,7 @@ bool popYieldVarList(Statement *st, VarList **return_, VarList *out_var, Inter *
     return yield_run;
 }
 
-ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, INTER_FUNCTIONSIG_NOT_ST){
+ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func, fline line, char *file, int pt_sep, FUNC_NT){
     Argument *tmp = NULL;
     LinkValue *self;
     LinkValue *func;
@@ -150,7 +150,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
                 *base = *arg;
             } else {
                 error_:
-                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CFUNC_NT(var_list, result, belong));
                 return R_error;
             }
             break;
@@ -167,12 +167,12 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             break;
         }
         default:
-            setResultError(E_ArgumentException, MANY_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, line, file, true, CFUNC_NT(var_list, result, belong));
             return R_error;
     }
 
     if (pt_type != free_ && self == NULL) {
-        setResultError(E_ArgumentException, L"Function does not belong to anything(not self)", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_ArgumentException, L"Function does not belong to anything(not self)", line, file, true, CFUNC_NT(var_list, result, belong));
         return R_error;
     }
 
@@ -265,33 +265,33 @@ void freeFunctionArgument(Argument *arg, Argument *base) {
     }
 }
 
-LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, INTER_FUNCTIONSIG_NOT_ST){
+LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT){
     LinkValue *tmp = NULL;
     wchar_t *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, get_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    tmp = findFromVarList(name_, 0, get_var, CFUNC_CORE(var_list));
     memFree(name_);
     if (tmp != NULL && nowrun) {
         setResultCore(result);
-        if (!runVarFunc(tmp, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        if (!runVarFunc(tmp, line, file, CFUNC_NT(var_list, result, belong)))
             setResultOperationBase(result, tmp);
     }
     return tmp;
 }
 
-LinkValue *findStrVarOnly(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE) {
-    return findStrVar(name, free_old, 0, "sys", false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, NULL, NULL));
+LinkValue *findStrVarOnly(wchar_t *name, bool free_old, FUNC_CORE) {
+    return findStrVar(name, free_old, 0, "sys", false, CFUNC_NT(var_list, NULL, NULL));
 }
 
-LinkValue *checkStrVar(wchar_t *name, bool free_old, INTER_FUNCTIONSIG_CORE){
+LinkValue *checkStrVar(wchar_t *name, bool free_old, FUNC_CORE){
     LinkValue *tmp = NULL;
     wchar_t *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+    tmp = findFromVarList(name_, 0, read_var, CFUNC_CORE(var_list));
     memFree(name_);
     return tmp;
 }
 
-static void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, INTER_FUNCTIONSIG_NOT_ST) {
-    addFromVarList(var_name, name_, 0, value, CALL_INTER_FUNCTIONSIG_CORE(var_list));
+static void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, FUNC_NT) {
+    addFromVarList(var_name, name_, 0, value, CFUNC_CORE(var_list));
     out_var = out_var == NULL ? var_list : out_var;
     if (setting)
         newObjectSetting(name_, line, file, value, result, inter, out_var);
@@ -299,53 +299,53 @@ static void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, Link
         setResult(result, inter);
 }
 
-void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, bool run, INTER_FUNCTIONSIG_NOT_ST) {
+void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fline line, char *file, bool run, FUNC_NT) {
     LinkValue *name_;
     wchar_t *var_name = setStrVarName(name, free_old, inter);
     setResultCore(result);
 
     if (run) {
-        LinkValue *tmp = findFromVarList(name, 0, read_var, CALL_INTER_FUNCTIONSIG_CORE(var_list));
-        if (tmp != NULL && !setVarFunc(tmp, value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong)))
+        LinkValue *tmp = findFromVarList(name, 0, read_var, CFUNC_CORE(var_list));
+        if (tmp != NULL && !setVarFunc(tmp, value, line, file, CFUNC_NT(var_list, result, belong)))
             goto return_;
     }
 
-    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(name, line, file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
     name_ = result->value;
     result->value = NULL;
     freeResult(result);
-    addStrVarCore(setting, var_name, name_, value, line, file, NULL, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    addStrVarCore(setting, var_name, name_, value, line, file, NULL, CFUNC_NT(var_list, result, belong));
     gc_freeTmpLink(&name_->gc_status);
 
     return_:
     memFree(var_name);
 }
 
-LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, INTER_FUNCTIONSIG_NOT_ST) {  // TODO-szh 处理调用该函数的地方释放result
+LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT) {  // TODO-szh 处理调用该函数的地方释放result
     LinkValue *attr;
     gc_freeze(inter, var_list, belong->value->object.var, true);
-    attr = findStrVar(name, free_old, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong));  // TODO-szh 重新启动
+    attr = findStrVar(name, free_old, line, file, false, CFUNC_NT(belong->value->object.var, result, belong));  // TODO-szh 重新启动
     if (attr != NULL && (attr->belong == NULL || attr->belong->value != belong->value && checkAttribution(belong->value, attr->belong->value)))
         attr->belong = belong;
     gc_freeze(inter, var_list, belong->value->object.var, false);
     return attr;
 }
 
-bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, char *file, bool run, INTER_FUNCTIONSIG_NOT_ST) {
+bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, char *file, bool run, FUNC_NT) {
     wchar_t *var_name = setStrVarName(name, free_old, inter);
     LinkValue *name_;
     setResultCore(result);
 
     if (run) {
-        LinkValue *tmp = findFromVarList(name, 0, read_var, CALL_INTER_FUNCTIONSIG_CORE(belong->value->object.var));
-        if (tmp != NULL && !setVarFunc(tmp, value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong)))
+        LinkValue *tmp = findFromVarList(name, 0, read_var, CFUNC_CORE(belong->value->object.var));
+        if (tmp != NULL && !setVarFunc(tmp, value, line, file, CFUNC_NT(belong->value->object.var, result, belong)))
             goto return_;
     }
 
-    makeStringValue(name, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeStringValue(name, line, file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -354,7 +354,7 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
     freeResult(result);
 
     gc_freeze(inter, var_list, belong->value->object.var, true);
-    addStrVarCore(false, var_name, name_, value, line, file, var_list, CALL_INTER_FUNCTIONSIG_NOT_ST(belong->value->object.var, result, belong));
+    addStrVarCore(false, var_name, name_, value, line, file, var_list, CFUNC_NT(belong->value->object.var, result, belong));
     gc_freeze(inter, var_list, belong->value->object.var, false);
 
     gc_freeTmpLink(&name_->gc_status);
@@ -364,29 +364,29 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
     return CHECK_RESULT(result);
 }
 
-void newObjectSetting(LinkValue *name, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+void newObjectSetting(LinkValue *name, fline line, char *file, FUNC_NT) {
     setResultCore(result);
-    addAttributes(inter->data.object_name, false, name, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    addAttributes(inter->data.object_name, false, name, line, file, false, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return;
     freeResult(result);
 
-    addAttributes(inter->data.object_self, false, belong, line, file, false, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    addAttributes(inter->data.object_self, false, belong, line, file, false, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result) && belong->value->object.inherit != NULL) {
         freeResult(result);
         addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, line, file, false,
-                      CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+                      CFUNC_NT(var_list, result, belong));
     }
 }
 
 
-ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file, FUNC_NT) {
     LinkValue *_func_ = NULL;
     setResultCore(result);
     gc_addTmpLink(&from->gc_status);
     gc_addTmpLink(&index->gc_status);
 
-    _func_ = findAttributes(inter->data.object_down, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, from));
+    _func_ = findAttributes(inter->data.object_down, false, 0, "sys", true, CFUNC_NT(var_list, result, from));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -394,12 +394,12 @@ ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file,
         Argument *arg = NULL;
         gc_addTmpLink(&_func_->gc_status);
         arg = makeValueArgument(index);
-        callBackCore(_func_, arg, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, arg, line, file, 0, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
         freeArgument(arg, true);
     }
     else
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(subscript(__down__)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(subscript(__down__)), line, file, true, CFUNC_NT(var_list, result, belong));
 
     return_:
     gc_freeTmpLink(&from->gc_status);
@@ -407,76 +407,76 @@ ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file,
     return result->type;
 }
 
-ResultType getIter(LinkValue *value, int status, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+ResultType getIter(LinkValue *value, int status, fline line, char *file, FUNC_NT) {
     LinkValue *_func_ = NULL;
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
     if (status == 1)
-        _func_ = findAttributes(inter->data.object_iter, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+        _func_ = findAttributes(inter->data.object_iter, false, 0, "sys", true, CFUNC_NT(var_list, result, value));
     else
-        _func_ = findAttributes(inter->data.object_next, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+        _func_ = findAttributes(inter->data.object_next, false, 0, "sys", true, CFUNC_NT(var_list, result, value));
 
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
     if (_func_ != NULL){
         gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_func_, NULL, line, file, 0, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(iter), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(iter), line, file, true, CFUNC_NT(var_list, result, belong));
 
     return_:
     gc_freeTmpLink(&value->gc_status);
     return result->type;
 }
 
-bool checkBool(LinkValue *value, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
-    LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+bool checkBool(LinkValue *value, fline line, char *file, FUNC_NT){
+    LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, 0, "sys", true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         return false;
     if (_bool_ != NULL){
         gc_addTmpLink(&_bool_->gc_status);
-        callBackCore(_bool_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_bool_, NULL, line, file, 0, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&_bool_->gc_status);
         if (result->value->value->type != V_bool)
-            setResultError(E_TypeException, RETURN_ERROR(__bool__, bool), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, RETURN_ERROR(__bool__, bool), line, file, true, CFUNC_NT(var_list, result, belong));
         else
             return result->value->value->data.bool_.bool_;
     } else {
-        makeBoolValue(true, 0, "sys.bool", CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        makeBoolValue(true, 0, "sys.bool", CFUNC_NT(var_list, result, belong));
         return true;
     }
     return false;
 }
 
-wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST){
+wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, FUNC_NT){
     LinkValue *_repo_;
     wchar_t *re = NULL;
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
-    _repo_ = findAttributes(is_repo ? inter->data.object_repo : inter->data.object_str, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, value));
+    _repo_ = findAttributes(is_repo ? inter->data.object_repo : inter->data.object_str, false, 0, "sys", true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
 
     if (_repo_ != NULL){
         gc_addTmpLink(&_repo_->gc_status);
-        callBackCore(_repo_, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        callBackCore(_repo_, NULL, line, file, 0, CFUNC_NT(var_list, result, belong));
         gc_freeTmpLink(&_repo_->gc_status);
         if (!CHECK_RESULT(result))
             goto return_;
         else if (result->value->value->type != V_str){
-            setResultError(E_TypeException, OBJ_NOTSUPPORT(repo(str)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_TypeException, OBJ_NOTSUPPORT(repo(str)), line, file, true, CFUNC_NT(var_list, result, belong));
             goto return_;
         }
         re = result->value->value->data.str.str;
     }
     else
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(repo(str)), line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(repo(str)), line, file, true, CFUNC_NT(var_list, result, belong));
 
     return_:
     gc_freeTmpLink(&value->gc_status);
@@ -491,23 +491,23 @@ bool is_indexException(LinkValue *value, Inter *inter) {
     return value->value == inter->data.index_exc->value || checkAttribution(value->value, inter->data.index_exc->value);
 }
 
-bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, INTER_FUNCTIONSIG_NOT_ST) {
+bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, FUNC_NT) {
     if ((value == public_aut || (!pri_auto && value == auto_aut)) && (base != public_aut && base != auto_aut)) {
         if (name == NULL)
-            setResultError(E_PermissionsException, L"Wrong Permissions: access variables as public", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_PermissionsException, L"Wrong Permissions: access variables as public", line, file, true, CFUNC_NT(var_list, result, belong));
         else {
             wchar_t *message = memWidecat(L"Wrong Permissions: access variables as public: ", memStrToWcs(name, false), false, true);
-            setResultError(E_PermissionsException, message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_PermissionsException, message, line, file, true, CFUNC_NT(var_list, result, belong));
             memFree(message);
         }
         return false;
     }
     else if ((value == protect_aut) && (base == private_aut)) {
         if (name == NULL)
-            setResultError(E_PermissionsException, L"Wrong Permissions: access variables as protect", line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_PermissionsException, L"Wrong Permissions: access variables as protect", line, file, true, CFUNC_NT(var_list, result, belong));
         else {
             wchar_t *message = memWidecat(L"Wrong Permissions: access variables as protect: ", memStrToWcs(name, false), false, true);
-            setResultError(E_PermissionsException, message, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_PermissionsException, message, line, file, true, CFUNC_NT(var_list, result, belong));
             memFree(message);
         }
         return false;
@@ -522,11 +522,11 @@ LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
     return makeLinkValue(new_object, belong, inter);
 }
 
-static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, FUNC_NT) {
     LinkValue *_init_ = NULL;
     setResultCore(result);
 
-    _init_ = findAttributes(inter->data.object_init, false, 0, "sys", true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
+    _init_ = findAttributes(inter->data.object_init, false, 0, "sys", true, CFUNC_NT(var_list, result, obj));
     if (!CHECK_RESULT(result))
         return -1;
     freeResult(result);
@@ -534,7 +534,7 @@ static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, INTER
 
     if (_init_ == NULL) {
         if (arg != NULL) {
-            setResultError(E_ArgumentException, MANY_ARG, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, line, file, true, CFUNC_NT(var_list, result, belong));
             return 0;
         } else
             return 1;
@@ -542,17 +542,17 @@ static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, INTER
 
     gc_addTmpLink(&_init_->gc_status);
     _init_->belong = obj;
-    callBackCore(_init_, arg, 0, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj));
+    callBackCore(_init_, arg, 0, file, 0, CFUNC_NT(var_list, result, obj));
     gc_freeTmpLink(&_init_->gc_status);
 
     return CHECK_RESULT(result) ? 1 : -1;
 }
 
-int run_init(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+int run_init(LinkValue *obj, Argument *arg, fline line, char *file, FUNC_NT) {
     int return_;
     setResultCore(result);
 
-    return_ = init_new(obj, arg, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    return_ = init_new(obj, arg, line, file, CFUNC_NT(var_list, result, belong));
     if (return_ == 1) {
         freeResult(result);
         setResultOperation(result, obj);
@@ -560,31 +560,31 @@ int run_init(LinkValue *obj, Argument *arg, fline line, char *file, INTER_FUNCTI
     return return_;
 }
 
-bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, INTER_FUNCTIONSIG_NOT_ST) {
+bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, FUNC_NT) {
     LinkValue *bool_value = NULL;
     setResultCore(result);
-    makeBoolValue(value, line, file, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    makeBoolValue(value, line, file, CFUNC_NT(var_list, result, belong));
     if (!CHECK_RESULT(result))
         return false;
     bool_value = result->value;
     freeResult(result);
-    if (!addAttributes(var, false, bool_value, line, file, true, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, obj)))
+    if (!addAttributes(var, false, bool_value, line, file, true, CFUNC_NT(var_list, result, obj)))
         return false;
     freeResult(result);
     return true;
 }
 
-bool runVarFunc(LinkValue *var, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+bool runVarFunc(LinkValue *var, fline line, char *file, FUNC_NT) {
     setResultCore(result);
     if (var->value->type != V_func || !var->value->data.function.function_data.run)
         return false;
     gc_addTmpLink(&var->gc_status);
-    callBackCore(var, NULL, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    callBackCore(var, NULL, line, file, 0, CFUNC_NT(var_list, result, belong));
     gc_freeTmpLink(&var->gc_status);
     return true;
 }
 
-bool setVarFunc(LinkValue *var, LinkValue *new, fline line, char *file, INTER_FUNCTIONSIG_NOT_ST) {
+bool setVarFunc(LinkValue *var, LinkValue *new, fline line, char *file, FUNC_NT) {
     Argument *arg;
     setResultCore(result);
     if (var->value->type != V_func || !var->value->data.function.function_data.run)
@@ -593,7 +593,7 @@ bool setVarFunc(LinkValue *var, LinkValue *new, fline line, char *file, INTER_FU
     gc_addTmpLink(&new->gc_status);
 
     arg = makeValueArgument(new);
-    callBackCore(var, arg, line, file, 0, CALL_INTER_FUNCTIONSIG_NOT_ST(var_list, result, belong));
+    callBackCore(var, arg, line, file, 0, CFUNC_NT(var_list, result, belong));
     freeArgument(arg, true);
 
     gc_freeTmpLink(&var->gc_status);

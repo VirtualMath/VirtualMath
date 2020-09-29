@@ -13,7 +13,7 @@
  * @param is_right 表达式是否从右运算到左
  */
 
-inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
+inline void twoOperation(P_FUNC, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                          int call_type, int self_type, char *call_name, char *self_name, bool is_right) {
     bool is_right_ = false;
     while(true){
@@ -23,7 +23,7 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         long int line;
 
         if (readBackToken(pm) != self_type) {
-            if (!callChildStatement(CALLPASERSSIGNATURE, callBack, call_type, &st, NULL))
+            if (!callChildStatement(CP_FUNC, callBack, call_type, &st, NULL))
                 goto return_;
             addStatementToken(self_type, st, pm);
             continue;
@@ -31,19 +31,19 @@ inline void twoOperation(PASERSSIGNATURE, PasersFunction callBack, GetSymbolFunc
         left_token = popNewToken(pm->tm);
         line = left_token->line;
 
-        if (getSymbol(CALLPASERSSIGNATURE, readBackToken(pm), &st))
+        if (getSymbol(CP_FUNC, readBackToken(pm), &st))
             delToken(pm);
         else{
             backToken_(pm, left_token);
             goto return_;
         }
 
-        if (checkleft != NULL && !checkleft(CALLPASERSSIGNATURE, left_token->data.st)) {
+        if (checkleft != NULL && !checkleft(CP_FUNC, left_token->data.st)) {
             freeToken(left_token, true);
             goto return_;
         }
 
-        callBack(CALLPASERSSIGNATURE);  // 获得右值
+        callBack(CP_FUNC);  // 获得右值
         if (!call_success(pm) || readBackToken(pm) != call_type){  // 若非正确数值
             syntaxError(pm, syntax_error, line, 5, "ERROR from ", self_name, "(get right ", call_name, ")");
             freeToken(left_token, true);
@@ -107,10 +107,10 @@ bool checkToken(ParserMessage *pm, int type){
     return true;
 }
 
-bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type, Statement **st, bool must_operation, char *error_message) {
+bool commandCallControl_(P_FUNC, MakeControlFunction callBack, int type, Statement **st, bool must_operation, char *error_message) {
     Token *tmp_token = NULL;
     *st = NULL;
-    parserControl(CALLPASERSSIGNATURE, callBack, type, must_operation, error_message);
+    parserControl(CP_FUNC, callBack, type, must_operation, error_message);
     if (!call_success(pm) || readBackToken(pm) != type)
         return false;
     tmp_token = popNewToken(pm->tm);
@@ -118,10 +118,10 @@ bool commandCallControl_(PASERSSIGNATURE, MakeControlFunction callBack, int type
     freeToken(tmp_token, false);
     return true;
 }
-bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int line) {
+bool callParserCode(P_FUNC, Statement **st, char *message, long int line) {
     Token *tmp;
     *st = NULL;
-    parserCode(CALLPASERSSIGNATURE);
+    parserCode(CP_FUNC);
     if (!call_success(pm) || readBackToken(pm) != CODE) {
         if (message != NULL)
             syntaxError(pm, syntax_error, line, 1, message);
@@ -133,19 +133,19 @@ bool callParserCode(PASERSSIGNATURE, Statement **st, char *message, long int lin
     return true;
 }
 
-bool callParserAs(PASERSSIGNATURE, Statement **st,char *message){
+bool callParserAs(P_FUNC, Statement **st, char *message){
     *st = NULL;
     if (readBackToken(pm) == MATHER_AS) {
         delToken(pm);
-        return callChildStatement(CALLPASERSSIGNATURE, parserOperation, OPERATION, st, message);
+        return callChildStatement(CP_FUNC, parserOperation, OPERATION, st, message);
     }
     return true;
 }
 
-bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **tmp, char *message,
+bool callChildToken(P_FUNC, PasersFunction callBack, int type, Token **tmp, char *message,
                     int error_type) {
     *tmp = NULL;
-    callBack(CALLPASERSSIGNATURE);
+    callBack(CP_FUNC);
     if (!call_success(pm) || readBackToken(pm) != type) {
         if (message != NULL) {
             *tmp = popNewToken(pm->tm);
@@ -158,10 +158,10 @@ bool callChildToken(PASERSSIGNATURE, PasersFunction callBack, int type, Token **
     return true;
 }
 
-bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Statement **st, char *message){
+bool callChildStatement(P_FUNC, PasersFunction callBack, int type, Statement **st, char *message){
     Token *tmp = NULL;
     *st = NULL;
-    bool status = callChildToken(CALLPASERSSIGNATURE, callBack, type, &tmp, message, syntax_error);
+    bool status = callChildToken(CP_FUNC, callBack, type, &tmp, message, syntax_error);
     if (!status)
         return false;
     *st = tmp->data.st;
@@ -197,8 +197,8 @@ bool callChildStatement(PASERSSIGNATURE, PasersFunction callBack, int type, Stat
  * @param ass 设定赋值符号
  * @return
  */
-bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict,
-                int sep, int ass, int n_sep) {
+bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict,
+                     int sep, int ass, int n_sep) {
     Parameter *new_pt = NULL;
     Token *tmp;
     bool last_pt = false;
@@ -226,7 +226,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
         else if (!is_list && checkToken(pm, MATHER_POW))  // is_formal关闭对*args的支持
             status = s_4;
 
-        parserPolynomial(CALLPASERSSIGNATURE);
+        parserPolynomial(CP_FUNC);
         if (!call_success(pm))
             goto error_;
         if (readBackToken(pm) != POLYNOMIAL) {
@@ -271,7 +271,7 @@ bool parserParameter(PASERSSIGNATURE, Parameter **pt, bool enter, bool is_formal
             new_pt = connectValueParameter(tmp->data.st, new_pt, is_sep == 1);
         else if (pt_type == name_par){
             Statement *tmp_value;
-            if (!callChildStatement(CALLPASERSSIGNATURE, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
+            if (!callChildStatement(CP_FUNC, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
                 goto error_;
             new_pt = connectNameParameter(tmp_value, tmp->data.st, new_pt);
             if (!checkToken(pm, sep))
