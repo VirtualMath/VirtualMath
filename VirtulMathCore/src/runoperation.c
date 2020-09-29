@@ -115,7 +115,7 @@ ResultType pointOperation(FUNC) {
         goto return_;
     }
     gc_freeze(inter, var_list, object, true);
-    operationSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));
+    operationSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));  // 点运算运算时需要调整belong为点的左值
     if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, false, CFUNC_NT(var_list, result, belong)))
         PASS;
     else if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))

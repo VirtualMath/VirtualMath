@@ -10,8 +10,8 @@ LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, FUNC_NT);
 bool iterNameFunc(NameFunc *list, FUNC_NT);
 bool iterClassFunc(NameFunc *list, FUNC_NT);
 
-void iterBaseNameFunc(NameFunc *list, struct LinkValue *father, FUNC_CORE);
-void iterBaseClassFunc(NameFunc *list, LinkValue *father, FUNC_CORE);
+void iterBaseNameFunc(NameFunc *list, struct LinkValue *belong, FUNC_CORE);
+void iterBaseClassFunc(NameFunc *list, LinkValue *belong, FUNC_CORE);
 LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter);
 
 bool checkIndex(vnum *index, const vnum *size, FUNC_NT);

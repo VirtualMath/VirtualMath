@@ -8,8 +8,10 @@
  * @return
  */
 ResultType runStatement(FUNC) {
-    setResultCore(result);
     ResultType type = R_not;
+    setResultCore(result);
+    gc_addTmpLink(&belong->gc_status);
+
     switch (st->type) {
         case base_value:
             type = getBaseValue(CFUNC(st, var_list, result, belong));
@@ -110,7 +112,8 @@ ResultType runStatement(FUNC) {
         result->value->aut = st->aut;
     result->node = st;
 #if START_GC
-    gc_run(inter, var_list, 1, 0, 0, var_list);
+    gc_freeTmpLink(&belong->gc_status);
+    gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
 #endif
     return type;
 }
@@ -159,6 +162,7 @@ ResultType iterStatement(FUNC) {
 
     is_KeyInterrupt = signal_reset;
     bak = signal(SIGINT, signalStopInter);
+    gc_addTmpLink(&belong->gc_status);
     do {
         base = st;
         if (checkSignal(base->line, base->code_file, CFUNC_NT(var_list, result, belong))) {
@@ -190,7 +194,8 @@ ResultType iterStatement(FUNC) {
     result->node = base;
 
 #if START_GC
-    gc_run(inter, var_list, 1, 0, 0, var_list);
+    gc_freeTmpLink(&belong->gc_status);
+    gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
 #endif
     signal(SIGINT, bak);
     return result->type;
@@ -249,9 +254,8 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
 
 #if START_GC
     gc_freeTmpLink(&belong->gc_status);
-    gc_run(inter, var_list, 1, 0, 0, var_list);
+    gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
 #endif
-
     signal(SIGINT, bak);
     return result->type;
 }

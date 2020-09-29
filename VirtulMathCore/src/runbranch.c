@@ -627,7 +627,7 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
             return -1;
         }
 
-        callBackCore(*_enter_, NULL, line, file, 0, CFUNC_NT(var_list, result, *value));
+        callBackCore(*_enter_, NULL, line, file, 0, CFUNC_NT(var_list, result, belong));
         if (!CHECK_RESULT(result))
             return 0;
 
@@ -678,7 +678,7 @@ ResultType withBranch(FUNC) {
     LinkValue *_enter_ = NULL;
     LinkValue *_exit_ = NULL;
     LinkValue *value = NULL;
-    LinkValue *with_belong = NULL;
+    LinkValue *with_belong = NULL;  // with在运行的时候调整belong, 就类似于定义class的时候调整belong
     bool set_result = true;
     bool run_block = true;
     bool run_exit = true;
@@ -761,7 +761,7 @@ ResultType withBranch(FUNC) {
             Result exit_tmp;
             setResultCore(&exit_tmp);
 
-            callBackCore(_exit_, NULL, st->line, st->code_file, 0, CFUNC_NT(var_list, &exit_tmp, value));
+            callBackCore(_exit_, NULL, st->line, st->code_file, 0, CFUNC_NT(var_list, &exit_tmp, belong));
             if (!RUN_TYPE(exit_tmp.type)) {
                 if (!set_result)
                     freeResult(result);

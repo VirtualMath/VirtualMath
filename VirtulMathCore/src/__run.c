@@ -228,7 +228,6 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
                         break;
                     }
             }
-
             if (self != NULL) {  // 若检查到class
                 tmp = makeValueArgument(self);
                 tmp->next = *arg;
@@ -290,11 +289,11 @@ LinkValue *checkStrVar(wchar_t *name, bool free_old, FUNC_CORE){
     return tmp;
 }
 
-static void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, LinkValue *value, fline line, char *file, VarList *out_var, FUNC_NT) {
-    addFromVarList(var_name, name_, 0, value, CFUNC_CORE(var_list));
+static void addStrVarCore(int setting, wchar_t *var_name, LinkValue *name_, fline line, char *file, VarList *out_var, FUNC_NT) {
+    addFromVarList(var_name, name_, 0, belong, CFUNC_CORE(var_list));
     out_var = out_var == NULL ? var_list : out_var;
     if (setting)
-        newObjectSetting(name_, line, file, value, result, inter, out_var);
+        newObjectSetting(name_, line, file, belong, result, inter, out_var);
     else
         setResult(result, inter);
 }
@@ -303,6 +302,7 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
     LinkValue *name_;
     wchar_t *var_name = setStrVarName(name, free_old, inter);
     setResultCore(result);
+    gc_addTmpLink(&value->gc_status);
 
     if (run) {
         LinkValue *tmp = findFromVarList(name, 0, read_var, CFUNC_CORE(var_list));
@@ -317,17 +317,18 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
     name_ = result->value;
     result->value = NULL;
     freeResult(result);
-    addStrVarCore(setting, var_name, name_, value, line, file, NULL, CFUNC_NT(var_list, result, belong));
+    addStrVarCore(setting, var_name, name_, line, file, NULL, CFUNC_NT(var_list, result, value));
     gc_freeTmpLink(&name_->gc_status);
 
     return_:
+    gc_freeTmpLink(&value->gc_status);
     memFree(var_name);
 }
 
-LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT) {  // TODO-szh 处理调用该函数的地方释放result
+LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT) {
     LinkValue *attr;
     gc_freeze(inter, var_list, belong->value->object.var, true);
-    attr = findStrVar(name, free_old, line, file, false, CFUNC_NT(belong->value->object.var, result, belong));  // TODO-szh 重新启动
+    attr = findStrVar(name, free_old, line, file, nowrun, CFUNC_NT(belong->value->object.var, result, belong));
     if (attr != NULL && (attr->belong == NULL || attr->belong->value != belong->value && checkAttribution(belong->value, attr->belong->value)))
         attr->belong = belong;
     gc_freeze(inter, var_list, belong->value->object.var, false);
@@ -354,7 +355,7 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
     freeResult(result);
 
     gc_freeze(inter, var_list, belong->value->object.var, true);
-    addStrVarCore(false, var_name, name_, value, line, file, var_list, CFUNC_NT(belong->value->object.var, result, belong));
+    addStrVarCore(false, var_name, name_, line, file, var_list, CFUNC_NT(belong->value->object.var, result, value));
     gc_freeze(inter, var_list, belong->value->object.var, false);
 
     gc_freeTmpLink(&name_->gc_status);

@@ -275,17 +275,17 @@ ResultType importFile(FUNC) {
     return result->type;
 }
 
-static ResultType importParameter(fline line, char *file, Parameter *call_pt, Parameter *func_pt, VarList *func_var, LinkValue *func_belong, FUNC_NT) {
+static ResultType importParameter(fline line, char *file, Parameter *call_pt, Parameter *func_pt, VarList *func_var, LinkValue *imp_belong, FUNC_NT) {
     Argument *call = NULL;
     setResultCore(result);
-    call = getArgument(call_pt, false, CFUNC_NT(var_list, result, belong));
+    call = getArgument(call_pt, false, CFUNC_NT(var_list, result, imp_belong));
     if (!CHECK_RESULT(result)) {
         freeArgument(call, false);
         return result->type;
     }
 
     freeResult(result);
-    setParameterCore(line, file, call, func_pt, func_var, CFUNC_NT(var_list, result, func_belong));
+    setParameterCore(line, file, call, func_pt, func_var, CFUNC_NT(var_list, result, belong));
     freeArgument(call, false);
     return result->type;
 }
@@ -332,7 +332,7 @@ ResultType fromImportFile(FUNC) {
 
     freeResult(result);
     if (pt != NULL) {
-        importParameter(st->line, st->code_file, pt, as, var_list, belong, CFUNC_NT(imp_var, result, imp_value));
+        importParameter(st->line, st->code_file, pt, as, var_list, imp_value, CFUNC_NT(imp_var, result, belong));
         if (!CHECK_RESULT(result)) {
             gc_freeTmpLink(&imp_value->gc_status);
             goto return_;

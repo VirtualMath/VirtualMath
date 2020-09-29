@@ -614,8 +614,7 @@ bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_lis
         gc_addTmpLink(&_del_->gc_status);
         if (_del_->belong == NULL || _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value))
             _del_->belong = makeLinkValue(object_value, inter->base_belong, inter);
-        callBackCore(_del_, NULL, 0, "sys", 0,
-                     CFUNC_NT(var_list, result, inter->base_belong));
+        callBackCore(_del_, NULL, 0, "sys", 0, CFUNC_NT(var_list, result, inter->base_belong));
         gc_freeTmpLink(&_del_->gc_status);
         return true;
     } else

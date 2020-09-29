@@ -24,6 +24,7 @@ ResultType setClass(FUNC) {
         tmp->value->object.var->next = var_list;
 
         gc_freeze(inter, var_backup, NULL, true);
+        // 运行类定义的时候需要调整belong
         functionSafeInterStatement(CFUNC(st->u.set_class.st, tmp->value->object.var, result, tmp));
         gc_freeze(inter, var_backup, NULL, false);
 
@@ -73,6 +74,7 @@ ResultType setFunction(FUNC) {
         VarList *var_backup = func->value->object.var->next;
         inter->data.default_pt_type = object_free_;
         func->value->object.var->next = var_list;
+        // 运行函数初始化模块的时候需要调整belong
         functionSafeInterStatement(CFUNC(st->u.set_function.first_do, func->value->object.var, result, func));
         func->value->object.var->next = var_backup;
         inter->data.default_pt_type = pt_type_bak;
@@ -241,7 +243,7 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
     gc_freeze(inter, var_list, function_var, true);
 
     freeResult(result);
-    of(CO_FUNC(arg, function_var, result, function_value->belong));
+    of(CO_FUNC(arg, function_var, result, function_value));
     if (result->type == R_func)
         result->type = R_opt;
     else if (result->type != R_opt && result->type != R_error)
@@ -320,7 +322,7 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
     freeResult(result);
 
     gc_addTmpLink(&var_func->hashtable->gc_status);
-    setParameterCore(line, file, arg, pt_func, var_func, CFUNC_NT(var_list, result, func_value->belong));
+    setParameterCore(line, file, arg, pt_func, var_func, CFUNC_NT(var_list, result, func_value));
     freeFunctionArgument(arg, bak);
     gc_freeTmpLink(&var_func->hashtable->gc_status);
 
@@ -328,7 +330,7 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
         goto return_;
 
     freeResult(result);
-    functionSafeInterStatement(CFUNC(st_func, var_func, result, func_value->belong));
+    functionSafeInterStatement(CFUNC(st_func, var_func, result, func_value));  // 运行函数的时候, belong调整为函数本身
 
     return_:
     gc_freeze(inter, var_list, var_func, false);

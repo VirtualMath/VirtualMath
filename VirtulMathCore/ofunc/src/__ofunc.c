@@ -51,18 +51,18 @@ bool iterClassFunc(NameFunc *list, FUNC_NT){
     return return_;
 }
 
-void iterBaseNameFunc(NameFunc *list, LinkValue *father, FUNC_CORE){
+void iterBaseNameFunc(NameFunc *list, LinkValue *belong, FUNC_CORE){
     Result result;
     setResultCore(&result);
-    if (!iterNameFunc(list, CFUNC_NT(var_list, &result, father)))
+    if (!iterNameFunc(list, CFUNC_NT(var_list, &result, belong)))
         printError(&result, inter, true);
     freeResult(&result);
 }
 
-void iterBaseClassFunc(NameFunc *list, LinkValue *father, FUNC_CORE){
+void iterBaseClassFunc(NameFunc *list, LinkValue *belong, FUNC_CORE){
     Result result;
     setResultCore(&result);
-    if (!iterClassFunc(list, CFUNC_NT(var_list, &result, father)))
+    if (!iterClassFunc(list, CFUNC_NT(var_list, &result, belong)))
         printError(&result, inter, true);
     freeResult(&result);
 }
