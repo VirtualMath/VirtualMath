@@ -5,7 +5,7 @@ ResultType vm_print(O_FUNC){
                            {.type=name_value, .name=L"end", .must=0, .value=NULL},
                            {.must=-1}};
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -13,7 +13,7 @@ ResultType vm_print(O_FUNC){
     arg = ap[0].arg;
     for (int i=0; i < ap[0].c_count; arg = arg->next,i++){
         freeResult(result);
-        wchar_t *tmp = getRepoStr(arg->data.value, true, 0, "sys", CFUNC_NT(var_list, result, belong));
+        wchar_t *tmp = getRepoStr(arg->data.value, true, LINEFILE, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
         if (i != 0)
@@ -36,7 +36,7 @@ ResultType vm_input(O_FUNC){
                            {.must=-1}};
     wchar_t *str = memWidecpy(L"\0");
     wint_t ch;
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -47,7 +47,7 @@ ResultType vm_input(O_FUNC){
     while ((ch = fgetwc(inter->data.inter_stdin)) != '\n' && ch != WEOF)
         str = memWideCharcpy(str, 1, true, true, ch);
 
-    makeStringValue(str, 0, "sys", CFUNC_NT(var_list, result, belong));
+    makeStringValue(str, LINEFILE, CNEXT_NT);
     memFree(str);
     return result->type;
 }

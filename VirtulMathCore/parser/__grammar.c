@@ -45,7 +45,7 @@ inline void twoOperation(P_FUNC, PasersFunction callBack, GetSymbolFunction getS
 
         callBack(CP_FUNC);  // 获得右值
         if (!call_success(pm) || readBackToken(pm) != call_type){  // 若非正确数值
-            syntaxError(pm, syntax_error, line, 5, "ERROR from ", self_name, "(get right ", call_name, ")");
+            syntaxError(pm, syntax_error, line, LINEFILE);
             freeToken(left_token, true);
             freeStatement(st);
             goto return_;
@@ -93,9 +93,9 @@ int readBackToken(ParserMessage *pm){
     Token *tmp = popNewToken(pm->tm);
     int type = tmp->token_type;
     if (type == -2)
-        syntaxError(pm, lexical_error, tmp->line, 1, "lexical make some error");
+        syntaxError(pm, lexical_error, tmp->line, LINEFILE);
     else if (type == -3)
-        syntaxError(pm, int_error, tmp->line, 1, "KeyInterrupt");
+        syntaxError(pm, int_error, tmp->line, LINEFILE);
     addBackToken(pm->tm->ts, tmp);
     return type;
 }
@@ -232,7 +232,7 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
         if (readBackToken(pm) != POLYNOMIAL) {
             if (status == s_3) {
                 long int line = pm->tm->ts->token_list->line;
-                syntaxError(pm, syntax_error, line, 1, "Don't get a parameter after *");
+                syntaxError(pm, syntax_error, line, LINEFILE);
                 goto error_;
             }
             break;

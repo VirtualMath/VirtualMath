@@ -8,7 +8,7 @@ ResultType vm_super(O_FUNC){
                            {.type=name_value, .name=L"obj_", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -21,7 +21,7 @@ ResultType vm_super(O_FUNC){
             result->type = R_opt;
             gc_addTmpLink(&result->value->gc_status);
         } else
-            setResultError(E_SuperException, L"Object has no next father", 0, "super", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_SuperException, L"Object has no next father", LINEFILE, true, CNEXT_NT);
         return result->type;
     }
 
@@ -39,7 +39,7 @@ ResultType vm_super(O_FUNC){
         gc_addTmpLink(&result->value->gc_status);
     }
     else
-        setResultError(E_SuperException, L"Object has no next father", 0, "super", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_SuperException, L"Object has no next father", LINEFILE, true, CNEXT_NT);
 
     return result->type;
 }
@@ -49,7 +49,7 @@ ResultType vm_setNowRunCore(O_FUNC, bool type){
     ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
     setResultCore(result);
     {
-        parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+        parserArgumentUnion(ap, arg, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
         freeResult(result);
@@ -67,7 +67,7 @@ ResultType vm_setMethodCore(O_FUNC, enum FunctionPtType type){
     ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
     setResultCore(result);
     {
-        parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+        parserArgumentUnion(ap, arg, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
         freeResult(result);
@@ -130,9 +130,9 @@ ResultType vm_disnowrun(O_FUNC){
 
 ResultType vm_quit(O_FUNC){
     if (arg != NULL)
-        setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
     else
-        setResultError(E_QuitException, L"VirtualMath Quit", 0, "sys", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_QuitException, L"VirtualMath Quit", LINEFILE, true, CNEXT_NT);
     return R_error;
 }
 

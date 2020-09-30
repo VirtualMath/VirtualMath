@@ -8,12 +8,12 @@ ResultType object_new(O_FUNC){
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "object.new", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
     value = make_new(inter, belong, ap[0].value);
-    run_init(value, arg, 0, "obj.new", CFUNC_NT(var_list, result, belong));
+    run_init(value, arg, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -25,19 +25,19 @@ ResultType objectRepoStrCore(O_FUNC, bool is_repo){
     wchar_t *type;
     LinkValue *name_value;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
-    name_value = findAttributes(inter->data.object_name, false, 0, "sys", true, CFUNC_NT(var_list, result, ap[0].value));
+    name_value = findAttributes(inter->data.object_name, false, LINEFILE, true, CFUNC_NT(var_list, result, ap[0].value));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (name_value != NULL){
         gc_addTmpLink(&name_value->gc_status);
-        name = getRepoStr(name_value, is_repo, 0, "sys", CFUNC_NT(var_list, result, belong));
+        name = getRepoStr(name_value, is_repo, LINEFILE, CNEXT_NT);
         gc_freeTmpLink(&name_value->gc_status);
         if (!CHECK_RESULT(result))
             return result->type;
@@ -58,7 +58,7 @@ ResultType objectRepoStrCore(O_FUNC, bool is_repo){
         swprintf(repo, len, L"(%ls: %ls on %p)", type, name, ap[0].value->value);
     }
 
-    makeStringValue(repo, 0, "object.repo", CFUNC_NT(var_list, result, belong));
+    makeStringValue(repo, LINEFILE, CNEXT_NT);
     memFree(repo);
     return result->type;
 }

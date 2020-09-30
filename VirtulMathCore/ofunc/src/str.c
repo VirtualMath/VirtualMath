@@ -8,7 +8,7 @@ ResultType str_new(O_FUNC){
     setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "str.new", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     freeResult(result);
@@ -16,7 +16,7 @@ ResultType str_new(O_FUNC){
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_str;
     value->value->data.str.str = memWidecpy(L"");
-    run_init(value, arg, 0, "str.new", CFUNC_NT(var_list, result, belong));
+    run_init(value, arg, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -27,14 +27,14 @@ ResultType str_init(O_FUNC){
     LinkValue *base;
     wchar_t *str = NULL;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     base = ap[0].value;
     if (ap[1].value != NULL){
-        str = getRepoStr(ap[1].value, false, 0, "str.init", CFUNC_NT(var_list, result, belong));
+        str = getRepoStr(ap[1].value, false, LINEFILE, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
         memFree(base->value->data.str.str);
@@ -55,13 +55,13 @@ ResultType str_slice(O_FUNC){
     vnum second;
     vnum stride;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (ap[0].value->value->type != V_str) {
-        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     size = memWidelen(ap[0].value->value->data.str.str);
@@ -73,19 +73,19 @@ ResultType str_slice(O_FUNC){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
-            setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), 0, "str", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), LINEFILE, true, CNEXT_NT);
             return R_error;
         }
     }
 
-    if (!checkSlice(&first, &second, &stride, size, CFUNC_NT(var_list, result, belong)))
+    if (!checkSlice(&first, &second, &stride, size, CNEXT_NT))
         return result->type;
 
     {
         wchar_t *str = NULL;
         for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride)
             str = memWideCharcpy(str, 1, true, true, ap[0].value->value->data.str.str[i]);
-        makeStringValue(str, 0, "str.slice", CFUNC_NT(var_list, result, belong));
+        makeStringValue(str, LINEFILE, CNEXT_NT);
         memFree(str);
     }
     return result->type;
@@ -99,26 +99,26 @@ ResultType str_down(O_FUNC){
     vnum index;
     wchar_t element[2] = {};
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (ap[0].value->value->type != V_str){
-        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     if (ap[1].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(str index, V_num), 0, "str", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, ONLY_ACC(str index, V_num), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
     size = memWidelen(ap[0].value->value->data.str.str);
     index = ap[1].value->value->data.num.num;
-    if (!checkIndex(&index, &size, CFUNC_NT(var_list, result, belong)))
+    if (!checkIndex(&index, &size, CNEXT_NT))
         return result->type;
     *element = ap[0].value->value->data.str.str[index];
-    makeStringValue(element, 0, "str.down", CFUNC_NT(var_list, result, belong));
+    makeStringValue(element, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -127,13 +127,13 @@ ResultType str_to_list(O_FUNC){
                            {.must=-1}};
     vnum size;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     if (ap[0].value->value->type != V_str){
-        setResultError(E_TypeException, INSTANCE_ERROR(str), 0, "str", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(str), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     size = memWidelen(ap[0].value->value->data.str.str);
@@ -143,11 +143,11 @@ ResultType str_to_list(O_FUNC){
         for (vnum i = 0; i < size; i ++) {
             wchar_t str[2] = {};
             str[0] = ap[0].value->value->data.str.str[i];
-            makeStringValue(str, 0, "str.to_list", CFUNC_NT(var_list, result, belong));
+            makeStringValue(str, LINEFILE, CNEXT_NT);
             new_list = connectValueArgument(result->value, new_list);
             freeResult(result);
         }
-        makeListValue(new_list, 0, "str", L_list, CFUNC_NT(var_list, result, belong));
+        makeListValue(new_list, LINEFILE, L_list, CNEXT_NT);
         freeArgument(new_list, true);
     }
     return result->type;
@@ -158,27 +158,27 @@ ResultType str_iter(O_FUNC){
                            {.must=-1}};
     LinkValue *to_list = NULL;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
-    to_list = findAttributes(L"to_list", false, 0, "str", true, CFUNC_NT(var_list, result, ap[0].value));
+    to_list = findAttributes(L"to_list", false, LINEFILE, true, CFUNC_NT(var_list, result, ap[0].value));
     if (!CHECK_RESULT(result))
         return result->type;
     if (to_list == NULL){
-        setResultError(E_TypeException, L"String cannot be converted to list", 0, "str", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, L"String cannot be converted to list", LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     gc_addTmpLink(&to_list->gc_status);
-    callBackCore(to_list, NULL, 0, "str", 0, CFUNC_NT(var_list, result, belong));
+    callBackCore(to_list, NULL, LINEFILE, 0, CNEXT_NT);
     gc_freeTmpLink(&to_list->gc_status);
     if (CHECK_RESULT(result)) {
         LinkValue *str_list = NULL;
         str_list = result->value;
         result->value = NULL;
         freeResult(result);
-        getIter(str_list, 1, 0, "str", CFUNC_NT(var_list, result, belong));
+        getIter(str_list, 1, LINEFILE, CNEXT_NT);
         gc_freeTmpLink(&str_list->gc_status);
     }
     return result->type;

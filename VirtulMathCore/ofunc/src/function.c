@@ -14,7 +14,7 @@ ResultType function_new(O_FUNC){
     setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "func.new", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
@@ -32,7 +32,7 @@ ResultType function_new(O_FUNC){
     value->value->data.function.of = NULL;
     setFunctionData(value->value, ap->value, inter);
 
-    run_init(value, arg, 0, "func.new", CFUNC_NT(var_list, result, belong));
+    run_init(value, arg, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -42,19 +42,19 @@ ResultType function_init(O_FUNC){
                            {.must=-1}};
     LinkValue *func;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
     if ((func = ap[0].value)->value->type != V_func) {
-        setResultError(E_TypeException, INSTANCE_ERROR(func), 0, "func", true,
-                       CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, INSTANCE_ERROR(func), LINEFILE, true,
+                       CNEXT_NT);
         return R_error;
     }
 
     if (ap[1].value != NULL) {
-        Statement *return_ = makeBaseLinkValueStatement(ap[1].value, 0, "sys");
-        func->value->data.function.function = makeReturnStatement(return_, 0, "sys");
+        Statement *return_ = makeBaseLinkValueStatement(ap[1].value, LINEFILE);
+        func->value->data.function.function = makeReturnStatement(return_, LINEFILE);
         func->value->data.function.function_data.pt_type = free_;
         func->value->data.function.type = vm_func;
     }
@@ -90,8 +90,8 @@ void functionPresettingLast(LinkValue *func, LinkValue *func_new, LinkValue *fun
     VarList *object_var = func->value->object.var;
     setResultCore(&result);
 
-    addStrVar(inter->data.object_new, false, true, func_new, 0, "sys", false, CFUNC_NT(object_var, &result, func));
+    addStrVar(inter->data.object_new, false, true, func_new, LINEFILE, false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
-    addStrVar(inter->data.object_init, false, true, func_init, 0, "sys", false, CFUNC_NT(object_var, &result, func));
+    addStrVar(inter->data.object_init, false, true, func_init, LINEFILE, false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
 }

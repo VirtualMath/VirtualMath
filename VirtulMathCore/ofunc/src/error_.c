@@ -12,11 +12,11 @@ ResultType base_exception_init(O_FUNC){
                            {.type=name_value, .name=L"message", .must=0, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    if (addAttributes(inter->data.object_message, false, ap[1].value, 0, "BaseException.init", true,
+    if (addAttributes(inter->data.object_message, false, ap[1].value, LINEFILE, true,
                       CFUNC_NT(var_list, result, ap[0].value)))
         setResult(result, inter);
     return result->type;

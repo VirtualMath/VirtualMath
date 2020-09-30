@@ -7,7 +7,7 @@ ResultType num_new(O_FUNC){
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "num", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
@@ -15,7 +15,7 @@ ResultType num_new(O_FUNC){
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_num;
     value->value->data.num.num = 0;
-    run_init(value, arg, 0, "num.new", CFUNC_NT(var_list, result, belong));
+    run_init(value, arg, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -25,7 +25,7 @@ ResultType num_init(O_FUNC){
                            {.must=-1}};
     LinkValue *base = NULL;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -48,7 +48,7 @@ ResultType num_init(O_FUNC){
             base->value->data.num.num = 0;
             break;
         default:
-            setResultError(E_TypeException, ERROR_INIT(num), 0, "num", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_TypeException, ERROR_INIT(num), LINEFILE, true, CNEXT_NT);
             return result->type;
     }
 

@@ -2,11 +2,11 @@
 
 LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, FUNC_NT) {
     LinkValue *value = NULL;
-    makeCFunctionValue(of, 0, "sys", CFUNC_NT(var_list, result, belong));
+    makeCFunctionValue(of, LINEFILE, CNEXT_NT);
     value = result->value;
     result->value = NULL;
     freeResult(result);
-    addStrVar(name, false, true, value, 0, "sys", false, CFUNC_NT(var_list, result, belong));
+    addStrVar(name, false, true, value, LINEFILE, false, CNEXT_NT);
     gc_freeTmpLink(&value->gc_status);
     return value;
 }
@@ -14,7 +14,7 @@ LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, FUNC_NT) {
 bool iterNameFunc(NameFunc *list, FUNC_NT){
     setResultCore(result);
     for (PASS; list->of != NULL; list++) {
-        LinkValue *value = registeredFunctionCore(list->of, list->name, CFUNC_NT(var_list, result, belong));
+        LinkValue *value = registeredFunctionCore(list->of, list->name, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return false;
         value->value->data.function.function_data.pt_type = list->type;
@@ -86,10 +86,10 @@ bool checkIndex(vnum *index, const vnum *size, FUNC_NT){
     if (*index < 0)
         *index = *size + *index;
     if (*index >= *size){
-        setResultError(E_IndexException, L"Index too max", 0, "sys", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_IndexException, L"Index too max", LINEFILE, true, CNEXT_NT);
         return false;
     } else if (*index < 0){
-        setResultError(E_IndexException, L"Index is less than 0", 0, "sys", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_IndexException, L"Index is less than 0", LINEFILE, true, CNEXT_NT);
         return false;
     }
     return true;  // true - 保持result为setResultCore的结果
@@ -100,15 +100,15 @@ bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, FUNC_N
     *first = *first < 0 ? *first + size : *first;
     *second = *second < 0 ? *second + size : *second;
     if (*second > size || *first >= size){
-        setResultError(E_IndexException, L"Index too max", 0, "sys", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_IndexException, L"Index too max", LINEFILE, true, CNEXT_NT);
         return false;
     } else if (*first < 0 || *second <= 0){
-        setResultError(E_IndexException, L"Index is less than 0", 0, "sys", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_IndexException, L"Index is less than 0", LINEFILE, true, CNEXT_NT);
         return false;
     }
 
     if (*stride == 0 || *first > *second && stride > 0 || *first < *second && stride < 0){
-        setResultError(E_StrideException, L"Stride is 0 or Unfinished iteration", 0, "sys", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_StrideException, L"Stride is 0 or Unfinished iteration", LINEFILE, true, CNEXT_NT);
         return false;
     }
     return true;
@@ -117,7 +117,7 @@ bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, FUNC_N
 void addBaseClassVar(wchar_t *name, LinkValue *obj, LinkValue *belong, Inter *inter) {
     Result result;
     setResultCore(&result);
-    addStrVar(name, false, true, obj, 0, "sys", false, CFUNC_NT(inter->var_list, &result, belong));
+    addStrVar(name, false, true, obj, LINEFILE, false, CFUNC_NT(inter->var_list, &result, belong));
     if (!RUN_TYPE(result.type))
         printError(&result, inter, true);
     freeResult(&result);
@@ -126,7 +126,7 @@ void addBaseClassVar(wchar_t *name, LinkValue *obj, LinkValue *belong, Inter *in
 void newObjectSettingPresetting(LinkValue *func, LinkValue *name, Inter *inter) {
     Result result;
     setResultCore(&result);
-    newObjectSetting(name, 0, "sys", func, &result, inter, NULL);
+    newObjectSetting(name, LINEFILE, func, &result, inter, NULL);
     if (RUN_TYPE(result.type))
         printError(&result, inter, true);
     freeResult(&result);

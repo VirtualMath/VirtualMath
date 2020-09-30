@@ -5,28 +5,28 @@ typedef void (*base_opt)(LinkValue *, Result *, struct Inter *, VarList *var_lis
 void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
     if (left->type == V_num && right->type == V_num)
-        makeNumberValue(left->data.num.num + right->data.num.num, 0, "vobject.add", CFUNC_NT(var_list, result, belong));
+        makeNumberValue(left->data.num.num + right->data.num.num, LINEFILE, CNEXT_NT);
     else if(left->type == V_str && right->type == V_str){
         wchar_t *new_string = memWidecat(left->data.str.str, right->data.str.str, false, false);
-        makeStringValue(new_string, 0, "vobject.add", CFUNC_NT(var_list, result, belong));
+        makeStringValue(new_string, LINEFILE, CNEXT_NT);
         memFree(new_string);
     }
     else
-        setResultError(E_TypeException, CUL_ERROR(Add), 0, "vobject.add", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Add), LINEFILE, true, CNEXT_NT);
 }
 
 void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
     if (left->type == V_num && right->type == V_num)
-        makeNumberValue(left->data.num.num - right->data.num.num, 0, "vobject.sub", CFUNC_NT(var_list, result, belong));
+        makeNumberValue(left->data.num.num - right->data.num.num, LINEFILE, CNEXT_NT);
     else
-        setResultError(E_TypeException, CUL_ERROR(Sub), 0, "vobject.sub", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Sub), LINEFILE, true, CNEXT_NT);
 }
 
 void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
     if (left->type == V_num && right->type == V_num)
-        makeNumberValue(left->data.num.num * right->data.num.num, 0, "vobject.mul", CFUNC_NT(var_list, result, belong));
+        makeNumberValue(left->data.num.num * right->data.num.num, LINEFILE, CNEXT_NT);
     else if(left->type == V_num && right->type == V_str) {
         Value *tmp = left;
         left = right;
@@ -35,21 +35,21 @@ void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Va
     }
     else if(left->type == V_str && right->type == V_num) mul_str: {
         wchar_t *new_string = memWidecpySelf(left->data.str.str, right->data.num.num);
-        makeStringValue(new_string, 0, "vobject.mul", CFUNC_NT(var_list, result, belong));
+        makeStringValue(new_string, LINEFILE, CNEXT_NT);
         memFree(new_string);
     }
     else
-        setResultError(E_TypeException, CUL_ERROR(Mul), 0, "vobject.mul", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Mul), LINEFILE, true, CNEXT_NT);
 }
 
 void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
     if (left->type == V_num && right->type == V_num) {
         lldiv_t div_result = lldiv(left->data.num.num, right->data.num.num);
-        makeNumberValue(div_result.quot, 0, "vobject.div", CFUNC_NT(var_list, result, belong));
+        makeNumberValue(div_result.quot, LINEFILE, CNEXT_NT);
     }
     else
-        setResultError(E_TypeException, CUL_ERROR(Div), 0, "vobject.div", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
 }
 
 ResultType vobject_opt_core(O_FUNC, base_opt func){
@@ -60,7 +60,7 @@ ResultType vobject_opt_core(O_FUNC, base_opt func){
                            {.must=-1}};
     setResultCore(result);
     {
-        parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+        parserArgumentUnion(ap, arg, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
         freeResult(result);
@@ -96,7 +96,7 @@ ResultType vobject_bool(O_FUNC){
     Value *value = NULL;
     setResultCore(result);
     {
-        parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+        parserArgumentUnion(ap, arg, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
         freeResult(result);
@@ -123,10 +123,10 @@ ResultType vobject_bool(O_FUNC){
             result_ = value->data.dict.size > 0;
             break;
         default:
-            setResultError(E_TypeException, CUL_ERROR(bool), 0, "vobject", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_TypeException, CUL_ERROR(bool), LINEFILE, true, CNEXT_NT);
             return R_error;
     }
-    makeBoolValue(result_, 0, "vobject.bool", CFUNC_NT(var_list, result, belong));
+    makeBoolValue(result_, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -136,7 +136,7 @@ ResultType vobject_repo(O_FUNC){
     wchar_t *repo = NULL;
     Value *value = NULL;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -160,7 +160,7 @@ ResultType vobject_repo(O_FUNC){
         }
         case V_class: {
             char str[30] = {};
-            snprintf(str, 30, "(V_class on %p)", value);
+            snprintf(str, 30, "(class on %p)", value);
             repo = memStrToWcs(str, false);
             break;
         }
@@ -174,10 +174,10 @@ ResultType vobject_repo(O_FUNC){
             repo = memStrToWcs("...", false);
             break;
         default:
-            setResultError(E_TypeException, CUL_ERROR(repo/str), 0, "vobject", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_TypeException, CUL_ERROR(repo/str), LINEFILE, true, CNEXT_NT);
             return R_error;
     }
-    makeStringValue(repo, 0, "vobject.repo", CFUNC_NT(var_list, result, belong));
+    makeStringValue(repo, LINEFILE, CNEXT_NT);
     memFree(repo);
     return result->type;
 }

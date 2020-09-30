@@ -17,11 +17,15 @@
 #define CFUNC_CORE(var_list) inter, var_list
 #define CFUNC_NT(var_list, result, belong) belong, result, CFUNC_CORE(var_list)
 #define CFUNC(st, var_list, result, belong) st, CFUNC_NT(var_list, result, belong)
+#define CNEXT CFUNC(st, var_list, result, belong)
+#define CNEXT_NT CFUNC_NT(var_list, result, belong)
 
 #define O_FUNC struct Argument *arg, FUNC_NT
 #define CO_FUNC(arg, var_list, result, belong) arg, CFUNC_NT(var_list, result, belong)
 #define R_FUNC struct LinkValue *belong, FUNC_CORE
 #define CR_FUNC(belong, var_list) belong, CFUNC_CORE(var_list)
+
+#define LINEFILE __LINE__, __FILE__
 
 #define MD5_SIZE (16)
 #define MD5_STR_LEN (MD5_SIZE * 2)

@@ -189,14 +189,14 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, FUNC_NT){
     Argument *at = NULL;
     LinkValue *iter = NULL;
     setResultCore(result);
-    getIter(list_value, 1, line, file, CFUNC_NT(var_list, result, belong));
+    getIter(list_value, 1, line, file, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     iter = result->value;
     result->value = NULL;
     while (true) {
         freeResult(result);
-        getIter(iter, 0, line, file, CFUNC_NT(var_list, result, belong));
+        getIter(iter, 0, line, file, CNEXT_NT);
         if (is_iterStop(result->value, inter)){
             freeResult(result);
             break;
@@ -218,7 +218,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
     Argument *at = NULL;
     LinkValue *iter = NULL;
     setResultCore(result);
-    getIter(dict_value, 1, line, file, CFUNC_NT(var_list, result, belong));
+    getIter(dict_value, 1, line, file, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     iter = result->value;
@@ -228,7 +228,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
         wchar_t *name = NULL;
 
         freeResult(result);
-        getIter(iter, 0, line, file, CFUNC_NT(var_list, result, belong));
+        getIter(iter, 0, line, file, CNEXT_NT);
         if (is_iterStop(result->value, inter)){
             freeResult(result);
             break;
@@ -242,7 +242,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
         result->value = NULL;
         freeResult(result);
 
-        getElement(iter, name_, line, file, CFUNC_NT(var_list, result, belong));
+        getElement(iter, name_, line, file, CNEXT_NT);
         if (!CHECK_RESULT(result)) {
             gc_freeTmpLink(&name_->gc_status);
             freeArgument(at, true);
@@ -281,7 +281,7 @@ ResultType defaultParameter(Parameter **function_ad, vnum *num, FUNC_NT) {
         value = result->value;
         result->value = NULL;
         freeResult(result);
-        assCore(function->data.name, value, false, false, CFUNC_NT(var_list, result, belong));
+        assCore(function->data.name, value, false, false, CNEXT_NT);
         gc_freeTmpLink(&value->gc_status);
         if (!CHECK_RESULT(result))
             goto return_;
@@ -312,7 +312,7 @@ ResultType argumentToVar(Argument **call_ad, vnum *num, FUNC_NT) {
             continue;
         }
         freeResult(result);
-        assCore(call->data.name, call->data.value, false, false, CFUNC_NT(var_list, result, belong));
+        assCore(call->data.name, call->data.value, false, false, CNEXT_NT);
         if (!CHECK_RESULT(result))
             goto return_;
     }
@@ -346,7 +346,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
         get = true;
 
         if (function->type == kwargs_par){
-            makeDictValue(NULL, false, 0, "sys", CFUNC_NT(var_list, result, belong));
+            makeDictValue(NULL, false, LINEFILE, CNEXT_NT);
             if (!CHECK_RESULT(result))
                 return result->type;
 
@@ -378,10 +378,10 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum
                 value = result->value;
                 goto not_return;
             }
-            setResultErrorSt(E_ArgumentException, FEW_ARG, true, name, CFUNC_NT(var_list, result, belong));
+            setResultErrorSt(E_ArgumentException, FEW_ARG, true, name, CNEXT_NT);
             goto return_;
         }
-        else if (!checkAut(name->aut, value->aut, name->line, name->code_file, NULL, false, CFUNC_NT(var_list, result, belong)))
+        else if (!checkAut(name->aut, value->aut, name->line, name->code_file, NULL, false, CNEXT_NT))
             goto return_;
 
         not_return:
@@ -472,7 +472,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC
             start = result->value;
             result->value = NULL;
             freeResult(result);
-            tmp_at = listToArgument(start, 0, "sys", CFUNC_NT(var_list, result, belong));
+            tmp_at = listToArgument(start, LINEFILE, CNEXT_NT);
             gc_freeTmpLink(&start->gc_status);
             if (!CHECK_RESULT(result))
                 goto return_;
@@ -484,7 +484,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC
             start = result->value;
             result->value = NULL;
             freeResult(result);
-            tmp_at = dictToArgument(start, 0, "sys", CFUNC_NT(var_list, result, belong));
+            tmp_at = dictToArgument(start, LINEFILE, CNEXT_NT);
             gc_freeTmpLink(&start->gc_status);
             if (!CHECK_RESULT(result))
                 goto return_;
@@ -502,7 +502,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC
 Argument * getArgument(Parameter *call, bool is_dict, FUNC_NT) {
     Argument *new_arg = NULL;
     setResultCore(result);
-    iterParameter(call, &new_arg, is_dict, CFUNC_NT(var_list, result, belong));
+    iterParameter(call, &new_arg, is_dict, CNEXT_NT);
     return new_arg;
 }
 
@@ -580,7 +580,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
         freeResult(result);
         switch (status) {
             case match_status: {
-                argumentToParameter(&call, &function, function_var, CFUNC_NT(var_list, result, belong));
+                argumentToParameter(&call, &function, function_var, CNEXT_NT);
                 returnResult(result);
                 break;
             }
@@ -622,11 +622,11 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                             PASS;
                     backup = call->next;
                     call->next = NULL;
-                    makeListValue(base, 0, "sys", L_tuple, CFUNC_NT(var_list, result, belong));
+                    makeListValue(base, LINEFILE, L_tuple, CNEXT_NT);
                     call->next = backup;
                     call = backup;
                 } else
-                    makeListValue(NULL, 0, "sys", L_tuple, CFUNC_NT(var_list, result, belong));
+                    makeListValue(NULL, LINEFILE, L_tuple, CNEXT_NT);
 
                 returnResult(result);
                 tmp = result->value;
@@ -641,7 +641,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
             }
             case space_kwargs:{
                 LinkValue *tmp;
-                makeDictValue(NULL, true, 0, "sys", CFUNC_NT(var_list, result, belong));
+                makeDictValue(NULL, true, LINEFILE, CNEXT_NT);
                 returnResult(result);
                 tmp = result->value;
                 result->value = NULL;
@@ -654,17 +654,17 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 break;
             }
             case error_to_less:
-                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CFUNC_NT(var_list, result, belong));
+                setResultError(E_ArgumentException, FEW_ARG, line, file, true, CNEXT_NT);
                 goto return_;
             case error_to_more:
             to_more:
-                setResultError(E_ArgumentException, MANY_ARG, line, file, true, CFUNC_NT(var_list, result, belong));
+                setResultError(E_ArgumentException, MANY_ARG, line, file, true, CNEXT_NT);
                 goto return_;
             case error_kw:
-                setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CFUNC_NT(var_list, result, belong));
+                setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CNEXT_NT);
                 goto return_;
             case error_unknown:
-                setResultError(E_ArgumentException, L"Argument Unknown Exception", line, file, true, CFUNC_NT(var_list, result, belong));
+                setResultError(E_ArgumentException, L"Argument Unknown Exception", line, file, true, CNEXT_NT);
                 goto return_;
             default:
                 goto break_;
@@ -722,7 +722,7 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, FUNC_NT){
         int status = 1;
         arg = parserValueArgument(ap, arg, &status, &bak);
         if (status != 1){
-            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
             return 0;
         }
         ap = bak;
@@ -732,29 +732,29 @@ int parserArgumentUnion(ArgumentParser ap[], Argument *arg, FUNC_NT){
         int status;
 
         if (arg != NULL && arg->type != name_arg) {
-            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
             return -6;
         }
 
-        status = parserNameArgument(ap, arg, &bak, CFUNC_NT(var_list, result, belong));
+        status = parserNameArgument(ap, arg, &bak, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return -1;
         if (status == -3){
             if (parserArgumentNameDefault(ap)->must != -1){
-                setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
+                setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
                 return -7;
             }
         }
         else if (status == 0){
-            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
             return -2;
         } else if (status == -4){
-            setResultError(E_ArgumentException, FEW_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
             return -3;
         }
     } else{
         if (arg != NULL) {
-            setResultError(E_ArgumentException, MANY_ARG, 0, "sys", true, CFUNC_NT(var_list, result, belong));
+            setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
             return -4;
         }
     }

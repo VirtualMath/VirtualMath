@@ -14,94 +14,94 @@ ResultType runStatement(FUNC) {
 
     switch (st->type) {
         case base_value:
-            type = getBaseValue(CFUNC(st, var_list, result, belong));
+            type = getBaseValue(CNEXT);
             break;
         case base_var:
-            type = getVar(CFUNC(st, var_list, result, belong), getBaseVarInfo);
+            type = getVar(CNEXT, getBaseVarInfo);
             break;
         case base_svar:
-            type = getVar(CFUNC(st, var_list, result, belong), getBaseSVarInfo);
+            type = getVar(CNEXT, getBaseSVarInfo);
             break;
         case base_list:
-            type = getList(CFUNC(st, var_list, result, belong));
+            type = getList(CNEXT);
             break;
         case base_dict:
-            type = getDict(CFUNC(st, var_list, result, belong));
+            type = getDict(CNEXT);
             break;
         case base_lambda:
-            type = setLambda(CFUNC(st, var_list, result, belong));
+            type = setLambda(CNEXT);
             break;
         case operation:
-            type = operationStatement(CFUNC(st, var_list, result, belong));
+            type = operationStatement(CNEXT);
             break;
         case set_class:
-            type = setClass(CFUNC(st, var_list, result, belong));
+            type = setClass(CNEXT);
             break;
         case set_function:
-            type = setFunction(CFUNC(st, var_list, result, belong));
+            type = setFunction(CNEXT);
             break;
         case slice_:
-            type = elementSlice(CFUNC(st, var_list, result, belong));
+            type = elementSlice(CNEXT);
             break;
         case call_function:
-            type = callBack(CFUNC(st, var_list, result, belong));
+            type = callBack(CNEXT);
             break;
         case if_branch:
-            type = ifBranch(CFUNC(st, var_list, result, belong));
+            type = ifBranch(CNEXT);
             break;
         case while_branch:
-            type = whileBranch(CFUNC(st, var_list, result, belong));
+            type = whileBranch(CNEXT);
             break;
         case for_branch:
-            type = forBranch(CFUNC(st, var_list, result, belong));
+            type = forBranch(CNEXT);
             break;
         case with_branch:
-            type = withBranch(CFUNC(st, var_list, result, belong));
+            type = withBranch(CNEXT);
             break;
         case try_branch:
-            type = tryBranch(CFUNC(st, var_list, result, belong));
+            type = tryBranch(CNEXT);
             break;
         case break_cycle:
-            type = breakCycle(CFUNC(st, var_list, result, belong));
+            type = breakCycle(CNEXT);
             break;
         case continue_cycle:
-            type = continueCycle(CFUNC(st, var_list, result, belong));
+            type = continueCycle(CNEXT);
             break;
         case rego_if:
-            type = regoIf(CFUNC(st, var_list, result, belong));
+            type = regoIf(CNEXT);
             break;
         case restart:
-            type = restartCode(CFUNC(st, var_list, result, belong));
+            type = restartCode(CNEXT);
             break;
         case return_code:
-            type = returnCode(CFUNC(st, var_list, result, belong));
+            type = returnCode(CNEXT);
             break;
         case yield_code:
-            type = yieldCode(CFUNC(st, var_list, result, belong));
+            type = yieldCode(CNEXT);
             break;
         case raise_code:
-            type = raiseCode(CFUNC(st, var_list, result, belong));
+            type = raiseCode(CNEXT);
             break;
         case include_file:
-            type = includeFile(CFUNC(st, var_list, result, belong));
+            type = includeFile(CNEXT);
             break;
         case import_file:
-            type = importFile(CFUNC(st, var_list, result, belong));
+            type = importFile(CNEXT);
             break;
         case from_import_file:
-            type = fromImportFile(CFUNC(st, var_list, result, belong));
+            type = fromImportFile(CNEXT);
             break;
         case default_var:
-            type = setDefault(CFUNC(st, var_list, result, belong));
+            type = setDefault(CNEXT);
             break;
         case assert:
-            type = assertCode(CFUNC(st, var_list, result, belong));
+            type = assertCode(CNEXT);
             break;
         case goto_:
-            type = gotoLabel(CFUNC(st, var_list, result, belong));
+            type = gotoLabel(CNEXT);
             break;
         case del_:
-            type = delOperation(CFUNC(st, var_list, result, belong));
+            type = delOperation(CNEXT);
             break;
         default:
             setResult(result, inter);
@@ -121,7 +121,7 @@ ResultType runStatement(FUNC) {
 static bool checkSignal(fline line, char *file, FUNC_NT) {
     if (is_KeyInterrupt == signal_appear){
         is_KeyInterrupt = signal_reset;
-        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CNEXT_NT);
         return true;
     }
     return false;
@@ -131,7 +131,7 @@ static bool gotoStatement(Statement **next, FUNC) {
     Statement *label_st = checkLabel(st, result->label);
 
     if (label_st == NULL){
-        setResultErrorSt(E_GotoException, L"Don't find label", true, st, CFUNC_NT(var_list, result, belong));
+        setResultErrorSt(E_GotoException, L"Don't find label", true, st, CNEXT_NT);
         return false;
     }
 
@@ -165,19 +165,19 @@ ResultType iterStatement(FUNC) {
     gc_addTmpLink(&belong->gc_status);
     do {
         base = st;
-        if (checkSignal(base->line, base->code_file, CFUNC_NT(var_list, result, belong))) {
+        if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
             type = result->type;
             break;
         }
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CFUNC(base, var_list, result, belong));
-            if (checkSignal(base->line, base->code_file, CFUNC_NT(var_list, result, belong))) {
+            if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
                 type = result->type;
                 break;
             }
             if (type == R_goto && result->times == 0){
-                if (!gotoStatement(&base, CFUNC(st, var_list, result, belong))) {
+                if (!gotoStatement(&base, CNEXT)) {
                     type = result->type;
                     break;
                 }
@@ -224,19 +224,19 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
     do {
         base = st;
         var_list = inter->var_list;
-        if (checkSignal(base->line, base->code_file, CFUNC_NT(var_list, result, belong))) {
+        if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
             type = result->type;
             break;
         }
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CFUNC(base, var_list, result, belong));
-            if (checkSignal(base->line, base->code_file, CFUNC_NT(var_list, result, belong))) {
+            if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
                 type = result->type;
                 break;
             }
             if (type == R_goto){
-                if (!gotoStatement(&base, CFUNC(st, var_list, result, belong))) {
+                if (!gotoStatement(&base, CNEXT)) {
                     type = result->type;
                     break;
                 }
@@ -263,17 +263,17 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
 // 若需要中断执行, 则返回true
 bool operationSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CFUNC(st, var_list, result, belong));
+    type = iterStatement(CNEXT);
     if (RUN_TYPE(type))
         return false;
     else if (type != return_code && type != R_error)
-        setResultErrorSt(E_ResultException, L"Operation get not support result type", true, st, CFUNC_NT(var_list, result, belong));
+        setResultErrorSt(E_ResultException, L"Operation get not support result type", true, st, CNEXT_NT);
     return true;
 }
 
 bool ifBranchSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CFUNC(st, var_list, result, belong));
+    type = iterStatement(CNEXT);
     if (RUN_TYPE(type))
         return false;
     if (type == R_rego){
@@ -288,7 +288,7 @@ bool ifBranchSafeInterStatement(FUNC){
 
 bool cycleBranchSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CFUNC(st, var_list, result, belong));
+    type = iterStatement(CNEXT);
     if (RUN_TYPE(type))
         return false;
     if (type == R_break || type == R_continue){
@@ -303,7 +303,7 @@ bool cycleBranchSafeInterStatement(FUNC){
 
 bool withBranchSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CFUNC(st, var_list, result, belong));
+    type = iterStatement(CNEXT);
     if (RUN_TYPE(type))
         return false;
     if (type == R_restart || type == R_goto)
@@ -313,7 +313,7 @@ bool withBranchSafeInterStatement(FUNC){
 
 bool tryBranchSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CFUNC(st, var_list, result, belong));
+    type = iterStatement(CNEXT);
     if (RUN_TYPE(type))
         return false;
     if (type == R_restart || type == R_goto)
@@ -323,7 +323,7 @@ bool tryBranchSafeInterStatement(FUNC){
 
 bool functionSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CFUNC(st, var_list, result, belong));
+    type = iterStatement(CNEXT);
     if (type == R_error || result->type == R_yield)
         return true;
     else if (type == R_func)
@@ -335,7 +335,7 @@ bool functionSafeInterStatement(FUNC){
 
 bool blockSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CFUNC(st, var_list, result, belong));
+    type = iterStatement(CNEXT);
     if (type == R_error || type == R_yield)
         return true;
     result->type = R_opt;

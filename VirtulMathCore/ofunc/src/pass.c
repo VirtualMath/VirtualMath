@@ -8,12 +8,12 @@ ResultType pass_new(O_FUNC){
     setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "pass.new", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_ell;
-    run_init(value, arg, 0, "pass.new", CFUNC_NT(var_list, result, belong));
+    run_init(value, arg, LINEFILE, CNEXT_NT);
     return result->type;
 }
 

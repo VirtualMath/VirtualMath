@@ -7,7 +7,7 @@ ResultType bool_new(O_FUNC){
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
-        setResultError(E_ArgumentException, FEW_ARG, 0, "bool.new", true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
@@ -15,7 +15,7 @@ ResultType bool_new(O_FUNC){
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_bool;
     value->value->data.bool_.bool_ = false;
-    run_init(value, arg, 0, "bool.new", CFUNC_NT(var_list, result, belong));
+    run_init(value, arg, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -26,14 +26,14 @@ ResultType bool_init(O_FUNC){
     LinkValue *base;
     bool new = false;
     setResultCore(result);
-    parserArgumentUnion(ap, arg, CFUNC_NT(var_list, result, belong));
+    parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
     base = ap[0].value;
     if (ap[1].value != NULL) {
-        new = checkBool(ap[1].value, 0, "bool.init", CFUNC_NT(var_list, result, belong));
+        new = checkBool(ap[1].value, LINEFILE, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
         freeResult(result);

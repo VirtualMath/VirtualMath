@@ -4,10 +4,10 @@ bool importRunParser(ParserMessage *pm, fline line, char *file, Statement *run_s
     setResultCore(result);
     parserCommandList(pm, inter, true, false, run_st);
     if (pm->status == int_error)
-        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CNEXT_NT);
     else if (pm->status != success) {
         wchar_t *wcs_message = memStrToWcs(pm->status_message, false);
-        setResultError(E_TypeException, wcs_message, line, file, true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, wcs_message, line, file, true, CNEXT_NT);
         memFree(wcs_message);
     }
     return CHECK_RESULT(result);
@@ -115,7 +115,7 @@ int checkFileDir(char **file_dir, FUNC) {
         return 2;
 
     error_:
-    setResultErrorSt(E_ImportException, L"import/include file is not readable", true, st, CFUNC_NT(var_list, result, belong));
+    setResultErrorSt(E_ImportException, L"import/include file is not readable", true, st, CNEXT_NT);
     return 0;
 }
 
@@ -129,26 +129,26 @@ ResultType includeFile(FUNC) {
         return result->type;
 
     if (!isType(result->value->value, V_str)){
-        setResultErrorSt(E_TypeException, ONLY_ACC(include file dir, V_str), true, st, CFUNC_NT(var_list, result, belong));
+        setResultErrorSt(E_TypeException, ONLY_ACC(include file dir, V_str), true, st, CNEXT_NT);
         goto return_;
     }
 
     file_dir = memWcsToStr(result->value->value->data.str.str, false);
     freeResult(result);
-    if (checkFileDir(&file_dir, CFUNC(st, var_list, result, belong)) != 1)
+    if (checkFileDir(&file_dir, CNEXT) != 1)
         goto return_;
 
     new_st = makeStatement(0, file_dir);
     pm = makeParserMessage(file_dir);
 
-    if (!importRunParser(pm, st->line, st->code_file, new_st, CFUNC_NT(var_list, result, belong)))
+    if (!importRunParser(pm, st->line, st->code_file, new_st, CNEXT_NT))
         goto return_;
 
     functionSafeInterStatement(CFUNC(new_st, var_list, result, belong));
     if (result->type == R_yield)
         setResult(result, inter);
     else if (!CHECK_RESULT(result))
-        setResultErrorSt(E_BaseException, NULL, false, st, CFUNC_NT(var_list, result, belong));
+        setResultErrorSt(E_BaseException, NULL, false, st, CNEXT_NT);
 
     return_:
     memFree(file_dir);
@@ -165,12 +165,12 @@ ResultType importVMFileCore(Inter *import_inter, char *path, fline line, char *c
     pm = makeParserMessage(path);
     run_st = makeStatement(0, path);
 
-    if (!importRunParser(pm, line, code_file, run_st, CFUNC_NT(var_list, result, belong)))
+    if (!importRunParser(pm, line, code_file, run_st, CNEXT_NT))
         goto return_;
 
     globalIterStatement(result, import_inter, run_st);
     if (!CHECK_RESULT(result))
-        setResultError(E_BaseException, NULL, line, code_file, false, CFUNC_NT(var_list, result, belong));
+        setResultError(E_BaseException, NULL, line, code_file, false, CNEXT_NT);
     else
         setResult(result, inter);
 
@@ -183,18 +183,18 @@ ResultType importVMFileCore(Inter *import_inter, char *path, fline line, char *c
 
 ResultType importFileCore(char **path, char **split, int *status, FUNC) {
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(st, var_list, result, belong)))
+    if (operationSafeInterStatement(CNEXT))
         return result->type;
 
     if (!isType(result->value->value, V_str)) {
-        setResultErrorSt(E_ImportException, ONLY_ACC(include file dir, V_str), true, st, CFUNC_NT(var_list, result, belong));
+        setResultErrorSt(E_ImportException, ONLY_ACC(include file dir, V_str), true, st, CNEXT_NT);
         return R_error;
     }
 
     *path = memWcsToStr(result->value->value->data.str.str, false);
     *split = splitDir(*path);  // 自动去除末尾路径分隔符
     freeResult(result);
-    if ((*status = checkFileDir(path, CFUNC(st, var_list, result, belong))) == 0)
+    if ((*status = checkFileDir(path, CNEXT)) == 0)
         return result->type;
 
     return result->type;
@@ -205,7 +205,7 @@ ResultType runImportFile(Inter *import_inter, char **path, int status, FUNC) {
     if (status == 2)
         importClibCore(*path, belong, CFUNC_CORE(inter->var_list));
     else
-        importVMFileCore(import_inter, *path, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
+        importVMFileCore(import_inter, *path, st->line, st->code_file, CNEXT_NT);
 
     import_inter->var_list = NULL;
     mergeInter(import_inter, inter);
@@ -225,7 +225,7 @@ static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int st
         imp_inter->package = inter->package;
 
         freeResult(result);
-        runImportFile(imp_inter, path, status, CFUNC(st, var_list, result, belong));
+        runImportFile(imp_inter, path, status, CNEXT);
         if (!CHECK_RESULT(result))
             return false;
     } else
@@ -258,11 +258,11 @@ ResultType importFile(FUNC) {
     freeResult(result);
     if (st->u.import_file.as == NULL) {
         wchar_t *name_ = memStrToWcs(split_path, false);
-        addStrVar(name_, false, is_new, imp_value, 0, "sys", false, CFUNC_NT(var_list, result, belong));
+        addStrVar(name_, false, is_new, imp_value, LINEFILE, false, CNEXT_NT);
         memFree(name_);
     }
     else
-        assCore(st->u.import_file.as, imp_value, false, is_new, CFUNC_NT(var_list, result, belong));
+        assCore(st->u.import_file.as, imp_value, false, is_new, CNEXT_NT);
 
     if (CHECK_RESULT(result))
         setResult(result, inter);
@@ -285,7 +285,7 @@ static ResultType importParameter(fline line, char *file, Parameter *call_pt, Pa
     }
 
     freeResult(result);
-    setParameterCore(line, file, call, func_pt, func_var, CFUNC_NT(var_list, result, belong));
+    setParameterCore(line, file, call, func_pt, func_var, CNEXT_NT);
     freeArgument(call, false);
     return result->type;
 }

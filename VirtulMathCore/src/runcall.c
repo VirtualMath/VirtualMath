@@ -6,7 +6,7 @@ ResultType setClass(FUNC) {
     Inherit *class_inherit = NULL;
     setResultCore(result);
 
-    call = getArgument(st->u.set_class.father, false, CFUNC_NT(var_list, result, belong));
+    call = getArgument(st->u.set_class.father, false, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto error_;
 
@@ -36,7 +36,7 @@ ResultType setClass(FUNC) {
         freeResult(result);
     }
     if (st->u.set_class.decoration != NULL){
-        setDecoration(st->u.set_class.decoration, tmp, CFUNC_NT(var_list, result, belong));
+        setDecoration(st->u.set_class.decoration, tmp, CNEXT_NT);
         if (!CHECK_RESULT(result))
             goto error_;
         gc_freeTmpLink(&tmp->gc_status);
@@ -45,7 +45,7 @@ ResultType setClass(FUNC) {
         freeResult(result);
     }
 
-    assCore(st->u.set_class.name, tmp, false, true, CFUNC_NT(var_list, result, belong));
+    assCore(st->u.set_class.name, tmp, false, true, CNEXT_NT);
     if (CHECK_RESULT(result))
         setResult(result, inter);
 
@@ -54,7 +54,7 @@ ResultType setClass(FUNC) {
 
     error_:
     gc_freeTmpLink(&tmp->gc_status);
-    setResultErrorSt(E_BaseException, NULL, false, st, CFUNC_NT(var_list, result, belong));
+    setResultErrorSt(E_BaseException, NULL, false, st, CNEXT_NT);
     return result->type;
 }
 
@@ -62,7 +62,7 @@ ResultType setFunction(FUNC) {
     LinkValue *func = NULL;
     setResultCore(result);
 
-    makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, CFUNC_NT(var_list, result, belong));
+    makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
     func = result->value;
@@ -84,7 +84,7 @@ ResultType setFunction(FUNC) {
     }
 
     if (st->u.set_function.decoration != NULL){
-        setDecoration(st->u.set_function.decoration, func, CFUNC_NT(var_list, result, belong));
+        setDecoration(st->u.set_function.decoration, func, CNEXT_NT);
         if (!CHECK_RESULT(result))
             goto error_;
         gc_freeTmpLink(&func->gc_status);
@@ -92,7 +92,7 @@ ResultType setFunction(FUNC) {
         result->value = NULL;
         freeResult(result);
     }
-    assCore(st->u.set_function.name, func, false, true, CFUNC_NT(var_list, result, belong));
+    assCore(st->u.set_function.name, func, false, true, CNEXT_NT);
     if (CHECK_RESULT(result))
         setResult(result, inter);
 
@@ -106,7 +106,7 @@ ResultType setLambda(FUNC) {
     setResultCore(result);
 
     resunt_st = makeReturnStatement(st->u.base_lambda.function, st->line, st->code_file);
-    makeVMFunctionValue(resunt_st, st->u.base_lambda.parameter, CFUNC_NT(var_list, result, belong));
+    makeVMFunctionValue(resunt_st, st->u.base_lambda.parameter, CNEXT_NT);
     resunt_st->u.return_code.value = NULL;
     freeStatement(resunt_st);
     return result->type;
@@ -124,18 +124,18 @@ ResultType elementSlice(FUNC) {
     freeResult(result);
 
     func_name = st->u.slice_.type == SliceType_down_ ? inter->data.object_down : inter->data.object_slice;
-    _func_ = findAttributes(func_name, false, 0, "sys", true, CFUNC_NT(var_list, result, element));
+    _func_ = findAttributes(func_name, false, LINEFILE, true, CFUNC_NT(var_list, result, element));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
 
     if (_func_ != NULL){
         gc_addTmpLink(&_func_->gc_status);
-        callBackCorePt(_func_, st->u.slice_.index, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
+        callBackCorePt(_func_, st->u.slice_.index, st->line, st->code_file, CNEXT_NT);
         gc_freeTmpLink(&_func_->gc_status);
     }
     else
-        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(__down__/__slice__), true, st, CFUNC_NT(var_list, result, belong));
+        setResultErrorSt(E_TypeException, OBJ_NOTSUPPORT(__down__/__slice__), true, st, CNEXT_NT);
 
     return_:
     gc_freeTmpLink(&element->gc_status);
@@ -150,7 +150,7 @@ ResultType callBack(FUNC) {
     function_value = result->value;
     result->value = NULL;
     freeResult(result);
-    callBackCorePt(function_value, st->u.call_function.parameter, st->line, st->code_file, CFUNC_NT(var_list, result, belong));
+    callBackCorePt(function_value, st->u.call_function.parameter, st->line, st->code_file, CNEXT_NT);
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }
@@ -162,7 +162,7 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
 
-    arg = getArgument(pt, false, CFUNC_NT(var_list, result, belong));
+    arg = getArgument(pt, false, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto return_;
     for (Parameter *tmp = pt; tmp != NULL; tmp = tmp->next, pt_sep++) {
@@ -173,7 +173,7 @@ ResultType callBackCorePt(LinkValue *function_value, Parameter *pt, long line, c
     }
 
     freeResult(result);
-    callBackCore(function_value, arg, line, file, sep ? pt_sep : 0, CFUNC_NT(var_list, result, belong));
+    callBackCore(function_value, arg, line, file, sep ? pt_sep : 0, CNEXT_NT);
 
     return_:
     gc_freeTmpLink(&function_value->gc_status);
@@ -186,18 +186,18 @@ static ResultType callClass(LinkValue *class_value, Argument *arg, fline line, c
     setResultCore(result);
     gc_addTmpLink(&class_value->gc_status);
 
-    _new_ = findAttributes(inter->data.object_new, false, 0, "sys", true, CFUNC_NT(var_list, result, class_value));
+    _new_ = findAttributes(inter->data.object_new, false, LINEFILE, true, CFUNC_NT(var_list, result, class_value));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
 
     if (_new_ != NULL){
         gc_addTmpLink(&_new_->gc_status);
-        callBackCore(_new_, arg, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
+        callBackCore(_new_, arg, line, file, pt_sep, CNEXT_NT);
         gc_freeTmpLink(&_new_->gc_status);
     }
     else
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(new(__new__)), line, file, true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(new(__new__)), line, file, true, CNEXT_NT);
 
     return_:
     gc_freeTmpLink(&class_value->gc_status);
@@ -209,18 +209,18 @@ static ResultType callObject(LinkValue *object_value, Argument *arg, fline line,
     setResultCore(result);
     gc_addTmpLink(&object_value->gc_status);
 
-    _call_ = findAttributes(inter->data.object_call, false, 0, "sys", true, CFUNC_NT(var_list, result, object_value));
+    _call_ = findAttributes(inter->data.object_call, false, LINEFILE, true, CFUNC_NT(var_list, result, object_value));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
 
     if (_call_ != NULL){
         gc_addTmpLink(&_call_->gc_status);
-        callBackCore(_call_, arg, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
+        callBackCore(_call_, arg, line, file, pt_sep, CNEXT_NT);
         gc_freeTmpLink(&_call_->gc_status);
     }
     else
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(call(__call__)), line, file, true, CFUNC_NT(var_list, result, belong));
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(call(__call__)), line, file, true, CNEXT_NT);
 
     return_:
     gc_freeTmpLink(&object_value->gc_status);
@@ -234,7 +234,7 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
 
-    setFunctionArgument(&arg, &bak, function_value, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
+    setFunctionArgument(&arg, &bak, function_value, line, file, pt_sep, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto return_;
 
@@ -316,7 +316,7 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
         st_func = st_func->info.node;
 
     gc_freeze(inter, var_list, var_func, true);
-    setFunctionArgument(&arg, &bak, func_value, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
+    setFunctionArgument(&arg, &bak, func_value, line, file, pt_sep, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -343,14 +343,14 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, ch
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
     if (function_value->value->type == V_func && function_value->value->data.function.type == vm_func)
-        callVMFunction(function_value, arg, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
+        callVMFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
     else if (function_value->value->type == V_func && function_value->value->data.function.type == c_func)
-        callCFunction(function_value, arg, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
+        callCFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
     else if (function_value->value->type == V_class)
-        callClass(function_value, arg, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
+        callClass(function_value, arg, line, file, pt_sep, CNEXT_NT);
     else
-        callObject(function_value, arg, line, file, pt_sep, CFUNC_NT(var_list, result, belong));
-    setResultError(E_BaseException, NULL, line, file, false, CFUNC_NT(var_list, result, belong));
+        callObject(function_value, arg, line, file, pt_sep, CNEXT_NT);
+    setResultError(E_BaseException, NULL, line, file, false, CNEXT_NT);
 
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
@@ -370,7 +370,7 @@ ResultType setDecoration(DecorationStatement *ds, LinkValue *value, FUNC_NT) {
         result->value = NULL;
 
         freeResult(result);
-        callBackCorePt(decall, pt, ds->decoration->line, ds->decoration->code_file, CFUNC_NT(var_list, result, belong));
+        callBackCorePt(decall, pt, ds->decoration->line, ds->decoration->code_file, CNEXT_NT);
         gc_freeTmpLink(&decall->gc_status);
         freeParameter(pt, true);
         if (!CHECK_RESULT(result))
