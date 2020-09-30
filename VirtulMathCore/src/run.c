@@ -333,6 +333,11 @@ bool functionSafeInterStatement(FUNC){
     return false;
 }
 
+bool includeSafeInterStatement(FUNC){
+    iterStatement(CNEXT);
+    return !CHECK_RESULT(result);
+}
+
 bool blockSafeInterStatement(FUNC){
     ResultType type;
     type = iterStatement(CNEXT);

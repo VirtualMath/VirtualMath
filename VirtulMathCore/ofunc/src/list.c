@@ -64,7 +64,7 @@ ResultType list_slice(O_FUNC){
         if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
             *(list[i]) = ap[i + 1].value->value->data.num.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
-            setResultError(E_TypeException, ONLY_ACC(first/second/stride, V_num or V_none), LINEFILE, true, CNEXT_NT);
+            setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), LINEFILE, true, CNEXT_NT);
             return R_error;
         }
     }
@@ -231,7 +231,7 @@ ResultType list_down_assignment(O_FUNC){
         return R_error;
     }
     if (ap[2].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(list index, V_num), LINEFILE, true, CNEXT_NT);
+        setResultError(E_TypeException, ONLY_ACC(list index, num), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 

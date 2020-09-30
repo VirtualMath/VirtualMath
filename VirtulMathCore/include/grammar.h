@@ -17,9 +17,9 @@ struct ParserMessage{
 
 typedef struct ParserMessage ParserMessage;
 
-ParserMessage *makeParserMessage(char *file_dir);
+ParserMessage *makeParserMessageFile(char *file_dir);
+ParserMessage *makeParserMessageStr(wchar_t *str);
 void freeParserMessage(ParserMessage *pm, bool self);
 void parserCommandList(ParserMessage *pm, Inter *inter, bool global, bool is_one, Statement *st);
-// PASERSSIGNATURE 位于__grammar
 
 #endif //VIRTUALMATH_GRAMMAR_H

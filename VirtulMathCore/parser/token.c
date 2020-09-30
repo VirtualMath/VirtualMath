@@ -57,11 +57,23 @@ void freeToekStream(TokenStream *ts, bool free_st) {
     return;
 }
 
-TokenMessage *makeTokenMessage(char *file_dir) {
+static TokenMessage *makeTokenMessageCore() {
     TokenMessage *tm = memCalloc(1, sizeof(TokenMessage));
-    tm->file = makeLexFile(file_dir);
+    tm->file = NULL;
     tm->mathers = makeMathers(MATHER_MAX);
     tm->ts = makeTokenStream();
+    return tm;
+}
+
+TokenMessage *makeTokenMessageFile(char *file_dir) {
+    TokenMessage *tm = makeTokenMessageCore();
+    tm->file = makeLexFile(file_dir);
+    return tm;
+}
+
+TokenMessage *makeTokenMessageStr(wchar_t *str) {
+    TokenMessage *tm = makeTokenMessageCore();
+    tm->file = makeLexStr(str);
     return tm;
 }
 

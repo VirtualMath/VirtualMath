@@ -9,8 +9,16 @@
 wint_t readChar(LexFile *file){
     if (file->back.is_back)
         file->back.is_back = false;
-    else
-        file->back.p = fgetwc(file->file);
+    else {
+        if (file->status == 2) {
+            file->back.p = file->str[file->seek];
+            if (file->back.p != NUL)
+                file->seek ++;
+            else
+                file->back.p = WEOF;
+        } else
+            file->back.p = fgetwc(file->file);
+    }
     if (file->back.p == L'\n')
         file->line++;
     return file->back.p;
@@ -33,13 +41,12 @@ void clearLexFile(LexFile *file) {
         PASS;
 }
 
-LexFile *makeLexFile(char *dir){
+static LexFile *makeLexCore(){
     LexFile *tmp = memCalloc(1, sizeof(LexFile));
-    tmp->is_std = (bool)(dir == NULL);
-    if (tmp->is_std)
-        tmp->file = stdin;
-    else
-        tmp->file = fopen(dir, "r");
+    tmp->status = 1;
+    tmp->file = stdin;
+    tmp->str = NULL;
+    tmp->seek = 0;
     tmp->back.is_back = false;
     tmp->back.p = WEOF;
     tmp->line = 1;
@@ -47,10 +54,29 @@ LexFile *makeLexFile(char *dir){
     return tmp;
 }
 
+LexFile *makeLexFile(char *dir){
+    LexFile *tmp = makeLexCore();
+    tmp->status = dir == NULL ? 1 : 0;
+    if (dir != NULL) {
+        tmp->file = fopen(dir, "r");
+        tmp->status = 0;
+    }
+    return tmp;
+}
+
+LexFile *makeLexStr(wchar_t *str){
+    LexFile *tmp = makeLexCore();
+    tmp->status = 2;
+    tmp->file = NULL;
+    tmp->str = memWidecpy(str);
+    return tmp;
+}
+
 void freeLexFile(LexFile *file) {
     FREE_BASE(file, return_);
-    if (!file->is_std)
+    if (file->status == 0)
         fclose(file->file);
+    memFree(file->str);
     memFree(file);
     return_:
     return;

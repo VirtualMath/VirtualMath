@@ -74,7 +74,7 @@ wchar_t *setNumVarName(vnum num, struct Inter *inter) {
 wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
         case V_str:
-            return setStrVarName(value->data.str.str, true, inter);
+            return setStrVarName(value->data.str.str, false, inter);
         case V_num:
             return setNumVarName(value->data.num.num, inter);
         case V_bool:

@@ -139,12 +139,12 @@ ResultType includeFile(FUNC) {
         goto return_;
 
     new_st = makeStatement(0, file_dir);
-    pm = makeParserMessage(file_dir);
+    pm = makeParserMessageFile(file_dir);
 
     if (!importRunParser(pm, st->line, st->code_file, new_st, CNEXT_NT))
         goto return_;
 
-    functionSafeInterStatement(CFUNC(new_st, var_list, result, belong));
+    includeSafeInterStatement(CFUNC(new_st, var_list, result, belong));
     if (result->type == R_yield)
         setResult(result, inter);
     else if (!CHECK_RESULT(result))
@@ -162,7 +162,7 @@ ResultType importVMFileCore(Inter *import_inter, char *path, fline line, char *c
     Statement *run_st = NULL;
     setResultCore(result);
 
-    pm = makeParserMessage(path);
+    pm = makeParserMessageFile(path);
     run_st = makeStatement(0, path);
 
     if (!importRunParser(pm, line, code_file, run_st, CNEXT_NT))

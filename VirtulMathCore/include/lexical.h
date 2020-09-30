@@ -4,7 +4,9 @@
 
 struct LexFile{
     FILE *file;
-    bool is_std;  // 是否位stdin
+    wchar_t *str;
+    int status;  // 0-stdin模式 1-文件模式 2-字符串模式
+    size_t seek;  // 字符串模式下需要使用
     struct LexFileBack{
         bool is_back;
         wint_t p;
@@ -49,6 +51,7 @@ void backChar(LexFile *file);
 void clearLexFile(LexFile *file);
 
 LexFile *makeLexFile(char *dir);
+LexFile *makeLexStr(wchar_t *str);
 void freeLexFile(LexFile *file);
 
 void setupMather(LexMather *mather);

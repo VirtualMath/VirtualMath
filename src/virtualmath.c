@@ -52,7 +52,7 @@ void runCodeStdin(Inter *inter, char *hello_string) {
 }
 
 bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st) {
-    ParserMessage *pm = makeParserMessage(code_file);
+    ParserMessage *pm = makeParserMessageFile(code_file);
     *st = makeStatement(0, (code_file == NULL) ? "stdin" : code_file);
     parserCommandList(pm, inter, true, is_one, *st);
 

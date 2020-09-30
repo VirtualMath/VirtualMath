@@ -1,11 +1,25 @@
 #include "__grammar.h"
 
-ParserMessage *makeParserMessage(char *file_dir) {
+static ParserMessage *makeParserMessageCore() {
     ParserMessage *tmp = memCalloc(1, sizeof(ParserMessage));
-    tmp->file = memStrcpy(file_dir == NULL ? "stdin" : file_dir);
-    tmp->tm = makeTokenMessage(file_dir);
+    tmp->file = NULL;
+    tmp->tm = NULL;
     tmp->status = success;
     tmp->status_message = NULL;
+    return tmp;
+}
+
+ParserMessage *makeParserMessageFile(char *file_dir) {
+    ParserMessage *tmp = makeParserMessageCore();
+    tmp->file = memStrcpy(file_dir == NULL ? "stdin" : file_dir);
+    tmp->tm = makeTokenMessageFile(file_dir);
+    return tmp;
+}
+
+ParserMessage *makeParserMessageStr(wchar_t *str) {
+    ParserMessage *tmp = makeParserMessageCore();
+    tmp->file = memStrcpy("exec");
+    tmp->tm = makeTokenMessageStr(str);
     return tmp;
 }
 

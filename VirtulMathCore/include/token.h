@@ -158,7 +158,8 @@ typedef struct Token Token;
 typedef struct TokenStream TokenStream;
 typedef struct TokenMessage TokenMessage;
 
-TokenMessage *makeTokenMessage(char *file_dir);
+TokenMessage *makeTokenMessageFile(char *file_dir);
+TokenMessage *makeTokenMessageStr(wchar_t *str);
 void freeTokenMessage(TokenMessage *tm, bool self, bool free_st);
 
 Token *makeToken(long int line);

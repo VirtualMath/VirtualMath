@@ -20,6 +20,7 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st);
 bool operationSafeInterStatement(FUNC);
 bool ifBranchSafeInterStatement(FUNC);
 bool functionSafeInterStatement(FUNC);
+bool includeSafeInterStatement(FUNC);
 bool blockSafeInterStatement(FUNC);
 bool cycleBranchSafeInterStatement(FUNC);
 bool withBranchSafeInterStatement(FUNC);
