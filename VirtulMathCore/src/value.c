@@ -380,7 +380,8 @@ void callException(LinkValue *exc, wchar_t *message, fline line, char *file, FUN
         callBackCore(_new_, arg, line, file, 0, CNEXT_NT);
         error = result->value;
         result->value = NULL;
-        freeResult(result);
+        freeResult(result);  // 没有释放error的tmp link, 等于error的tmp link添加了两次
+
         gc_freeTmpLink(&_new_->gc_status);
         freeArgument(arg, true);
 
@@ -392,6 +393,8 @@ void callException(LinkValue *exc, wchar_t *message, fline line, char *file, FUN
         if (!CHECK_RESULT(result))
             goto return_;
         freeResult(result);
+        setResultOperation(result, error);  // 自动再次添加error的tmp link, error目前tmp link被添加了两次
+        gc_freeTmpLink(&error->gc_status);  // 释放error的tmp link
     }
     else {
         result->value = exc;
@@ -414,6 +417,7 @@ void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char
             exc = inter->data.base_exc;
         freeResult(result);
         callException(exc, error_message, line, file, CNEXT_NT);
+        printf("result is %p hhh\n", result->value);
     }
     else
         result->error = connectError(makeError(NULL, NULL, line, file), result->error);

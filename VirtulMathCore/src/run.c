@@ -45,7 +45,6 @@ ResultType runStatement(FUNC) {
             break;
         case call_function:
             type = callBack(CNEXT);
-            printf("TAG A\n");
             break;
         case if_branch:
             type = ifBranch(CNEXT);

@@ -532,7 +532,6 @@ static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, FUNC_
         return -1;
     freeResult(result);
 
-
     if (_init_ == NULL) {
         if (arg != NULL) {
             setResultError(E_ArgumentException, MANY_ARG, line, file, true, CNEXT_NT);

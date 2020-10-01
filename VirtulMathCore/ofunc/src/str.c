@@ -198,18 +198,22 @@ void registeredStr(R_FUNC){
 }
 
 LinkValue *callClassOf(LinkValue *obj, Inter *inter, LinkValue *new_func, LinkValue *init_func) {
-    Argument *arg = makeValueArgument(obj);
+    Argument *arg;
+    Argument *init_arg;
     Result result;
     LinkValue *new_name;
     setResultCore(&result);
 
+    arg = makeValueArgument(obj);
     new_func->value->data.function.of(arg, obj, &result, inter, new_func->value->object.out_var);
     new_name = result.value;
     freeResult(&result);
-
-    init_func->value->data.function.of(arg, new_name, &result, inter, init_func->value->object.out_var);
-    freeResult(&result);
     freeArgument(arg, true);
+
+    init_arg = makeValueArgument(new_name);
+    init_func->value->data.function.of(init_arg, new_name, &result, inter, init_func->value->object.out_var);
+    freeResult(&result);
+    freeArgument(init_arg, true);
 
     return new_name;
 }
