@@ -26,6 +26,7 @@ struct Inter{
         struct LinkValue *str;
         struct LinkValue *bool_;
         struct LinkValue *pass_;
+        struct LinkValue *file;
         struct LinkValue *tuple;
         struct LinkValue *list;
         struct LinkValue *dict;
@@ -58,6 +59,7 @@ struct Inter{
         wchar_t *var_str_prefix;
         wchar_t *var_num_prefix;
         wchar_t *var_bool_prefix;
+        wchar_t *var_file_prefix;
         wchar_t *var_none;
         wchar_t *var_pass;
         wchar_t *var_class_prefix;

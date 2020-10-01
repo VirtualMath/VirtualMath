@@ -55,9 +55,10 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
 void setBaseInterData(struct Inter *inter){
     inter->data.var_str_prefix = setName("str_");
     inter->data.var_num_prefix = setName("num_");
-    inter->data.var_none = setName("V_none");
+    inter->data.var_file_prefix = setName("file_");
+    inter->data.var_none = setName("none");
     inter->data.var_pass = setName("ellipsis");
-    inter->data.var_bool_prefix = setName("V_bool");
+    inter->data.var_bool_prefix = setName("bool_");
     inter->data.var_class_prefix = setName("class_");
     inter->data.var_object_prefix = setName("obj_");
     inter->data.object_init = setName("__init__");
@@ -97,6 +98,7 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.bool_->gc_status);
     gc_freeStatementLink(&inter->data.function->gc_status);
     gc_freeStatementLink(&inter->data.pass_->gc_status);
+    gc_freeStatementLink(&inter->data.file->gc_status);
     gc_freeStatementLink(&inter->data.tuple->gc_status);
     gc_freeStatementLink(&inter->data.list->gc_status);
     gc_freeStatementLink(&inter->data.dict->gc_status);
@@ -129,6 +131,7 @@ void freeBaseInterData(struct Inter *inter){
 
     memFree(inter->data.var_num_prefix);
     memFree(inter->data.var_str_prefix);
+    memFree(inter->data.var_file_prefix);
     memFree(inter->data.var_object_prefix);
     memFree(inter->data.var_class_prefix);
     memFree(inter->data.var_bool_prefix);

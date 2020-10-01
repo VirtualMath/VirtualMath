@@ -56,6 +56,16 @@ wchar_t *memWideCharcpy(wchar_t *str, size_t nsize, bool free_old, bool write, .
     return tmp;
 }
 
+wchar_t *memWideExpansion(wchar_t *str, size_t nsize, bool free_old) {
+    size_t base_len = memWidelen(str);
+    wchar_t *tmp = memWide(base_len + nsize);
+    if (base_len != 0)
+        wcscpy(tmp, str);
+    if (free_old)
+        memFree(str);
+    return tmp;
+}
+
 char *memStrcatIter(char *base, bool free_base, ...) {
     va_list ap;
     va_start(ap, free_base);
@@ -99,7 +109,7 @@ wchar_t *memWidecat(wchar_t *first, wchar_t *second, bool free_first, bool free_
         free_last = false;
     }
 
-    wchar_t *new = memWideCharcpy(first, memWidelen(second), false, false);
+    wchar_t *new = memWideExpansion(first, memWidelen(second), false);
     if (second != NULL)
         wcscat(new, second);
 

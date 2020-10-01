@@ -13,6 +13,7 @@ ResultType pass_new(O_FUNC){
     }
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_ell;
+
     run_init(value, arg, LINEFILE, CNEXT_NT);
     return result->type;
 }

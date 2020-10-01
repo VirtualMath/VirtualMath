@@ -136,6 +136,10 @@ ResultType vm_quit(O_FUNC){
     return R_error;
 }
 
+ResultType vm_open(O_FUNC){
+    return callBackCore(inter->data.file, arg, LINEFILE, 0, CNEXT_NT);
+}
+
 ResultType vm_exec(O_FUNC){
     ArgumentParser ap[] = {{.type=name_value, .name=L"cm", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"var", .must=0, .long_arg=false},
@@ -236,6 +240,7 @@ void registeredSysFunction(R_FUNC){
                       {L"disnowrun", vm_disnowrun, free_},
                       {L"quit", vm_quit, free_},
                       {L"exec", vm_exec, free_},
+                      {L"open", vm_open, free_},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }

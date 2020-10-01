@@ -11,6 +11,7 @@ static Registered base_func_list[] = {registeredVObject,
                                       registeredListIter,
                                       registeredDictIter,
                                       registeredExcIter,
+                                      registeredFile,
 
                                       registeredSysFunction,
                                       registeredIOFunction,
@@ -46,6 +47,7 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
     makeBaseListIter(inter);
     makeBaseDictIter(inter);
     makeExcIter(inter);
+    makeBaseFile(inter);
 
     makeBaseStr(inter);
     presetting(inter);

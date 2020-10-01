@@ -1,6 +1,5 @@
 #include "__ofunc.h"
 
-
 static LinkValue *makeException(LinkValue *father, Inter *inter){
     LinkValue *exc = makeBaseChildClass(father, inter);
     gc_addStatementLink(&exc->gc_status);

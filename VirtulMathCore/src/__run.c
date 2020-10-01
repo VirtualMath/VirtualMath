@@ -86,6 +86,8 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
             return memWidecpy(inter->data.var_none);
         case V_ell:
             return memWidecpy(inter->data.var_pass);
+        case V_file:
+            return memWidecat(inter->data.var_file_prefix, memStrToWcs(value->data.file.path, false), false, true);
         case V_class:{
             size_t len = memWidelen(inter->data.var_class_prefix) + 20;  // 预留20个字节给指针
             wchar_t *name = memWide(len);

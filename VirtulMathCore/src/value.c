@@ -204,6 +204,12 @@ void freeValue(Value **value) {
         case V_str:
             memFree(free_value->data.str.str);
             break;
+        case V_file:
+            memFree(free_value->data.file.mode);
+            memFree(free_value->data.file.path);
+            if (!free_value->data.file.is_std)
+                fclose(free_value->data.file.file);
+            break;
         case V_func: {
             freeParameter(free_value->data.function.pt, true);
             freeStatement(free_value->data.function.function);
@@ -417,7 +423,6 @@ void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char
             exc = inter->data.base_exc;
         freeResult(result);
         callException(exc, error_message, line, file, CNEXT_NT);
-        printf("result is %p hhh\n", result->value);
     }
     else
         result->error = connectError(makeError(NULL, NULL, line, file), result->error);
@@ -645,6 +650,12 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
             break;
         case V_str:
             fprintf(debug, "'%ls'", value->data.str.str);
+            break;
+        case V_file:
+            if (print_father)
+                fprintf(debug, "(file %s)", value->data.file.path);
+            else
+                fprintf(debug, "(file %s on %p)", value->data.file.path, value);
             break;
         case V_func:
             if (print_father)
