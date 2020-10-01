@@ -173,7 +173,7 @@ ResultType str_iter(O_FUNC){
     gc_addTmpLink(&to_list->gc_status);
     callBackCore(to_list, NULL, LINEFILE, 0, CNEXT_NT);
     gc_freeTmpLink(&to_list->gc_status);
-    if (CHECK_RESULT(result)) {
+    if (CHECK_RESULT(result)) {  // 若没有出现Exception
         LinkValue *str_list = NULL;
         str_list = result->value;
         result->value = NULL;

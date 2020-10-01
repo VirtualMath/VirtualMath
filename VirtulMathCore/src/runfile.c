@@ -264,7 +264,7 @@ ResultType importFile(FUNC) {
     else
         assCore(st->u.import_file.as, imp_value, false, is_new, CNEXT_NT);
 
-    if (CHECK_RESULT(result))
+    if (CHECK_RESULT(result))  // 若没有出现错误则设定none
         setResult(result, inter);
     gc_freeTmpLink(&imp_value->gc_status);
 

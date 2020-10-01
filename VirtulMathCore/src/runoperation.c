@@ -276,8 +276,7 @@ ResultType assOperation(FUNC) {
         value = result->value;
 
         freeResult(result);
-        assCore(st->u.operation.left, value, false, false,
-                CNEXT_NT);
+        assCore(st->u.operation.left, value, false, false, CNEXT_NT);
     }
     return result->type;
 }
@@ -329,12 +328,12 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
 
     if (tmp == NULL || !run || !setVarFunc(tmp, value, name->line, name->code_file, CNEXT_NT))
         addFromVarList(str_name, name_, int_times, value, CFUNC_CORE(var_list));
-    if (CHECK_RESULT(result))
+    if (!CHECK_RESULT(result))
         goto error_;
     if (setting) {
         freeResult(result);
         newObjectSetting(value, name->line, name->code_file, value, result, inter, var_list);
-        if (CHECK_RESULT(result))
+        if (!CHECK_RESULT(result))
             goto error_;
     }
 

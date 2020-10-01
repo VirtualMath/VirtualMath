@@ -93,7 +93,7 @@ ResultType setFunction(FUNC) {
         freeResult(result);
     }
     assCore(st->u.set_function.name, func, false, true, CNEXT_NT);
-    if (CHECK_RESULT(result))
+    if (CHECK_RESULT(result))  // 若没有出现错误则设定none
         setResult(result, inter);
 
     error_:

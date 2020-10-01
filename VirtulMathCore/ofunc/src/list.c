@@ -143,7 +143,7 @@ ResultType list_slice_assignment(O_FUNC){
         }
         freeResult(result);
         getIter(iter_obj, 0, LINEFILE, CNEXT_NT);
-        if (CHECK_RESULT(result)) {
+        if (CHECK_RESULT(result)) {  // 若没有出现Exception
             setResultError(E_TypeException, L"Iter Object Too Long", LINEFILE, true, CNEXT_NT);
             goto return_;
         } else if (!is_iterStop(result->value, inter))
