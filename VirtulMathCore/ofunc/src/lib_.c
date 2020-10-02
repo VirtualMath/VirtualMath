@@ -46,12 +46,13 @@ ResultType lib_init(O_FUNC){
     if (handle == NULL) {
         wchar_t *tmp = memWidecat(L"load lib error: ", memStrToWcs(dlerror(), false), false, true);
         setResultError(E_ImportException, tmp, LINEFILE, true, CNEXT_NT);
+        memFree(tmp);
         goto return_;
     }
     clib->value->data.lib.handle = handle;
 
     {
-        void (*test)(void) = dlsym(handle, "init");
+        void (*test)(void) = dlsym(handle, "init");  // 运行init函数
         if (test != NULL)
             test();
     }
@@ -86,9 +87,57 @@ ResultType lib_close(O_FUNC){
     return result->type;
 }
 
+ResultType lib_add(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"func", .must=1, .long_arg=false},
+                           {.must=-1}};
+    LinkValue *clib;
+    char *name;
+    void (*func)();
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if ((clib = ap[0].value)->value->type != V_lib || clib->value->data.lib.handle == NULL) {
+        setResultError(E_TypeException, INSTANCE_ERROR(clib), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    if (ap[1].value->value->type != V_str) {
+        setResultError(E_TypeException, ONLY_ACC(func, str), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    name = memWcsToStr(ap[1].value->value->data.str.str, false);
+    func = dlsym(clib->value->data.lib.handle, name);
+    if (func == NULL) {
+        wchar_t *tmp = memWidecat(L"function not found: ", memStrToWcs(dlerror(), false), false, true);
+        setResultError(E_NameExceptiom, tmp, LINEFILE, true, CNEXT_NT);
+        memFree(tmp);
+    } else
+        makeFFunctionValue(func, LINEFILE, CFUNC_NT(var_list, result, clib));
+    memFree(name);
+
+    {
+        Result tmp;
+        setResultCore(&tmp);
+        addAttributes(ap[1].value->value->data.str.str, false, result->value, LINEFILE, false, CFUNC_NT(var_list, &tmp, clib));
+        if (!RUN_TYPE(tmp.type)) {
+            freeResult(result);
+            *result = tmp;
+        } else
+            freeResult(&tmp);
+    }
+
+    return result->type;
+}
+
 void registeredLib(R_FUNC){
     LinkValue *object = inter->data.lib_;
     NameFunc tmp[] = {{L"close", lib_close, object_free_},
+                      {L"add", lib_add, object_free_},
                       {inter->data.object_new, lib_new, class_free_},
                       {inter->data.object_init, lib_init, object_free_},
                       {inter->data.object_del, lib_close, object_free_},

@@ -87,8 +87,7 @@ Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT) {
 
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, FUNC_NT) {
     Value *tmp = NULL;
-    callBackCore(inter->data.function, NULL, st->line, st->code_file, 0,
-                 CNEXT_NT);
+    callBackCore(inter->data.function, NULL, st->line, st->code_file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -106,14 +105,31 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, FUNC_NT) {
 
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
-    callBackCore(inter->data.function, NULL, line, file, 0,
-                 CNEXT_NT);
+    callBackCore(inter->data.function, NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
     tmp->data.function.type = c_func;
     tmp->data.function.of = of;
     tmp->data.function.function_data.pt_type = inter->data.default_pt_type;
+    tmp->data.function.function_data.cls = belong;
+    for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
+        vl_next = vl->next;
+        freeVarList(vl);
+    }
+    tmp->object.out_var = copyVarList(var_list, false, inter);
+    result->value->belong = belong;
+    return tmp;
+}
+
+Value *makeFFunctionValue(void (*ffunc)(), fline line, char *file, FUNC_NT) {
+    Value *tmp = NULL;
+    callBackCore(inter->data.function, NULL, line, file, 0, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
+    tmp->data.function.type = f_func;
+    tmp->data.function.ffunc = ffunc;
     tmp->data.function.function_data.cls = belong;
     for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
         vl_next = vl->next;

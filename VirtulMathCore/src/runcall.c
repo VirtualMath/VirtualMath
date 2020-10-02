@@ -257,6 +257,19 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
     return result->type;
 }
 
+static ResultType callFFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT){
+    ffi_cif cif;
+    setResultCore(result);
+    gc_addTmpLink(&function_value->gc_status);
+
+    ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 0, &ffi_type_void, NULL);
+    ffi_call(&cif, function_value->value->data.function.ffunc,  NULL, NULL);
+
+    setResult(result, inter);
+    gc_freeTmpLink(&function_value->gc_status);
+    return result->type;
+}
+
 static void updateFunctionYield(Statement *func_st, Statement *node){
     func_st->info.node = node->type == yield_code ? node->next : node;
     func_st->info.have_info = true;
@@ -342,16 +355,28 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
 ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, int pt_sep, FUNC_NT) {
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
-    if (function_value->value->type == V_func && function_value->value->data.function.type == vm_func)
-        callVMFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
-    else if (function_value->value->type == V_func && function_value->value->data.function.type == c_func)
-        callCFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
-    else if (function_value->value->type == V_class)
+    if (function_value->value->type == V_func) {
+        switch (function_value->value->data.function.type) {
+            case vm_func:
+                callVMFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
+                break;
+            case c_func:
+                callCFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
+                break;
+            case f_func:
+                callFFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
+                break;
+            default:
+                setResultError(E_SystemException, L"function type error", line, file, true, CNEXT_NT);
+                goto return_;
+        }
+    } else if (function_value->value->type == V_class)
         callClass(function_value, arg, line, file, pt_sep, CNEXT_NT);
     else
         callObject(function_value, arg, line, file, pt_sep, CNEXT_NT);
     setResultError(E_BaseException, NULL, line, file, false, CNEXT_NT);
 
+    return_:
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }

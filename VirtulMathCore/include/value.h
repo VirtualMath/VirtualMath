@@ -64,10 +64,12 @@ struct Function{
     enum {
         c_func,
         vm_func,
+        f_func,
     } type;
     struct Statement *function;
     struct Parameter *pt;
     OfficialFunction of;
+    void (*ffunc)();  // ffi导入的func
     struct {
         enum FunctionPtType {
             free_,  // 不包含任何隐式传递的参数
@@ -225,6 +227,7 @@ Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, FUNC_NT);
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT);
 LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, OfficialFunction function_init, LinkValue *belong, VarList *var_list, Inter *inter);
+Value *makeFFunctionValue(void (*ffunc)(), fline line, char *file, FUNC_NT);
 Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father);
 Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, FUNC_NT);
 Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, FUNC_NT);
