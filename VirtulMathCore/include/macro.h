@@ -15,6 +15,7 @@
 #include <wchar.h>
 #include <wctype.h>
 #include <locale.h>
+#include <ffi.h>
 
 #ifdef __linux__
 #include <dlfcn.h>
@@ -26,6 +27,6 @@
 #define bool int
 #define true 1
 #define false 0
-#define NUL 0
+#define NUL ((char)0)
 
 #endif //VIRTUALMATH_MACRO_H

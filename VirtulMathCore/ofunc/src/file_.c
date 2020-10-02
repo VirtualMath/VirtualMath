@@ -163,15 +163,13 @@ ResultType file_close(O_FUNC){
     }
     freeResult(result);
 
-    if ((file = ap[0].value)->value->type != V_file || file->value->data.file.file == NULL) {
+    if ((file = ap[0].value)->value->type != V_file) {
         setResultError(E_TypeException, INSTANCE_ERROR(file), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
-    if (file->value->data.file.is_std) {
-        setResultError(E_TypeException, L"stream cannot be closed", LINEFILE, true, CNEXT_NT);
-        return R_error;
-    }
+    if (file->value->data.file.file == NULL || file->value->data.file.is_std)
+        goto return_;
 
     fclose(file->value->data.file.file);
     file->value->data.file.file = NULL;
@@ -179,7 +177,27 @@ ResultType file_close(O_FUNC){
     memFree(file->value->data.file.mode);
     file->value->data.file.is_std = true;
 
+    return_:
     setResult(result, inter);
+    return result->type;
+}
+
+ResultType file_enter(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result)) {
+        return result->type;
+    }
+    freeResult(result);
+
+    if (ap[0].value->value->type != V_file || ap[0].value->value->data.file.file == NULL) {
+        setResultError(E_TypeException, INSTANCE_ERROR(file), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    setResultOperation(result, ap[0].value);
     return result->type;
 }
 
@@ -188,6 +206,9 @@ void registeredFile(R_FUNC){
     NameFunc tmp[] = {{L"read", file_read, object_free_},
                       {L"write", file_write, object_free_},
                       {L"close", file_close, object_free_},
+                      {inter->data.object_enter, file_enter, object_free_},
+                      {inter->data.object_del, file_close, object_free_},
+                      {inter->data.object_exit, file_close, object_free_},
                       {inter->data.object_new, file_new, class_free_},
                       {inter->data.object_init, file_init, object_free_},
                       {NULL, NULL}};

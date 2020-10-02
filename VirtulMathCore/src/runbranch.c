@@ -771,18 +771,23 @@ ResultType withBranch(FUNC) {
                 freeResult(&exit_tmp);
 
             if (!yield_run) {
-                gc_freeTmpLink(&value->gc_status);
                 gc_freeTmpLink(&_enter_->gc_status);
                 gc_freeTmpLink(&_exit_->gc_status);
-                value = NULL;
                 _enter_ = NULL;
                 _exit_ = NULL;
             }
         }
 
-        if (with_belong != NULL && !yield_run) {
-            gc_freeTmpLink(&with_belong->gc_status);
-            with_belong = NULL;
+        if (!yield_run) {
+            if (with_belong != NULL){
+                gc_freeTmpLink(&with_belong->gc_status);
+                with_belong = NULL;
+            }
+
+            if (value != NULL){
+                gc_freeTmpLink(&value->gc_status);
+                value = NULL;
+            }
         }
     }
 

@@ -177,12 +177,12 @@ void gc_runDelAll(Inter *inter){
     Result result;
     setResultCore(&result);
     for (Value *value = inter->base; value != NULL; value = value->gc_next) {
-        freeResult(&result);
         gc_addTmpLink(&value->gc_status);
         if (needDel(value, inter)) {
             callDel(value, &result, inter, inter->var_list);
             if (!RUN_TYPE(result.type))
                 printError(&result, inter, true);
+            freeResult(&result);
         }
         gc_freeTmpLink(&value->gc_status);
     }
@@ -192,7 +192,6 @@ static void gc_runDel(Inter *inter, VarList *var_list){
     Result result;
     setResultCore(&result);
     for (Value *value = inter->base; value != NULL; value = value->gc_next) {
-        freeResult(&result);
         if (value->gc_status.c_value == run_del) {
             gc_addTmpLink(&value->gc_status);
             callDel(value, &result, inter, var_list);
@@ -200,6 +199,7 @@ static void gc_runDel(Inter *inter, VarList *var_list){
                 printError(&result, inter, true);
             gc_freeTmpLink(&value->gc_status);
             value->gc_status.c_value = need_free;
+            freeResult(&result);
         }
     }
 }

@@ -207,8 +207,7 @@ void freeValue(Value **value) {
         case V_file:
             memFree(free_value->data.file.mode);
             memFree(free_value->data.file.path);
-            if (!free_value->data.file.is_std)
-                fclose(free_value->data.file.file);
+            // file在__del__中释放
             break;
         case V_func: {
             freeParameter(free_value->data.function.pt, true);
