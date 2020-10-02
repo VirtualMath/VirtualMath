@@ -98,6 +98,7 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.bool_->gc_status);
     gc_freeStatementLink(&inter->data.function->gc_status);
     gc_freeStatementLink(&inter->data.pass_->gc_status);
+    gc_freeStatementLink(&inter->data.lib_->gc_status);
     gc_freeStatementLink(&inter->data.file->gc_status);
     gc_freeStatementLink(&inter->data.tuple->gc_status);
     gc_freeStatementLink(&inter->data.list->gc_status);

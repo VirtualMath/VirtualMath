@@ -718,6 +718,12 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
         case V_ell:
             fprintf(debug, "...");
             break;
+        case V_lib:
+            if (print_father)
+                fprintf(debug, "lib");
+            else
+                fprintf(debug, "(lib on %p)", value);
+            break;
         default:
             fprintf(debug, "unknown");
             break;

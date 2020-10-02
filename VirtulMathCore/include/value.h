@@ -49,6 +49,7 @@ enum ValueType {
     V_bool=8,
     V_ell=9,
     V_file=10,
+    V_lib=11,
 };
 
 struct Number {
@@ -103,6 +104,10 @@ struct Bool{
     bool bool_;
 };
 
+struct Lib{
+    void *handle;
+};
+
 struct File{
     FILE *file;
     char *path;  // 文件路径
@@ -127,6 +132,7 @@ struct Value{
         struct Dict dict;
         struct Bool bool_;
         struct File file;
+        struct Lib lib;
     } data;
 
     struct Value *gc_next;

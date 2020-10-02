@@ -26,6 +26,7 @@ struct Inter{
         struct LinkValue *str;
         struct LinkValue *bool_;
         struct LinkValue *pass_;
+        struct LinkValue *lib_;
         struct LinkValue *file;
         struct LinkValue *tuple;
         struct LinkValue *list;

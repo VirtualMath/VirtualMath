@@ -16,6 +16,7 @@
 #include "dictiter.h"
 #include "error_.h"
 #include "file_.h"
+#include "lib_.h"
 
 struct Argument;
 struct VarList;

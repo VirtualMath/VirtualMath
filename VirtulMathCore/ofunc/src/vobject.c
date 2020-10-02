@@ -122,6 +122,12 @@ ResultType vobject_bool(O_FUNC){
         case V_dict:
             result_ = value->data.dict.size > 0;
             break;
+        case V_lib:
+            result_ = value->data.lib.handle != NULL;
+            break;
+        case V_file:
+            result_ = value->data.file.file != NULL;
+            break;
         default:
             setResultError(E_TypeException, CUL_ERROR(bool), LINEFILE, true, CNEXT_NT);
             return R_error;

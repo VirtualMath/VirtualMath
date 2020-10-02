@@ -168,16 +168,14 @@ ResultType file_close(O_FUNC){
         return R_error;
     }
 
-    if (file->value->data.file.file == NULL || file->value->data.file.is_std)
-        goto return_;
+    if (file->value->data.file.file != NULL && !file->value->data.file.is_std) {
+        fclose(file->value->data.file.file);
+        file->value->data.file.file = NULL;
+        file->value->data.file.is_std = true;
+        memFree(file->value->data.file.path);
+        memFree(file->value->data.file.mode);
+    }
 
-    fclose(file->value->data.file.file);
-    file->value->data.file.file = NULL;
-    memFree(file->value->data.file.path);
-    memFree(file->value->data.file.mode);
-    file->value->data.file.is_std = true;
-
-    return_:
     setResult(result, inter);
     return result->type;
 }
