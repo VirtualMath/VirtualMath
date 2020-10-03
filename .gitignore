@@ -229,4 +229,5 @@ gen
 # Compiled Static libraries
 *.lai
 /Demo
-vgcore.* 
+vgcore.*
+.vs
