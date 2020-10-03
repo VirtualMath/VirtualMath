@@ -26,7 +26,4 @@ ELSE()
     TARGET_LINK_LIBRARIES(VirtualMathCore libffi)
     ADD_LIBRARY(dlwin32 STATIC src/win/dlfcn_win32.c)
     TARGET_LINK_LIBRARIES(VirtualMathCore dlwin32)
-
-    ADD_LIBRARY(gowin32 STATIC src/win/getopt_win.c)
-    TARGET_LINK_LIBRARIES(VirtualMathCore gowin32)
 ENDIF()
