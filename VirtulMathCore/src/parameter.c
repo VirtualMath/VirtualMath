@@ -269,7 +269,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
  * @param num
  * @return
  */
-ResultType defaultParameter(Parameter **function_ad, vnum *num, FUNC_NT) {
+ResultType defaultParameter(Parameter **function_ad, vint *num, FUNC_NT) {
     Parameter *function = *function_ad;
     setResultCore(result);
 
@@ -302,7 +302,7 @@ ResultType defaultParameter(Parameter **function_ad, vnum *num, FUNC_NT) {
  * @param num
  * @return
  */
-ResultType argumentToVar(Argument **call_ad, vnum *num, FUNC_NT) {
+ResultType argumentToVar(Argument **call_ad, vint *num, FUNC_NT) {
     Argument *call = *call_ad;
     setResultCore(result);
 
@@ -332,7 +332,7 @@ ResultType argumentToVar(Argument **call_ad, vnum *num, FUNC_NT) {
  * @param num
  * @return
  */
-ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum *num, vnum max, bool *status,
+ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vint *num, vint max, bool *status,
                             FUNC_NT) {
     Parameter *function = *function_ad;
     bool get = true;
@@ -585,14 +585,14 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 break;
             }
             case default_status: {
-                vnum num = 0;
+                vint num = 0;
                 defaultParameter(&function, &num, CFUNC_NT(function_var, result, belong));
                 returnResult(result);
                 break;
             }
             case self_ass: {
-                vnum set_num = 0;
-                vnum get_num = 0;
+                vint set_num = 0;
+                vint get_num = 0;
                 bool dict_status = false;
                 VarList *tmp = makeVarList(inter, true);
 
@@ -778,8 +778,8 @@ Argument *parserValueArgument(ArgumentParser *ap, Argument *arg, int *status, Ar
 
 int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak, FUNC_NT){
     VarList *tmp = NULL;
-    vnum set_num = 0;
-    vnum get_num = 0;
+    vint set_num = 0;
+    vint get_num = 0;
     int return_;
     setResultCore(result);
 

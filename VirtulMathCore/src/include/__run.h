@@ -3,7 +3,8 @@
 #include "__virtualmath.h"
 
 wchar_t *setStrVarName(wchar_t *old, bool free_old, struct Inter *inter);
-wchar_t *setNumVarName(vnum num, struct Inter *inter);
+wchar_t *setIntVarName(vint num, struct Inter *inter);
+wchar_t *setDouVarName(vdou num, struct Inter *inter);
 wchar_t *getNameFromValue(Value *value, struct Inter *inter);
 ResultType getBaseVarInfo(wchar_t **name, int *times, FUNC);
 ResultType getBaseSVarInfo(wchar_t **name, int *times, FUNC);

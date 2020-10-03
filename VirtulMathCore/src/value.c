@@ -61,14 +61,29 @@ Value *makePassValue(fline line, char *file, FUNC_NT){  // TODO-szh 让切片支
     return tmp;
 }
 
-Value *makeNumberValue(vnum num, fline line, char *file, FUNC_NT) {
+Value *makeIntValue(vint num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.num, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.int_, NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
-    tmp->data.num.num = num;
+    tmp->data.int_.num = num;
+    return tmp;
+}
+
+Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
+    Value *tmp = NULL;
+    setResultCore(result);
+    if (isnanl(num) || isinfl(num)) {
+        setResultError(E_TypeException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
+        return NULL;
+    }
+    callBackCore(inter->data.dou, NULL, line, file, 0, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
+    tmp->data.dou.num = num;
     return tmp;
 }
 
@@ -660,8 +675,11 @@ bool checkAttribution(Value *self, Value *father){
 
 void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
     switch (value->type){
-        case V_num:
-            fprintf(debug, "(%lld)", value->data.num.num);
+        case V_int:
+            fprintf(debug, "(%lld)", value->data.int_.num);
+            break;
+        case V_dou:
+            fprintf(debug, "(%Lf)", value->data.dou.num);
             break;
         case V_str:
             fprintf(debug, "'%ls'", value->data.str.str);

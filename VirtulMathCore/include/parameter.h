@@ -84,9 +84,9 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
 ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC_NT);
 Argument *getArgument(Parameter *call, bool is_dict, FUNC_NT);
 
-ResultType defaultParameter(Parameter **function_ad, vnum *num, FUNC_NT);
-ResultType argumentToVar(Argument **call_ad, vnum *num, FUNC_NT);
-ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vnum *num, vnum max, bool *status,
+ResultType defaultParameter(Parameter **function_ad, vint *num, FUNC_NT);
+ResultType argumentToVar(Argument **call_ad, vint *num, FUNC_NT);
+ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vint *num, vint max, bool *status,
                             FUNC_NT);
 ResultType argumentToParameter(Argument **call_ad, Parameter **function_ad, VarList *function_var, FUNC_NT);
 

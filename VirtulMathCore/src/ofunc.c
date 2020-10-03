@@ -1,7 +1,8 @@
 #include "__run.h"
 
 static Registered base_func_list[] = {registeredVObject,
-                                      registeredNum,
+                                      registeredInt,
+                                      registeredDou,
                                       registeredStr,
                                       registeredBool,
                                       registeredEllipisis,
@@ -39,7 +40,8 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
 
     makeBaseVObject(inter);
 
-    makeBaseNum(inter);
+    makeBaseInt(inter);
+    makeBaseDou(inter);
     makeBaseBool(inter);
     makeBaseEllipisis(inter);
     makeBaseFunction(inter);

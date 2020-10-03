@@ -50,10 +50,10 @@ ResultType str_slice(O_FUNC){
                            {.type=only_value, .must=0, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum first;
-    vnum second;
-    vnum stride;
+    vint size;
+    vint first;
+    vint second;
+    vint stride;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -69,9 +69,9 @@ ResultType str_slice(O_FUNC){
     first = 0;
     second = size;
     stride = 1;
-    for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
-        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
-            *(list[i]) = ap[i + 1].value->value->data.num.num;
+    for (vint *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_int)
+            *(list[i]) = ap[i + 1].value->value->data.int_.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
             setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), LINEFILE, true, CNEXT_NT);
             return R_error;
@@ -83,7 +83,7 @@ ResultType str_slice(O_FUNC){
 
     {
         wchar_t *str = NULL;
-        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride)
+        for (vint i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride)
             str = memWideCharcpy(str, 1, true, true, ap[0].value->value->data.str.str[i]);
         makeStringValue(str, LINEFILE, CNEXT_NT);
         memFree(str);
@@ -95,8 +95,8 @@ ResultType str_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum index;
+    vint size;
+    vint index;
     wchar_t element[2];  // TODO-szh 设置为空
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
@@ -108,13 +108,13 @@ ResultType str_down(O_FUNC){
         setResultError(E_TypeException, INSTANCE_ERROR(str), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
-    if (ap[1].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(str index, V_num), LINEFILE, true, CNEXT_NT);
+    if (ap[1].value->value->type != V_int){
+        setResultError(E_TypeException, ONLY_ACC(str index, V_int), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
     size = memWidelen(ap[0].value->value->data.str.str);
-    index = ap[1].value->value->data.num.num;
+    index = ap[1].value->value->data.int_.num;
     if (!checkIndex(&index, &size, CNEXT_NT))
         return result->type;
     *element = ap[0].value->value->data.str.str[index];
@@ -125,7 +125,7 @@ ResultType str_down(O_FUNC){
 ResultType str_to_list(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    vnum size;
+    vint size;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -140,7 +140,7 @@ ResultType str_to_list(O_FUNC){
 
     {
         Argument *new_list = NULL;
-        for (vnum i = 0; i < size; i ++) {
+        for (vint i = 0; i < size; i ++) {
             wchar_t str[2] = { NUL };  // TODO-szh 设置为空
             str[0] = ap[0].value->value->data.str.str[i];
             makeStringValue(str, LINEFILE, CNEXT_NT);

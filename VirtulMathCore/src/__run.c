@@ -9,11 +9,11 @@ ResultType getBaseVarInfo(wchar_t **name, int *times, FUNC){
     }
     if (operationSafeInterStatement(CFUNC(st->u.base_var.times, var_list, result, belong)))
         return result->type;
-    if (!isType(result->value->value, V_num)){
+    if (!isType(result->value->value, V_int)){
         setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CNEXT_NT);
         return result->type;
     }
-    *times = (int)result->value->value->data.num.num;
+    *times = (int)result->value->value->data.int_.num;
     freeResult(result);
 
     not_times:
@@ -30,11 +30,11 @@ ResultType getBaseSVarInfo(wchar_t **name, int *times, FUNC){
     }
     if (operationSafeInterStatement(CFUNC(st->u.base_svar.times, var_list, result, belong)))
         return result->type;
-    if (!isType(result->value->value, V_num)){
+    if (!isType(result->value->value, V_int)){
         setResultErrorSt(E_TypeException, L"Variable operation got unsupported V_num of layers", true, st, CNEXT_NT);
         return result->type;
     }
-    *times = (int)result->value->value->data.num.num;
+    *times = (int)result->value->value->data.int_.num;
 
     freeResult(result);
     not_times:
@@ -65,18 +65,26 @@ wchar_t *setStrVarName(wchar_t *old, bool free_old, Inter *inter) {
     return memWidecat(inter->data.var_str_prefix, old, false, free_old);
 }
 
-wchar_t *setNumVarName(vnum num, struct Inter *inter) {
+wchar_t *setIntVarName(vint num, struct Inter *inter) {
     wchar_t name[50];
     swprintf(name, 50, L"%lld", num);
-    return memWidecat(inter->data.var_num_prefix, name, false, false);
+    return memWidecat(inter->data.var_int_prefix, name, false, false);
+}
+
+wchar_t *setDouVarName(vdou num, struct Inter *inter) {
+    wchar_t name[50];
+    swprintf(name, 50, L"%Lf", num);
+    return memWidecat(inter->data.var_dou_prefix, name, false, false);
 }
 
 wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
         case V_str:
             return setStrVarName(value->data.str.str, false, inter);
-        case V_num:
-            return setNumVarName(value->data.num.num, inter);
+        case V_int:
+            return setIntVarName(value->data.int_.num, inter);
+        case V_dou:
+            return setDouVarName(value->data.dou.num, inter);
         case V_bool:
             if (value->data.bool_.bool_)
                 return memWidecat(inter->data.var_bool_prefix, L"true", false, false);
@@ -440,6 +448,8 @@ bool checkBool(LinkValue *value, fline line, char *file, FUNC_NT){
     LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, LINEFILE, true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         return false;
+    freeResult(result);
+
     if (_bool_ != NULL){
         gc_addTmpLink(&_bool_->gc_status);
         callBackCore(_bool_, NULL, line, file, 0, CNEXT_NT);

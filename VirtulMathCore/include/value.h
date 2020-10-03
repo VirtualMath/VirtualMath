@@ -39,21 +39,26 @@ enum ValueAuthority {
 
 enum ValueType {
     V_none=0,
-    V_num=1,
-    V_str=2,
-    V_func=3,
-    V_list=4,
-    V_dict=5,
-    V_class=6,
-    V_obj=7,
-    V_bool=8,
-    V_ell=9,
-    V_file=10,
-    V_lib=11,
+    V_int=1,
+    V_dou=2,
+    V_str=3,
+    V_func=4,
+    V_list=5,
+    V_dict=6,
+    V_class=7,
+    V_obj=8,
+    V_bool=9,
+    V_ell=10,
+    V_file=11,
+    V_lib=12,
 };
 
-struct Number {
-    vnum num;
+struct Int {
+    vint num;
+};
+
+struct Dou {
+    vdou num;
 };
 
 struct String {
@@ -94,12 +99,12 @@ struct List {
         L_list,
     } type;
     struct LinkValue **list;
-    vnum size;
+    vint size;
 };
 
 struct Dict {
     struct HashTable *dict;
-    vnum size;
+    vint size;
 };
 
 struct Bool{
@@ -127,7 +132,8 @@ struct Value{
     } object;
 
     union data {
-        struct Number num;
+        struct Int int_;
+        struct Dou dou;
         struct String str;
         struct Function function;
         struct List list;
@@ -167,7 +173,7 @@ struct Result {
     wchar_t *label;
     struct LinkValue *value;
     struct Error *error;
-    vnum times;
+    vint times;
     struct Statement *node;
     bool is_yield;  // 执行的函数是否为生成器
 };
@@ -222,7 +228,8 @@ LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *useNoneValue(Inter *inter, Result *result);
 Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT);
 Value *makePassValue(fline line, char *file, FUNC_NT);
-Value *makeNumberValue(vnum num, fline line, char *file, FUNC_NT);
+Value *makeIntValue(vint num, fline line, char *file, FUNC_NT);
+Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT);
 Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, FUNC_NT);
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT);

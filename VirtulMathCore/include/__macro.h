@@ -31,7 +31,8 @@
 #define MD5_STR_LEN (MD5_SIZE * 2)
 #define MD5_STRING (MD5_STR_LEN + 1)
 
-typedef long long vnum;
+typedef long long vint;
+typedef long double vdou;
 typedef unsigned long long vhashn;
 typedef unsigned long long fline;
 

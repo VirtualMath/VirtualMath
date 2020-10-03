@@ -4,50 +4,72 @@ typedef void (*base_opt)(LinkValue *, Result *, struct Inter *, VarList *var_lis
 
 void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == V_num && right->type == V_num)
-        makeNumberValue(left->data.num.num + right->data.num.num, LINEFILE, CNEXT_NT);
+    if (left->type == V_int && right->type == V_int)
+        makeIntValue(left->data.int_.num + right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_int && right->type == V_dou)
+        makeDouValue(left->data.int_.num + right->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_int)
+        makeDouValue(left->data.dou.num + right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_dou)
+        makeDouValue(left->data.dou.num + right->data.dou.num, LINEFILE, CNEXT_NT);
     else if(left->type == V_str && right->type == V_str){
         wchar_t *new_string = memWidecat(left->data.str.str, right->data.str.str, false, false);
         makeStringValue(new_string, LINEFILE, CNEXT_NT);
         memFree(new_string);
-    }
-    else
+    } else
         setResultError(E_TypeException, CUL_ERROR(Add), LINEFILE, true, CNEXT_NT);
 }
 
 void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == V_num && right->type == V_num)
-        makeNumberValue(left->data.num.num - right->data.num.num, LINEFILE, CNEXT_NT);
+    if (left->type == V_int && right->type == V_int)
+        makeIntValue(left->data.int_.num - right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_int && right->type == V_dou)
+        makeDouValue(left->data.int_.num - right->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_int)
+        makeDouValue(left->data.dou.num - right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_dou)
+        makeDouValue(left->data.dou.num - right->data.dou.num, LINEFILE, CNEXT_NT);
     else
         setResultError(E_TypeException, CUL_ERROR(Sub), LINEFILE, true, CNEXT_NT);
 }
 
 void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == V_num && right->type == V_num)
-        makeNumberValue(left->data.num.num * right->data.num.num, LINEFILE, CNEXT_NT);
-    else if(left->type == V_num && right->type == V_str) {
+    if (left->type == V_int && right->type == V_int)
+        makeIntValue(left->data.int_.num * right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_int && right->type == V_dou)
+        makeDouValue(left->data.int_.num * right->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_int)
+        makeDouValue(left->data.dou.num * right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_dou)
+        makeDouValue(left->data.dou.num * right->data.dou.num, LINEFILE, CNEXT_NT);
+    else if(left->type == V_int && right->type == V_str) {
         Value *tmp = left;
         left = right;
         right = tmp;
         goto mul_str;
-    }
-    else if(left->type == V_str && right->type == V_num) mul_str: {
-        wchar_t *new_string = memWidecpySelf(left->data.str.str, right->data.num.num);
+    } else if(left->type == V_str && right->type == V_int) mul_str: {
+        wchar_t *new_string = memWidecpySelf(left->data.str.str, right->data.int_.num);
         makeStringValue(new_string, LINEFILE, CNEXT_NT);
         memFree(new_string);
-    }
-    else
+    } else
         setResultError(E_TypeException, CUL_ERROR(Mul), LINEFILE, true, CNEXT_NT);
 }
 
 void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
     setResultCore(result);
-    if (left->type == V_num && right->type == V_num) {
-        lldiv_t div_result = lldiv(left->data.num.num, right->data.num.num);
-        makeNumberValue(div_result.quot, LINEFILE, CNEXT_NT);
-    }
+    if (right->type == V_int && right->data.int_.num == 0 || right->type == V_dou && !(right->data.dou.num != 0))  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
+        setResultError(E_TypeException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
+    else if (left->type == V_int && right->type == V_int) {
+        lldiv_t div_result = lldiv(left->data.int_.num, right->data.int_.num);
+        makeIntValue(div_result.quot, LINEFILE, CNEXT_NT);
+    } else if (left->type == V_dou && right->type == V_int)
+        makeDouValue(left->data.dou.num / (vdou)right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_dou)
+        makeDouValue((vdou)left->data.dou.num / right->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_dou && right->type == V_dou)
+        makeDouValue(left->data.dou.num / right->data.int_.num, LINEFILE, CNEXT_NT);
     else
         setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
 }
@@ -95,16 +117,18 @@ ResultType vobject_bool(O_FUNC){
     bool result_ = false;
     Value *value = NULL;
     setResultCore(result);
-    {
-        parserArgumentUnion(ap, arg, CNEXT_NT);
-        if (!CHECK_RESULT(result))
-            return result->type;
-        freeResult(result);
-    }
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
     value = ap[0].value->value;
     switch (value->type) {
-        case V_num:
-            result_ = value->data.num.num != 0;
+        case V_int:
+            result_ = value->data.int_.num != 0;
+            break;
+        case V_dou:
+            result_ = value->data.dou.num != 0;
             break;
         case V_str:
             result_ = memWidelen(value->data.str.str) > 0;
@@ -149,9 +173,18 @@ ResultType vobject_repo(O_FUNC){
     value = ap[0].value->value;
 
     switch (value->type){
-        case V_num: {
+        case V_int: {
             char str[30] = { NUL };
-            snprintf(str, 30, "%lld", value->data.num.num);
+            snprintf(str, 30, "%lld", value->data.int_.num);
+            repo = memStrToWcs(str, false);
+            break;
+        }
+        case V_dou: {
+            char str[30] = { NUL };
+            if (value->data.dou.num != 0)
+                snprintf(str, 30, "%Lf", value->data.dou.num);
+            else
+                str[0] = '0';
             repo = memStrToWcs(str, false);
             break;
         }

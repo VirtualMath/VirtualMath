@@ -41,10 +41,10 @@ ResultType list_slice(O_FUNC){
                            {.type=only_value, .must=0, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum first;
-    vnum second;
-    vnum stride;
+    vint size;
+    vint first;
+    vint second;
+    vint stride;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -60,9 +60,9 @@ ResultType list_slice(O_FUNC){
     first = 0;
     second = size;
     stride = 1;
-    for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
-        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
-            *(list[i]) = ap[i + 1].value->value->data.num.num;
+    for (vint *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_int)
+            *(list[i]) = ap[i + 1].value->value->data.int_.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
             setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), LINEFILE, true, CNEXT_NT);
             return R_error;
@@ -74,7 +74,7 @@ ResultType list_slice(O_FUNC){
 
     {
         Argument *new_list = NULL;
-        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
+        for (vint i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
             LinkValue *element = ap[0].value->value->data.list.list[i];
             new_list = connectValueArgument(element, new_list);
         }
@@ -91,10 +91,10 @@ ResultType list_slice_assignment(O_FUNC){
                            {.type=only_value, .must=0, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum first;
-    vnum second;
-    vnum stride;
+    vint size;
+    vint first;
+    vint second;
+    vint stride;
     LinkValue *iter_obj = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
@@ -117,9 +117,9 @@ ResultType list_slice_assignment(O_FUNC){
     first = 0;
     second = size;
     stride = 1;
-    for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
-        if (ap[i + 2].value != NULL && ap[i + 2].value->value->type == V_num)
-            *(list[i]) = ap[i + 2].value->value->data.num.num;
+    for (vint *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
+        if (ap[i + 2].value != NULL && ap[i + 2].value->value->type == V_int)
+            *(list[i]) = ap[i + 2].value->value->data.int_.num;
         else if (ap[i + 2].value != NULL && ap[i + 2].value->value->type != V_none) {
             setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), LINEFILE, true, CNEXT_NT);
             goto return_;
@@ -130,7 +130,7 @@ ResultType list_slice_assignment(O_FUNC){
         goto return_;
 
     {
-        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
+        for (vint i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
             freeResult(result);
             getIter(iter_obj, 0, LINEFILE, CNEXT_NT);
             if (is_iterStop(result->value, inter)){
@@ -161,10 +161,10 @@ ResultType list_slice_del(O_FUNC){
                            {.type=only_value, .must=0, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum first;
-    vnum second;
-    vnum stride;
+    vint size;
+    vint first;
+    vint second;
+    vint stride;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -180,9 +180,9 @@ ResultType list_slice_del(O_FUNC){
     first = 0;
     second = size;
     stride = 1;
-    for (vnum *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
-        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_num)
-            *(list[i]) = ap[i + 1].value->value->data.num.num;
+    for (vint *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_int)
+            *(list[i]) = ap[i + 1].value->value->data.int_.num;
         else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
             setResultError(E_TypeException, ONLY_ACC(first/second/stride, num or null), LINEFILE, true, CNEXT_NT);
             return R_error;
@@ -194,13 +194,13 @@ ResultType list_slice_del(O_FUNC){
 
     {
         LinkValue **new = NULL;
-        vnum new_size = size;
-        for (vnum i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
+        vint new_size = size;
+        for (vint i = stride > 0 ? first : second; stride > 0 ? (i < second) : (i > first); i += stride) {
             ap[0].value->value->data.list.list[i] = NULL;
             new_size --;
         }
         new = memCalloc(new_size, sizeof(LinkValue *));
-        for (vnum i = 0, c = 0; i < size; i++) {
+        for (vint i = 0, c = 0; i < size; i++) {
             if (ap[0].value->value->data.list.list[i] != NULL){
                 new[c] = ap[0].value->value->data.list.list[i];
                 c++;
@@ -218,8 +218,8 @@ ResultType list_down_assignment(O_FUNC){
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum index;
+    vint size;
+    vint index;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -230,13 +230,13 @@ ResultType list_down_assignment(O_FUNC){
         setResultError(E_TypeException, INSTANCE_ERROR(list), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
-    if (ap[2].value->value->type != V_num){
+    if (ap[2].value->value->type != V_int){
         setResultError(E_TypeException, ONLY_ACC(list index, num), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
     size = ap[0].value->value->data.list.size;
-    index = ap[2].value->value->data.num.num;
+    index = ap[2].value->value->data.int_.num;
     if (index < 0)
         index = size + index;
     if (index >= size){
@@ -255,8 +255,8 @@ ResultType list_down_del(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum index;
+    vint size;
+    vint index;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -267,13 +267,13 @@ ResultType list_down_del(O_FUNC){
         setResultError(E_TypeException, INSTANCE_ERROR(list), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
-    if (ap[1].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(list index, V_num), LINEFILE, true, CNEXT_NT);
+    if (ap[1].value->value->type != V_int){
+        setResultError(E_TypeException, ONLY_ACC(list index, V_int), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
     size = ap[0].value->value->data.list.size;
-    index = ap[1].value->value->data.num.num;
+    index = ap[1].value->value->data.int_.num;
     if (!checkIndex(&index, &size, CNEXT_NT))
         return result->type;
     {
@@ -293,8 +293,8 @@ ResultType list_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
-    vnum size;
-    vnum index;
+    vint size;
+    vint index;
     LinkValue *element = NULL;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
@@ -306,13 +306,13 @@ ResultType list_down(O_FUNC){
         setResultError(E_TypeException, INSTANCE_ERROR(list), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
-    if (ap[1].value->value->type != V_num){
-        setResultError(E_TypeException, ONLY_ACC(list index, V_num), LINEFILE, true, CNEXT_NT);
+    if (ap[1].value->value->type != V_int){
+        setResultError(E_TypeException, ONLY_ACC(list index, V_int), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
     size = ap[0].value->value->data.list.size;
-    index = ap[1].value->value->data.num.num;
+    index = ap[1].value->value->data.int_.num;
     if (!checkIndex(&index, &size, CNEXT_NT))
         return result->type;
     element = ap[0].value->value->data.list.list[index];

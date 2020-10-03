@@ -100,7 +100,7 @@ VarList *freeVarList(VarList *vl) {
     return next_var;
 }
 
-DefaultVar *makeDefaultVar(wchar_t *name, vnum times) {
+DefaultVar *makeDefaultVar(wchar_t *name, vint times) {
     DefaultVar *tmp;
     tmp = memCalloc(1, sizeof(DefaultVar));
     tmp->name = memWidecpy(name);
@@ -116,7 +116,7 @@ DefaultVar *freeDefaultVar(DefaultVar *dv) {
     return next;
 }
 
-DefaultVar *connectDefaultVar(DefaultVar *base, wchar_t *name, vnum times) {
+DefaultVar *connectDefaultVar(DefaultVar *base, wchar_t *name, vint times) {
     for (DefaultVar **tmp = &base; PASS; tmp = &(*tmp)->next){
         if (*tmp == NULL){
             *tmp = makeDefaultVar(name, times);
@@ -130,7 +130,7 @@ DefaultVar *connectDefaultVar(DefaultVar *base, wchar_t *name, vnum times) {
     return base;
 }
 
-vnum findDefault(DefaultVar *base, wchar_t *name) {
+vint findDefault(DefaultVar *base, wchar_t *name) {
     for (DefaultVar **tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
         if (eqWide((*tmp)->name, name))
             return (*tmp)->times;
@@ -199,10 +199,10 @@ LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTabl
  * @param var_list
  * @return
  */
-LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, FUNC_CORE) {
+LinkValue *findFromVarList(wchar_t *name, vint times, VarOperation operating, FUNC_CORE) {
     LinkValue *tmp = NULL;
-    vnum base = findDefault(var_list->default_var, name) + times;
-    for (vnum i = 0; i < base && var_list->next != NULL; i++)
+    vint base = findDefault(var_list->default_var, name) + times;
+    for (vint i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     if (operating == del_var && var_list != NULL)
         tmp = findVar(name, del_var, inter, var_list->hashtable);
@@ -213,9 +213,9 @@ LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, FU
     return tmp;
 }
 
-void addFromVarList(wchar_t *name, LinkValue *name_, vnum times, LinkValue *value, FUNC_CORE) {
-    vnum base = findDefault(var_list->default_var, name) + times;
-    for (vnum i = 0; i < base && var_list->next != NULL; i++)
+void addFromVarList(wchar_t *name, LinkValue *name_, vint times, LinkValue *value, FUNC_CORE) {
+    vint base = findDefault(var_list->default_var, name) + times;
+    for (vint i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     addVar(name, value, name_, inter, var_list->hashtable);
 }

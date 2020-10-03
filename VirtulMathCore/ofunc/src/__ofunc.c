@@ -81,7 +81,7 @@ LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter) {
     return makeLinkValue(new, inter->base_belong, inter);
 }
 
-bool checkIndex(vnum *index, const vnum *size, FUNC_NT){
+bool checkIndex(vint *index, const vint *size, FUNC_NT){
     setResultCore(result);
     if (*index < 0)
         *index = *size + *index;
@@ -95,7 +95,7 @@ bool checkIndex(vnum *index, const vnum *size, FUNC_NT){
     return true;  // true - 保持result为setResultCore的结果
 }
 
-bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, FUNC_NT){
+bool checkSlice(vint *first, vint *second, const vint *stride, vint size, FUNC_NT){
     setResultCore(result);
     *first = *first < 0 ? *first + size : *first;
     *second = *second < 0 ? *second + size : *second;

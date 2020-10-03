@@ -2,6 +2,7 @@
 #define VIRTUALMATH_MACRO_H
 
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>

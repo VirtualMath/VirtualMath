@@ -5,13 +5,13 @@ ResultType bool_new(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     int status = 1;
+    setResultCore(result);
     arg = parserValueArgument(ap, arg, &status, NULL);
     if (status != 1){
         setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
-    setResultCore(result);
     value = make_new(inter, belong, ap[0].value);
     value->value->type = V_bool;
     value->value->data.bool_.bool_ = false;

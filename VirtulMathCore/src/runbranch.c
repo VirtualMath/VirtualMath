@@ -1,8 +1,8 @@
 #include "__run.h"
 
 static bool checkNumber(FUNC){
-    if (!isType(result->value->value, V_num)) {
-        setResultErrorSt(E_TypeException, L"Don't get a V_num of layers", true, st, CNEXT_NT);
+    if (!isType(result->value->value, V_int)) {
+        setResultErrorSt(E_TypeException, L"Don't get a int of layers", true, st, CNEXT_NT);
         return false;
     }
     return true;
@@ -931,7 +931,7 @@ ResultType breakCycle(FUNC){
 
     if (!checkNumber(CNEXT))
         return result->type;
-    times_int = (int)result->value->value->data.num.num;
+    times_int = (int)result->value->value->data.int_.num;
     freeResult(result);
 
     not_times:
@@ -953,7 +953,7 @@ ResultType continueCycle(FUNC){
 
     if (!checkNumber(CNEXT))
         return result->type;
-    times_int = (int)result->value->value->data.num.num;
+    times_int = (int)result->value->value->data.int_.num;
     freeResult(result);
 
     not_times:
@@ -975,7 +975,7 @@ ResultType regoIf(FUNC){
 
     if (!checkNumber(CNEXT))
         return result->type;
-    times_int = (int)result->value->value->data.num.num;
+    times_int = (int)result->value->value->data.int_.num;
     freeResult(result);
 
     not_times:
@@ -997,7 +997,7 @@ ResultType restartCode(FUNC){
 
     if (!checkNumber(CNEXT))
         return result->type;
-    times_int = (int)result->value->value->data.num.num;
+    times_int = (int)result->value->value->data.int_.num;
     freeResult(result);
 
     not_times:
@@ -1095,7 +1095,7 @@ ResultType gotoLabel(FUNC){
         memFree(label);
         return result->type;
     }
-    times_int = (int)result->value->value->data.num.num;
+    times_int = (int)result->value->value->data.int_.num;
     freeResult(result);
     not_times:
     if (st->u.goto_.return_ == NULL)

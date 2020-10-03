@@ -22,7 +22,7 @@ struct HashTable{
 
 struct DefaultVar{
     wchar_t *name;
-    vnum times;
+    vint times;
     struct DefaultVar *next;
 };
 
@@ -55,10 +55,10 @@ VarList *freeVarList(VarList *vl);
 
 vhashn time33(wchar_t *key);
 LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTable *ht);
-LinkValue *findFromVarList(wchar_t *name, vnum times, VarOperation operating, FUNC_CORE);
+LinkValue *findFromVarList(wchar_t *name, vint times, VarOperation operating, FUNC_CORE);
 void addVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht);
 void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
-void addFromVarList(wchar_t *name, LinkValue *name_, vnum times, LinkValue *value, FUNC_CORE);
+void addFromVarList(wchar_t *name, LinkValue *name_, vint times, LinkValue *value, FUNC_CORE);
 
 VarList *pushVarList(VarList *base, Inter *inter);
 VarList *popVarList(VarList *base);
@@ -68,9 +68,9 @@ VarList *connectVarListBack(VarList *base, VarList *back);
 bool comparVarList(VarList *dest, VarList *src);
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base);
 
-vnum findDefault(DefaultVar *base, wchar_t *name);
-DefaultVar *connectDefaultVar(DefaultVar *base, wchar_t *name, vnum times);
+vint findDefault(DefaultVar *base, wchar_t *name);
+DefaultVar *connectDefaultVar(DefaultVar *base, wchar_t *name, vint times);
 DefaultVar *freeDefaultVar(DefaultVar *dv);
-DefaultVar *makeDefaultVar(wchar_t *name, vnum times);
+DefaultVar *makeDefaultVar(wchar_t *name, vint times);
 
 #endif //VIRTUALMATH_VAR_H

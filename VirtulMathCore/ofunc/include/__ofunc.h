@@ -14,7 +14,7 @@ void iterBaseNameFunc(NameFunc *list, struct LinkValue *belong, FUNC_CORE);
 void iterBaseClassFunc(NameFunc *list, LinkValue *belong, FUNC_CORE);
 LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter);
 
-bool checkIndex(vnum *index, const vnum *size, FUNC_NT);
-bool checkSlice(vnum *first, vnum *second, const vnum *stride, vnum size, FUNC_NT);
+bool checkIndex(vint *index, const vint *size, FUNC_NT);
+bool checkSlice(vint *first, vint *second, const vint *stride, vint size, FUNC_NT);
 void addBaseClassVar(wchar_t *name, LinkValue *obj, LinkValue *belong, Inter *inter);
 #endif //VIRTUALMATH___OFUNC_H

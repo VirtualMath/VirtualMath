@@ -97,12 +97,15 @@ ResultType file_read(O_FUNC){
     if (ap[1].value != NULL) {
         size_t n;
         wint_t ch;
-        if (ap[1].value->value->type != V_num) {
+        if (ap[1].value->value->type != V_int)
+            n = ap[1].value->value->data.int_.num;
+        else if (ap[1].value->value->type != V_dou)
+            n = (vint)ap[1].value->value->data.dou.num;
+        else {
             setResultError(E_TypeException, ONLY_ACC(n, num), LINEFILE, true, CNEXT_NT);
             return R_error;
         }
 
-        n = ap[1].value->value->data.num.num;
         tmp = memWide(n);
         for (int count=0; count < n && (ch = getwc(file->value->data.file.file)) != WEOF; count++)
             tmp[count] = ch;

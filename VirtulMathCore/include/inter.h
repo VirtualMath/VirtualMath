@@ -22,7 +22,8 @@ struct Inter{
 
         struct LinkValue *object;
         struct LinkValue *vobject;
-        struct LinkValue *num;
+        struct LinkValue *int_;
+        struct LinkValue *dou;
         struct LinkValue *str;
         struct LinkValue *bool_;
         struct LinkValue *pass_;
@@ -58,7 +59,8 @@ struct Inter{
         struct LinkValue *include_exp;
 
         wchar_t *var_str_prefix;
-        wchar_t *var_num_prefix;
+        wchar_t *var_int_prefix;
+        wchar_t *var_dou_prefix;
         wchar_t *var_bool_prefix;
         wchar_t *var_file_prefix;
         wchar_t *var_none;

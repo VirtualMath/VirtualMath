@@ -15,7 +15,7 @@ ResultType listiter_init(O_FUNC){
         return R_error;
     }
 
-    index = makeLinkValue(makeNumberValue(0, LINEFILE, CNEXT_NT), ap[0].value, inter);
+    index = makeLinkValue(makeIntValue(0, LINEFILE, CNEXT_NT), ap[0].value, inter);
     if (!CHECK_RESULT(result))
         return result->type;
 
@@ -61,8 +61,8 @@ ResultType listiter_next(O_FUNC){
         setResultError(E_TypeException, VALUE_ERROR(listiter.__list, list), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
-    if (index->value->type != V_num){
-        setResultError(E_TypeException, VALUE_ERROR(listiter.__index, V_num), LINEFILE, true, CNEXT_NT);
+    if (index->value->type != V_int){
+        setResultError(E_TypeException, VALUE_ERROR(listiter.__index, V_int), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
@@ -77,7 +77,7 @@ ResultType listiter_next(O_FUNC){
     else {
         Result tmp_result;
         setResultCore(&tmp_result);
-        index->value->data.num.num ++;
+        index->value->data.int_.num ++;
         if (addAttributes(L"__index", false, index, LINEFILE, true, CFUNC_NT(var_list, &tmp_result, ap[0].value)))
             freeResult(&tmp_result);
         else {

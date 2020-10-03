@@ -482,9 +482,13 @@ ResultType getBaseValue(FUNC) {
     }
     else
         switch (st->u.base_value.type) {
-            case number_str:
-                makeNumberValue(wcstoll(st->u.base_value.str, NULL, 10), st->line, st->code_file, CNEXT_NT);
+            case number_str: {
+                if (wcschr(st->u.base_value.str, '.') == NULL)
+                    makeIntValue(wcstoll(st->u.base_value.str, NULL, 10), st->line, st->code_file, CNEXT_NT);
+                else
+                    makeDouValue(wcstold(st->u.base_value.str, NULL), st->line, st->code_file, CNEXT_NT);
                 break;
+            }
             case bool_true:
                 makeBoolValue(true, st->line, st->code_file, CNEXT_NT);
                 break;
