@@ -150,7 +150,7 @@ ResultType vobject_repo(O_FUNC){
 
     switch (value->type){
         case V_num: {
-            char str[30] = {};
+            char str[30] = { NUL };
             snprintf(str, 30, "%lld", value->data.num.num);
             repo = memStrToWcs(str, false);
             break;
@@ -159,13 +159,13 @@ ResultType vobject_repo(O_FUNC){
             repo = memWidecpy(value->data.str.str);
             break;
         case V_func: {
-            char str[30] = {};
+            char str[30] = { NUL };
             snprintf(str, 30, "(func on %p)", value);
             repo = memStrToWcs(str, false);
             break;
         }
         case V_class: {
-            char str[30] = {};
+            char str[30] = { NUL };
             snprintf(str, 30, "(class on %p)", value);
             repo = memStrToWcs(str, false);
             break;

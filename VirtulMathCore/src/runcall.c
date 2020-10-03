@@ -8,7 +8,7 @@ ResultType setClass(FUNC) {
 
     call = getArgument(st->u.set_class.father, false, CNEXT_NT);
     if (!CHECK_RESULT(result))
-        goto error_;
+        goto error_return;
 
     class_inherit = setFather(call);
     freeArgument(call, false);
@@ -54,6 +54,7 @@ ResultType setClass(FUNC) {
 
     error_:
     gc_freeTmpLink(&tmp->gc_status);
+    error_return:
     setResultErrorSt(E_BaseException, NULL, false, st, CNEXT_NT);
     return result->type;
 }

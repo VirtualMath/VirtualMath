@@ -97,7 +97,7 @@ ResultType str_down(O_FUNC){
                            {.must=-1}};
     vnum size;
     vnum index;
-    wchar_t element[2] = {};
+    wchar_t element[2];  // TODO-szh 设置为空
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -141,7 +141,7 @@ ResultType str_to_list(O_FUNC){
     {
         Argument *new_list = NULL;
         for (vnum i = 0; i < size; i ++) {
-            wchar_t str[2] = {};
+            wchar_t str[2] = { NUL };  // TODO-szh 设置为空
             str[0] = ap[0].value->value->data.str.str[i];
             makeStringValue(str, LINEFILE, CNEXT_NT);
             new_list = connectValueArgument(result->value, new_list);

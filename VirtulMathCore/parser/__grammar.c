@@ -122,7 +122,7 @@ bool callParserCode(P_FUNC, Statement **st, char *message, long int line) {
     Token *tmp;
     *st = NULL;
     parserCode(CP_FUNC);
-    if (!call_success(pm) || readBackToken(pm) != CODE) {
+    if (!call_success(pm) || readBackToken(pm) != T_CODE) {
         if (message != NULL)
             syntaxError(pm, syntax_error, line, 1, message);
         return false;
@@ -137,7 +137,7 @@ bool callParserAs(P_FUNC, Statement **st, char *message){
     *st = NULL;
     if (readBackToken(pm) == MATHER_AS) {
         delToken(pm);
-        return callChildStatement(CP_FUNC, parserOperation, OPERATION, st, message);
+        return callChildStatement(CP_FUNC, parserOperation, T_OPERATION, st, message);
     }
     return true;
 }
@@ -229,7 +229,7 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
         parserPolynomial(CP_FUNC);
         if (!call_success(pm))
             goto error_;
-        if (readBackToken(pm) != POLYNOMIAL) {
+        if (readBackToken(pm) != T_POLYNOMIAL) {
             if (status == s_3) {
                 long int line = pm->tm->ts->token_list->line;
                 syntaxError(pm, syntax_error, line, LINEFILE);
@@ -271,7 +271,7 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
             new_pt = connectValueParameter(tmp->data.st, new_pt, is_sep == 1);
         else if (pt_type == name_par){
             Statement *tmp_value;
-            if (!callChildStatement(CP_FUNC, parserPolynomial, POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
+            if (!callChildStatement(CP_FUNC, parserPolynomial, T_POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
                 goto error_;
             new_pt = connectNameParameter(tmp_value, tmp->data.st, new_pt);
             if (!checkToken(pm, sep))

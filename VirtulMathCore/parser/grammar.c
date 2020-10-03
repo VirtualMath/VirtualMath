@@ -74,7 +74,7 @@ void parserCommandList(P_FUNC, bool global, bool is_one, Statement *st) {
             Token *command_token = NULL;
             int stop;
             have_command = true;
-            if (!callChildToken(CP_FUNC, parserCommand, COMMAND, &command_token, command_message, command_list_error))
+            if (!callChildToken(CP_FUNC, parserCommand, T_COMMAND, &command_token, command_message, command_list_error))
                 break;
             line = command_token->line;
             stop = readBackToken(pm);
@@ -133,77 +133,77 @@ void parserCommand(P_FUNC){
     token_type = readBackToken(pm);
     switch (token_type) {
         case MATHER_AT :
-            status = callChildStatement(CP_FUNC, parserDecoration, DECORATION, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserDecoration, T_DECORATION, &st, NULL);
             break;
         case MATHER_NONLOCAL :
         case MATHER_GLOBAL :
         case MATHER_DEFAULT :
-            status = callChildStatement(CP_FUNC, parserVarControl, VARCONTROL, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserVarControl, T_VARCONTROL, &st, NULL);
             break;
         case MATHER_CLASS :
         case MATHER_DEF :
-            status = callChildStatement(CP_FUNC, parserDef, FUNCTION, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserDef, T_FUNCTION, &st, NULL);
             break;
         case MATHER_GOTO :
-            status = callChildStatement(CP_FUNC, parserGoto, GOTO, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserGoto, T_GOTO, &st, NULL);
             break;
         case MATHER_LABEL :
-            status = callChildStatement(CP_FUNC, parserLabel, LABEL, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserLabel, T_LABEL, &st, NULL);
             break;
         case MATHER_DO :
-            status = callChildStatement(CP_FUNC, parserDo, DO_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserDo, T_DO_BRANCH, &st, NULL);
             break;
         case MATHER_WITH :
-            status = callChildStatement(CP_FUNC, parserWith, WITH_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserWith, T_WITH_BRANCH, &st, NULL);
             break;
         case MATHER_IF :
-            status = callChildStatement(CP_FUNC, parserIf, IF_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserIf, T_IF_BRANCH, &st, NULL);
             break;
         case MATHER_FOR :
-            status = callChildStatement(CP_FUNC, parserFor, FOR_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserFor, T_FOR_BRANCH, &st, NULL);
             break;
         case MATHER_WHILE :
-            status = callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserWhile, T_WHILE_BRANCH, &st, NULL);
             break;
         case MATHER_TRY :
-            status = callChildStatement(CP_FUNC, parserTry, TRY_BRANCH, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserTry, T_TRY_BRANCH, &st, NULL);
             break;
         case MATHER_BREAK :
-            status = commandCallControl_(CP_FUNC, makeBreakStatement, BREAK, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeBreakStatement, T_BREAK, &st, false, NULL);
             break;
         case MATHER_CONTINUE :
-            status = commandCallControl_(CP_FUNC, makeContinueStatement, CONTINUE, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeContinueStatement, T_CONTINUE, &st, false, NULL);
             break;
         case MATHER_RESTART :
-            status = commandCallControl_(CP_FUNC, makeRestartStatement, RESTART, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeRestartStatement, T_RESTART, &st, false, NULL);
             break;
         case MATHER_REGO :
-            status = commandCallControl_(CP_FUNC, makeRegoStatement, REGO, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeRegoStatement, T_REGO, &st, false, NULL);
             break;
         case MATHER_RETURN :
-            status = commandCallControl_(CP_FUNC, makeReturnStatement, RETURN, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeReturnStatement, T_RETURN, &st, false, NULL);
             break;
         case MATHER_YIELD :
-            status = commandCallControl_(CP_FUNC, makeYieldStatement, YIELD, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeYieldStatement, T_YIELD, &st, false, NULL);
             break;
         case MATHER_RAISE :
-            status = commandCallControl_(CP_FUNC, makeRaiseStatement, RAISE, &st, false, NULL);
+            status = commandCallControl_(CP_FUNC, makeRaiseStatement, T_RAISE, &st, false, NULL);
             break;
         case MATHER_ASSERT :
-            status = commandCallControl_(CP_FUNC, makeAssertStatement, ASSERT, &st, true,
+            status = commandCallControl_(CP_FUNC, makeAssertStatement, T_ASSERT, &st, true,
                                          "parserAssert: Don't get conditions after assert");
             break;
         case MATHER_INCLUDE :
-            status = commandCallControl_(CP_FUNC, makeIncludeStatement, INCLUDE, &st, true,
+            status = commandCallControl_(CP_FUNC, makeIncludeStatement, T_INCLUDE, &st, true,
                                          "parserInclude: Don't get file after include");
             break;
         case MATHER_DEL :
-            status = commandCallControl_(CP_FUNC, makeDelStatement, DEL, &st, true,
+            status = commandCallControl_(CP_FUNC, makeDelStatement, T_DEL, &st, true,
                                          "parserInclude: Don't get operation after del");
             break;
         case MATHER_FROM :
         case MATHER_IMPORT :
-            status = callChildStatement(CP_FUNC, parserImport, IMPORT, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserImport, T_IMPORT, &st, NULL);
             break;
         case MATHER_STRING:
         case MATHER_NUMBER:
@@ -217,7 +217,7 @@ void parserCommand(P_FUNC){
         case MATHER_PRIVATE:
         case MATHER_PUBLIC:
         case MATHER_PASSVALUE:
-            status = callChildStatement(CP_FUNC, parserOperation, OPERATION, &st, NULL);
+            status = callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &st, NULL);
             break;
         default:
             status = false;
@@ -225,7 +225,7 @@ void parserCommand(P_FUNC){
     }
     if (!status)
         goto return_;
-    addStatementToken(COMMAND, st, pm);
+    addStatementToken(T_COMMAND, st, pm);
     return_: return;
 }
 
@@ -239,7 +239,7 @@ void parserDecoration(P_FUNC){
         line = delToken(pm);
         if (tmp == MATHER_ENTER)
             continue;
-        if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &dst, "Don't get a decoration operation"))
+        if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &dst, "Don't get a decoration operation"))
             goto error_;
         ds = connectDecorationStatement(dst, ds);
     }
@@ -247,13 +247,13 @@ void parserDecoration(P_FUNC){
         syntaxError(pm, syntax_error, line, 1, "Don't get a decoration object");
         goto error_;
     }
-    if (!callChildStatement(CP_FUNC, parserDef, FUNCTION, &st, "Don't get a decoration object"))
+    if (!callChildStatement(CP_FUNC, parserDef, T_FUNCTION, &st, "Don't get a decoration object"))
         goto error_;
     if (tmp == MATHER_CLASS)
         st->u.set_class.decoration = ds;
     else
         st->u.set_function.decoration = ds;
-    addStatementToken(DECORATION, st, pm);
+    addStatementToken(T_DECORATION, st, pm);
     return;
 
     error_:
@@ -287,15 +287,15 @@ void parserLabel(P_FUNC){
         goto error_;
     }
 
-    if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &var, "Don't get a label var"))
+    if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &var, "Don't get a label var"))
         goto error_;
 
-    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &command, "Don't get a label command"))
+    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &command, "Don't get a label command"))
         goto error_;
 
 
     st = makeLabelStatement(var, command, label, line, pm->file);
-    addStatementToken(LABEL, st, pm);
+    addStatementToken(T_LABEL, st, pm);
     memFree(label);
     return;
 
@@ -320,17 +320,17 @@ void parserGoto(P_FUNC){
     Statement *return_ = NULL;
     long int line = delToken(pm);
 
-    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &label, "Don't get a goto label"))
+    if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &label, "Don't get a goto label"))
         goto error_;
 
-    if (checkToken(pm, MATHER_AT) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &times, "Don't get a goto times"))
+    if (checkToken(pm, MATHER_AT) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &times, "Don't get a goto times"))
         goto error_;
 
-    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &return_, "Don't get a goto return"))
+    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &return_, "Don't get a goto return"))
         goto error_;
 
     st = makeGotoStatement(return_, times, label, line, pm->file);
-    addStatementToken(GOTO, st, pm);
+    addStatementToken(T_GOTO, st, pm);
     return;
 
     error_:
@@ -363,17 +363,17 @@ void parserImport(P_FUNC) {
                 is_lock = true;
                 break;
             default:
-                syntaxError(pm, syntax_error, opt->line, 1, "Don't get a aut token");
+                syntaxError(pm, syntax_error, line, 1, "Don't get a aut token");
                 goto return_;
         }
         delToken(pm);
     }
 
-    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &opt, "Don't get a import file"))
+    if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &opt, "Don't get a import file"))
         goto return_;
     if (token_type == MATHER_IMPORT) {
         Statement *as = NULL;
-        if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, OPERATION, &as, "Don't get a as after import")) {
+        if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &as, "Don't get a as after import")) {
             freeStatement(opt);
             goto return_;
         }
@@ -413,7 +413,7 @@ void parserImport(P_FUNC) {
         st = makeFromImportStatement(opt, as, pt, is_lock);
     }
 
-    addStatementToken(IMPORT, st, pm);
+    addStatementToken(T_IMPORT, st, pm);
     return_:
     return;
 }
@@ -439,7 +439,7 @@ void parserVarControl(P_FUNC) {
         goto return_;
     }
     st = makeDefaultVarStatement(var, line, pm->file, token_type == MATHER_DEFAULT ? default_ : token_type == MATHER_GLOBAL ? global_ : nonlocal_);
-    addStatementToken(VARCONTROL, st, pm);
+    addStatementToken(T_VARCONTROL, st, pm);
     return_:
     return;
 }
@@ -459,7 +459,7 @@ void parserControl(P_FUNC, MakeControlFunction callBack, int type, bool must_ope
     Token *tmp = NULL;
     long int line = delToken(pm);
     parserOperation(CP_FUNC);
-    if (call_success(pm) && readBackToken(pm) == OPERATION){
+    if (call_success(pm) && readBackToken(pm) == T_OPERATION){
         tmp = popNewToken(pm->tm);
         opt = tmp->data.st;
         freeToken(tmp, false);
@@ -480,7 +480,7 @@ void parserDo(P_FUNC){
     Statement *do_code = NULL;
     long int line = delToken(pm);
     if (readBackToken(pm) == MATHER_WHILE){  // do...while语句
-        if (!callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
+        if (!callChildStatement(CP_FUNC, parserWhile, T_WHILE_BRANCH, &st, "Don't get a while code"))
             goto error_;
         st->u.while_branch.type = do_while_;
     }
@@ -492,7 +492,7 @@ void parserDo(P_FUNC){
         switch (readBackToken(pm)){
             case MATHER_IF: {
                 StatementList *do_sl = NULL;
-                if (!callChildStatement(CP_FUNC, parserIf, IF_BRANCH, &st, "Don't get a if code after do"))
+                if (!callChildStatement(CP_FUNC, parserIf, T_IF_BRANCH, &st, "Don't get a if code after do"))
                     goto error_;
                 do_sl = makeStatementList(NULL, NULL, do_code, do_b);
                 do_sl->next = st->u.if_branch.if_list;
@@ -500,17 +500,17 @@ void parserDo(P_FUNC){
                 break;
             }
             case MATHER_WHILE:
-                if (!callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, "Don't get a while code after do"))
+                if (!callChildStatement(CP_FUNC, parserWhile, T_WHILE_BRANCH, &st, "Don't get a while code after do"))
                     goto error_;
                 st->u.while_branch.first = do_code;
                 break;
             case MATHER_FOR:
-                if (!callChildStatement(CP_FUNC, parserFor, FOR_BRANCH, &st, "Don't get a for code after do"))
+                if (!callChildStatement(CP_FUNC, parserFor, T_FOR_BRANCH, &st, "Don't get a for code after do"))
                     goto error_;
                 st->u.for_branch.first_do = do_code;
                 break;
             case MATHER_DEF:
-                if (!callChildStatement(CP_FUNC, parserDef, FUNCTION, &st, "Don't get a func def after do"))
+                if (!callChildStatement(CP_FUNC, parserDef, T_FUNCTION, &st, "Don't get a func def after do"))
                     goto error_;
                 st->u.set_function.first_do = do_code;
                 break;
@@ -520,7 +520,7 @@ void parserDo(P_FUNC){
                     syntaxError(pm, syntax_error, tmp_line, 1, "Don't get while after do");
                     goto error_;
                 }
-                if (!callChildStatement(CP_FUNC, parserWhile, WHILE_BRANCH, &st, "Don't get a while code"))
+                if (!callChildStatement(CP_FUNC, parserWhile, T_WHILE_BRANCH, &st, "Don't get a while code"))
                     goto error_;
                 st->u.while_branch.type = do_while_;
                 st->u.while_branch.first = do_code;
@@ -538,7 +538,7 @@ void parserDo(P_FUNC){
         }
     }
 
-    addStatementToken(DO_BRANCH, st, pm);
+    addStatementToken(T_DO_BRANCH, st, pm);
     return;
 
     error_:
@@ -555,14 +555,14 @@ void parserFor(P_FUNC){
     long int line = delToken(pm);
     {
         Statement *code_tmp = NULL, *var_tmp = NULL, *iter_tmp = NULL;
-        if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &var_tmp, "Don't get a for var"))
+        if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &var_tmp, "Don't get a for var"))
             goto error_;
         if (!checkToken(pm, MATHER_IN)){
             freeStatement(var_tmp);
             syntaxError(pm, syntax_error, line, 1, "Don't get in after for");
             goto error_;
         }
-        if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &iter_tmp, "Don't get a for condition")) {
+        if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &iter_tmp, "Don't get a for condition")) {
             freeStatement(var_tmp);
             goto error_;
         }
@@ -617,7 +617,7 @@ void parserFor(P_FUNC){
     st->u.for_branch.else_list = else_st;
     st->u.for_branch.finally = finally_st;
     st->u.for_branch.after_do = do_st;
-    addStatementToken(FOR_BRANCH, st, pm);
+    addStatementToken(T_FOR_BRANCH, st, pm);
     return;
 
     error_:
@@ -639,7 +639,7 @@ void parserWith(P_FUNC){
     long int tmp_line;
 
     line = delToken(pm);
-    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, "Don't get a with operation"))
+    if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &condition_tmp, "Don't get a with operation"))
         goto error_;
     if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a with var"))
         goto error_;
@@ -673,7 +673,7 @@ void parserWith(P_FUNC){
     st->u.with_branch.with_list = sl;
     st->u.with_branch.else_list = else_st;
     st->u.with_branch.finally = finally_st;
-    addStatementToken(WITH_BRANCH, st, pm);
+    addStatementToken(T_WITH_BRANCH, st, pm);
     return;
 
     error_:
@@ -705,7 +705,8 @@ void parserIf(P_FUNC){
     Statement *finally_st = NULL;
     StatementList *sl = NULL;
     bool have_if = false;
-    long int line = 0;
+    fline line = 0;
+    fline tmp_line = 0;
     again:
     switch (readBackToken(pm)) {
         case MATHER_IF:
@@ -714,17 +715,18 @@ void parserIf(P_FUNC){
             else
                 have_if = true;
             line = delToken(pm);
+            tmp_line = line;
             goto not_del;
         case MATHER_ELIF: {
             Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
-            long int tmp_line = delToken(pm);
+            tmp_line = delToken(pm);
             if (else_st != NULL) {
                 syntaxError(pm, syntax_error, tmp_line, 1, "get elif after else");
                 goto error_;
             }
 
             not_del:
-            if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, "Don't get a if condition"))
+            if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &condition_tmp, "Don't get a if condition"))
                 goto error_;
 
             if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a while var")) {
@@ -744,14 +746,14 @@ void parserIf(P_FUNC){
             if (else_st != NULL)
                 goto default_;
             Statement *code_tmp = NULL;
-            long int tmp_line = delToken(pm);
+            tmp_line = delToken(pm);
             if (!callParserCode(CP_FUNC, &code_tmp, "Don't get a if...do code", tmp_line))
                 goto error_;
             sl = connectStatementList(sl, makeStatementList(NULL, NULL, code_tmp, do_b));
             goto again;
         }
         case MATHER_ELSE: {
-            long int tmp_line = delToken(pm);
+            tmp_line = delToken(pm);
             if (else_st != NULL) {
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else");
                 goto error_;
@@ -761,7 +763,7 @@ void parserIf(P_FUNC){
             goto again;
         }
         case MATHER_FINALLY: {
-            long int tmp_line = delToken(pm);
+            tmp_line = delToken(pm);
             if (!callParserCode(CP_FUNC, &finally_st, "Don't get a if...finally code", tmp_line))
                 goto error_;
             break;
@@ -782,7 +784,7 @@ void parserIf(P_FUNC){
     st->u.if_branch.if_list = sl;
     st->u.if_branch.else_list = else_st;
     st->u.if_branch.finally = finally_st;
-    addStatementToken(IF_BRANCH, st, pm);
+    addStatementToken(T_IF_BRANCH, st, pm);
     return;
 
     error_:
@@ -821,7 +823,7 @@ void parserWhile(P_FUNC){
 
             Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
             line = delToken(pm);
-            if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, "Don't get a while condition"))
+            if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &condition_tmp, "Don't get a while condition"))
                 goto error_;
 
             if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a while var")){
@@ -879,7 +881,7 @@ void parserWhile(P_FUNC){
     st->u.while_branch.else_list = else_st;
     st->u.while_branch.finally = finally_st;
     st->u.while_branch.after = do_st;
-    addStatementToken(WHILE_BRANCH, st, pm);
+    addStatementToken(T_WHILE_BRANCH, st, pm);
     return;
 
     error_:
@@ -926,7 +928,7 @@ void parserTry(P_FUNC){
                 goto error_;
             }
             if (readBackToken(pm) != MATHER_LC)
-                callChildStatement(CP_FUNC, parserOperation, OPERATION, &condition_tmp, NULL);
+                callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &condition_tmp, NULL);
 
             if (!callParserAs(CP_FUNC, &var_tmp, "Don't get a except var")){
                 freeStatement(condition_tmp);
@@ -973,7 +975,7 @@ void parserTry(P_FUNC){
     st->u.try_branch.except_list = sl;
     st->u.try_branch.else_list = else_st;
     st->u.try_branch.finally = finally_st;
-    addStatementToken(TRY_BRANCH, st, pm);
+    addStatementToken(T_TRY_BRANCH, st, pm);
     return;
 
     error_:
@@ -999,7 +1001,7 @@ void parserDef(P_FUNC){
     int type = readBackToken(pm);
     long int line = delToken(pm);
 
-    if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &name_tmp,
+    if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &name_tmp,
                             "Don't get a func/V_class name"))
         goto error_;
 
@@ -1025,7 +1027,7 @@ void parserDef(P_FUNC){
     else
         st = makeClassStatement(name_tmp, code_tmp, pt);
     addLexToken(pm, MATHER_ENTER);
-    addStatementToken(FUNCTION, st, pm);
+    addStatementToken(T_FUNCTION, st, pm);
     return;
 
     error_:
@@ -1064,7 +1066,7 @@ void parserCode(P_FUNC) {
     }
 
     return_:
-    addStatementToken(CODE, st, pm);
+    addStatementToken(T_CODE, st, pm);
     return;
 
     error_:
@@ -1078,9 +1080,9 @@ void parserCode(P_FUNC) {
  */
 void parserOperation(P_FUNC){
     Statement *operation_st = NULL;
-    if (!callChildStatement(CP_FUNC, parserAssignment, ASSIGNMENT, &operation_st, NULL))
+    if (!callChildStatement(CP_FUNC, parserAssignment, T_ASSIGNMENT, &operation_st, NULL))
         goto return_;
-    addStatementToken(OPERATION, operation_st, pm);
+    addStatementToken(T_OPERATION, operation_st, pm);
     return_:
     return;
 }
@@ -1112,7 +1114,7 @@ bool switchAssignment(P_FUNC, int symbol, Statement **st){
 }
 
 void parserAssignment(P_FUNC){
-    return twoOperation(CP_FUNC, parserTuple, switchAssignment, checkAssignmentLeft, TUPLE, ASSIGNMENT,
+    return twoOperation(CP_FUNC, parserTuple, switchAssignment, checkAssignmentLeft, T_TUPLE, T_ASSIGNMENT,
                         "polynomial", "assignment", true);
 }
 
@@ -1134,10 +1136,10 @@ void parserTuple(P_FUNC){
         goto parserPt;
     }
 
-    if (!callChildToken(CP_FUNC, parserPolynomial, POLYNOMIAL, &tmp, NULL, syntax_error))
+    if (!callChildToken(CP_FUNC, parserPolynomial, T_POLYNOMIAL, &tmp, NULL, syntax_error))
         goto return_;
     if (readBackToken(pm) != MATHER_COMMA){
-        tmp->token_type = TUPLE;
+        tmp->token_type = T_TUPLE;
         addToken_(pm ,tmp);
         goto return_;
     }
@@ -1150,7 +1152,7 @@ void parserTuple(P_FUNC){
         goto return_;
     }
     st = makeTupleStatement(pt, L_tuple, pt->data.value->line, pm->file);
-    addStatementToken(TUPLE, st, pm);
+    addStatementToken(T_TUPLE, st, pm);
 
     return_:
     return;
@@ -1177,7 +1179,7 @@ bool switchPolynomial(P_FUNC, int symbol, Statement **st){
     return true;
 }
 void parserPolynomial(P_FUNC){
-    return twoOperation(CP_FUNC, parserFactor, switchPolynomial, NULL, FACTOR, POLYNOMIAL,
+    return twoOperation(CP_FUNC, parserFactor, switchPolynomial, NULL, T_FACTOR, T_POLYNOMIAL,
                         "factor", "polynomial", false);
 }
 
@@ -1202,7 +1204,7 @@ bool switchFactor(P_FUNC, int symbol, Statement **st){
     return true;
 }
 void parserFactor(P_FUNC){
-    return twoOperation(CP_FUNC, parserCallBack, switchFactor, NULL, CALLBACK, FACTOR,
+    return twoOperation(CP_FUNC, parserCallBack, switchFactor, NULL, T_CALLFUNC, T_FACTOR,
                         "call back", "factor", false);
 }
 
@@ -1239,7 +1241,7 @@ bool tailSlice(P_FUNC, Token *left_token, Statement **st){
     enum SliceType type;  // 0-slice  1-down
     long int line = delToken(pm);
 
-    if (!callChildToken(CP_FUNC, parserPolynomial, POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
+    if (!callChildToken(CP_FUNC, parserPolynomial, T_POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
         return false;
     else if (readBackToken(pm) == MATHER_COLON)
         type = SliceType_slice_;
@@ -1265,7 +1267,7 @@ bool tailSlice(P_FUNC, Token *left_token, Statement **st){
 bool taliPoint(P_FUNC, Token *left_token, Statement **st){
     Statement *right_st = NULL;
     delToken(pm);
-    if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after point"))
+    if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &right_st, "Don't get a BaseValue after point"))
         return false;
     *st = makeOperationStatement(OPT_POINT, left_token->data.st, right_st);
     return true;
@@ -1274,7 +1276,7 @@ bool taliPoint(P_FUNC, Token *left_token, Statement **st){
 bool taliLink(P_FUNC, Token *left_token, Statement **st){
     Statement *right_st = NULL;
     delToken(pm);
-    if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &right_st, "Don't get a BaseValue after link"))
+    if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &right_st, "Don't get a BaseValue after link"))
         return false;
     *st = makeOperationStatement(OPT_LINK, left_token->data.st, right_st);
     return true;
@@ -1286,11 +1288,11 @@ void parserCallBack(P_FUNC){
         Token *left_token = NULL;
         struct Statement *st = NULL;
 
-        if (readBackToken(pm) != CALLBACK){
+        if (readBackToken(pm) != T_CALLFUNC){
 
-            if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &st, NULL))
+            if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &st, NULL))
                 goto return_;
-            addStatementToken(CALLBACK, st, pm);
+            addStatementToken(T_CALLFUNC, st, pm);
             continue;
         }
         left_token = popNewToken(pm->tm);
@@ -1306,7 +1308,7 @@ void parserCallBack(P_FUNC){
             backToken_(pm, left_token);
             goto return_;
         }
-        addStatementToken(CALLBACK, st, pm);
+        addStatementToken(T_CALLFUNC, st, pm);
         freeToken(left_token, false);
     }
     return_: return;
@@ -1329,7 +1331,7 @@ int getOperation(P_FUNC, int right_type, Statement **st, char *name){
     if (checkToken(pm, right_type))
         goto return_;
 
-    if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, st, NULL))
+    if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, st, NULL))
         return 0;
 
     if (!checkToken(pm, right_type)){
@@ -1392,7 +1394,7 @@ void parserBaseValue(P_FUNC){
                 lambda_st = makeStatement(value_token->line, pm->file);
                 goto not_lambda_st;
             }
-            if (!callChildStatement(CP_FUNC, parserOperation, OPERATION, &lambda_st,
+            if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &lambda_st,
                                     "Don't get a lambda operation")) {
                 freeToken(value_token, true);
                 goto return_;
@@ -1406,7 +1408,7 @@ void parserBaseValue(P_FUNC){
             break;
         case MATHER_SVAR: {
             Statement *svar_st = NULL;
-            if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &svar_st, NULL)) {
+            if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &svar_st, NULL)) {
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
                 freeToken(value_token, true);
                 goto return_;
@@ -1503,7 +1505,7 @@ void parserBaseValue(P_FUNC){
                 goto return_;
             }
             delToken(pm);
-            if (!callChildStatement(CP_FUNC, parserBaseValue, BASEVALUE, &st, "Don't get Base Value after aut token")) {
+            if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &st, "Don't get Base Value after aut token")) {
                 freeToken(value_token, true);
                 goto return_;
             }
@@ -1526,7 +1528,7 @@ void parserBaseValue(P_FUNC){
         }
     }
     freeToken(value_token, false);
-    addStatementToken(BASEVALUE, st, pm);
+    addStatementToken(T_BASEVALUE, st, pm);
 
     return_: return;
 }

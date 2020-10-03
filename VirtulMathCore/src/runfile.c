@@ -70,7 +70,8 @@ int checkFileDir(char **file_dir, FUNC) {
         return 1;
 
     {
-        char arr_cwd[200] = {};
+        char *getcwd(char *buf,size_t size);
+        char arr_cwd[200];
         char *p_cwd = NULL;
         getcwd(arr_cwd, 200);
 #ifdef __linux__
@@ -243,7 +244,7 @@ ResultType importFile(FUNC) {
     char *split_path = NULL;
     char *path = NULL;
     LinkValue *imp_value = NULL;
-    char md5_str[MD5_STRING] = {};
+    char md5_str[MD5_STRING];
 
     setResultCore(result);
     gc_freeze(inter, var_list, NULL, true);
@@ -297,7 +298,7 @@ ResultType fromImportFile(FUNC) {
     Statement *file = st->u.from_import_file.file;
     char *split_path = NULL;
     char *path = NULL;
-    char md5_str[MD5_STRING] = {};
+    char md5_str[MD5_STRING];  // TODO-szh 设置为空字符串
     VarList *imp_var = NULL;
     LinkValue *imp_value;
     Parameter *pt = st->u.from_import_file.pt;

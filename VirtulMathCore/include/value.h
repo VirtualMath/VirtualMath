@@ -3,15 +3,15 @@
 #include "__macro.h"
 
 // 标准错误信息定义
-#define INSTANCE_ERROR(class) L"Instance error when calling func, call non-"#class" "#class" method"
-#define VALUE_ERROR(value, acc) L###value" value is not a "#acc" (may be modified by an external program)"
-#define ONLY_ACC(var, value) L###var" only accepts "#value
-#define ERROR_INIT(class) L###class" get wrong initialization parameters"
+#define INSTANCE_ERROR(class) L"Instance error when calling func, call non-" L###class L" " L###class L" method"
+#define VALUE_ERROR(value, acc) L###value L" value is not a " L###acc L" (may be modified by an external program)"
+#define ONLY_ACC(var, value) L###var L" only accepts " L###value
+#define ERROR_INIT(class) L###class L" get wrong initialization parameters"
 #define MANY_ARG L"Too many parameters"
 #define FEW_ARG L"Too few parameters"
-#define CUL_ERROR(opt) L###opt" operation gets incorrect value"
-#define OBJ_NOTSUPPORT(opt) L"Object does not support "#opt" operation"
-#define RETURN_ERROR(func, type) L###func" func should return "#type" type data"
+#define CUL_ERROR(opt) L###opt L" operation gets incorrect value"
+#define OBJ_NOTSUPPORT(opt) L"Object does not support " L###opt L" operation"
+#define RETURN_ERROR(func, type) L###func L" func should return " L###type L" type data"
 #define KEY_INTERRUPT L"KeyInterrupt"
 
 typedef struct Argument Argument;

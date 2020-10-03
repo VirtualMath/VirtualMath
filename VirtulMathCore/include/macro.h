@@ -6,12 +6,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <sys/stat.h>
-#include <getopt.h>
-#include <unistd.h>
 #include <ctype.h>
 #include <setjmp.h>
 #include <signal.h>
-#include <unistd.h>
 #include <wchar.h>
 #include <wctype.h>
 #include <locale.h>
@@ -19,8 +16,12 @@
 
 #ifdef __linux__
 #include <dlfcn.h>
+#include <getopt.h>
+#include <unistd.h>
 #else
+#include <windows.h>
 #include "win/dlfcn_win32.h"
+#include "win/getopt_win.h"
 #endif
 
 // 布尔逻辑的定义

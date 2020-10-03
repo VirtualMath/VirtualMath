@@ -201,7 +201,7 @@ ResultType pointDel(Statement *name, FUNC_NT) {
     }
 
     gc_freeze(inter, var_list, object, true);
-    if (right->type == OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
+    if (right->type == T_OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
         pointDel(name->u.operation.right, CFUNC_NT(object, result, belong));
     else
         delCore(name->u.operation.right, true, CFUNC_NT(object, result, belong));
@@ -433,7 +433,7 @@ ResultType pointAss(Statement *name, LinkValue *value, FUNC_NT) {
     }
 
     gc_freeze(inter, var_list, object, true);
-    if (right->type == OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
+    if (right->type == T_OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_LINK))
         pointAss(name->u.operation.right, value, CFUNC_NT(object, result, belong));
     else
         assCore(name->u.operation.right, value, true, false, CFUNC_NT(object, result, belong));
