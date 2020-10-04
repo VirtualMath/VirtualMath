@@ -448,6 +448,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
     int int_times = 0;
     wchar_t *name = NULL;
     LinkValue *var;
+    LinkValue *val;
 
     setResultCore(result);
     var_info(&name, &int_times, CNEXT);
@@ -456,20 +457,52 @@ ResultType getVar(FUNC, VarInfo var_info) {
         return result->type;
     }
 
+    val = result->value;
+    result->value = NULL;
     freeResult(result);
     var = findFromVarList(name, int_times, get_var, CFUNC_CORE(var_list));
     if (var == NULL) {
         wchar_t *message = memWidecat(L"Variable not found: ", name, false, false);
         setResultErrorSt(E_NameExceptiom, message, true, st, CNEXT_NT);
+        {
+            Result tmp;
+            LinkValue *_attr_;
+            setResultCore(&tmp);
+            addAttributes(L"val", false, val, st->line, st->code_file, true, CFUNC_NT(var_list, &tmp, result->value));
+            if (!RUN_TYPE(tmp.type)) {
+                freeResult(result);
+                *result = tmp;
+                goto out;
+            }
+
+            freeResult(&tmp);
+            _attr_ = findAttributes(inter->data.object_attr, false, LINEFILE, true, CFUNC_NT(var_list, &tmp, belong));
+            if (!RUN_TYPE(tmp.type)) {
+                freeResult(result);
+                *result = tmp;
+                goto out;
+            }
+            freeResult(&tmp);
+            if (_attr_ != NULL) {
+                Argument *arg = makeValueArgument(result->value);
+                freeResult(result);
+                gc_addTmpLink(&_attr_->gc_status);
+                callBackCore(_attr_, arg, st->line, st->code_file, 0, CFUNC_NT(var_list, result, belong));
+                gc_freeTmpLink(&_attr_->gc_status);
+                freeArgument(arg, true);
+            }
+
+        }
+        out:
         memFree(message);
-    }
-    else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CNEXT_NT)) {
+    } else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CNEXT_NT)) {
         bool run = st->type == base_var ? st->u.base_var.run : st->type == base_svar ? st->u.base_svar.run : false;
         if (!run || !runVarFunc(var, st->line, st->code_file, CNEXT_NT))
             setResultOperationBase(result, var);
     }
-    memFree(name);
 
+    gc_freeTmpLink(&val->gc_status);
+    memFree(name);
     return result->type;
 }
 

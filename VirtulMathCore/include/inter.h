@@ -92,6 +92,7 @@ struct Inter{
         wchar_t *object_slice_assignment;
         wchar_t *object_down_del;
         wchar_t *object_slice_del;
+        wchar_t *object_attr;
 
         int default_pt_type;
     } data;

@@ -87,6 +87,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.object_slice_assignment = setName("__slice_assignment__");
     inter->data.object_down_del = setName("__down_del__");
     inter->data.object_slice_del = setName("__slice_del__");
+    inter->data.object_attr = setName("__attr__");
     inter->data.default_pt_type = free_;
 }
 
@@ -167,6 +168,7 @@ void freeBaseInterData(struct Inter *inter){
     memFree(inter->data.object_slice_assignment);
     memFree(inter->data.object_down_del);
     memFree(inter->data.object_slice_del);
+    memFree(inter->data.object_attr);
 
     if (!inter->data.is_stdout)
         fclose(inter->data.inter_stdout);
