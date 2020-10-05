@@ -321,7 +321,6 @@ static bool FFIReturnValue(enum ArgumentFFIType aft, void *re_v, fline line, cha
             makeDouValue((vdou)*(long double *)re_v, line, file, CNEXT_NT);
             break;
 
-
         case af_str: {
             wchar_t *tmp = memStrToWcs(*(char **)re_v, false);
             makeStringValue(tmp, line, file, CNEXT_NT);
@@ -421,6 +420,16 @@ static ResultType callFFunction(LinkValue *function_value, Argument *arg, long i
     void *re_v = NULL;  // 存放返回值的函數
 
     setResultCore(result);
+    if (function_value->value->data.function.function_data.cls->value->type != V_lib) {
+        setResultError(E_ArgumentException, (wchar_t *) L"C function source is not clear", line, file, true, CNEXT_NT);
+        return R_error;
+    }
+
+    if (function_value->value->data.function.function_data.cls->value->data.lib.handle == NULL) {
+        setResultError(E_ArgumentException, (wchar_t *) L"dynamic library is closed", line, file, true, CNEXT_NT);
+        return R_error;
+    }
+
     setArgumentFFICore(&af);
     if (pt_sep != 0 || (size = checkArgument(arg, value_arg)) == -1) {
         setResultError(E_ArgumentException, (wchar_t *) L"does not support key-value arguments", line, file, true, CNEXT_NT);
