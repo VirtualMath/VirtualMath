@@ -123,6 +123,7 @@ void setArgumentFFI(ArgumentFFI *af, unsigned int size);
 void freeArgumentFFI(ArgumentFFI *af);
 
 unsigned int checkArgument(Argument *arg, enum ArgumentType type);
+bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size);
 bool setArgumentToFFI(ArgumentFFI *af, Argument *arg);
 ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft);
 #endif //VIRTUALMATH_PARAMETER_H

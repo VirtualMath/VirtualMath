@@ -907,6 +907,20 @@ unsigned int checkArgument(Argument *arg, enum ArgumentType type) {
     return count;
 }
 
+bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size) {
+    if (size > af->size)
+        return false;
+    for (int i=0; i < size; i ++) {
+        LinkValue *str = list[i];
+        if (str->value->type != V_str)
+            return false;
+        af->arg[i] = getFFIType(str->value->data.str.str, af->type + i);
+        if (af->arg[i] == NULL || af->type[i] == af_void)
+            return false;
+    }
+    return true;
+}
+
 bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
     for (unsigned int i=0; arg != NULL && i < af->size; arg = arg->next, i++) {
         if (af->arg[i] == NULL) {
@@ -935,8 +949,38 @@ bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
                 default:
                     return false;
             }
-        } else
-            return false;
+        } else {
+            switch (af->type[i]) {
+                case af_int:
+                    af->arg_v[i] = (int *)memCalloc(1, sizeof(int));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
+                    switch (arg->data.value->value->type) {
+                       case V_int:
+                           *(int *)(af->arg_v[i]) = (int)arg->data.value->value->data.int_.num;
+                           break;
+                       case V_dou:
+                           *(int *)(af->arg_v[i]) = (int)arg->data.value->value->data.dou.num;
+                           break;
+                       default:
+                           return false;
+                   }
+                   break;
+                case af_double:
+                    af->arg_v[i] = (double *)memCalloc(1, sizeof(double));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
+                    switch (arg->data.value->value->type) {
+                        case V_int:
+                            *(double *)(af->arg_v[i]) = (double)arg->data.value->value->data.int_.num;
+                            break;
+                        case V_dou:
+                            *(double *)(af->arg_v[i]) = (double)arg->data.value->value->data.dou.num;
+                            break;
+                        default:
+                            return false;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+        }
     }
     return arg == NULL ? true : false;
 }
