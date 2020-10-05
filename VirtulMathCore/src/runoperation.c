@@ -469,6 +469,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
             LinkValue *_attr_;
             setResultCore(&tmp);
             addAttributes(L"val", false, val, st->line, st->code_file, true, CFUNC_NT(var_list, &tmp, result->value));
+            printf("val = %ls\n", val->value->data.str.str);
             if (!RUN_TYPE(tmp.type)) {
                 freeResult(result);
                 *result = tmp;

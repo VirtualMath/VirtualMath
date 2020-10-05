@@ -87,13 +87,34 @@ ResultType lib_close(O_FUNC){
     return result->type;
 }
 
+ResultType lib_addCore(wchar_t *name_, LinkValue *clib, FUNC_NT) {
+    char *name = memWcsToStr(name_, false);
+    void (*func)() = dlsym(clib->value->data.lib.handle, name);
+    memFree(name);
+    if (func == NULL) {
+        wchar_t *tmp = memWidecat(L"function not found: ", memStrToWcs(dlerror(), false), false, true);
+        setResultError(E_NameExceptiom, tmp, LINEFILE, true, CNEXT_NT);
+        memFree(tmp);
+    } else {
+        makeFFunctionValue(FFI_FN(func), LINEFILE, CFUNC_NT(var_list, result, clib));
+        if (CHECK_RESULT(result)) {
+            LinkValue *func_value = result->value;
+            result->value = NULL;
+            freeResult(result);
+            addAttributes(name_, false, func_value, LINEFILE, false, CFUNC_NT(var_list, result, clib));
+            gc_freeTmpLink(&func_value->gc_status);
+            if (CHECK_RESULT(result))
+                setResultOperation(result, func_value);
+        }
+    }
+    return result->type;
+}
+
 ResultType lib_add(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"func", .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *clib;
-    char *name;
-    void (*func)();
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -110,27 +131,43 @@ ResultType lib_add(O_FUNC){
         return R_error;
     }
 
-    name = memWcsToStr(ap[1].value->value->data.str.str, false);
-    func = dlsym(clib->value->data.lib.handle, name);
-    if (func == NULL) {
-        wchar_t *tmp = memWidecat(L"function not found: ", memStrToWcs(dlerror(), false), false, true);
-        setResultError(E_NameExceptiom, tmp, LINEFILE, true, CNEXT_NT);
-        memFree(tmp);
-    } else
-        makeFFunctionValue(func, LINEFILE, CFUNC_NT(var_list, result, clib));
-    memFree(name);
+    lib_addCore(ap[1].value->value->data.str.str, clib, CNEXT_NT);
+    return result->type;
+}
 
-    {
-        Result tmp;
-        setResultCore(&tmp);
-        addAttributes(ap[1].value->value->data.str.str, false, result->value, LINEFILE, false, CFUNC_NT(var_list, &tmp, clib));
-        if (!RUN_TYPE(tmp.type)) {
-            freeResult(result);
-            *result = tmp;
-        } else
-            freeResult(&tmp);
+ResultType lib_attr(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"error", .must=1, .long_arg=false},
+                           {.must=-1}};
+    LinkValue *clib;
+    LinkValue *error;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if ((clib = ap[0].value)->value->type != V_lib || clib->value->data.lib.handle == NULL) {
+        setResultError(E_TypeException, INSTANCE_ERROR(clib), LINEFILE, true, CNEXT_NT);
+        return R_error;
     }
 
+    error = findAttributes(L"val", false, LINEFILE, true, CFUNC_NT(var_list, result, ap[1].value));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (error == NULL) {
+        setResultError(E_TypeException, ONLY_ACC(error, NameException with val), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    if (error->value->type != V_str) {
+        setResultError(E_TypeException, ONLY_ACC(error.val, str), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    lib_addCore(error->value->data.str.str, clib, CNEXT_NT);
     return result->type;
 }
 
@@ -141,6 +178,7 @@ void registeredLib(R_FUNC){
                       {inter->data.object_new, lib_new, class_free_},
                       {inter->data.object_init, lib_init, object_free_},
                       {inter->data.object_del, lib_close, object_free_},
+                      {inter->data.object_attr, lib_attr, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"clib", object, belong, inter);
