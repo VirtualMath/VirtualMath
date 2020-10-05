@@ -1040,9 +1040,13 @@ static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
 
 bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
     for (unsigned int i=0; arg != NULL && i < af->size; arg = arg->next, i++) {
-        if (af->arg[i] == NULL && !setFFIArgFromValue(af, arg, i) ||
-            af->arg[i] != NULL && !setFFIArgFromType(af, arg, i))
-            return false;
+        if (af->arg[i] == NULL) {
+            if (!setFFIArgFromValue(af, arg, i))
+                return false;
+        } else{
+            if (!setFFIArgFromType(af, arg, i))
+                return false;
+        }
     }
     return arg == NULL;  // 若arg还没迭代完, 则证明有问题
 }
