@@ -977,6 +977,13 @@ bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
                             return false;
                     }
                     break;
+                case af_str:
+                    af->arg_v[i] = (double *)memCalloc(1, sizeof(char *));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
+                    if (arg->data.value->value->type == V_str) {
+                        *(char **)(af->arg_v[i]) = memWcsToStr(arg->data.value->value->data.str.str, false);
+                    } else
+                        return false;
+                    break;
                 default:
                     return false;
             }
