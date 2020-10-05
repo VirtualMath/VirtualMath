@@ -281,23 +281,35 @@ static bool makeFFIReturn(enum ArgumentFFIType af, void **re_v) {
 
 static bool FFIReturnValue(enum ArgumentFFIType aft, void *re_v, fline line, char *file, FUNC_NT) {
     switch (aft) {  // 应用返回值函数
+        case af_usint:
+        case af_sint:
+        case af_uint:
         case af_int:
+        case af_ulint:
+        case af_lint:
             makeIntValue((vint)*(int64_t *)re_v, line, file, CNEXT_NT);  // 先以(int64_t)读取void *类型的数据, 再转换成(vint)类型 (避免大端和小端模式的行为不同)
             break;
+
+        case af_float:
+        case af_ldouble:
         case af_double:
             makeDouValue((vdou)*(long double *)re_v, line, file, CNEXT_NT);
             break;
+
         case af_str: {
             wchar_t *tmp = memStrToWcs(re_v, false);
             makeStringValue(tmp, line, file, CNEXT_NT);
             memFree(tmp);
             break;
         }
+
+        case af_uchar:
         case af_char: {
-            wchar_t tmp[] = {(wchar_t)(*(char *)re_v), (wchar_t)NUL};
+            wchar_t tmp[] = {(wchar_t)(*(int64_t *)re_v), WNUL};
             makeStringValue(tmp, line, file, CNEXT_NT);
             break;
         }
+
         case af_void:
             setResult(result, inter);
             break;
@@ -314,6 +326,7 @@ static ffi_type *getRearg(LinkValue *function_value, enum ArgumentFFIType *aft, 
     if (!CHECK_RESULT(result))
         return NULL;
     freeResult(result);
+
     if (re_var != NULL) {
         if (re_var->value->type != V_str) {
             setResultError(E_TypeException, ONLY_ACC(rearg, str), line, file, true, CNEXT_NT);
@@ -325,7 +338,7 @@ static ffi_type *getRearg(LinkValue *function_value, enum ArgumentFFIType *aft, 
             return NULL;
         }
     } else
-        re = &ffi_type_void;
+        re = &ffi_type_sint32;
     return re;
 }
 
@@ -356,7 +369,7 @@ static ResultType callFFunction(LinkValue *function_value, Argument *arg, long i
     ffi_type *re;
     unsigned int size;
     ArgumentFFI af;
-    enum ArgumentFFIType aft = af_void;
+    enum ArgumentFFIType aft = af_int;
     void *re_v = NULL;  // 存放返回值的函數
 
     setResultCore(result);

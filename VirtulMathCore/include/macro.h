@@ -29,5 +29,6 @@
 #define true 1
 #define false 0
 #define NUL ((char)0)
+#define WNUL ((wchar_t)0)
 
 #endif //VIRTUALMATH_MACRO_H

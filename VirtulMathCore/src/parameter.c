@@ -881,6 +881,7 @@ void freeArgumentFFI(ArgumentFFI *af) {
         switch (af->type[i]) {
             case af_double:
             case af_int:
+            case af_char:
                 memFree(af->arg_v[i]);
                 break;
             case af_str:
@@ -921,94 +922,136 @@ bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size) {
     return true;
 }
 
-bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
-    for (unsigned int i=0; arg != NULL && i < af->size; arg = arg->next, i++) {
-        if (af->arg[i] == NULL) {
-            switch (arg->data.value->value->type) {
-                case V_int:
-                    af->arg[i] = &ffi_type_sint;  // af->arg是ffi_type **arg, 即*arg[]
-                    af->type[i] = af_int;
+#define setFFIValue(v_t, ffi_t, af_t, type_, data_) case v_t: \
+af->arg[i] = &ffi_t;  /* af->arg是ffi_type **arg, 即*arg[] */ \
+af->type[i] = af_t; \
+af->arg_v[i] = (type_ *)memCalloc(1, sizeof(type_));  /* af->arg_v是ffi_type **arg_v, 即 *arg_v[] */ \
+*(type_ *)(af->arg_v[i]) = (type_)(data_); \
+break
 
-                    af->arg_v[i] = (int *)memCalloc(1, sizeof(int));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
-                    *(int *)(af->arg_v[i]) = (int)arg->data.value->value->data.int_.num;
-                    break;
-                case V_dou:
-                    af->arg[i] = &ffi_type_double;  // af->arg是ffi_type **arg, 即*arg[]
-                    af->type[i] = af_double;
-
-                    af->arg_v[i] = (double *)memCalloc(1, sizeof(double));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
-                    *(double *)(af->arg_v[i]) = (double)arg->data.value->value->data.dou.num;
-                    break;
-                case V_str:
-                    af->arg[i] = &ffi_type_pointer;  // af->arg是ffi_type **arg, 即*arg[]
-                    af->type[i] = af_str;
-
-                    af->arg_v[i] = (char **)memCalloc(1, sizeof(char **));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
-                    *(char **)(af->arg_v[i]) = (char *)memWcsToStr(arg->data.value->value->data.str.str, false);
-                    break;
-                default:
-                    return false;
-            }
-        } else {
-            switch (af->type[i]) {
-                case af_int:
-                    af->arg_v[i] = (int *)memCalloc(1, sizeof(int));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
-                    switch (arg->data.value->value->type) {
-                       case V_int:
-                           *(int *)(af->arg_v[i]) = (int)arg->data.value->value->data.int_.num;
-                           break;
-                       case V_dou:
-                           *(int *)(af->arg_v[i]) = (int)arg->data.value->value->data.dou.num;
-                           break;
-                       default:
-                           return false;
-                   }
-                   break;
-                case af_double:
-                    af->arg_v[i] = (double *)memCalloc(1, sizeof(double));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
-                    switch (arg->data.value->value->type) {
-                        case V_int:
-                            *(double *)(af->arg_v[i]) = (double)arg->data.value->value->data.int_.num;
-                            break;
-                        case V_dou:
-                            *(double *)(af->arg_v[i]) = (double)arg->data.value->value->data.dou.num;
-                            break;
-                        default:
-                            return false;
-                    }
-                    break;
-                case af_str:
-                    af->arg_v[i] = (double *)memCalloc(1, sizeof(char *));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
-                    if (arg->data.value->value->type == V_str) {
-                        *(char **)(af->arg_v[i]) = memWcsToStr(arg->data.value->value->data.str.str, false);
-                    } else
-                        return false;
-                    break;
-                default:
-                    return false;
-            }
-        }
+static bool setFFIArgFromValue(ArgumentFFI *af, Argument *arg, unsigned int i) {
+    switch (arg->data.value->value->type) {
+        setFFIValue(V_int, ffi_type_sint32, af_int, int, arg->data.value->value->data.int_.num);
+        setFFIValue(V_dou, ffi_type_double, af_double, double, arg->data.value->value->data.dou.num);
+        setFFIValue(V_bool, ffi_type_sint32, af_int, double, arg->data.value->value->data.bool_.bool_);
+        setFFIValue(V_str, ffi_type_pointer, af_str, char *, memWcsToStr(arg->data.value->value->data.str.str, false));
+        setFFIValue(V_none, ffi_type_sint32, af_int, int, 0);
+        default:
+            return false;
     }
-    return arg == NULL ? true : false;
+    return true;
 }
 
-ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {
+#undef setFFIValue
+#define setFFIArgFromTypeNumber(aft_type, type_) \
+case aft_type: \
+    do { \
+    af->arg_v[i] = memCalloc(1, sizeof(type_)); \
+    switch (arg->data.value->value->type) { \
+        case V_int: \
+            *(type_ *)(af->arg_v[i]) = (type_)arg->data.value->value->data.int_.num; \
+            break; \
+        case V_dou: \
+            *(type_ *)(af->arg_v[i]) = (type_)arg->data.value->value->data.dou.num; \
+            break; \
+        case V_none: \
+            *(type_ *)(af->arg_v[i]) = (type_)0; \
+            break; \
+        case V_bool: \
+            *(type_ *)(af->arg_v[i]) = (type_)arg->data.value->value->data.bool_.bool_; \
+            break; \
+        default: \
+            return false; \
+    } } while(0); \
+break
+
+#define setFFIArgFromTypeChar(aft_type, type_) case aft_type: \
+    af->arg_v[i] = memCalloc(1, sizeof(type_)); \
+    if (arg->data.value->value->type == V_str && memWidelen(arg->data.value->value->data.str.str) == 1) \
+        *(type_ *)(af->arg_v[i]) = (type_)(arg->data.value->value->data.str.str[0]); \
+    else \
+        return false; \
+break
+
+static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
+    switch (af->type[i]) {
+        setFFIArgFromTypeNumber(af_sint, int16_t);
+        setFFIArgFromTypeNumber(af_usint, u_int16_t);
+        setFFIArgFromTypeNumber(af_int, int32_t);
+        setFFIArgFromTypeNumber(af_uint, u_int32_t);
+        setFFIArgFromTypeNumber(af_lint, int64_t);
+        setFFIArgFromTypeNumber(af_ulint, u_int64_t);
+
+        setFFIArgFromTypeNumber(af_float, float);
+        setFFIArgFromTypeNumber(af_ldouble, long double);
+        setFFIArgFromTypeNumber(af_double, double);
+
+        setFFIArgFromTypeChar(af_char, int8_t);
+        setFFIArgFromTypeChar(af_uchar, u_int8_t);
+
+        case af_str:
+            af->arg_v[i] = memCalloc(1, sizeof(char *));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
+            if (arg->data.value->value->type == V_str) {
+                *(char **)(af->arg_v[i]) = memWcsToStr(arg->data.value->value->data.str.str, false);
+            } else
+                return false;
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+
+#undef setFFIArgFromTypeNumber
+#undef setFFIArgFromTypeChar
+
+bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
+    for (unsigned int i=0; arg != NULL && i < af->size; arg = arg->next, i++) {
+        if (af->arg[i] == NULL && !setFFIArgFromValue(af, arg, i) ||
+            af->arg[i] != NULL && !setFFIArgFromType(af, arg, i))
+            return false;
+    }
+    return arg == NULL;  // 若arg还没迭代完, 则证明有问题
+}
+
+ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {\
     ffi_type *return_ = NULL;
     if (eqWide(str, L"int")) {
-        return_ = &ffi_type_sint;
+        return_ = &ffi_type_sint32;
         *aft = af_int;
-    } else if (eqWide(str, L"dou")) {
+    } else if (eqWide(str, L"uint")) {
+        return_ = &ffi_type_uint32;
+        *aft = af_uint;
+    } else if (eqWide(str, L"sint")) {
+        return_ = &ffi_type_sint16;
+        *aft = af_sint;
+    } else if (eqWide(str, L"usint")) {
+        return_ = &ffi_type_uint16;
+        *aft = af_usint;
+    } else if (eqWide(str, L"lint")) {
+        return_ = &ffi_type_sint64;
+        *aft = af_lint;
+    } else if (eqWide(str, L"ulint")) {
+        return_ = &ffi_type_uint64;
+        *aft = af_ulint;
+    } else if (eqWide(str, L"float")) {
+        return_ = &ffi_type_float;
+        *aft = af_float;
+    } else if (eqWide(str, L"double")) {
         return_ = &ffi_type_double;
         *aft = af_double;
+    } else if (eqWide(str, L"ldouble")) {
+        return_ = &ffi_type_longdouble;
+        *aft = af_ldouble;
     } else if (eqWide(str, L"str")) {
         return_ = &ffi_type_pointer;
         *aft = af_str;
-    } else if (eqWide(str, L"void")) {
-        return_ = &ffi_type_void;
-        *aft = af_void;
     } else if (eqWide(str, L"char")) {
         return_ = &ffi_type_schar;
         *aft = af_char;
+    } else if (eqWide(str, L"void")) {
+        return_ = &ffi_type_void;
+        *aft = af_void;
     }
     return return_;
 }

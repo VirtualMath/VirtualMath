@@ -57,10 +57,22 @@ struct ArgumentFFI {
     ffi_type **arg;  // arg的类型
     void **arg_v;  // arg的真实数值
     enum ArgumentFFIType{
+        af_usint,
+        af_sint,
+        af_uint,
         af_int,
+        af_ulint,
+        af_lint,
+
+        af_float,
         af_double,
+        af_ldouble,
+
         af_str,
+
+        af_uchar,
         af_char,
+
         af_void,
     } *type;  // 数据类型 (决定如何释放arg_v)
     unsigned int size;  // 数组长度
