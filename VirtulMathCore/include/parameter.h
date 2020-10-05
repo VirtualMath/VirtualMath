@@ -51,9 +51,23 @@ struct ArgumentParser{
     int c_count;
 };
 
+// 该结构体为数组形式, 因此不需要make函数(即不存在于堆中)
+// 但其成员arg等为不确定长度的数组，因此需要memCalloc申请内存, 并且释放
+struct ArgumentFFI {
+    ffi_type **arg;  // arg的类型
+    void **arg_v;  // arg的真实数值
+    enum ArgumentFFIType{
+        af_int,
+        af_double,
+        af_str,
+    } *type;  // 数据类型 (决定如何释放arg_v)
+    unsigned int size;  // 数组长度
+};
+
 typedef struct Parameter Parameter;
 typedef struct Argument Argument;
 typedef struct ArgumentParser ArgumentParser;
+typedef struct ArgumentFFI ArgumentFFI;
 
 Argument *makeArgument(void);
 Argument *makeValueArgument(LinkValue *value);
@@ -101,4 +115,11 @@ Argument *parserArgumentValueCore(Argument *arg, ArgumentParser *ap);
 ArgumentParser *parserArgumentNameDefault(ArgumentParser *ap);
 ArgumentParser *parserArgumentValueDefault(ArgumentParser *ap);
 int parserArgumentVar(ArgumentParser *ap, Inter *inter, VarList *var_list);
+
+void setArgumentFFICore(ArgumentFFI *af);
+void setArgumentFFI(ArgumentFFI *af, unsigned int size);
+void freeArgumentFFI(ArgumentFFI *af);
+
+unsigned int checkArgument(Argument *arg, enum ArgumentType type);
+bool setArgumentToFFI(ArgumentFFI *af, Argument *arg);
 #endif //VIRTUALMATH_PARAMETER_H

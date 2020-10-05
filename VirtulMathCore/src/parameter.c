@@ -858,3 +858,66 @@ ArgumentParser *parserArgumentNameDefault(ArgumentParser *ap){
     }
     return ap;
 }
+
+void setArgumentFFICore(ArgumentFFI *af) {
+    af->type = NULL;
+    af->arg = NULL;
+    af->arg_v = NULL;
+    af->size = 0;
+}
+
+void setArgumentFFI(ArgumentFFI *af, unsigned int size) {
+    af->type = memCalloc((size_t)size, sizeof(enum ArgumentFFIType));
+    af->arg = memCalloc((size_t)size, sizeof(ffi_type *));
+    af->arg_v = memCalloc((size_t)size, sizeof(void *));
+    af->size = size;
+    memset(af->type, 0, (size_t)size);
+    memset(af->arg, 0, (size_t)size);
+    memset(af->arg_v, 0, (size_t)size);
+}
+
+void freeArgumentFFI(ArgumentFFI *af) {
+    for (unsigned int i=0; i < af->size; i++) {
+        switch (af->type[i]) {
+            case af_double:
+            case af_int:
+                memFree(af->arg_v[i]);
+                break;
+            default:
+                break;
+        }
+    }
+
+    memFree(af->type);
+    memFree(af->arg);
+    memFree(af->arg_v);
+}
+
+unsigned int checkArgument(Argument *arg, enum ArgumentType type) {
+    unsigned int count;
+    for (count = 0; arg != NULL; arg = arg->next, count ++) {
+        if (arg->type != type)
+            return -1;
+    }
+    return count;
+}
+
+bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
+    for (unsigned int i=0; arg != NULL && i < af->size; arg = arg->next, i++) {
+        if (af->arg[i] == NULL) {
+            switch (arg->data.value->value->type) {
+                case V_int:
+                    af->arg[i] = &ffi_type_sint;  // af->arg是ffi_type **arg, 即*arg[]
+                    af->type[i] = af_int;
+
+                    af->arg_v[i] = (int *)memCalloc(1, sizeof(int));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
+                    *(int *)(af->arg_v[i]) = (int)arg->data.value->value->data.int_.num;
+                    break;
+                default:
+                    return false;
+            }
+        } else
+            return false;
+    }
+    return arg == NULL ? true : false;
+}

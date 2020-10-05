@@ -260,14 +260,30 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
 
 static ResultType callFFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT){
     ffi_cif cif;
+    unsigned int size;
+    ArgumentFFI af;
     setResultCore(result);
-    gc_addTmpLink(&function_value->gc_status);
+    setArgumentFFICore(&af);
+    if (pt_sep != 0 || (size = checkArgument(arg, value_arg)) == -1) {
+        setResultError(E_ArgumentException, L"does not support key-value arguments", line, file, true, CNEXT_NT);
+        return R_error;
+    }
 
-    ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 0, &ffi_type_void, NULL);
-    ffi_call(&cif, function_value->value->data.function.ffunc,  NULL, NULL);
+    setArgumentFFI(&af, size);
+    if (!setArgumentToFFI(&af, arg)) {
+        setResultError(E_ArgumentException, L"parameter exception when calling C function", line, file, true, CNEXT_NT);
+        goto return_;
+    }
+
+    gc_addTmpLink(&function_value->gc_status);
+    ffi_prep_cif(&cif, FFI_DEFAULT_ABI, af.size, &ffi_type_void, af.arg);
+    ffi_call(&cif, function_value->value->data.function.ffunc,  NULL, af.arg_v);
+    gc_freeTmpLink(&function_value->gc_status);
 
     setResult(result, inter);
-    gc_freeTmpLink(&function_value->gc_status);
+
+    return_:
+    freeArgumentFFI(&af);
     return result->type;
 }
 
