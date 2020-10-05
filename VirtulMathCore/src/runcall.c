@@ -381,6 +381,7 @@ static ffi_type *getRearg(LinkValue *function_value, enum ArgumentFFIType *aft, 
 
 static ResultType getFuncargs(LinkValue *function_value, ArgumentFFI *af, fline line, char *file, FUNC_NT) {
     LinkValue *arg_var = NULL;
+    LinkValue *vaarg_var = NULL;
     setResultCore(result);
 
     arg_var = findAttributes(L"funcargs", false, line, file, true, CFUNC_NT(var_list, result, function_value));
@@ -388,12 +389,22 @@ static ResultType getFuncargs(LinkValue *function_value, ArgumentFFI *af, fline 
         return result->type;
     freeResult(result);
 
+    vaarg_var = findAttributes(L"vaargs", false, line, file, true, CFUNC_NT(var_list, result, function_value));
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
     if (arg_var != NULL) {
-        if (arg_var->value->type != V_list) {
-            setResultError(E_TypeException, ONLY_ACC(funcargs, list), line, file, true, CNEXT_NT);
+        LinkValue **valist = vaarg_var != NULL ? vaarg_var->value->data.list.list : NULL;
+        vint vasize = vaarg_var != NULL ? vaarg_var->value->data.list.size : 0;
+        af->b_va = arg_var->value->data.list.size;
+
+        if (arg_var->value->type != V_list || vaarg_var != NULL && vaarg_var->value->type != V_list) {
+            setResultError(E_TypeException, ONLY_ACC(funcargs / vaarg_var, list), line, file, true, CNEXT_NT);
             return R_error;
         }
-        if (!listToArgumentFFI(af, arg_var->value->data.list.list, arg_var->value->data.list.size)) {
+
+        if (!listToArgumentFFI(af, arg_var->value->data.list.list, arg_var->value->data.list.size, valist, vasize)) {
             setResultError(E_ArgumentException, (wchar_t *) L"no-support argument type for C function", line, file, true, CNEXT_NT);
             return R_error;
         }
@@ -430,7 +441,11 @@ static ResultType callFFunction(LinkValue *function_value, Argument *arg, long i
         goto return_;
     }
 
-    ffi_prep_cif(&cif, FFI_DEFAULT_ABI, af.size, re, af.arg);
+    if (af.size == af.b_va)
+        ffi_prep_cif(&cif, FFI_DEFAULT_ABI, af.size, re, af.arg);
+    else
+        ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, af.b_va, af.size, re, af.arg);
+
     if (makeFFIReturn(aft, &re_v)) {
         ffi_call(&cif, function_value->value->data.function.ffunc, re_v, af.arg_v);
         FFIReturnValue(aft, re_v, line, file, CNEXT_NT);

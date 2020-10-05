@@ -78,6 +78,7 @@ struct ArgumentFFI {
         af_pointer,
     } *type;  // 数据类型 (决定如何释放arg_v)
     unsigned int size;  // 数组长度
+    unsigned int b_va;  // 非可变参数的个数
 };
 
 typedef struct Parameter Parameter;
@@ -137,7 +138,8 @@ void setArgumentFFI(ArgumentFFI *af, unsigned int size);
 void freeArgumentFFI(ArgumentFFI *af);
 
 unsigned int checkArgument(Argument *arg, enum ArgumentType type);
-bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size);
+bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size, LinkValue **valist, vint vasize);
 bool setArgumentToFFI(ArgumentFFI *af, Argument *arg);
 ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft);
+ffi_type *getFFITypeUp(wchar_t *str, enum ArgumentFFIType *aft);
 #endif //VIRTUALMATH_PARAMETER_H

@@ -864,6 +864,7 @@ void setArgumentFFICore(ArgumentFFI *af) {
     af->arg = NULL;
     af->arg_v = NULL;
     af->size = 0;
+    af->b_va = 0;
 }
 
 void setArgumentFFI(ArgumentFFI *af, unsigned int size) {
@@ -871,6 +872,7 @@ void setArgumentFFI(ArgumentFFI *af, unsigned int size) {
     af->arg = memCalloc((size_t)size, sizeof(ffi_type *));
     af->arg_v = memCalloc((size_t)size, sizeof(void *));
     af->size = size;
+    af->b_va = size;
     memset(af->type, 0, (size_t)size);
     memset(af->arg, 0, (size_t)size);
     memset(af->arg_v, 0, (size_t)size);
@@ -907,14 +909,25 @@ unsigned int checkArgument(Argument *arg, enum ArgumentType type) {
     return count;
 }
 
-bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size) {
-    if (size > af->size)
+bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size, LinkValue **valist, vint vasize) {
+    int i=0;
+    if ((size + vasize) != af->size)
         return false;
-    for (int i=0; i < size; i ++) {
+
+    for (PASS; i < size; i++) {
         LinkValue *str = list[i];
         if (str->value->type != V_str)
             return false;
         af->arg[i] = getFFIType(str->value->data.str.str, af->type + i);
+        if (af->arg[i] == NULL || af->type[i] == af_void)
+            return false;
+    }
+
+    for (PASS; i < af->size; i++) {  // 处理可变参数
+        LinkValue *str = valist[i - size];
+        if (str->value->type != V_str)
+            return false;
+        af->arg[i] = getFFITypeUp(str->value->data.str.str, af->type + i);
         if (af->arg[i] == NULL || af->type[i] == af_void)
             return false;
     }
@@ -1051,7 +1064,7 @@ bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
     return arg == NULL;  // 若arg还没迭代完, 则证明有问题
 }
 
-ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {\
+ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {
     ffi_type *return_ = NULL;
     if (eqWide(str, L"int")) {
         return_ = &ffi_type_sint32;
@@ -1087,8 +1100,47 @@ ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {\
         return_ = &ffi_type_pointer;
         *aft = af_wstr;
     } else if (eqWide(str, L"char")) {
-        return_ = &ffi_type_schar;
+        return_ = &ffi_type_sint8;
         *aft = af_char;
+    } else if (eqWide(str, L"uchar")) {
+        return_ = &ffi_type_uint8;
+        *aft = af_char;
+    } else if (eqWide(str, L"void")) {
+        return_ = &ffi_type_void;
+        *aft = af_void;
+    } else if (eqWide(str, L"pointer")) {
+        return_ = &ffi_type_pointer;
+        *aft = af_pointer;
+    }
+    return return_;
+}
+
+ffi_type *getFFITypeUp(wchar_t *str, enum ArgumentFFIType *aft) {
+    ffi_type *return_ = NULL;
+    if (eqWide(str, L"int") || eqWide(str, L"sint") || eqWide(str, L"char")) {
+        return_ = &ffi_type_sint32;
+        *aft = af_int;
+    } else if (eqWide(str, L"uint") || eqWide(str, L"usint") || eqWide(str, L"uchar")) {
+        return_ = &ffi_type_uint32;
+        *aft = af_uint;
+    } else if (eqWide(str, L"lint")) {
+        return_ = &ffi_type_sint64;
+        *aft = af_lint;
+    } else if (eqWide(str, L"ulint")) {
+        return_ = &ffi_type_uint64;
+        *aft = af_ulint;
+    } else if (eqWide(str, L"float") || eqWide(str, L"double")) {
+        return_ = &ffi_type_double;
+        *aft = af_double;
+    } else if (eqWide(str, L"ldouble")) {
+        return_ = &ffi_type_longdouble;
+        *aft = af_ldouble;
+    } else if (eqWide(str, L"str")) {
+        return_ = &ffi_type_pointer;
+        *aft = af_str;
+    } else if (eqWide(str, L"wstr")) {
+        return_ = &ffi_type_pointer;
+        *aft = af_wstr;
     } else if (eqWide(str, L"void")) {
         return_ = &ffi_type_void;
         *aft = af_void;

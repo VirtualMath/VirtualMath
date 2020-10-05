@@ -47,8 +47,7 @@ ResultType function_init(O_FUNC){
         return result->type;
     freeResult(result);
     if ((func = ap[0].value)->value->type != V_func) {
-        setResultError(E_TypeException, INSTANCE_ERROR(func), LINEFILE, true,
-                       CNEXT_NT);
+        setResultError(E_TypeException, INSTANCE_ERROR(func), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
@@ -63,9 +62,45 @@ ResultType function_init(O_FUNC){
     return result->type;
 }
 
+ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=true},
+                           {.must=-1}};
+    LinkValue *func;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+    if ((func = ap[0].value)->value->type != V_func || (func = ap[0].value)->value->data.function.type != f_func) {
+        setResultError(E_TypeException, INSTANCE_ERROR(func), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    if (ap[1].arg != NULL) {
+        LinkValue *list;
+        makeListValue(ap[1].arg, LINEFILE, L_tuple, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return result->type;
+        list = result->value;
+        result->value = NULL;
+        freeResult(result);
+
+        addAttributes(L"vaargs", false, list, LINEFILE, true, CFUNC_NT(var_list, result, func));
+        gc_freeTmpLink(&list->gc_status);
+    }
+    else
+        findFromVarList(L"vaargs", 0, del_var, CFUNC_CORE(var_list));
+
+    if (CHECK_RESULT(result))
+        setResultOperation(result, func);
+    return result->type;
+}
+
 void registeredFunction(R_FUNC){
     LinkValue *object = inter->data.function;
-    NameFunc tmp[] = {{NULL, NULL}};
+    NameFunc tmp[] = {{L"set", function_set, object_free_},
+                      {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"func", object, belong, inter);
     iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
