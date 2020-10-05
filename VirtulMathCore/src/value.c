@@ -208,11 +208,9 @@ Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, 
     Value *tmp = NULL;
     setResultCore(result);
     if (type == L_list)
-        callBackCore(inter->data.list, arg, line, file, 0,
-                     CNEXT_NT);
+        callBackCore(inter->data.list, arg, line, file, 0, CNEXT_NT);
     else
-        callBackCore(inter->data.tuple, arg, line, file, 0,
-                     CNEXT_NT);
+        callBackCore(inter->data.tuple, arg, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;

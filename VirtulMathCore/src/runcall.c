@@ -260,20 +260,26 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
 
 static bool makeFFIReturn(enum ArgumentFFIType af, void **re_v) {
     switch (af) {
-        case af_char:
         case af_uchar:
         case af_usint:
-        case af_sint:
         case af_uint:
-        case af_int:
         case af_ulint:
+            *re_v = memCalloc(1, sizeof(u_int64_t));  // 无论是int32或者是int64，都申请int64_t的内存 (否则libffi会提升类型，导致内存溢出)
+            break;
+
+        case af_char:
+        case af_sint:
+        case af_int:
         case af_lint:
             *re_v = memCalloc(1, sizeof(int64_t));  // 无论是int32或者是int64，都申请int64_t的内存 (否则libffi会提升类型，导致内存溢出)
             break;
 
         case af_float:
-        case af_ldouble:
         case af_double:
+            *re_v = memCalloc(1, sizeof(double));  // 理由同上
+            break;
+
+        case af_ldouble:
             *re_v = memCalloc(1, sizeof(long double));  // 理由同上
             break;
 
@@ -295,19 +301,26 @@ static bool makeFFIReturn(enum ArgumentFFIType af, void **re_v) {
 static bool FFIReturnValue(enum ArgumentFFIType aft, void *re_v, fline line, char *file, FUNC_NT) {
     switch (aft) {  // 应用返回值函数
         case af_usint:
-        case af_sint:
         case af_uint:
-        case af_int:
         case af_ulint:
+            makeIntValue((vint)*(u_int64_t *)re_v, line, file, CNEXT_NT);  // 先以(int64_t)读取void *类型的数据, 再转换成(vint)类型 (避免大端和小端模式的行为不同)
+            break;
+
+        case af_sint:
+        case af_int:
         case af_lint:
             makeIntValue((vint)*(int64_t *)re_v, line, file, CNEXT_NT);  // 先以(int64_t)读取void *类型的数据, 再转换成(vint)类型 (避免大端和小端模式的行为不同)
             break;
 
         case af_float:
-        case af_ldouble:
         case af_double:
+            makeDouValue((vdou)*(double *)re_v, line, file, CNEXT_NT);
+            break;
+
+        case af_ldouble:
             makeDouValue((vdou)*(long double *)re_v, line, file, CNEXT_NT);
             break;
+
 
         case af_str: {
             wchar_t *tmp = memStrToWcs(*(char **)re_v, false);
