@@ -260,13 +260,34 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
 
 static ResultType callFFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT){
     ffi_cif cif;
+    ffi_type *re;
     unsigned int size;
     ArgumentFFI af;
+    enum ArgumentFFIType aft = af_void;
     setResultCore(result);
     setArgumentFFICore(&af);
     if (pt_sep != 0 || (size = checkArgument(arg, value_arg)) == -1) {
         setResultError(E_ArgumentException, L"does not support key-value arguments", line, file, true, CNEXT_NT);
         return R_error;
+    }
+
+    {
+        LinkValue *re_var = findAttributes(L"rearg", false, line, file, true, CFUNC_NT(var_list, result, function_value));
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+        if (re_var != NULL) {
+            if (re_var->value->type != V_str) {
+                setResultError(E_TypeException, ONLY_ACC(rearg, str), line, file, true, CNEXT_NT);
+                return R_error;
+            }
+            re = getFFIType(re_var->value->data.str.str, &aft);
+            if (re == NULL) {
+                setResultError(E_ArgumentException, L"no-support argument type for C function", line, file, true, CNEXT_NT);
+                return R_error;
+            }
+        } else
+            re = &ffi_type_void;
     }
 
     setArgumentFFI(&af, size);
@@ -275,12 +296,55 @@ static ResultType callFFunction(LinkValue *function_value, Argument *arg, long i
         goto return_;
     }
 
-    gc_addTmpLink(&function_value->gc_status);
-    ffi_prep_cif(&cif, FFI_DEFAULT_ABI, af.size, &ffi_type_void, af.arg);
-    ffi_call(&cif, function_value->value->data.function.ffunc,  NULL, af.arg_v);
-    gc_freeTmpLink(&function_value->gc_status);
-
-    setResult(result, inter);
+    ffi_prep_cif(&cif, FFI_DEFAULT_ABI, af.size, re, af.arg);
+    {
+        void *re_v = NULL;  // 存放返回值的函數
+        switch (aft) {
+            case af_int:
+                re_v = memCalloc(1, sizeof(int));
+                break;
+            case af_double:
+                re_v = memCalloc(1, sizeof(double));
+                break;
+            case af_str:
+                re_v = memCalloc(1, sizeof(char *));
+                break;
+            case af_char:
+                re_v = memCalloc(1, sizeof(char));
+                break;
+            case af_void:
+                break;
+            default:
+                setResultError(E_ArgumentException, L"no-support return type for C function", line, file, true, CNEXT_NT);
+                goto return_;
+        }
+        ffi_call(&cif, function_value->value->data.function.ffunc,  re_v, af.arg_v);
+        switch (aft) {  // 应用返回值函数
+            case af_int:
+                makeIntValue(*(int *)re_v, line, file, CNEXT_NT);
+                break;
+            case af_double:
+                makeDouValue(*(double *)re_v, line, file, CNEXT_NT);
+                break;
+            case af_str: {
+                wchar_t *tmp = memStrToWcs(re_v, false);
+                makeStringValue(tmp, line, file, CNEXT_NT);
+                memFree(tmp);
+                break;
+            }
+            case af_char: {
+                wchar_t tmp[] = {(wchar_t)(*(char *)re_v), (wchar_t)NUL};
+                makeStringValue(tmp, line, file, CNEXT_NT);
+                break;
+            }
+            case af_void:
+                setResult(result, inter);
+                break;
+            default:
+                break;
+        }
+        memFree(re_v);
+    }
 
     return_:
     freeArgumentFFI(&af);
