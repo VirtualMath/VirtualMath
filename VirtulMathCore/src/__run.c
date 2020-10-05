@@ -74,7 +74,13 @@ wchar_t *setIntVarName(vint num, struct Inter *inter) {
 wchar_t *setDouVarName(vdou num, struct Inter *inter) {
     wchar_t name[50];
     swprintf(name, 50, L"%Lf", num);
-    return memWidecat(inter->data.var_dou_prefix, name, false, false);
+    return memWidecat(inter->data.var_int_prefix, name, false, false);
+}
+
+wchar_t *setPointerVarName(void *num, struct Inter *inter) {
+    wchar_t name[50];
+    swprintf(name, 50, L"%p", num);
+    return memWidecat(inter->data.var_int_prefix, name, false, false);
 }
 
 wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
@@ -85,6 +91,8 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
             return setIntVarName(value->data.int_.num, inter);
         case V_dou:
             return setDouVarName(value->data.dou.num, inter);
+        case V_pointer:
+            return setPointerVarName(value->data.pointer.pointer, inter);
         case V_bool:
             if (value->data.bool_.bool_)
                 return memWidecat(inter->data.var_bool_prefix, L"true", false, false);

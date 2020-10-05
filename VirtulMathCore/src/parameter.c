@@ -878,18 +878,17 @@ void setArgumentFFI(ArgumentFFI *af, unsigned int size) {
 
 void freeArgumentFFI(ArgumentFFI *af) {
     for (unsigned int i=0; i < af->size; i++) {
-        switch (af->type[i]) {
-            case af_double:
-            case af_int:
-            case af_char:
-                memFree(af->arg_v[i]);
-                break;
+        switch (af->type[i]) {  // TODO-szh 改为if-else分支
+            case af_wstr:
             case af_str:
                 if (af->arg_v[i] != NULL)
-                    memFree(*(char **)af->arg_v[i]);
+                    memFree(*(void **)af->arg_v[i]);
                 memFree(af->arg_v[i]);
                 break;
+            case af_void:
+                break;
             default:
+                memFree(af->arg_v[i]);
                 break;
         }
     }
@@ -935,6 +934,9 @@ static bool setFFIArgFromValue(ArgumentFFI *af, Argument *arg, unsigned int i) {
         setFFIValue(V_dou, ffi_type_double, af_double, double, arg->data.value->value->data.dou.num);
         setFFIValue(V_bool, ffi_type_sint32, af_int, double, arg->data.value->value->data.bool_.bool_);
         setFFIValue(V_str, ffi_type_pointer, af_str, char *, memWcsToStr(arg->data.value->value->data.str.str, false));
+        setFFIValue(V_pointer, ffi_type_void, af_int, void *, arg->data.value->value->data.pointer.pointer);
+
+        case V_ell:
         setFFIValue(V_none, ffi_type_sint32, af_int, int, 0);
         default:
             return false;
@@ -954,11 +956,15 @@ case aft_type: \
         case V_dou: \
             *(type_ *)(af->arg_v[i]) = (type_)arg->data.value->value->data.dou.num; \
             break; \
+        case V_ell: \
         case V_none: \
             *(type_ *)(af->arg_v[i]) = (type_)0; \
             break; \
         case V_bool: \
             *(type_ *)(af->arg_v[i]) = (type_)arg->data.value->value->data.bool_.bool_; \
+            break; \
+        case V_pointer: \
+            *(type_ *)(af->arg_v[i]) = (type_)(vint)arg->data.value->value->data.pointer.pointer; \
             break; \
         default: \
             return false; \
@@ -986,6 +992,24 @@ static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
         setFFIArgFromTypeNumber(af_ldouble, long double);
         setFFIArgFromTypeNumber(af_double, double);
 
+        case af_pointer:
+            af->arg_v[i] = memCalloc(1, sizeof(void *));
+            switch (arg->data.value->value->type) {
+                case V_int:
+                    *(void **) (af->arg_v[i]) = (void *) arg->data.value->value->data.int_.num;
+                    break;
+                case V_ell:
+                case V_none:
+                    *(void **) (af->arg_v[i]) = NULL;
+                    break;
+                case V_pointer:
+                    *(void **) (af->arg_v[i]) = (void *)arg->data.value->value->data.pointer.pointer;
+                    break;
+                default:
+                    return 0;
+            }
+        break;
+
         setFFIArgFromTypeChar(af_char, int8_t);
         setFFIArgFromTypeChar(af_uchar, u_int8_t);
 
@@ -996,6 +1020,15 @@ static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
             } else
                 return false;
             break;
+
+        case af_wstr:
+            af->arg_v[i] = memCalloc(1, sizeof(wchar_t *));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
+            if (arg->data.value->value->type == V_str) {
+                *(wchar_t **)(af->arg_v[i]) = memWidecpy(arg->data.value->value->data.str.str);
+            } else
+                return false;
+            break;
+
         default:
             return false;
     }
@@ -1046,12 +1079,18 @@ ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {\
     } else if (eqWide(str, L"str")) {
         return_ = &ffi_type_pointer;
         *aft = af_str;
+    } else if (eqWide(str, L"wstr")) {
+        return_ = &ffi_type_pointer;
+        *aft = af_wstr;
     } else if (eqWide(str, L"char")) {
         return_ = &ffi_type_schar;
         *aft = af_char;
     } else if (eqWide(str, L"void")) {
         return_ = &ffi_type_void;
         *aft = af_void;
+    } else if (eqWide(str, L"pointer")) {
+        return_ = &ffi_type_pointer;
+        *aft = af_pointer;
     }
     return return_;
 }

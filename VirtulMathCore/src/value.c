@@ -87,6 +87,17 @@ Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
     return tmp;
 }
 
+Value *makePointerValue(void *p, fline line, char *file, FUNC_NT) {
+    Value *tmp = NULL;
+    setResultCore(result);
+    callBackCore(inter->data.pointer, NULL, line, file, 0, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
+    tmp->data.pointer.pointer = p;
+    return tmp;
+}
+
 Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);

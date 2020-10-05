@@ -18,6 +18,7 @@
 #include "error_.h"
 #include "file_.h"
 #include "lib_.h"
+#include "pointer.h"
 
 struct Argument;
 struct VarList;

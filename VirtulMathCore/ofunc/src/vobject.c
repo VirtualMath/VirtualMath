@@ -130,6 +130,9 @@ ResultType vobject_bool(O_FUNC){
         case V_dou:
             result_ = value->data.dou.num != 0;
             break;
+        case V_pointer:
+            result_ = value->data.pointer.pointer != NULL;
+            break;
         case V_str:
             result_ = memWidelen(value->data.str.str) > 0;
             break;
@@ -176,6 +179,12 @@ ResultType vobject_repo(O_FUNC){
         case V_int: {
             char str[30] = { NUL };
             snprintf(str, 30, "%lld", value->data.int_.num);
+            repo = memStrToWcs(str, false);
+            break;
+        }
+        case V_pointer: {
+            char str[30] = { NUL };
+            snprintf(str, 30, "%p", value->data.pointer.pointer);
             repo = memStrToWcs(str, false);
             break;
         }

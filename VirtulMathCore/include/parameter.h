@@ -69,11 +69,13 @@ struct ArgumentFFI {
         af_ldouble,
 
         af_str,
+        af_wstr,
 
         af_uchar,
         af_char,
 
         af_void,
+        af_pointer,
     } *type;  // 数据类型 (决定如何释放arg_v)
     unsigned int size;  // 数组长度
 };

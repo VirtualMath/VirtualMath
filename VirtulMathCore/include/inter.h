@@ -36,6 +36,7 @@ struct Inter{
         struct LinkValue *none;
         struct LinkValue *list_iter;
         struct LinkValue *dict_iter;
+        struct LinkValue *pointer;
 
         struct LinkValue *base_exc;
         struct LinkValue *sys_exc;
@@ -60,7 +61,6 @@ struct Inter{
 
         wchar_t *var_str_prefix;
         wchar_t *var_int_prefix;
-        wchar_t *var_dou_prefix;
         wchar_t *var_bool_prefix;
         wchar_t *var_file_prefix;
         wchar_t *var_none;

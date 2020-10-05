@@ -261,15 +261,28 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
 static bool makeFFIReturn(enum ArgumentFFIType af, void **re_v) {
     switch (af) {
         case af_char:
+        case af_uchar:
+        case af_usint:
+        case af_sint:
+        case af_uint:
         case af_int:
+        case af_ulint:
+        case af_lint:
             *re_v = memCalloc(1, sizeof(int64_t));  // 无论是int32或者是int64，都申请int64_t的内存 (否则libffi会提升类型，导致内存溢出)
             break;
+
+        case af_float:
+        case af_ldouble:
         case af_double:
             *re_v = memCalloc(1, sizeof(long double));  // 理由同上
             break;
+
+        case af_pointer:
         case af_str:
+        case af_wstr:
             *re_v = memCalloc(1, sizeof(void *));  // 所有指针数据大小都相同
             break;
+
         case af_void:
             *re_v = NULL;
             break;
@@ -297,11 +310,22 @@ static bool FFIReturnValue(enum ArgumentFFIType aft, void *re_v, fline line, cha
             break;
 
         case af_str: {
-            wchar_t *tmp = memStrToWcs(re_v, false);
+            wchar_t *tmp = memStrToWcs(*(char **)re_v, false);
             makeStringValue(tmp, line, file, CNEXT_NT);
             memFree(tmp);
             break;
         }
+
+        case af_wstr: {
+            wchar_t *tmp = memWidecpy(*(wchar_t **)re_v);
+            makeStringValue(tmp, line, file, CNEXT_NT);
+            memFree(tmp);
+            break;
+        }
+
+        case af_pointer:
+            makePointerValue(*(void **)re_v, line, file, CNEXT_NT);
+            break;
 
         case af_uchar:
         case af_char: {

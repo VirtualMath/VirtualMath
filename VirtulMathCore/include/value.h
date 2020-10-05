@@ -51,6 +51,7 @@ enum ValueType {
     V_ell=10,
     V_file=11,
     V_lib=12,
+    V_pointer=13,
 };
 
 struct Int {
@@ -122,6 +123,10 @@ struct File{
     bool is_std;
 };
 
+struct Pointer {
+    void *pointer;
+};
+
 struct Value{
     enum ValueType type;
 
@@ -141,6 +146,7 @@ struct Value{
         struct Bool bool_;
         struct File file;
         struct Lib lib;
+        struct Pointer pointer;
     } data;
 
     struct Value *gc_next;
@@ -230,6 +236,7 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT);
 Value *makePassValue(fline line, char *file, FUNC_NT);
 Value *makeIntValue(vint num, fline line, char *file, FUNC_NT);
 Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT);
+Value *makePointerValue(void *p, fline line, char *file, FUNC_NT);
 Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, FUNC_NT);
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT);

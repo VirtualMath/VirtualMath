@@ -54,8 +54,7 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
 
 void setBaseInterData(struct Inter *inter){
     inter->data.var_str_prefix = setName("str_");
-    inter->data.var_int_prefix = setName("int_");
-    inter->data.var_dou_prefix = setName("double_");
+    inter->data.var_int_prefix = setName("num_");
     inter->data.var_file_prefix = setName("file_");
     inter->data.var_none = setName("none");
     inter->data.var_pass = setName("ellipsis");
@@ -97,6 +96,7 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.vobject->gc_status);
     gc_freeStatementLink(&inter->data.int_->gc_status);
     gc_freeStatementLink(&inter->data.dou->gc_status);
+    gc_freeStatementLink(&inter->data.pointer->gc_status);
     gc_freeStatementLink(&inter->data.str->gc_status);
     gc_freeStatementLink(&inter->data.bool_->gc_status);
     gc_freeStatementLink(&inter->data.function->gc_status);
@@ -134,7 +134,6 @@ void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->data.include_exp->gc_status);
 
     memFree(inter->data.var_int_prefix);
-    memFree(inter->data.var_dou_prefix);
     memFree(inter->data.var_str_prefix);
     memFree(inter->data.var_file_prefix);
     memFree(inter->data.var_object_prefix);
