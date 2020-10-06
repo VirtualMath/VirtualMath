@@ -83,9 +83,30 @@ struct Statement{
                 OPT_MUL = 3,
                 OPT_DIV = 4,
                 OPT_ASS = 5,
-                OPT_POINT = 6,
-                OPT_BLOCK = 7,
-                OPT_LINK = 8,
+                OPT_POINT = 6,  // 成员运算
+                OPT_BLOCK = 7,  // 代码块
+                OPT_LINK = 8,  // 获取外部成员 TODO-szh 该名为OUTPOINT
+                OPT_INTDIV = 9,
+                OPT_MOD = 10,
+                OPT_POW = 11,
+
+                OPT_BAND = 12,
+                OPT_BOR = 13,
+                OPT_BXOR = 14,
+                OPT_BNOT = 15,
+                OPT_BL = 16,
+                OPT_BR = 17,
+
+                OPT_EQ = 18,
+                OPT_MOREEQ = 19,
+                OPT_LESSEQ = 20,
+                OPT_MORE = 21,
+                OPT_LESS = 22,
+                OPT_NOTEQ = 23,
+
+                OPT_AND = 24,
+                OPT_OR = 25,
+                OPT_NOT = 26,
             } OperationType;
             struct Statement *left;
             struct Statement *right;

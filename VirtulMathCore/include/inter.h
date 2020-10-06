@@ -6,7 +6,7 @@ struct Result;
 #define BASEOBJSZIE (17)
 #define VARNAMESIZE (8)
 #define BASEEXCESIZE (19)
-#define MAGFUNCSIZE (27)
+#define MAGFUNCSIZE (45)
 
 #define B_OBJECT (0)
 #define B_VOBJECT (1)
@@ -63,7 +63,27 @@ struct Result;
 #define M_ATTR (25)
 #define M_VAL (26)
 
-// TODO-szh 添加val
+#define M_INTDIV (27)
+#define M_MOD (28)
+#define M_POW (29)
+
+#define M_BAND (30)
+#define M_BOR (31)
+#define M_BXOR (32)
+#define M_BNOT (33)
+#define M_BL (34)
+#define M_BR (35)
+
+#define M_EQ (36)
+#define M_MOREEQ (37)
+#define M_LESSEQ (38)
+#define M_MORE (39)
+#define M_LESS (40)
+#define M_NOTEQ (41)
+
+#define M_AND (42)
+#define M_OR (43)
+#define M_NOT (44)
 
 struct Inter{
     struct Value *base;

@@ -142,8 +142,7 @@ bool callParserAs(P_FUNC, Statement **st, char *message){
     return true;
 }
 
-bool callChildToken(P_FUNC, PasersFunction callBack, int type, Token **tmp, char *message,
-                    int error_type) {
+bool callChildToken(P_FUNC, PasersFunction callBack, int type, Token **tmp, char *message, int error_type) {
     *tmp = NULL;
     callBack(CP_FUNC);
     if (!call_success(pm) || readBackToken(pm) != type) {
@@ -226,10 +225,10 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
         else if (!is_list && checkToken(pm, MATHER_POW))  // is_formal关闭对*args的支持
             status = s_4;
 
-        parserPolynomial(CP_FUNC);
+        parserOr(CP_FUNC);
         if (!call_success(pm))
             goto error_;
-        if (readBackToken(pm) != T_POLYNOMIAL) {
+        if (readBackToken(pm) != T_OR) {
             if (status == s_3) {
                 long int line = pm->tm->ts->token_list->line;
                 syntaxError(pm, syntax_error, line, 1, "Don't get a parameter after *");
@@ -271,7 +270,7 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
             new_pt = connectValueParameter(tmp->data.st, new_pt, is_sep == 1);
         else if (pt_type == name_par){
             Statement *tmp_value;
-            if (!callChildStatement(CP_FUNC, parserPolynomial, T_POLYNOMIAL, &tmp_value, "Don't get a parameter value"))
+            if (!callChildStatement(CP_FUNC, parserOr, T_OR, &tmp_value, "Don't get a parameter value"))
                 goto error_;
             new_pt = connectNameParameter(tmp_value, tmp->data.st, new_pt);
             if (!checkToken(pm, sep))

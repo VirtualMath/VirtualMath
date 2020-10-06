@@ -90,11 +90,34 @@ void setBaseInterData(struct Inter *inter){
     inter->data.mag_func[M_ATTR] = setName("__attr__");
     inter->data.mag_func[M_VAL] = setName("__val__");
 
+    inter->data.mag_func[M_INTDIV] = setName("__intdiv__");
+    inter->data.mag_func[M_MOD] = setName("__mod__");
+    inter->data.mag_func[M_POW] = setName("__pow__");
+
+    inter->data.mag_func[M_BAND] = setName("__bitand__");
+    inter->data.mag_func[M_BOR] = setName("__bitor__");
+    inter->data.mag_func[M_BXOR] = setName("__bitxor__");
+    inter->data.mag_func[M_BNOT] = setName("__bitnot__");
+    inter->data.mag_func[M_BL] = setName("__bitleft__");
+    inter->data.mag_func[M_BR] = setName("__bitright__");
+
+    inter->data.mag_func[M_EQ] = setName("__eq__");
+    inter->data.mag_func[M_MOREEQ] = setName("__moreeq__");
+    inter->data.mag_func[M_LESSEQ] = setName("__lesseq__");
+    inter->data.mag_func[M_MORE] = setName("__more__");
+    inter->data.mag_func[M_LESS] = setName("__less__");
+    inter->data.mag_func[M_NOTEQ] = setName("__noteq__");
+
+    inter->data.mag_func[M_AND] = setName("__and__");
+    inter->data.mag_func[M_OR] = setName("__or__");
+    inter->data.mag_func[M_NOT] = setName("__not__");
+
     inter->data.default_pt_type = free_;
 }
 
 void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->base_belong->gc_status);
+
     for (int i=0; i < BASEOBJSZIE; i ++)
         gc_freeStatementLink(&inter->data.base_obj[i]->gc_status);
 

@@ -2,6 +2,7 @@
 
 static bool getLeftRightValue(Result *left, Result *right, FUNC);
 static ResultType operationCore(FUNC, wchar_t *name);
+ResultType operationCore2(FUNC, wchar_t *name);
 ResultType assOperation(FUNC);
 ResultType pointOperation(FUNC);
 ResultType blockOperation(FUNC);
@@ -13,21 +14,39 @@ ResultType blockOperation(FUNC);
  * @param var_list
  * @return
  */
+
+#define OPT_CASE(TYPE) case OPT_##TYPE: operationCore(CNEXT, inter->data.mag_func[M_##TYPE]); break
+#define OPT_CASE2(TYPE) case OPT_##TYPE: operationCore2(CNEXT, inter->data.mag_func[M_##TYPE]); break
 ResultType operationStatement(FUNC) {
     setResultCore(result);
     switch (st->u.operation.OperationType) {
-        case OPT_ADD:
-            operationCore(CNEXT, inter->data.mag_func[M_ADD]);
-            break;
-        case OPT_SUB:
-            operationCore(CNEXT, inter->data.mag_func[M_SUB]);
-            break;
-        case OPT_MUL:
-            operationCore(CNEXT, inter->data.mag_func[M_MUL]);
-            break;
-        case OPT_DIV:
-            operationCore(CNEXT, inter->data.mag_func[M_DIV]);
-            break;
+        OPT_CASE(ADD);
+        OPT_CASE(SUB);
+        OPT_CASE(MUL);
+        OPT_CASE(DIV);
+        OPT_CASE(INTDIV);
+        OPT_CASE(MOD);
+        OPT_CASE(POW);
+
+
+        OPT_CASE(BAND);
+        OPT_CASE(BOR);
+        OPT_CASE(BXOR);
+        OPT_CASE2(BNOT);
+        OPT_CASE(BL);
+        OPT_CASE(BR);
+
+        OPT_CASE(EQ);
+        OPT_CASE(MOREEQ);
+        OPT_CASE(LESSEQ);
+        OPT_CASE(MORE);
+        OPT_CASE(LESS);
+        OPT_CASE(NOTEQ);
+
+        OPT_CASE(AND);
+        OPT_CASE(OR);
+        OPT_CASE2(NOT);
+
         case OPT_ASS:
             assOperation(CNEXT);
             break;
@@ -44,6 +63,7 @@ ResultType operationStatement(FUNC) {
     }
     return result->type;
 }
+#undef OPT_CASE
 
 static void updateBlockYield(Statement *block_st, Statement *node){
     block_st->info.node = node->type == yield_code ? node->next : node;
@@ -609,12 +629,12 @@ ResultType setDefault(FUNC){
 }
 
 bool getLeftRightValue(Result *left, Result *right, FUNC){
-    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
+    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return true;
     *left = *result;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)) || result->value->value->type == V_none)
+    if (operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)))
         return true;
     *right = *result;
     setResultCore(result);
@@ -624,33 +644,64 @@ bool getLeftRightValue(Result *left, Result *right, FUNC){
 ResultType operationCore(FUNC, wchar_t *name) {
     Result left;
     Result right;
-    LinkValue *_func_ = NULL;
     setResultCore(&left);
     setResultCore(&right);
+    setResultCore(result);
 
     if (getLeftRightValue(&left, &right, CNEXT))  // 不需要释放result
         return result->type;
 
-    _func_ = findAttributes(name, false, LINEFILE, true, CFUNC_NT(var_list, result, left.value));
+    runOperationFromValue(left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
+
+
+    freeResult(&left);
+    freeResult(&right);
+    return result->type;
+}
+
+ResultType operationCore2(FUNC, wchar_t *name) {
+    LinkValue *left;
+    setResultCore(result);
+
+    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
+        return result->type;
+    left = result->value;
+    result->value = NULL;  // 不使用freeResult, 不需要多余的把result.value设置为none
+
+    runOperationFromValue(left, NULL, name, st->line, st->code_file, CNEXT_NT);
+    gc_freeTmpLink(&left->gc_status);
+    return result->type;
+}
+
+ResultType runOperationFromValue(LinkValue *self, LinkValue *arg, wchar_t *name, fline line, char *file, FUNC_NT) {
+    LinkValue *_func_;
+    gc_addTmpLink(&self->gc_status);
+    if (arg != NULL)
+        gc_addTmpLink(&arg->gc_status);
+    setResultCore(result);
+
+    _func_ = findAttributes(name, false, LINEFILE, true, CFUNC_NT(var_list, result, self));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
 
     if (_func_ != NULL){
-        Argument *arg = makeValueArgument(right.value);
+        Argument *f_arg = NULL;
+        if (arg != NULL)
+            f_arg = makeValueArgument(arg);
         gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, arg, st->line, st->code_file, 0, CNEXT_NT);
+        callBackCore(_func_, f_arg, line, file, 0, CNEXT_NT);
         gc_freeTmpLink(&_func_->gc_status);
-        freeArgument(arg, true);
+        freeArgument(f_arg, true);
     }
     else {
         wchar_t *message = memWidecat(L"Object not support ", name, false, false);
-        setResultErrorSt(E_TypeException, message, true, st, CNEXT_NT);
+        setResultError(E_TypeException, message, line, file, true, CNEXT_NT);
         memFree(message);
     }
-
     return_:
-    freeResult(&left);
-    freeResult(&right);
+    gc_freeTmpLink(&self->gc_status);
+    if (arg != NULL)
+        gc_freeTmpLink(&arg->gc_status);
     return result->type;
 }

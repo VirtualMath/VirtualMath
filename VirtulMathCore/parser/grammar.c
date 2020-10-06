@@ -1136,7 +1136,7 @@ void parserTuple(P_FUNC){
         goto parserPt;
     }
 
-    if (!callChildToken(CP_FUNC, parserPolynomial, T_POLYNOMIAL, &tmp, NULL, syntax_error))
+    if (!callChildToken(CP_FUNC, parserOr, T_OR, &tmp, NULL, syntax_error))
         goto return_;
     if (readBackToken(pm) != MATHER_COMMA){
         tmp->token_type = T_TUPLE;
@@ -1156,6 +1156,118 @@ void parserTuple(P_FUNC){
 
     return_:
     return;
+}
+
+bool switchOr(P_FUNC, int symbol, Statement **st){
+    if (symbol != MATHER_BOOLOR)
+        return false;
+    *st = makeOperationBaseStatement(OPT_OR, 0, pm->file);
+    return true;
+}
+
+void parserOr(P_FUNC){
+    return twoOperation(CP_FUNC, parserAnd, switchOr, NULL, T_AND, T_OR, "and", "or", false);
+}
+
+bool switchAnd(P_FUNC, int symbol, Statement **st){
+    if (symbol != MATHER_BOOLAND)
+        return false;
+    *st = makeOperationBaseStatement(OPT_AND, 0, pm->file);
+    return true;
+}
+
+void parserAnd(P_FUNC){
+    return twoOperation(CP_FUNC, parserBxor, switchAnd, NULL, T_BXOR, T_AND, "bit xor", "and", false);
+}
+
+bool switchBxor(P_FUNC, int symbol, Statement **st){
+    if (symbol != MATHER_BITXOR)
+        return false;
+    *st = makeOperationBaseStatement(OPT_BXOR, 0, pm->file);
+    return true;
+}
+
+void parserBxor(P_FUNC){
+    return twoOperation(CP_FUNC, parserBor, switchBxor, NULL, T_BOR, T_BXOR, "bit or", "bit xor", false);
+}
+
+bool switchBor(P_FUNC, int symbol, Statement **st){
+    if (symbol != MATHER_BITOR)
+        return false;
+    *st = makeOperationBaseStatement(OPT_BOR, 0, pm->file);
+    return true;
+}
+
+void parserBor(P_FUNC){
+    return twoOperation(CP_FUNC, parserBand, switchBor, NULL, T_BAND, T_BOR, "bit and", "bit or", false);
+}
+
+bool switchBand(P_FUNC, int symbol, Statement **st){
+    if (symbol != MATHER_BITAND)
+        return false;
+    *st = makeOperationBaseStatement(OPT_BAND, 0, pm->file);
+    return true;
+}
+
+void parserBand(P_FUNC){
+    return twoOperation(CP_FUNC, parserCompare2, switchBand, NULL, T_COMPARE2, T_BAND, "compare2", "bit and", false);
+}
+
+bool switchCompare2(P_FUNC, int symbol, Statement **st){
+    switch (symbol) {
+        case MATHER_EQ:
+            *st = makeOperationBaseStatement(OPT_EQ, 0, pm->file);
+            break;
+        case MATHER_NOTEQ:
+            *st = makeOperationBaseStatement(OPT_NOTEQ, 0, pm->file);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+void parserCompare2(P_FUNC) {
+    return twoOperation(CP_FUNC, parserCompare, switchCompare2, NULL, T_COMPARE, T_COMPARE2, "compare", "compare2", false);
+}
+
+bool switchCompare(P_FUNC, int symbol, Statement **st){
+    switch (symbol) {
+        case MATHER_MORE:
+            *st = makeOperationBaseStatement(OPT_MORE, 0, pm->file);
+            break;
+        case MATHER_MOREEQ:
+            *st = makeOperationBaseStatement(OPT_MOREEQ, 0, pm->file);
+            break;
+        case MATHER_LESS:
+            *st = makeOperationBaseStatement(OPT_LESS, 0, pm->file);
+            break;
+        case MATHER_LESSEQ:
+            *st = makeOperationBaseStatement(OPT_LESSEQ, 0, pm->file);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+void parserCompare(P_FUNC) {
+    return twoOperation(CP_FUNC, parserBitMove, switchCompare, NULL, T_BITMOVE, T_COMPARE, "bit move", "compare", false);
+}
+
+bool switchBitMove(P_FUNC, int symbol, Statement **st){
+    switch (symbol) {
+        case MATHER_BITLEFT:
+            *st = makeOperationBaseStatement(OPT_BL, 0, pm->file);
+            break;
+        case MATHER_BITRIGHT:
+            *st = makeOperationBaseStatement(OPT_BR, 0, pm->file);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+void parserBitMove(P_FUNC) {
+    return twoOperation(CP_FUNC, parserPolynomial, switchBitMove, NULL, T_POLYNOMIAL, T_BITMOVE, "polynomial", "bit move", false);
 }
 
 /**
@@ -1198,14 +1310,54 @@ bool switchFactor(P_FUNC, int symbol, Statement **st){
         case MATHER_DIV:
             *st = makeOperationBaseStatement(OPT_DIV, 0, pm->file);
             break;
+        case MATHER_INTDIV:
+            *st = makeOperationBaseStatement(OPT_INTDIV, 0, pm->file);
+            break;
+        case MATHER_PER:
+            *st = makeOperationBaseStatement(OPT_MOD, 0, pm->file);
+            break;
         default:
             return false;
     }
     return true;
 }
 void parserFactor(P_FUNC){
-    return twoOperation(CP_FUNC, parserCallBack, switchFactor, NULL, T_CALLFUNC, T_FACTOR,
-                        "call back", "factor", false);
+    return twoOperation(CP_FUNC, parserPow, switchFactor, NULL, T_POW, T_FACTOR, "pow", "factor", false);
+}
+
+bool switchPow(P_FUNC, int symbol, Statement **st){
+    if (symbol != MATHER_POW)
+        return false;
+    *st = makeOperationBaseStatement(OPT_POW, 0, pm->file);
+    return true;
+}
+
+void parserPow(P_FUNC){
+    return twoOperation(CP_FUNC, parserNot, switchPow, NULL, T_NOT, T_POW, "not", "pow", false);
+}
+
+void parserNot(P_FUNC){
+    struct Statement *st = NULL, **pst = &st;
+    while(true){
+        Token *left_token = popNewToken(pm->tm);
+        if (left_token->token_type == MATHER_BOOLNOT)
+            *pst = makeOperationBaseStatement(OPT_NOT, left_token->line, pm->file);
+        else if (left_token->token_type == MATHER_BITNOT)
+            *pst = makeOperationBaseStatement(OPT_BNOT, left_token->line, pm->file);
+        else {
+            backToken_(pm, left_token);
+            if (callChildStatement(CP_FUNC, parserCallBack, T_CALLFUNC, pst, NULL))
+                break;
+            else {
+                freeStatement(st);
+                return;
+            }
+        }
+        pst = &(*pst)->u.operation.left;
+        freeToken(left_token, true);
+    }
+    addStatementToken(T_NOT, st, pm);
+    return;
 }
 
 /**
@@ -1241,7 +1393,7 @@ bool tailSlice(P_FUNC, Token *left_token, Statement **st){
     enum SliceType type;  // 0-slice  1-down
     long int line = delToken(pm);
 
-    if (!callChildToken(CP_FUNC, parserPolynomial, T_POLYNOMIAL, &tmp, "Don't get slice/down element", syntax_error))
+    if (!callChildToken(CP_FUNC, parserOr, T_OR, &tmp, "Don't get slice/down element", syntax_error))
         return false;
     else if (readBackToken(pm) == MATHER_COLON)
         type = SliceType_slice_;

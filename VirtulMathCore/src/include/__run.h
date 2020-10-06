@@ -34,4 +34,6 @@ int run_init(LinkValue *obj, Argument *arg, fline line, char *file, FUNC_NT);
 bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, FUNC_NT);
 bool runVarFunc(LinkValue *var, fline line, char *file, FUNC_NT);
 bool setVarFunc(LinkValue *var, LinkValue *new, fline line, char *file, FUNC_NT);
+
+ResultType runOperationFromValue(LinkValue *self, LinkValue *arg, wchar_t *name, fline line, char *file, FUNC_NT);
 #endif //VIRTUALMATH___RUN_H

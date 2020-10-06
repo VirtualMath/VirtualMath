@@ -129,6 +129,18 @@
 #define T_DECORATION (-34)
 #define T_FOR_BRANCH (-35)
 #define T_DEL (-36)
+#define T_POW (-37)
+#define T_BITMOVE (-38)
+#define T_COMPARE (-39)
+#define T_COMPARE2 (-40)
+
+#define T_BAND (-41)
+#define T_BOR (-42)
+#define T_BXOR (-43)
+#define T_AND (-44)
+#define T_OR (-45)
+
+#define T_NOT (-46)
 
 struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配

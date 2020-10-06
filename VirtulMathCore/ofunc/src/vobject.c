@@ -30,6 +30,8 @@ void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         makeDouValue(left->data.dou.num - right->data.int_.num, LINEFILE, CNEXT_NT);
     else if (left->type == V_dou && right->type == V_dou)
         makeDouValue(left->data.dou.num - right->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->type == V_pointer && right->type == V_pointer)
+        makeIntValue((char *)left->data.pointer.pointer - (char *)right->data.pointer.pointer, LINEFILE, CNEXT_NT);
     else
         setResultError(E_TypeException, CUL_ERROR(Sub), LINEFILE, true, CNEXT_NT);
 }

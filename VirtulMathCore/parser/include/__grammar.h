@@ -32,6 +32,17 @@ void parserPolynomial(P_FUNC);
 void parserBaseValue(P_FUNC);
 void parserCallBack(P_FUNC);
 void parserFactor(P_FUNC);
+void parserPow(P_FUNC);
+void parserNot(P_FUNC);
+void parserBitMove(P_FUNC);
+void parserCompare(P_FUNC);
+void parserCompare2(P_FUNC);
+void parserBand(P_FUNC);
+void parserBor(P_FUNC);
+void parserBxor(P_FUNC);
+void parserAnd(P_FUNC);
+void parserOr(P_FUNC);
+
 void parserAssignment(P_FUNC);
 void parserTuple(P_FUNC);
 void parserImport(P_FUNC);
