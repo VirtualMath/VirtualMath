@@ -567,12 +567,12 @@ ResultType forBranch(FUNC) {
 static bool getEnterExit(LinkValue *value, LinkValue **_enter_, LinkValue **_exit_, fline line, char *file, FUNC_NT) {
     setResultCore(result);
 
-    *_enter_ = findAttributes(inter->data.object_enter, false, LINEFILE, true, CFUNC_NT(var_list, result, value));
+    *_enter_ = findAttributes(inter->data.mag_func[M_ENTER], false, LINEFILE, true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         return false;
     freeResult(result);
 
-    *_exit_ = findAttributes(inter->data.object_exit, false, LINEFILE, true, CFUNC_NT(var_list, result, value));
+    *_exit_ = findAttributes(inter->data.mag_func[M_EXIT], false, LINEFILE, true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         return false;
     freeResult(result);
@@ -609,12 +609,12 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
         *with_belong = belong;
         gc_addTmpLink(&(*with_belong)->gc_status);
 
-        *_enter_ = findAttributes(inter->data.object_enter, false, LINEFILE, true, CFUNC_NT(var_list, result, *value));
+        *_enter_ = findAttributes(inter->data.mag_func[M_ENTER], false, LINEFILE, true, CFUNC_NT(var_list, result, *value));
         if (!CHECK_RESULT(result))
             goto error_;
         freeResult(result);
 
-        *_exit_ = findAttributes(inter->data.object_exit, false, LINEFILE, true, CFUNC_NT(var_list, result, *value));
+        *_exit_ = findAttributes(inter->data.mag_func[M_EXIT], false, LINEFILE, true, CFUNC_NT(var_list, result, *value));
         if (!CHECK_RESULT(result))
             goto error_;
         freeResult(result);

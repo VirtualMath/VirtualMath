@@ -6,8 +6,8 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
     setGC(&tmp->gc_status);
     tmp->type = V_obj;
     tmp->gc_next = NULL;
-    if (inter->data.object != NULL && inherit == NULL)
-        inherit = makeInherit(inter->data.object);
+    if (inter->data.base_obj[B_OBJECT] != NULL && inherit == NULL)
+        inherit = makeInherit(inter->data.base_obj[B_OBJECT]);
     if (out_var == NULL && inherit != NULL)
         out_var = copyVarList(inherit->value->value->object.out_var, false, inter);
     tmp->object.var = makeObjectVarList(inherit, inter, object);
@@ -30,7 +30,7 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
 }
 
 Value *useNoneValue(Inter *inter, Result *result) {
-    LinkValue *tmp = inter->data.none;
+    LinkValue *tmp = inter->data.base_obj[B_NONE];
     if (result != NULL) {
         setResultCore(result);
         result->type = R_opt;
@@ -43,7 +43,7 @@ Value *useNoneValue(Inter *inter, Result *result) {
 Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.bool_, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_BOOL], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -54,7 +54,7 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT) {
 Value *makePassValue(fline line, char *file, FUNC_NT){  // TODO-szh 让切片支持该语法 检查语法解析器支持 a[::]的语法
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.pass_, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_PASS], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -64,7 +64,7 @@ Value *makePassValue(fline line, char *file, FUNC_NT){  // TODO-szh 让切片支
 Value *makeIntValue(vint num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.int_, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_INT_], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -79,7 +79,7 @@ Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
         setResultError(E_TypeException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
         return NULL;
     }
-    callBackCore(inter->data.dou, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_DOU], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -90,7 +90,7 @@ Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
 Value *makePointerValue(void *p, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.pointer, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_POINTER], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -101,7 +101,7 @@ Value *makePointerValue(void *p, fline line, char *file, FUNC_NT) {
 Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.str, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_STR], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
 
@@ -113,7 +113,7 @@ Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT) {
 
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, FUNC_NT) {
     Value *tmp = NULL;
-    callBackCore(inter->data.function, NULL, st->line, st->code_file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_FUNCTION], NULL, st->line, st->code_file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -131,7 +131,7 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, FUNC_NT) {
 
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
-    callBackCore(inter->data.function, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_FUNCTION], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -150,7 +150,7 @@ Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT) 
 
 Value *makeFFunctionValue(void (*ffunc)(), fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
-    callBackCore(inter->data.function, NULL, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_FUNCTION], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -208,9 +208,9 @@ Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, 
     Value *tmp = NULL;
     setResultCore(result);
     if (type == L_list)
-        callBackCore(inter->data.list, arg, line, file, 0, CNEXT_NT);
+        callBackCore(inter->data.base_obj[B_LIST], arg, line, file, 0, CNEXT_NT);
     else
-        callBackCore(inter->data.tuple, arg, line, file, 0, CNEXT_NT);
+        callBackCore(inter->data.base_obj[B_TUPLE], arg, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -220,7 +220,7 @@ Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, 
 Value *makeDictValue(Argument *arg, bool new_hash, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.dict, arg, line, file, 0, CNEXT_NT);
+    callBackCore(inter->data.base_obj[B_DICT], arg, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
     tmp = result->value->value;
@@ -338,53 +338,12 @@ void setResultErrorSt(BaseErrorType type, wchar_t *error_message, bool new, Stat
     setResultError(type, error_message, st->line, st->code_file, new, CNEXT_NT);
 }
 
-LinkValue *findBaseError(BaseErrorType type, Inter *inter){
-    switch (type) {
-        case E_BaseException:
-            return inter->data.base_exc;
-        case E_Exception:
-            return inter->data.exc;
-        case E_TypeException:
-            return inter->data.type_exc;
-        case E_ArgumentException:
-            return inter->data.arg_exc;
-        case E_PermissionsException:
-            return inter->data.per_exc;
-        case E_GotoException:
-            return inter->data.goto_exc;
-        case E_ResultException:
-            return inter->data.result_exc;
-        case E_NameExceptiom:
-            return inter->data.name_exc;
-        case E_AssertException:
-            return inter->data.assert_exc;
-        case E_IndexException:
-            return inter->data.index_exc;
-        case E_KeyException:
-            return inter->data.key_exc;
-        case E_StrideException:
-            return inter->data.stride_exc;
-        case E_StopIterException:
-            return inter->data.iterstop_exc;
-        case E_SuperException:
-            return inter->data.super_exc;
-        case E_ImportException:
-            return inter->data.import_exc;
-        case E_IncludeException:
-            return inter->data.include_exp;
-        case E_SystemException:
-            return inter->data.sys_exc;
-        case E_KeyInterrupt:
-            return inter->data.keyInterrupt_exc;
-        case E_QuitException:
-            return inter->data.quit_exc;
-        default:
-            return NULL;
-    }
+LinkValue *findBaseError(BaseErrorType type, Inter *inter){  // TODO-szh 撤销该函数
+    return inter->data.base_exc[type];
 }
 
 static wchar_t *getErrorInfo(LinkValue *exc, int type, FUNC_NT){
-    wchar_t *str_name = type == 1 ? inter->data.object_name : inter->data.object_message;
+    wchar_t *str_name = type == 1 ? inter->data.mag_func[M_NAME] : inter->data.mag_func[M_MESSAGE];
     LinkValue *_info_;
     setResultCore(result);
     gc_addTmpLink(&exc->gc_status);
@@ -407,7 +366,7 @@ void callException(LinkValue *exc, wchar_t *message, fline line, char *file, FUN
     setResultCore(result);
     gc_addTmpLink(&exc->gc_status);
 
-    _new_ = findAttributes(inter->data.object_new, false, LINEFILE, true, CFUNC_NT(var_list, result, exc));
+    _new_ = findAttributes(inter->data.mag_func[M_NEW], false, LINEFILE, true, CFUNC_NT(var_list, result, exc));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -459,7 +418,7 @@ void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char
     if (new) {
         LinkValue *exc = findBaseError(type, inter);
         if (exc == NULL)
-            exc = inter->data.base_exc;
+            exc = inter->data.base_exc[E_BaseException];
         freeResult(result);
         callException(exc, error_message, line, file, CNEXT_NT);
     }
@@ -642,7 +601,7 @@ Value *checkPackage(Package *base, char *md5, char *name) {
 }
 
 bool needDel(Value *object_value, Inter *inter) {
-    LinkValue *_del_ = checkStrVar(inter->data.object_del, false, CFUNC_CORE(object_value->object.var));
+    LinkValue *_del_ = checkStrVar(inter->data.mag_func[M_DEL], false, CFUNC_CORE(object_value->object.var));
     enum FunctionPtType type;
     if (_del_ == NULL)
         return false;
@@ -655,7 +614,7 @@ bool needDel(Value *object_value, Inter *inter) {
 }
 
 bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_list) {
-    LinkValue *_del_ = findStrVarOnly(inter->data.object_del, false, CFUNC_CORE(object_value->object.var));
+    LinkValue *_del_ = findStrVarOnly(inter->data.mag_func[M_DEL], false, CFUNC_CORE(object_value->object.var));
     setResultCore(result);
 
     if (_del_ != NULL){

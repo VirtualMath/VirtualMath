@@ -203,15 +203,15 @@ ResultType file_enter(O_FUNC){
 }
 
 void registeredFile(R_FUNC){
-    LinkValue *object = inter->data.file;
+    LinkValue *object = inter->data.base_obj[B_FILE];
     NameFunc tmp[] = {{L"read", file_read, object_free_},
                       {L"write", file_write, object_free_},
                       {L"close", file_close, object_free_},
-                      {inter->data.object_enter, file_enter, object_free_},
-                      {inter->data.object_del, file_close, object_free_},
-                      {inter->data.object_exit, file_close, object_free_},
-                      {inter->data.object_new, file_new, class_free_},
-                      {inter->data.object_init, file_init, object_free_},
+                      {inter->data.mag_func[M_ENTER], file_enter, object_free_},
+                      {inter->data.mag_func[M_DEL], file_close, object_free_},
+                      {inter->data.mag_func[M_EXIT], file_close, object_free_},
+                      {inter->data.mag_func[M_NEW], file_new, class_free_},
+                      {inter->data.mag_func[M_INIT], file_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"file", object, belong, inter);
@@ -220,7 +220,7 @@ void registeredFile(R_FUNC){
 }
 
 void makeBaseFile(Inter *inter){
-    LinkValue *file = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *file = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&file->gc_status);
-    inter->data.file = file;
+    inter->data.base_obj[B_FILE] = file;
 }

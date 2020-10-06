@@ -355,5 +355,5 @@ Statement *checkLabel(Statement *base, wchar_t *label){
 }
 
 bool is_quitExc(LinkValue *value, Inter *inter) {
-    return value->value == inter->data.quit_exc->value || checkAttribution(value->value, inter->data.quit_exc->value);
+    return value->value == inter->data.base_exc[E_QuitException]->value || checkAttribution(value->value, inter->data.base_exc[E_QuitException]->value);
 }

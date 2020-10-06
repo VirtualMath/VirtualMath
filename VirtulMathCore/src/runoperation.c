@@ -17,16 +17,16 @@ ResultType operationStatement(FUNC) {
     setResultCore(result);
     switch (st->u.operation.OperationType) {
         case OPT_ADD:
-            operationCore(CNEXT, inter->data.object_add);
+            operationCore(CNEXT, inter->data.mag_func[M_ADD]);
             break;
         case OPT_SUB:
-            operationCore(CNEXT, inter->data.object_sub);
+            operationCore(CNEXT, inter->data.mag_func[M_SUB]);
             break;
         case OPT_MUL:
-            operationCore(CNEXT, inter->data.object_mul);
+            operationCore(CNEXT, inter->data.mag_func[M_MUL]);
             break;
         case OPT_DIV:
-            operationCore(CNEXT, inter->data.object_div);
+            operationCore(CNEXT, inter->data.mag_func[M_DIV]);
             break;
         case OPT_ASS:
             assOperation(CNEXT);
@@ -225,9 +225,9 @@ ResultType downDel(Statement *name, FUNC_NT) {
     freeResult(result);
 
     if (name->u.slice_.type == SliceType_down_)
-        _func_ = findAttributes(inter->data.object_down_del, false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
+        _func_ = findAttributes(inter->data.mag_func[M_DOWN_DEL], false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
     else
-        _func_ = findAttributes(inter->data.object_slice_del, false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
+        _func_ = findAttributes(inter->data.mag_func[M_DOWN_DEL], false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -384,9 +384,9 @@ ResultType downAss(Statement *name, LinkValue *value, FUNC_NT) {
     freeResult(result);
 
     if (name->u.slice_.type == SliceType_down_)
-        _func_ = findAttributes(inter->data.object_down_assignment, false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
+        _func_ = findAttributes(inter->data.mag_func[M_DOWN_ASSIGMENT], false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
     else
-        _func_ = findAttributes(inter->data.object_slice_assignment, false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
+        _func_ = findAttributes(inter->data.mag_func[M_SLICE_ASSIGMENT], false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -468,7 +468,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
             Result tmp;
             LinkValue *_attr_;
             setResultCore(&tmp);
-            addAttributes(L"val", false, val, st->line, st->code_file, true, CFUNC_NT(var_list, &tmp, result->value));
+            addAttributes(inter->data.mag_func[M_VAL], false, val, st->line, st->code_file, true, CFUNC_NT(var_list, &tmp, result->value));
             if (!RUN_TYPE(tmp.type)) {
                 freeResult(result);
                 *result = tmp;
@@ -476,7 +476,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
             }
 
             freeResult(&tmp);
-            _attr_ = findAttributes(inter->data.object_attr, false, LINEFILE, true, CFUNC_NT(var_list, &tmp, belong));
+            _attr_ = findAttributes(inter->data.mag_func[M_ATTR], false, LINEFILE, true, CFUNC_NT(var_list, &tmp, belong));
             if (!RUN_TYPE(tmp.type)) {
                 freeResult(result);
                 *result = tmp;

@@ -89,9 +89,9 @@ ResultType listiter_next(O_FUNC){
 }
 
 void registeredListIter(R_FUNC){
-    LinkValue *object = inter->data.list_iter;
-    NameFunc tmp[] = {{inter->data.object_init, listiter_init, object_free_},
-                      {inter->data.object_next, listiter_next, object_free_},
+    LinkValue *object = inter->data.base_obj[B_LISTITER];
+    NameFunc tmp[] = {{inter->data.mag_func[M_INIT], listiter_init, object_free_},
+                      {inter->data.mag_func[M_NEXT], listiter_next, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"listiter", object, belong, inter);
@@ -100,7 +100,7 @@ void registeredListIter(R_FUNC){
 }
 
 void makeBaseListIter(Inter *inter){
-    LinkValue *list_iter = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *list_iter = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&list_iter->gc_status);
-    inter->data.list_iter = list_iter;
+    inter->data.base_obj[B_LISTITER] = list_iter;
 }

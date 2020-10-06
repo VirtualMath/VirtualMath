@@ -64,9 +64,9 @@ ResultType dou_init(O_FUNC){
 }
 
 void registeredDou(R_FUNC){
-    LinkValue *object = inter->data.dou;
-    NameFunc tmp[] = {{inter->data.object_new, dou_new, class_free_},
-                      {inter->data.object_init, dou_init, object_free_},
+    LinkValue *object = inter->data.base_obj[B_DOU];
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], dou_new, class_free_},
+                      {inter->data.mag_func[M_INIT], dou_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"dou", object, belong, inter);
@@ -75,7 +75,7 @@ void registeredDou(R_FUNC){
 }
 
 void makeBaseDou(Inter *inter){
-    LinkValue *dou = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *dou = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&dou->gc_status);
-    inter->data.dou = dou;
+    inter->data.base_obj[B_DOU] = dou;
 }

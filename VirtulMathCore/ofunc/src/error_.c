@@ -15,8 +15,7 @@ ResultType base_exception_init(O_FUNC){
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    if (addAttributes(inter->data.object_message, false, ap[1].value, LINEFILE, true,
-                      CFUNC_NT(var_list, result, ap[0].value)))
+    if (addAttributes(inter->data.mag_func[M_MESSAGE], false, ap[1].value, LINEFILE, true, CFUNC_NT(var_list, result, ap[0].value)))
         setResult(result, inter);
     return result->type;
 }
@@ -25,27 +24,27 @@ void registeredExcIter(R_FUNC){
     struct {
         wchar_t *name;
         LinkValue *value;
-    } setList[] = {{L"Exception", inter->data.exc},
-                   {L"SystemException", inter->data.sys_exc},
-                   {L"KeyboardInterrupt", inter->data.keyInterrupt_exc},
-                   {L"QuitException", inter->data.quit_exc},
-                   {L"TypeException", inter->data.type_exc},
-                   {L"ArgumentException", inter->data.arg_exc},
-                   {L"PermissionsException", inter->data.per_exc},
-                   {L"ResultException", inter->data.result_exc},
-                   {L"GotoException", inter->data.goto_exc},
-                   {L"NameException", inter->data.name_exc},
-                   {L"AssertException", inter->data.assert_exc},
-                   {L"IndexException", inter->data.index_exc},
-                   {L"KeyException", inter->data.key_exc},
-                   {L"StrideException", inter->data.stride_exc},
-                   {L"IncludeException", inter->data.include_exp},
-                   {L"ImportException", inter->data.import_exc},
-                   {L"IterStopException", inter->data.iterstop_exc},
-                   {L"SuperException", inter->data.super_exc},
+    } setList[] = {{L"Exception", inter->data.base_exc[E_Exception]},
+                   {L"SystemException", inter->data.base_exc[E_SystemException]},
+                   {L"KeyboardInterrupt", inter->data.base_exc[E_KeyInterrupt]},
+                   {L"QuitException", inter->data.base_exc[E_QuitException]},
+                   {L"TypeException", inter->data.base_exc[E_TypeException]},
+                   {L"ArgumentException", inter->data.base_exc[E_ArgumentException]},
+                   {L"PermissionsException", inter->data.base_exc[E_PermissionsException]},
+                   {L"ResultException", inter->data.base_exc[E_ResultException]},
+                   {L"GotoException", inter->data.base_exc[E_GotoException]},
+                   {L"NameException", inter->data.base_exc[E_NameExceptiom]},
+                   {L"AssertException", inter->data.base_exc[E_AssertException]},
+                   {L"IndexException", inter->data.base_exc[E_IndexException]},
+                   {L"KeyException", inter->data.base_exc[E_KeyException]},
+                   {L"StrideException", inter->data.base_exc[E_StrideException]},
+                   {L"IncludeException", inter->data.base_exc[E_IndexException]},
+                   {L"ImportException", inter->data.base_exc[E_ImportException]},
+                   {L"IterStopException", inter->data.base_exc[E_StopIterException]},
+                   {L"SuperException", inter->data.base_exc[E_SuperException]},
                    {NULL, NULL}};
     {
-        LinkValue *object = inter->data.base_exc;
+        LinkValue *object = inter->data.base_exc[E_BaseException];
         NameFunc tmp[] = {{L"__init__", base_exception_init, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
@@ -58,27 +57,28 @@ void registeredExcIter(R_FUNC){
 }
 
 void makeExcIter(Inter *inter){
-    inter->data.base_exc = makeException(inter->data.object, inter);
-    inter->data.sys_exc = makeException(inter->data.base_exc, inter);
-    inter->data.exc = makeException(inter->data.base_exc, inter);
+    inter->data.base_exc[E_BaseException] = makeException(inter->data.base_obj[B_OBJECT], inter);
 
-    inter->data.keyInterrupt_exc = makeException(inter->data.sys_exc, inter);
-    inter->data.quit_exc = makeException(inter->data.sys_exc, inter);
+    inter->data.base_exc[E_SystemException] = makeException(inter->data.base_exc[E_BaseException], inter);
+    inter->data.base_exc[E_Exception] = makeException(inter->data.base_exc[E_BaseException], inter);
 
-    inter->data.type_exc = makeException(inter->data.exc, inter);
-    inter->data.arg_exc = makeException(inter->data.exc, inter);
-    inter->data.per_exc = makeException(inter->data.exc, inter);
-    inter->data.result_exc = makeException(inter->data.exc, inter);
-    inter->data.goto_exc = makeException(inter->data.exc, inter);
-    inter->data.name_exc = makeException(inter->data.exc, inter);
-    inter->data.assert_exc = makeException(inter->data.exc, inter);
+    inter->data.base_exc[E_KeyInterrupt] = makeException(inter->data.base_exc[E_SystemException], inter);
+    inter->data.base_exc[E_QuitException] = makeException(inter->data.base_exc[E_SystemException], inter);
 
-    inter->data.key_exc = makeException(inter->data.exc, inter);
-    inter->data.index_exc = makeException(inter->data.exc, inter);
-    inter->data.stride_exc = makeException(inter->data.exc, inter);
+    inter->data.base_exc[E_TypeException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_ArgumentException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_PermissionsException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_ResultException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_GotoException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_NameExceptiom] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_AssertException] = makeException(inter->data.base_exc[E_Exception], inter);
 
-    inter->data.iterstop_exc = makeException(inter->data.exc, inter);
-    inter->data.super_exc = makeException(inter->data.exc, inter);
-    inter->data.import_exc = makeException(inter->data.exc, inter);
-    inter->data.include_exp = makeException(inter->data.exc, inter);
+    inter->data.base_exc[E_KeyException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_IndexException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_StrideException] = makeException(inter->data.base_exc[E_Exception], inter);
+
+    inter->data.base_exc[E_StopIterException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_SuperException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_ImportException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_IncludeException] = makeException(inter->data.base_exc[E_Exception], inter);
 }

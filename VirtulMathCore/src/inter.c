@@ -53,121 +53,59 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
 }
 
 void setBaseInterData(struct Inter *inter){
-    inter->data.var_str_prefix = setName("str_");
-    inter->data.var_int_prefix = setName("num_");
-    inter->data.var_file_prefix = setName("file_");
-    inter->data.var_none = setName("none");
-    inter->data.var_pass = setName("ellipsis");
-    inter->data.var_bool_prefix = setName("bool_");
-    inter->data.var_class_prefix = setName("class_");
-    inter->data.var_object_prefix = setName("obj_");
-    inter->data.object_init = setName("__init__");
-    inter->data.object_enter = setName("__enter__");
-    inter->data.object_exit = setName("__exit__");
-    inter->data.object_new = setName("__new__");
-    inter->data.object_add = setName("__add__");
-    inter->data.object_sub = setName("__sub__");
-    inter->data.object_mul = setName("__mul__");
-    inter->data.object_div = setName("__div__");
-    inter->data.object_call = setName("__call__");
-    inter->data.object_del = setName("__del__");
-    inter->data.object_down = setName("__down__");
-    inter->data.object_slice = setName("__slice__");
-    inter->data.object_iter = setName("__iter__");
-    inter->data.object_next = setName("__next__");
-    inter->data.object_repo = setName("__repo__");
-    inter->data.object_bool = setName("__bool__");
-    inter->data.object_self = setName("__self__");
-    inter->data.object_name = setName("__name__");
-    inter->data.object_father = setName("__father__");
-    inter->data.object_message = setName("__message__");
-    inter->data.object_str = setName("__str__");
-    inter->data.object_down_assignment = setName("__down_assignment__");
-    inter->data.object_slice_assignment = setName("__slice_assignment__");
-    inter->data.object_down_del = setName("__down_del__");
-    inter->data.object_slice_del = setName("__slice_del__");
-    inter->data.object_attr = setName("__attr__");
+    inter->data.var_name[VN_str] = setName("str_");
+    inter->data.var_name[VN_num] = setName("num_");
+    inter->data.var_name[VN_file] = setName("file_");
+    inter->data.var_name[VN_none] = setName("none");
+    inter->data.var_name[VN_pass] = setName("ellipsis");
+    inter->data.var_name[VN_bool] = setName("bool_");
+    inter->data.var_name[VN_class] = setName("class_");
+    inter->data.var_name[VN_obj] = setName("obj_");
+
+    inter->data.mag_func[M_INIT] = setName("__init__");
+    inter->data.mag_func[M_ENTER] = setName("__enter__");
+    inter->data.mag_func[M_EXIT] = setName("__exit__");
+    inter->data.mag_func[M_NEW] = setName("__new__");
+    inter->data.mag_func[M_ADD] = setName("__add__");
+    inter->data.mag_func[M_SUB] = setName("__sub__");
+    inter->data.mag_func[M_MUL] = setName("__mul__");
+    inter->data.mag_func[M_DIV] = setName("__div__");
+    inter->data.mag_func[M_CALL] = setName("__call__");
+    inter->data.mag_func[M_DEL] = setName("__del__");
+    inter->data.mag_func[M_DOWN] = setName("__down__");
+    inter->data.mag_func[M_SLICE] = setName("__slice__");
+    inter->data.mag_func[M_ITER] = setName("__iter__");
+    inter->data.mag_func[M_NEXT] = setName("__next__");
+    inter->data.mag_func[M_REPO] = setName("__repo__");
+    inter->data.mag_func[M_BOOL] = setName("__bool__");
+    inter->data.mag_func[M_SELF] = setName("__self__");
+    inter->data.mag_func[M_NAME] = setName("__name__");
+    inter->data.mag_func[M_FATHER] = setName("__father__");
+    inter->data.mag_func[M_MESSAGE] = setName("__message__");
+    inter->data.mag_func[M_STR] = setName("__str__");
+    inter->data.mag_func[M_DOWN_ASSIGMENT] = setName("__down_assignment__");
+    inter->data.mag_func[M_SLICE_ASSIGMENT] = setName("__slice_assignment__");
+    inter->data.mag_func[M_DOWN_DEL] = setName("__down_del__");
+    inter->data.mag_func[M_SLICE_DEL] = setName("__slice_del__");
+    inter->data.mag_func[M_ATTR] = setName("__attr__");
+    inter->data.mag_func[M_VAL] = setName("__val__");
+
     inter->data.default_pt_type = free_;
 }
 
 void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->base_belong->gc_status);
-    gc_freeStatementLink(&inter->data.object->gc_status);
-    gc_freeStatementLink(&inter->data.vobject->gc_status);
-    gc_freeStatementLink(&inter->data.int_->gc_status);
-    gc_freeStatementLink(&inter->data.dou->gc_status);
-    gc_freeStatementLink(&inter->data.pointer->gc_status);
-    gc_freeStatementLink(&inter->data.str->gc_status);
-    gc_freeStatementLink(&inter->data.bool_->gc_status);
-    gc_freeStatementLink(&inter->data.function->gc_status);
-    gc_freeStatementLink(&inter->data.pass_->gc_status);
-    gc_freeStatementLink(&inter->data.lib_->gc_status);
-    gc_freeStatementLink(&inter->data.file->gc_status);
-    gc_freeStatementLink(&inter->data.tuple->gc_status);
-    gc_freeStatementLink(&inter->data.list->gc_status);
-    gc_freeStatementLink(&inter->data.dict->gc_status);
-    gc_freeStatementLink(&inter->data.list_iter->gc_status);
-    gc_freeStatementLink(&inter->data.dict_iter->gc_status);
-    gc_freeStatementLink(&inter->data.none->gc_status);
+    for (int i=0; i < BASEOBJSZIE; i ++)
+        gc_freeStatementLink(&inter->data.base_obj[i]->gc_status);
 
-    gc_freeStatementLink(&inter->data.base_exc->gc_status);
+    for (int i=0; i < BASEEXCESIZE; i ++)
+        gc_freeStatementLink(&inter->data.base_exc[i]->gc_status);
 
-    gc_freeStatementLink(&inter->data.sys_exc->gc_status);
-    gc_freeStatementLink(&inter->data.keyInterrupt_exc->gc_status);
-    gc_freeStatementLink(&inter->data.quit_exc->gc_status);
+    for (int i=0; i < VARNAMESIZE; i ++)
+        memFree(inter->data.var_name[i]);
 
-    gc_freeStatementLink(&inter->data.exc->gc_status);
-    gc_freeStatementLink(&inter->data.type_exc->gc_status);
-    gc_freeStatementLink(&inter->data.arg_exc->gc_status);
-    gc_freeStatementLink(&inter->data.per_exc->gc_status);
-    gc_freeStatementLink(&inter->data.result_exc->gc_status);
-    gc_freeStatementLink(&inter->data.goto_exc->gc_status);
-    gc_freeStatementLink(&inter->data.name_exc->gc_status);
-    gc_freeStatementLink(&inter->data.assert_exc->gc_status);
-
-    gc_freeStatementLink(&inter->data.key_exc->gc_status);
-    gc_freeStatementLink(&inter->data.index_exc->gc_status);
-    gc_freeStatementLink(&inter->data.stride_exc->gc_status);
-    gc_freeStatementLink(&inter->data.iterstop_exc->gc_status);
-    gc_freeStatementLink(&inter->data.super_exc->gc_status);
-    gc_freeStatementLink(&inter->data.import_exc->gc_status);
-    gc_freeStatementLink(&inter->data.include_exp->gc_status);
-
-    memFree(inter->data.var_int_prefix);
-    memFree(inter->data.var_str_prefix);
-    memFree(inter->data.var_file_prefix);
-    memFree(inter->data.var_object_prefix);
-    memFree(inter->data.var_class_prefix);
-    memFree(inter->data.var_bool_prefix);
-    memFree(inter->data.var_pass);
-    memFree(inter->data.var_none);
-    memFree(inter->data.object_init);
-    memFree(inter->data.object_enter);
-    memFree(inter->data.object_exit);
-    memFree(inter->data.object_new);
-    memFree(inter->data.object_add);
-    memFree(inter->data.object_sub);
-    memFree(inter->data.object_mul);
-    memFree(inter->data.object_div);
-    memFree(inter->data.object_call);
-    memFree(inter->data.object_del);
-    memFree(inter->data.object_down);
-    memFree(inter->data.object_slice);
-    memFree(inter->data.object_iter);
-    memFree(inter->data.object_next);
-
-    memFree(inter->data.object_repo);
-    memFree(inter->data.object_bool);
-    memFree(inter->data.object_name);
-    memFree(inter->data.object_self);
-    memFree(inter->data.object_father);
-    memFree(inter->data.object_message);
-    memFree(inter->data.object_str);
-    memFree(inter->data.object_down_assignment);
-    memFree(inter->data.object_slice_assignment);
-    memFree(inter->data.object_down_del);
-    memFree(inter->data.object_slice_del);
-    memFree(inter->data.object_attr);
+    for (int i=0; i < MAGFUNCSIZE; i ++)
+        memFree(inter->data.mag_func[i]);
 
     if (!inter->data.is_stdout)
         fclose(inter->data.inter_stdout);

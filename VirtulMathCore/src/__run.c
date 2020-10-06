@@ -62,25 +62,25 @@ ResultType getVarInfo(wchar_t **name, int *times, FUNC){
 }
 
 wchar_t *setStrVarName(wchar_t *old, bool free_old, Inter *inter) {
-    return memWidecat(inter->data.var_str_prefix, old, false, free_old);
+    return memWidecat(inter->data.var_name[VN_str], old, false, free_old);
 }
 
 wchar_t *setIntVarName(vint num, struct Inter *inter) {
     wchar_t name[50];
     swprintf(name, 50, L"%lld", num);
-    return memWidecat(inter->data.var_int_prefix, name, false, false);
+    return memWidecat(inter->data.var_name[VN_num], name, false, false);
 }
 
 wchar_t *setDouVarName(vdou num, struct Inter *inter) {
     wchar_t name[50];
     swprintf(name, 50, L"%Lf", num);
-    return memWidecat(inter->data.var_int_prefix, name, false, false);
+    return memWidecat(inter->data.var_name[VN_num], name, false, false);
 }
 
 wchar_t *setPointerVarName(void *num, struct Inter *inter) {
     wchar_t name[50];
     swprintf(name, 50, L"%p", num);
-    return memWidecat(inter->data.var_int_prefix, name, false, false);
+    return memWidecat(inter->data.var_name[VN_num], name, false, false);
 }
 
 wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
@@ -95,29 +95,29 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
             return setPointerVarName(value->data.pointer.pointer, inter);
         case V_bool:
             if (value->data.bool_.bool_)
-                return memWidecat(inter->data.var_bool_prefix, L"true", false, false);
+                return memWidecat(inter->data.var_name[VN_bool], L"true", false, false);
             else
-                return memWidecat(inter->data.var_bool_prefix, L"false", false, false);
+                return memWidecat(inter->data.var_name[VN_bool], L"false", false, false);
         case V_none:
-            return memWidecpy(inter->data.var_none);
+            return memWidecpy(inter->data.var_name[VN_none]);
         case V_ell:
-            return memWidecpy(inter->data.var_pass);
+            return memWidecpy(inter->data.var_name[VN_pass]);
         case V_file:
-            return memWidecat(inter->data.var_file_prefix, memStrToWcs(value->data.file.path, false), false, true);
+            return memWidecat(inter->data.var_name[VN_file], memStrToWcs(value->data.file.path, false), false, true);
         case V_class:{
-            size_t len = memWidelen(inter->data.var_class_prefix) + 20;  // 预留20个字节给指针
+            size_t len = memWidelen(inter->data.var_name[VN_class]) + 20;  // 预留20个字节给指针
             wchar_t *name = memWide(len);
             wchar_t *return_ = NULL;
-            swprintf(name, len, L"%ls%p", inter->data.var_class_prefix, value);
+            swprintf(name, len, L"%ls%p", inter->data.var_name[VN_class], value);
             return_ = memWidecpy(name);  // 再次复制去除多余的空字节
             memFree(name);
             return return_;
         }
         default:{
-            size_t len = memWidelen(inter->data.var_object_prefix) + 20;
+            size_t len = memWidelen(inter->data.var_name[VN_obj]) + 20;
             wchar_t *name = memWide(len);
             wchar_t *return_ = NULL;
-            swprintf(name, len, L"%ls%p", inter->data.var_object_prefix, value);
+            swprintf(name, len, L"%ls%p", inter->data.var_name[VN_obj], value);  // TODO-szh 修改指针为value.value
             return_ = memWidecpy(name);  // 再次复制去除多余的空字节
             memFree(name);
             return return_;
@@ -385,16 +385,15 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
 
 void newObjectSetting(LinkValue *name, fline line, char *file, FUNC_NT) {
     setResultCore(result);
-    addAttributes(inter->data.object_name, false, name, line, file, false, CNEXT_NT);
+    addAttributes(inter->data.mag_func[M_NAME], false, name, line, file, false, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return;
     freeResult(result);
 
-    addAttributes(inter->data.object_self, false, belong, line, file, false, CNEXT_NT);
+    addAttributes(inter->data.mag_func[M_SELF], false, belong, line, file, false, CNEXT_NT);
     if (!CHECK_RESULT(result) && belong->value->object.inherit != NULL) {
         freeResult(result);
-        addAttributes(inter->data.object_father, false, belong->value->object.inherit->value, line, file, false,
-                      CNEXT_NT);
+        addAttributes(inter->data.mag_func[M_FATHER], false, belong->value->object.inherit->value, line, file, false, CNEXT_NT);
     }
 }
 
@@ -405,7 +404,7 @@ ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file,
     gc_addTmpLink(&from->gc_status);
     gc_addTmpLink(&index->gc_status);
 
-    _func_ = findAttributes(inter->data.object_down, false, LINEFILE, true, CFUNC_NT(var_list, result, from));
+    _func_ = findAttributes(inter->data.mag_func[M_DOWN], false, LINEFILE, true, CFUNC_NT(var_list, result, from));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -432,9 +431,9 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, FUNC_NT
     gc_addTmpLink(&value->gc_status);
 
     if (status == 1)
-        _func_ = findAttributes(inter->data.object_iter, false, LINEFILE, true, CFUNC_NT(var_list, result, value));
+        _func_ = findAttributes(inter->data.mag_func[M_ITER], false, LINEFILE, true, CFUNC_NT(var_list, result, value));
     else
-        _func_ = findAttributes(inter->data.object_next, false, LINEFILE, true, CFUNC_NT(var_list, result, value));
+        _func_ = findAttributes(inter->data.mag_func[M_NEXT], false, LINEFILE, true, CFUNC_NT(var_list, result, value));
 
     if (!CHECK_RESULT(result))
         goto return_;
@@ -453,7 +452,7 @@ ResultType getIter(LinkValue *value, int status, fline line, char *file, FUNC_NT
 }
 
 bool checkBool(LinkValue *value, fline line, char *file, FUNC_NT){
-    LinkValue *_bool_ = findAttributes(inter->data.object_bool, false, LINEFILE, true, CFUNC_NT(var_list, result, value));
+    LinkValue *_bool_ = findAttributes(inter->data.mag_func[M_BOOL], false, LINEFILE, true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         return false;
     freeResult(result);
@@ -479,7 +478,7 @@ wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, FUNC
     setResultCore(result);
     gc_addTmpLink(&value->gc_status);
 
-    _repo_ = findAttributes(is_repo ? inter->data.object_repo : inter->data.object_str, false, LINEFILE, true, CFUNC_NT(var_list, result, value));
+    _repo_ = findAttributes(is_repo ? inter->data.mag_func[M_REPO] : inter->data.mag_func[M_STR], false, LINEFILE, true, CFUNC_NT(var_list, result, value));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -505,11 +504,11 @@ wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, FUNC
 }
 
 bool is_iterStop(LinkValue *value, Inter *inter) {
-    return value->value == inter->data.iterstop_exc->value || checkAttribution(value->value, inter->data.iterstop_exc->value);
+    return value->value == inter->data.base_exc[E_StopIterException]->value || checkAttribution(value->value, inter->data.base_exc[E_StopIterException]->value);
 }
 
 bool is_indexException(LinkValue *value, Inter *inter) {
-    return value->value == inter->data.index_exc->value || checkAttribution(value->value, inter->data.index_exc->value);
+    return value->value == inter->data.base_exc[E_IndexException]->value || checkAttribution(value->value, inter->data.base_exc[E_IndexException]->value);
 }
 
 bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, FUNC_NT) {
@@ -547,7 +546,7 @@ static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, FUNC_
     LinkValue *_init_ = NULL;
     setResultCore(result);
 
-    _init_ = findAttributes(inter->data.object_init, false, LINEFILE, true, CFUNC_NT(var_list, result, obj));
+    _init_ = findAttributes(inter->data.mag_func[M_INIT], false, LINEFILE, true, CFUNC_NT(var_list, result, obj));
     if (!CHECK_RESULT(result))
         return -1;
     freeResult(result);

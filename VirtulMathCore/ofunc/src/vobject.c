@@ -231,14 +231,14 @@ ResultType vobject_repo(O_FUNC){
 }
 
 void registeredVObject(R_FUNC){
-    LinkValue *object = inter->data.vobject;
-    NameFunc tmp[] = {{inter->data.object_add, vobject_add, object_free_},
-                      {inter->data.object_sub, vobject_sub, object_free_},
-                      {inter->data.object_mul, vobject_mul, object_free_},
-                      {inter->data.object_div, vobject_div, object_free_},
-                      {inter->data.object_bool, vobject_bool, object_free_},
-                      {inter->data.object_repo, vobject_repo, object_free_},
-                      {inter->data.object_str, vobject_repo, object_free_},
+    LinkValue *object = inter->data.base_obj[B_VOBJECT];
+    NameFunc tmp[] = {{inter->data.mag_func[M_ADD], vobject_add, object_free_},
+                      {inter->data.mag_func[M_SUB], vobject_sub, object_free_},
+                      {inter->data.mag_func[M_MUL], vobject_mul, object_free_},
+                      {inter->data.mag_func[M_DIV], vobject_div, object_free_},
+                      {inter->data.mag_func[M_BOOL], vobject_bool, object_free_},
+                      {inter->data.mag_func[M_REPO], vobject_repo, object_free_},
+                      {inter->data.mag_func[M_STR], vobject_repo, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"vobject", object, belong, inter);
@@ -247,7 +247,7 @@ void registeredVObject(R_FUNC){
 }
 
 void makeBaseVObject(Inter *inter){
-    LinkValue *vobject = makeBaseChildClass(inter->data.object, inter);
+    LinkValue *vobject = makeBaseChildClass(inter->data.base_obj[B_OBJECT], inter);
     gc_addStatementLink(&vobject->gc_status);
-    inter->data.vobject = vobject;
+    inter->data.base_obj[B_VOBJECT] = vobject;
 }

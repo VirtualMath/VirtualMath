@@ -44,9 +44,9 @@ ResultType bool_init(O_FUNC){
 }
 
 void registeredBool(R_FUNC){
-    LinkValue *object = inter->data.bool_;
-    NameFunc tmp[] = {{inter->data.object_new, bool_new, class_free_},
-                      {inter->data.object_init, bool_init, object_free_},
+    LinkValue *object = inter->data.base_obj[B_BOOL];
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], bool_new, class_free_},
+                      {inter->data.mag_func[M_INIT], bool_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"bool", object, belong, inter);
@@ -55,7 +55,7 @@ void registeredBool(R_FUNC){
 }
 
 void makeBaseBool(Inter *inter){
-    LinkValue *bool_ = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *bool_ = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&bool_->gc_status);
-    inter->data.bool_ = bool_;
+    inter->data.base_obj[B_BOOL] = bool_;
 }

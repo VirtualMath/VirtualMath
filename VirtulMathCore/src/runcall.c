@@ -124,7 +124,7 @@ ResultType elementSlice(FUNC) {
     result->value = NULL;
     freeResult(result);
 
-    func_name = st->u.slice_.type == SliceType_down_ ? inter->data.object_down : inter->data.object_slice;
+    func_name = st->u.slice_.type == SliceType_down_ ? inter->data.mag_func[M_DOWN] : inter->data.mag_func[M_SLICE];
     _func_ = findAttributes(func_name, false, LINEFILE, true, CFUNC_NT(var_list, result, element));
     if (!CHECK_RESULT(result))
         goto return_;
@@ -187,7 +187,7 @@ static ResultType callClass(LinkValue *class_value, Argument *arg, fline line, c
     setResultCore(result);
     gc_addTmpLink(&class_value->gc_status);
 
-    _new_ = findAttributes(inter->data.object_new, false, LINEFILE, true, CFUNC_NT(var_list, result, class_value));
+    _new_ = findAttributes(inter->data.mag_func[M_NEW], false, LINEFILE, true, CFUNC_NT(var_list, result, class_value));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);
@@ -210,7 +210,7 @@ static ResultType callObject(LinkValue *object_value, Argument *arg, fline line,
     setResultCore(result);
     gc_addTmpLink(&object_value->gc_status);
 
-    _call_ = findAttributes(inter->data.object_call, false, LINEFILE, true, CFUNC_NT(var_list, result, object_value));
+    _call_ = findAttributes(inter->data.mag_func[M_CALL], false, LINEFILE, true, CFUNC_NT(var_list, result, object_value));
     if (!CHECK_RESULT(result))
         goto return_;
     freeResult(result);

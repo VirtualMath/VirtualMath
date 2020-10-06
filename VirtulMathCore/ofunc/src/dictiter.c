@@ -39,7 +39,7 @@ ResultType dictiter_init(O_FUNC){
         list = result->value;
         result->value = NULL;
 
-        listiter_class = inter->data.list_iter;
+        listiter_class = inter->data.base_obj[B_LISTITER];
         gc_addTmpLink(&listiter_class->gc_status);
 
         list_arg = makeValueArgument(list);
@@ -90,7 +90,7 @@ ResultType dictiter_next(O_FUNC){
     }
 
     freeResult(result);
-    list_next = findAttributes(inter->data.object_next, false, LINEFILE, true, CFUNC_NT(var_list, result, list_));
+    list_next = findAttributes(inter->data.mag_func[M_NEXT], false, LINEFILE, true, CFUNC_NT(var_list, result, list_));
     if (!CHECK_RESULT(result))
         return result->type;
     if (list_next == NULL){
@@ -128,10 +128,10 @@ ResultType dictiter_down(O_FUNC){
 }
 
 void registeredDictIter(R_FUNC){
-    LinkValue *object = inter->data.dict_iter;
-    NameFunc tmp[] = {{inter->data.object_init, dictiter_init, object_free_},
-                      {inter->data.object_next, dictiter_next, object_free_},
-                      {inter->data.object_down, dictiter_down, object_free_},
+    LinkValue *object = inter->data.base_obj[B_DICTITER];
+    NameFunc tmp[] = {{inter->data.mag_func[M_INIT], dictiter_init, object_free_},
+                      {inter->data.mag_func[M_NEXT], dictiter_next, object_free_},
+                      {inter->data.mag_func[M_DOWN], dictiter_down, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"dictiter", object, belong, inter);
@@ -140,7 +140,7 @@ void registeredDictIter(R_FUNC){
 }
 
 void makeBaseDictIter(Inter *inter){
-    LinkValue *dict_iter = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *dict_iter = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&dict_iter->gc_status);
-    inter->data.dict_iter = dict_iter;
+    inter->data.base_obj[B_DICTITER] = dict_iter;
 }

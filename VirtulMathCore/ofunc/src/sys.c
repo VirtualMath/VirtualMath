@@ -137,7 +137,7 @@ ResultType vm_quit(O_FUNC){
 }
 
 ResultType vm_open(O_FUNC){
-    return callBackCore(inter->data.file, arg, LINEFILE, 0, CNEXT_NT);
+    return callBackCore(inter->data.base_obj[B_FILE], arg, LINEFILE, 0, CNEXT_NT);
 }
 
 ResultType vm_exec(O_FUNC){

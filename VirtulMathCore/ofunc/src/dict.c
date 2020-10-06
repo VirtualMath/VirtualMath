@@ -154,7 +154,7 @@ ResultType dict_iter(O_FUNC){
     }
     {
         Argument *dict_iter_arg = makeValueArgument(ap[0].value);
-        callBackCore(inter->data.dict_iter, dict_iter_arg, LINEFILE, 0,
+        callBackCore(inter->data.base_obj[B_DICTITER], dict_iter_arg, LINEFILE, 0,
                      CNEXT_NT);
         freeArgument(dict_iter_arg, true);
     }
@@ -245,15 +245,15 @@ ResultType dict_str(O_FUNC){
 }
 
 void registeredDict(R_FUNC){
-    LinkValue *object = inter->data.dict;
+    LinkValue *object = inter->data.base_obj[B_DICT];
     NameFunc tmp[] = {{L"keys", dict_keys, object_free_},
-                      {inter->data.object_new, dict_new, class_free_},
-                      {inter->data.object_down, dict_down, object_free_},
-                      {inter->data.object_iter, dict_iter, object_free_},
-                      {inter->data.object_repo, dict_repo, object_free_},
-                      {inter->data.object_str, dict_str, object_free_},
-                      {inter->data.object_down_assignment, dict_down_assignment, object_free_},
-                      {inter->data.object_down_del, dict_down_del, object_free_},
+                      {inter->data.mag_func[M_NEW], dict_new, class_free_},
+                      {inter->data.mag_func[M_DOWN], dict_down, object_free_},
+                      {inter->data.mag_func[M_ITER], dict_iter, object_free_},
+                      {inter->data.mag_func[M_REPO], dict_repo, object_free_},
+                      {inter->data.mag_func[M_STR], dict_str, object_free_},
+                      {inter->data.mag_func[M_DOWN_ASSIGMENT], dict_down_assignment, object_free_},
+                      {inter->data.mag_func[M_DOWN_DEL], dict_down_del, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"dict", object, belong, inter);
@@ -262,7 +262,7 @@ void registeredDict(R_FUNC){
 }
 
 void makeBaseDict(Inter *inter){
-    LinkValue *dict = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *dict = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&dict->gc_status);
-    inter->data.dict = dict;
+    inter->data.base_obj[B_DICT] = dict;
 }

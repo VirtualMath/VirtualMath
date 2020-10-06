@@ -335,8 +335,7 @@ ResultType list_iter(O_FUNC){
     }
     {
         Argument *list_iter_arg = makeValueArgument(ap[0].value);
-        callBackCore(inter->data.list_iter, list_iter_arg, LINEFILE, 0,
-                     CNEXT_NT);
+        callBackCore(inter->data.base_obj[B_LISTITER], list_iter_arg, LINEFILE, 0, CNEXT_NT);
         freeArgument(list_iter_arg, true);
     }
     return result->type;
@@ -421,15 +420,15 @@ ResultType list_str(O_FUNC){
 
 void registeredList(R_FUNC){
     {
-        LinkValue *object = inter->data.tuple;
-        NameFunc tmp[] = {{inter->data.object_new, tuple_new, class_free_},
-                          {inter->data.object_down, list_down, object_free_},
-                          {inter->data.object_slice, list_slice, object_free_},
-                          {inter->data.object_iter, list_iter, object_free_},
-                          {inter->data.object_repo, list_repo, object_free_},
-                          {inter->data.object_str, list_str, object_free_},
-                          {inter->data.object_down_del, list_down_del, object_free_},
-                          {inter->data.object_slice_del, list_slice_del, object_free_},
+        LinkValue *object = inter->data.base_obj[B_TUPLE];
+        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], tuple_new, class_free_},
+                          {inter->data.mag_func[M_DOWN], list_down, object_free_},
+                          {inter->data.mag_func[M_SLICE], list_slice, object_free_},
+                          {inter->data.mag_func[M_ITER], list_iter, object_free_},
+                          {inter->data.mag_func[M_REPO], list_repo, object_free_},
+                          {inter->data.mag_func[M_STR], list_str, object_free_},
+                          {inter->data.mag_func[M_DOWN_DEL], list_down_del, object_free_},
+                          {inter->data.mag_func[M_SLICE_DEL], list_slice_del, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addBaseClassVar(L"tuple", object, belong, inter);
@@ -438,10 +437,10 @@ void registeredList(R_FUNC){
     }
 
     {
-        LinkValue *object = inter->data.list;
-        NameFunc tmp[] = {{inter->data.object_new, list_new, class_free_},
-                          {inter->data.object_down_assignment, list_down_assignment, object_free_},
-                          {inter->data.object_slice_assignment, list_slice_assignment, object_free_},
+        LinkValue *object = inter->data.base_obj[B_LIST];
+        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], list_new, class_free_},
+                          {inter->data.mag_func[M_DOWN_ASSIGMENT], list_down_assignment, object_free_},
+                          {inter->data.mag_func[M_SLICE_ASSIGMENT], list_slice_assignment, object_free_},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addBaseClassVar(L"list", object, belong, inter);
@@ -451,10 +450,10 @@ void registeredList(R_FUNC){
 }
 
 void makeBaseList(Inter *inter){
-    LinkValue *tuple = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *tuple = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     LinkValue *list = makeBaseChildClass(tuple, inter);
     gc_addStatementLink(&tuple->gc_status);
     gc_addStatementLink(&list->gc_status);
-    inter->data.tuple = tuple;
-    inter->data.list = list;
+    inter->data.base_obj[B_TUPLE] = tuple;
+    inter->data.base_obj[B_LIST] = list;
 }

@@ -185,11 +185,11 @@ ResultType str_iter(O_FUNC){
 }
 
 void registeredStr(R_FUNC){
-    LinkValue *object = inter->data.str;
+    LinkValue *object = inter->data.base_obj[B_STR];
     NameFunc tmp[] = {{L"to_list", str_to_list, object_free_},
-                      {inter->data.object_iter, str_iter, object_free_},
-                      {inter->data.object_down, str_down, object_free_},
-                      {inter->data.object_slice, str_slice, object_free_},
+                      {inter->data.mag_func[M_ITER], str_iter, object_free_},
+                      {inter->data.mag_func[M_DOWN], str_down, object_free_},
+                      {inter->data.mag_func[M_SLICE], str_slice, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
@@ -240,15 +240,15 @@ LinkValue *makeFunctionFromValue(LinkValue *func, LinkValue *new, LinkValue *ini
 }
 
 void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func_init, Inter *inter) {
-    LinkValue *obj = inter->data.str;
+    LinkValue *obj = inter->data.base_obj[B_STR];
 
     LinkValue *new_func = NULL;
     LinkValue *new_name = NULL;
-    wchar_t *new_name_ = setStrVarName(inter->data.object_new, false, inter);
+    wchar_t *new_name_ = setStrVarName(inter->data.mag_func[M_NEW], false, inter);
 
     LinkValue *init_func = NULL;
     LinkValue *init_name = NULL;
-    wchar_t *init_name_ = setStrVarName(inter->data.object_init, false, inter);
+    wchar_t *init_name_ = setStrVarName(inter->data.mag_func[M_INIT], false, inter);
 
     new_func = makeFunctionFromValue(func, func_new, func_init, str_new, obj, obj->value->object.var, inter);
     new_func->value->data.function.function_data.pt_type = class_free_;
@@ -256,8 +256,8 @@ void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func
     init_func->value->data.function.function_data.pt_type = object_free_;
 
 
-    new_name = makeStrFromOf(obj, new_func, init_func, inter->data.object_new, inter);
-    init_name = makeStrFromOf(obj, new_func, init_func, inter->data.object_init, inter);
+    new_name = makeStrFromOf(obj, new_func, init_func, inter->data.mag_func[M_NEW], inter);
+    init_name = makeStrFromOf(obj, new_func, init_func, inter->data.mag_func[M_INIT], inter);
 
     addFromVarList(new_name_, new_name, 0, new_func, CFUNC_CORE(obj->value->object.var));
     addFromVarList(init_name_, init_name, 0, init_func, CFUNC_CORE(obj->value->object.var));
@@ -269,7 +269,7 @@ void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func
 }
 
 void makeBaseStr(Inter *inter){
-    LinkValue *str = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *str = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&str->gc_status);
-    inter->data.str = str;
+    inter->data.base_obj[B_STR] = str;
 }

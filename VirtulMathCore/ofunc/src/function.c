@@ -19,7 +19,7 @@ ResultType function_new(O_FUNC){
     }
 
     {
-        Inherit *object_father = getInheritFromValueCore(inter->data.function);
+        Inherit *object_father = getInheritFromValueCore(inter->data.base_obj[B_FUNCTION]);
         VarList *new_var = copyVarList(var_list, false, inter);
         Value *new_object = makeObject(inter, NULL, new_var, object_father);
         value = makeLinkValue(new_object, belong, inter);
@@ -98,7 +98,7 @@ ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
 }
 
 void registeredFunction(R_FUNC){
-    LinkValue *object = inter->data.function;
+    LinkValue *object = inter->data.base_obj[B_FUNCTION];
     NameFunc tmp[] = {{L"set", function_set, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
@@ -108,9 +108,9 @@ void registeredFunction(R_FUNC){
 }
 
 void makeBaseFunction(Inter *inter){
-    LinkValue *function = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *function = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&function->gc_status);
-    inter->data.function = function;
+    inter->data.base_obj[B_FUNCTION] = function;
 }
 
 void functionPresetting(LinkValue *func, LinkValue **func_new, LinkValue **func_init, Inter *inter) {
@@ -125,8 +125,8 @@ void functionPresettingLast(LinkValue *func, LinkValue *func_new, LinkValue *fun
     VarList *object_var = func->value->object.var;
     setResultCore(&result);
 
-    addStrVar(inter->data.object_new, false, true, func_new, LINEFILE, false, CFUNC_NT(object_var, &result, func));
+    addStrVar(inter->data.mag_func[M_NEW], false, true, func_new, LINEFILE, false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
-    addStrVar(inter->data.object_init, false, true, func_init, LINEFILE, false, CFUNC_NT(object_var, &result, func));
+    addStrVar(inter->data.mag_func[M_INIT], false, true, func_init, LINEFILE, false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
 }

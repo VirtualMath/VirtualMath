@@ -205,7 +205,7 @@ struct Package {
 };
 
 enum BaseErrorType{
-    E_BaseException,
+    E_BaseException = 0,
     E_Exception,
     E_TypeException,
     E_ArgumentException,

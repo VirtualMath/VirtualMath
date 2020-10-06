@@ -52,9 +52,9 @@ ResultType pointer_init(O_FUNC){
 }
 
 void registeredPointer(R_FUNC){
-    LinkValue *object = inter->data.pointer;
-    NameFunc tmp[] = {{inter->data.object_new, pointer_new, class_free_},
-                      {inter->data.object_init, pointer_init, object_free_},
+    LinkValue *object = inter->data.base_obj[B_POINTER];
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], pointer_new, class_free_},
+                      {inter->data.mag_func[M_INIT], pointer_init, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"pointer", object, belong, inter);
@@ -63,7 +63,7 @@ void registeredPointer(R_FUNC){
 }
 
 void makeBasePointer(Inter *inter){
-    LinkValue *pointer = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *pointer = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&pointer->gc_status);
-    inter->data.pointer = pointer;
+    inter->data.base_obj[B_POINTER] = pointer;
 }

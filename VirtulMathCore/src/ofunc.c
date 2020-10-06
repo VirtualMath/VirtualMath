@@ -26,7 +26,7 @@ void registeredBaseFunction(struct LinkValue *father, Inter *inter){
 }
 
 void presetting(Inter *inter) {
-    LinkValue *func = inter->data.function;
+    LinkValue *func = inter->data.base_obj[B_FUNCTION];
     LinkValue *func_new = NULL;
     LinkValue *func_init = NULL;
 

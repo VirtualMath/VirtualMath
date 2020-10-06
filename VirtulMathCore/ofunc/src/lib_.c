@@ -152,7 +152,7 @@ ResultType lib_attr(O_FUNC){
         return R_error;
     }
 
-    error = findAttributes(L"val", false, LINEFILE, true, CFUNC_NT(var_list, result, ap[1].value));
+    error = findAttributes(inter->data.mag_func[M_VAL], false, LINEFILE, true, CFUNC_NT(var_list, result, ap[1].value));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -172,13 +172,13 @@ ResultType lib_attr(O_FUNC){
 }
 
 void registeredLib(R_FUNC){
-    LinkValue *object = inter->data.lib_;
+    LinkValue *object = inter->data.base_obj[B_LIB];
     NameFunc tmp[] = {{L"close", lib_close, object_free_},
                       {L"add", lib_add, object_free_},
-                      {inter->data.object_new, lib_new, class_free_},
-                      {inter->data.object_init, lib_init, object_free_},
-                      {inter->data.object_del, lib_close, object_free_},
-                      {inter->data.object_attr, lib_attr, object_free_},
+                      {inter->data.mag_func[M_NEW], lib_new, class_free_},
+                      {inter->data.mag_func[M_INIT], lib_init, object_free_},
+                      {inter->data.mag_func[M_DEL], lib_close, object_free_},
+                      {inter->data.mag_func[M_ATTR], lib_attr, object_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"clib", object, belong, inter);
@@ -187,7 +187,7 @@ void registeredLib(R_FUNC){
 }
 
 void makeBaseLib(Inter *inter){
-    LinkValue *lib_ = makeBaseChildClass(inter->data.vobject, inter);
+    LinkValue *lib_ = makeBaseChildClass(inter->data.base_obj[B_VOBJECT], inter);
     gc_addStatementLink(&lib_->gc_status);
-    inter->data.lib_ = lib_;
+    inter->data.base_obj[B_LIB] = lib_;
 }

@@ -3,6 +3,68 @@
 
 struct Result;
 
+#define BASEOBJSZIE (17)
+#define VARNAMESIZE (8)
+#define BASEEXCESIZE (19)
+#define MAGFUNCSIZE (27)
+
+#define B_OBJECT (0)
+#define B_VOBJECT (1)
+#define B_INT_ (2)
+#define B_DOU (3)
+#define B_STR (4)
+#define B_BOOL (5)
+#define B_PASS (6)
+#define B_LIB (7)
+#define B_FILE (8)
+#define B_TUPLE (9)
+#define B_LIST (10)
+#define B_DICT (11)
+#define B_FUNCTION (12)
+#define B_NONE (13)
+#define B_LISTITER (14)
+#define B_DICTITER (15)
+#define B_POINTER (16)
+
+#define VN_str (0)
+#define VN_num (1)
+#define VN_bool (2)
+#define VN_file (3)
+#define VN_none (4)
+#define VN_pass (5)
+#define VN_class (6)
+#define VN_obj (7)
+
+#define M_INIT (0)
+#define M_NEW (1)
+#define M_CALL (2)
+#define M_ENTER (3)
+#define M_EXIT (4)
+#define M_ADD (5)
+#define M_SUB (6)
+#define M_MUL (7)
+#define M_DIV (8)
+#define M_DEL (9)
+#define M_DOWN (10)
+#define M_SLICE (11)
+#define M_ITER (12)
+#define M_NEXT (13)
+#define M_REPO (14)
+#define M_BOOL (15)
+#define M_NAME (16)
+#define M_SELF (17)
+#define M_FATHER (18)
+#define M_MESSAGE (19)
+#define M_STR (20)
+#define M_DOWN_ASSIGMENT (21)
+#define M_SLICE_ASSIGMENT (22)
+#define M_DOWN_DEL (23)
+#define M_SLICE_DEL (24)
+#define M_ATTR (25)
+#define M_VAL (26)
+
+// TODO-szh 添加val
+
 struct Inter{
     struct Value *base;
     struct LinkValue *link_base;
@@ -20,79 +82,11 @@ struct Inter{
         bool is_stderr;
         bool is_stdin;
 
-        struct LinkValue *object;
-        struct LinkValue *vobject;
-        struct LinkValue *int_;
-        struct LinkValue *dou;
-        struct LinkValue *str;
-        struct LinkValue *bool_;
-        struct LinkValue *pass_;
-        struct LinkValue *lib_;
-        struct LinkValue *file;
-        struct LinkValue *tuple;
-        struct LinkValue *list;
-        struct LinkValue *dict;
-        struct LinkValue *function;
-        struct LinkValue *none;
-        struct LinkValue *list_iter;
-        struct LinkValue *dict_iter;
-        struct LinkValue *pointer;
+        struct LinkValue *base_obj[BASEOBJSZIE];
+        struct LinkValue *base_exc[BASEEXCESIZE];
 
-        struct LinkValue *base_exc;
-        struct LinkValue *sys_exc;
-        struct LinkValue *keyInterrupt_exc;
-        struct LinkValue *quit_exc;
-        struct LinkValue *exc;
-        struct LinkValue *type_exc;
-        struct LinkValue *arg_exc;
-        struct LinkValue *per_exc;
-        struct LinkValue *name_exc;
-        struct LinkValue *goto_exc;
-        struct LinkValue *result_exc;
-        struct LinkValue *assert_exc;
-
-        struct LinkValue *key_exc;
-        struct LinkValue *index_exc;
-        struct LinkValue *stride_exc;
-        struct LinkValue *super_exc;
-        struct LinkValue *iterstop_exc;
-        struct LinkValue *import_exc;
-        struct LinkValue *include_exp;
-
-        wchar_t *var_str_prefix;
-        wchar_t *var_int_prefix;
-        wchar_t *var_bool_prefix;
-        wchar_t *var_file_prefix;
-        wchar_t *var_none;
-        wchar_t *var_pass;
-        wchar_t *var_class_prefix;
-        wchar_t *var_object_prefix;
-        wchar_t *object_init;
-        wchar_t *object_new;
-        wchar_t *object_call;
-        wchar_t *object_enter;
-        wchar_t *object_exit;
-        wchar_t *object_add;
-        wchar_t *object_sub;
-        wchar_t *object_mul;
-        wchar_t *object_div;
-        wchar_t *object_del;
-        wchar_t *object_down;
-        wchar_t *object_slice;
-        wchar_t *object_iter;
-        wchar_t *object_next;
-        wchar_t *object_repo;
-        wchar_t *object_bool;
-        wchar_t *object_name;
-        wchar_t *object_self;
-        wchar_t *object_father;
-        wchar_t *object_message;
-        wchar_t *object_str;
-        wchar_t *object_down_assignment;
-        wchar_t *object_slice_assignment;
-        wchar_t *object_down_del;
-        wchar_t *object_slice_del;
-        wchar_t *object_attr;
+        wchar_t *var_name[VARNAMESIZE];
+        wchar_t *mag_func[MAGFUNCSIZE];
 
         int default_pt_type;
     } data;

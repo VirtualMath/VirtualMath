@@ -30,7 +30,7 @@ ResultType objectRepoStrCore(O_FUNC, bool is_repo){
         return result->type;
     freeResult(result);
 
-    name_value = findAttributes(inter->data.object_name, false, LINEFILE, true, CFUNC_NT(var_list, result, ap[0].value));
+    name_value = findAttributes(inter->data.mag_func[M_NAME], false, LINEFILE, true, CFUNC_NT(var_list, result, ap[0].value));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -72,10 +72,10 @@ ResultType object_str(O_FUNC){
 }
 
 void registeredObject(R_FUNC){
-    LinkValue *object = inter->data.object;
-    NameFunc tmp[] = {{inter->data.object_new,  object_new,  class_free_},
-                      {inter->data.object_repo, object_repo, all_free_},
-                      {inter->data.object_str,  object_str,  all_free_},
+    LinkValue *object = inter->data.base_obj[B_OBJECT];
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  object_new,  class_free_},
+                      {inter->data.mag_func[M_REPO], object_repo, all_free_},
+                      {inter->data.mag_func[M_STR],  object_str,  all_free_},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"object", object, belong, inter);
@@ -94,8 +94,8 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
         gc_addStatementLink(&inter->base_belong->gc_status);
     }
 
-    inter->data.object = makeLinkValue(object, g_belong, inter);
-    gc_addStatementLink(&inter->data.object->gc_status);
+    inter->data.base_obj[B_OBJECT] = makeLinkValue(object, g_belong, inter);
+    gc_addStatementLink(&inter->data.base_obj[B_OBJECT]->gc_status);
     for (Inherit *ih=g_belong->value->object.inherit; ih != NULL; ih = ih->next) {
         if (ih->value->value == object)
             ih->value->belong = g_belong;
@@ -109,8 +109,8 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
         object_new(CO_FUNC(arg, inter->var_list, &result, g_belong));
 
         result.value->value->type = V_none;
-        inter->data.none = result.value;
-        gc_addStatementLink(&inter->data.none->gc_status);
+        inter->data.base_obj[B_NONE] = result.value;
+        gc_addStatementLink(&inter->data.base_obj[B_NONE]->gc_status);
 
         freeArgument(arg, true);
         freeResult(&result);
