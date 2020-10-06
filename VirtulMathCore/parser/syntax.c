@@ -84,7 +84,7 @@ void stringMather(wint_t p, LexMather *mather){
     else if (mather->status == LEXMATHER_ING_1)
         if (mather->string_type == p)
             mather->status = LEXMATHER_ING_4;
-        else if (L'\\' == p)
+        else if (L'\\' == p && mather->string_type == '\'')  // 双引号为无转义字符串
             mather->status = LEXMATHER_ING_5;
         else if (WEOF == p)
             mather->status = LEXMATHER_MISTAKE;
