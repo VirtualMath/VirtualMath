@@ -106,7 +106,7 @@ void stringMather(wint_t p, LexMather *mather){
         else
             mather->status = LEXMATHER_END_1;
     else if (mather->status == LEXMATHER_ING_5){
-        wchar_t new = (wchar_t)(-1);
+        wint_t new = WEOF;
         switch (p) {
             case L'n':
                 new = L'\n';
@@ -140,7 +140,7 @@ void stringMather(wint_t p, LexMather *mather){
                 mather->status = LEXMATHER_MISTAKE;
                 break;
         }
-        if (new != (wchar_t)(-1)) {
+        if (new != WEOF) {
             mather->str = memWideCharcpy(mather->str, 1, true, true, new);
             mather->status = LEXMATHER_ING_1;
             mather->len ++;
