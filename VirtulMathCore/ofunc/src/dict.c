@@ -49,7 +49,7 @@ ResultType dict_down(O_FUNC){
     }
     {
         LinkValue *element = NULL;
-        wchar_t *name = getNameFromValue(ap[1].value->value, inter);
+        wchar_t *name = getNameFromValue(ap[1].value->value, inter->data.var_deep, inter);
         element = findVar(name, get_var, inter, ap[0].value->value->data.dict.dict);
         if (element != NULL)
             setResultOperationBase(result, copyLinkValue(element, inter));
@@ -79,7 +79,7 @@ ResultType dict_down_del(O_FUNC){
     }
     {
         LinkValue *element = NULL;
-        wchar_t *name = getNameFromValue(ap[1].value->value, inter);
+        wchar_t *name = getNameFromValue(ap[1].value->value, inter->data.var_deep, inter);
         element = findVar(name, del_var, inter, ap[0].value->value->data.dict.dict);
         if (element != NULL)
             setResult(result, inter);
@@ -110,7 +110,7 @@ ResultType dict_down_assignment(O_FUNC){
         return R_error;
     }
 
-    name = getNameFromValue(ap[2].value->value, inter);
+    name = getNameFromValue(ap[2].value->value, inter->data.var_deep, inter);
     addVar(name, ap[1].value, ap[2].value, inter, ap[0].value->value->data.dict.dict);
     memFree(name);
     return result->type;

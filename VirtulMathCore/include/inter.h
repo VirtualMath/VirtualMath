@@ -112,6 +112,8 @@ struct Inter{
         wchar_t *mag_func[MAGFUNCSIZE];
 
         int default_pt_type;
+        size_t var_max;
+        int var_deep;
     } data;
 };
 

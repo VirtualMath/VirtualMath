@@ -116,6 +116,8 @@ void setBaseInterData(struct Inter *inter){
     inter->data.mag_func[M_NEGATE] = setName("__negate__");
 
     inter->data.default_pt_type = free_;
+    inter->data.var_max = 100;
+    inter->data.var_deep = 3;
 }
 
 void freeBaseInterData(struct Inter *inter){

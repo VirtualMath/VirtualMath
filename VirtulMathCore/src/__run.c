@@ -41,7 +41,7 @@ ResultType getBaseSVarInfo(wchar_t **name, int *times, FUNC){
     if (operationSafeInterStatement(CFUNC(st->u.base_svar.name, var_list, result, belong)))
         return result->type;
 
-    *name = getNameFromValue(result->value->value, inter);
+    *name = getNameFromValue(result->value->value, inter->data.var_deep, inter);
     result->type = R_opt;  // 执行 operationSafeInterStatement 的时候已经初始化 result
 
     return result->type;
@@ -55,7 +55,7 @@ ResultType getVarInfo(wchar_t **name, int *times, FUNC){
     else{
         if (operationSafeInterStatement(CNEXT))
             return result->type;
-        *name = getNameFromValue(result->value->value, inter);
+        *name = getNameFromValue(result->value->value, inter->data.var_deep, inter);
         *times = 0;
     }
     return result->type;
@@ -91,7 +91,7 @@ return_ = memWidecpy(name);  /* 再次复制去除多余的空字节 */  \
 memFree(name); \
 return return_
 
-wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
+wchar_t *getNameFromValue(Value *value, int deep, Inter *inter) {
     switch (value->type){
         case V_str:
             return setStrVarName(value->data.str.str, false, inter);
@@ -101,6 +101,23 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
             return setDouVarName(value->data.dou.num, inter);
         case V_pointer:
             return setPointerVarName(value->data.pointer.pointer, inter);
+        case V_list:
+            if (deep <= 0 || value->data.list.type == L_list)
+                goto obj;
+            else {
+                size_t len = value->data.list.size;
+                char len_str[20] = { NUL };
+                wchar_t *name;
+                snprintf(len_str, 5, "%ld", len);
+                name = memWidecat(inter->data.var_name[VN_tuple], memStrToWcs(len_str, false), false, true);
+                if (len > inter->data.var_max)  // 最大迭代长度
+                    len = inter->data.var_max;
+                for (size_t i=0; i < len; i ++) {
+                    wchar_t *tmp = getNameFromValue(value->data.list.list[i]->value, deep - 1, inter);
+                    name = memWidecat(name, tmp, true, true);
+                }
+                return name;
+            }
         case V_bool:
             if (value->data.bool_.bool_)
                 return memWidecat(inter->data.var_name[VN_bool], L"true", false, false);
@@ -118,7 +135,8 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
         case V_class: {
             POINTERHASHMACRO(value, class);
         }
-        default: {
+        default:
+        obj: {
             POINTERHASHMACRO(value, obj);
         }
     }

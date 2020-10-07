@@ -249,7 +249,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
             at = NULL;
             goto return_;
         }
-        name = getNameFromValue(name_->value, inter);
+        name = getNameFromValue(name_->value, inter->data.var_deep, inter);
         at = connectCharNameArgument(result->value, name_, name, at);
         gc_freeTmpLink(&name_->gc_status);
         memFree(name);
@@ -458,7 +458,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC
                     gc_freeTmpLink(&value->gc_status);
                     goto return_;
                 }
-                wchar_t *name_str = getNameFromValue(result->value->value, inter);
+                wchar_t *name_str = getNameFromValue(result->value->value, inter->data.var_deep, inter);
                 base = connectCharNameArgument(value, result->value, name_str, base);
                 memFree(name_str);
                 gc_freeTmpLink(&value->gc_status);
