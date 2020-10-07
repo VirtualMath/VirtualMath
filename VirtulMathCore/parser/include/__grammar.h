@@ -42,6 +42,7 @@ void parserBor(P_FUNC);
 void parserBxor(P_FUNC);
 void parserAnd(P_FUNC);
 void parserOr(P_FUNC);
+void parserNegate(P_FUNC);
 
 void parserAssignment(P_FUNC);
 void parserTuple(P_FUNC);

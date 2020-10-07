@@ -6,7 +6,7 @@ struct Result;
 #define BASEOBJSZIE (17)
 #define VARNAMESIZE (8)
 #define BASEEXCESIZE (19)
-#define MAGFUNCSIZE (45)
+#define MAGFUNCSIZE (46)
 
 #define B_OBJECT (0)
 #define B_VOBJECT (1)
@@ -84,6 +84,7 @@ struct Result;
 #define M_AND (42)
 #define M_OR (43)
 #define M_NOT (44)
+#define M_NEGATE (45)
 
 struct Inter{
     struct Value *base;

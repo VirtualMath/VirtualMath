@@ -6,6 +6,8 @@ ResultType operationCore2(FUNC, wchar_t *name);
 ResultType assOperation(FUNC);
 ResultType pointOperation(FUNC);
 ResultType blockOperation(FUNC);
+ResultType boolNotOperation(FUNC);
+ResultType boolOperation(FUNC);
 
 /**
  * operation的整体操作
@@ -32,7 +34,6 @@ ResultType operationStatement(FUNC) {
         OPT_CASE(BAND);
         OPT_CASE(BOR);
         OPT_CASE(BXOR);
-        OPT_CASE2(BNOT);
         OPT_CASE(BL);
         OPT_CASE(BR);
 
@@ -43,9 +44,17 @@ ResultType operationStatement(FUNC) {
         OPT_CASE(LESS);
         OPT_CASE(NOTEQ);
 
-        OPT_CASE(AND);
-        OPT_CASE(OR);
-        OPT_CASE2(NOT);
+        OPT_CASE2(BNOT);
+        OPT_CASE2(NEGATE);
+
+        case OPT_NOT:
+            boolNotOperation(CNEXT);
+            break;
+
+        case OPT_OR:
+        case OPT_AND:
+            boolOperation(CNEXT);
+            break;
 
         case OPT_ASS:
             assOperation(CNEXT);
@@ -111,6 +120,57 @@ ResultType blockOperation(FUNC) {
         setBlockResult(st, yield_run, result, CFUNC_CORE(var_list));
     if (CHECK_RESULT(result) && st->aut != auto_aut)
         result->value->aut = st->aut;
+    return result->type;
+}
+
+ResultType boolNotOperation(FUNC) {
+    bool new;
+    LinkValue *left;
+    setResultCore(result);
+    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
+        return result->type;
+    left = result->value;
+    result->value = NULL;
+    freeResult(result);
+
+    new = !checkBool(left, st->line, st->code_file, CNEXT_NT);
+    gc_freeTmpLink(&left->gc_status);
+
+    if (CHECK_RESULT(result)) {
+        freeResult(result);
+        makeBoolValue(new, st->line, st->code_file, CNEXT_NT);
+    }
+    return result->type;
+}
+
+ResultType boolOperation(FUNC) {
+    bool left_bool;
+    LinkValue *left;
+    setResultCore(result);
+
+    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
+        return result->type;
+    left = result->value;
+    result->value = NULL;
+    freeResult(result);
+
+    left_bool = checkBool(left, st->line, st->code_file, CNEXT_NT);
+    gc_freeTmpLink(&left->gc_status);
+    if (!CHECK_RESULT(result))
+        return result->type;
+
+    freeResult(result);
+    if (st->u.operation.OperationType == OPT_AND) {  // 与运算
+        if (left_bool)
+            operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong));
+        else
+            setResultOperation(result, left);
+    } else {  // 或运算
+        if (left_bool)
+            setResultOperation(result, left);
+        else
+            operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong));
+    }
     return result->type;
 }
 

@@ -111,6 +111,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.mag_func[M_AND] = setName("__and__");
     inter->data.mag_func[M_OR] = setName("__or__");
     inter->data.mag_func[M_NOT] = setName("__not__");
+    inter->data.mag_func[M_NEGATE] = setName("__negate__");
 
     inter->data.default_pt_type = free_;
 }

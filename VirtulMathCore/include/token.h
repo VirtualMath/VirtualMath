@@ -141,6 +141,7 @@
 #define T_OR (-45)
 
 #define T_NOT (-46)
+#define T_NEGATE (-47)
 
 struct Token{
     int token_type;  // 记录token的类型，大于0的数字均为lex匹配器所匹配，小于0的为syntax解析器所匹配

@@ -107,6 +107,7 @@ struct Statement{
                 OPT_AND = 24,
                 OPT_OR = 25,
                 OPT_NOT = 26,
+                OPT_NEGATE = 27,
             } OperationType;
             struct Statement *left;
             struct Statement *right;

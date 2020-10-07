@@ -1001,8 +1001,7 @@ void parserDef(P_FUNC){
     int type = readBackToken(pm);
     long int line = delToken(pm);
 
-    if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &name_tmp,
-                            "Don't get a func/V_class name"))
+    if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &name_tmp, "Don't get a func/class name"))
         goto error_;
 
     if (!checkToken(pm, MATHER_LP))
@@ -1345,16 +1344,16 @@ void parserNot(P_FUNC){
         else if (left_token->token_type == MATHER_BITNOT)
             *pst = makeOperationBaseStatement(OPT_BNOT, left_token->line, pm->file);
         else {
-            backToken_(pm, left_token);
-            if (callChildStatement(CP_FUNC, parserCallBack, T_CALLFUNC, pst, NULL))
-                break;
-            else {
+            backToken_(pm, left_token);  // 当 left_token 非 MATHER_BOOLNOT 或 MATHER_BITNOT 则要退回该token
+            if (!callChildStatement(CP_FUNC, parserCallBack, T_CALLFUNC, pst, NULL)) {
                 freeStatement(st);
                 return;
             }
+            break;
         }
+
         pst = &(*pst)->u.operation.left;
-        freeToken(left_token, true);
+        freeToken(left_token, true);  // 当 left_token 是 MATHER_BOOLNOT 或 MATHER_BITNOT 则要删除该token
     }
     addStatementToken(T_NOT, st, pm);
     return;
@@ -1419,7 +1418,7 @@ bool tailSlice(P_FUNC, Token *left_token, Statement **st){
 bool taliPoint(P_FUNC, Token *left_token, Statement **st){
     Statement *right_st = NULL;
     delToken(pm);
-    if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &right_st, "Don't get a BaseValue after point"))
+    if (!callChildStatement(CP_FUNC, parserNegate, T_NEGATE, &right_st, "Don't get a Negate after point"))
         return false;
     *st = makeOperationStatement(OPT_POINT, left_token->data.st, right_st);
     return true;
@@ -1428,7 +1427,7 @@ bool taliPoint(P_FUNC, Token *left_token, Statement **st){
 bool taliLink(P_FUNC, Token *left_token, Statement **st){
     Statement *right_st = NULL;
     delToken(pm);
-    if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &right_st, "Don't get a BaseValue after link"))
+    if (!callChildStatement(CP_FUNC, parserNegate, T_NEGATE, &right_st, "Don't get a Negate after link"))
         return false;
     *st = makeOperationStatement(OPT_LINK, left_token->data.st, right_st);
     return true;
@@ -1441,8 +1440,7 @@ void parserCallBack(P_FUNC){
         struct Statement *st = NULL;
 
         if (readBackToken(pm) != T_CALLFUNC){
-
-            if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &st, NULL))
+            if (!callChildStatement(CP_FUNC, parserNegate, T_NEGATE, &st, NULL))
                 goto return_;
             addStatementToken(T_CALLFUNC, st, pm);
             continue;
@@ -1464,6 +1462,28 @@ void parserCallBack(P_FUNC){
         freeToken(left_token, false);
     }
     return_: return;
+}
+
+void parserNegate(P_FUNC){
+    struct Statement *st = NULL, **pst = &st;
+    while(true){
+        Token *left_token = popNewToken(pm->tm);
+        if (left_token->token_type == MATHER_SUB) {
+            *pst = makeOperationBaseStatement(OPT_NEGATE, left_token->line, pm->file);
+            freeToken(left_token, true);
+            pst = &(*pst)->u.operation.left;
+        } else {
+            backToken_(pm, left_token);
+            if (callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, pst, NULL))
+                break;
+            else {
+                freeStatement(st);
+                return;
+            }
+        }
+    }
+    addStatementToken(T_NEGATE, st, pm);
+    return;
 }
 
 /**
