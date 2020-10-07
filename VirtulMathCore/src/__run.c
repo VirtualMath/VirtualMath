@@ -115,11 +115,10 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
         case V_dict: {
             POINTERHASHMACRO(value->data.dict.dict, dict);  // 因为有声明变量, 因此需要大括号
         }
-        case V_class:{
+        case V_class: {
             POINTERHASHMACRO(value, class);
         }
-        default:
-        obj: {
+        default: {
             POINTERHASHMACRO(value, obj);
         }
     }

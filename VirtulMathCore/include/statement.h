@@ -64,6 +64,7 @@ struct Statement{
             struct Statement *name;
             struct Statement *times;
             bool run;
+            bool is_var;
         } base_svar;
         struct {
             enum ListType type;
@@ -296,7 +297,7 @@ Statement *makeBaseLinkValueStatement(LinkValue *value, fline line, char *file);
 Statement *makeBaseStrValueStatement(wchar_t *value, enum BaseValueType type, fline line, char *file);
 Statement *makeBaseValueStatement(enum BaseValueType type, fline line, char *file);
 Statement *makeBaseVarStatement(wchar_t *name, Statement *times, fline line, char *file);
-Statement *makeBaseSVarStatement(Statement *name, Statement *times);
+Statement *makeBaseSVarStatement(Statement *name, Statement *times, bool is_var);
 Statement *makeBaseDictStatement(Parameter *pt, fline line, char *file);
 Statement *makeTupleStatement(Parameter *pt, enum ListType type, fline line, char *file);
 Statement *makeClassStatement(Statement *name, Statement *function, Parameter *pt);

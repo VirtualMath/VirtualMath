@@ -1580,12 +1580,13 @@ void parserBaseValue(P_FUNC){
             break;
         case MATHER_SVAR: {
             Statement *svar_st = NULL;
+            bool is_var = checkToken(pm, MATHER_COLON);
             if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &svar_st, NULL)) {
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
                 freeToken(value_token, true);
                 goto return_;
             }
-            st = makeBaseSVarStatement(svar_st, NULL);
+            st = makeBaseSVarStatement(svar_st, NULL, is_var);
             break;
         }
         case MATHER_LB: {

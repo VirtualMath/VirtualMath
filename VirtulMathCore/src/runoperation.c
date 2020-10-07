@@ -524,6 +524,45 @@ ResultType pointAss(Statement *name, LinkValue *value, FUNC_NT) {
     return result->type;
 }
 
+static ResultType setNameException(LinkValue *val, wchar_t *name, fline line, char *file, FUNC_NT) {
+    Result tmp;
+    LinkValue *_attr_;
+    wchar_t *message = memWidecat(L"Variable not found: ", name, false, false);
+    setResultCore(&tmp);
+    gc_addTmpLink(&val->gc_status);
+
+    setResultError(E_NameExceptiom, message, line, file, true, CNEXT_NT);
+    addAttributes(inter->data.mag_func[M_VAL], false, val, line, file, true, CFUNC_NT(var_list, &tmp, result->value));
+    if (!RUN_TYPE(tmp.type)) {
+        freeResult(result);
+        *result = tmp;
+        goto return_;
+    }
+
+    freeResult(&tmp);
+    _attr_ = findAttributes(inter->data.mag_func[M_ATTR], false, LINEFILE, true, CFUNC_NT(var_list, &tmp, belong));
+    if (!RUN_TYPE(tmp.type)) {
+        freeResult(result);
+        *result = tmp;
+        goto return_;
+    }
+
+    freeResult(&tmp);
+    if (_attr_ != NULL) {
+        Argument *arg = makeValueArgument(result->value);
+        freeResult(result);
+        gc_addTmpLink(&_attr_->gc_status);
+        callBackCore(_attr_, arg, line, file, 0, CFUNC_NT(var_list, result, belong));
+        gc_freeTmpLink(&_attr_->gc_status);
+        freeArgument(arg, true);
+    }
+
+    return_:
+    gc_freeTmpLink(&val->gc_status);
+    memFree(message);
+    return result->type;
+}
+
 ResultType getVar(FUNC, VarInfo var_info) {
     int int_times = 0;
     wchar_t *name = NULL;
@@ -541,40 +580,12 @@ ResultType getVar(FUNC, VarInfo var_info) {
     result->value = NULL;
     freeResult(result);
     var = findFromVarList(name, int_times, get_var, CFUNC_CORE(var_list));
+
     if (var == NULL) {
-        wchar_t *message = memWidecat(L"Variable not found: ", name, false, false);
-        setResultErrorSt(E_NameExceptiom, message, true, st, CNEXT_NT);
-        {
-            Result tmp;
-            LinkValue *_attr_;
-            setResultCore(&tmp);
-            addAttributes(inter->data.mag_func[M_VAL], false, val, st->line, st->code_file, true, CFUNC_NT(var_list, &tmp, result->value));
-            if (!RUN_TYPE(tmp.type)) {
-                freeResult(result);
-                *result = tmp;
-                goto out;
-            }
-
-            freeResult(&tmp);
-            _attr_ = findAttributes(inter->data.mag_func[M_ATTR], false, LINEFILE, true, CFUNC_NT(var_list, &tmp, belong));
-            if (!RUN_TYPE(tmp.type)) {
-                freeResult(result);
-                *result = tmp;
-                goto out;
-            }
-            freeResult(&tmp);
-            if (_attr_ != NULL) {
-                Argument *arg = makeValueArgument(result->value);
-                freeResult(result);
-                gc_addTmpLink(&_attr_->gc_status);
-                callBackCore(_attr_, arg, st->line, st->code_file, 0, CFUNC_NT(var_list, result, belong));
-                gc_freeTmpLink(&_attr_->gc_status);
-                freeArgument(arg, true);
-            }
-
-        }
-        out:
-        memFree(message);
+        if (st->type == base_svar && !st->u.base_svar.is_var) {
+            setResultOperationBase(result, val);
+        } else
+            setNameException(val, name, st->line, st->code_file, CNEXT_NT);
     } else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CNEXT_NT)) {
         bool run = st->type == base_var ? st->u.base_var.run : st->type == base_svar ? st->u.base_svar.run : false;
         if (!run || !runVarFunc(var, st->line, st->code_file, CNEXT_NT))

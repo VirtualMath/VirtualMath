@@ -104,12 +104,13 @@ Statement *makeBaseVarStatement(wchar_t *name, Statement *times, fline line, cha
     return tmp;
 }
 
-Statement *makeBaseSVarStatement(Statement *name, Statement *times){
+Statement *makeBaseSVarStatement(Statement *name, Statement *times, bool is_var) {
     Statement *tmp = makeStatement(name->line, name->code_file);
     tmp->type = base_svar;
     tmp->u.base_svar.name = name;
     tmp->u.base_svar.times = times;
     tmp->u.base_svar.run = true;
+    tmp->u.base_svar.is_var = is_var;
     return tmp;
 }
 
@@ -553,6 +554,7 @@ Statement *copyStatementCore(Statement *st){
             new->u.base_svar.name = copyStatement(st->u.base_svar.name);
             new->u.base_svar.times = copyStatement(st->u.base_svar.times);
             new->u.base_svar.run = st->u.base_svar.run;
+            new->u.base_svar.is_var = st->u.base_svar.is_var;
             break;
         case base_lambda:
             new->u.base_lambda.function = copyStatement(st->u.base_lambda.function);
