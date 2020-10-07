@@ -4,7 +4,7 @@
 struct Result;
 
 #define BASEOBJSZIE (17)
-#define VARNAMESIZE (8)
+#define VARNAMESIZE (10)
 #define BASEEXCESIZE (19)
 #define MAGFUNCSIZE (46)
 
@@ -34,6 +34,8 @@ struct Result;
 #define VN_pass (5)
 #define VN_class (6)
 #define VN_obj (7)
+#define VN_dict (8)
+#define VN_tuple (9)
 
 #define M_INIT (0)
 #define M_NEW (1)

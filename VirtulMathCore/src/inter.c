@@ -61,6 +61,8 @@ void setBaseInterData(struct Inter *inter){
     inter->data.var_name[VN_bool] = setName("bool_");
     inter->data.var_name[VN_class] = setName("class_");
     inter->data.var_name[VN_obj] = setName("obj_");
+    inter->data.var_name[VN_dict] = setName("dict_");
+    inter->data.var_name[VN_tuple] = setName("tuple_");
 
     inter->data.mag_func[M_INIT] = setName("__init__");
     inter->data.mag_func[M_ENTER] = setName("__enter__");

@@ -83,6 +83,14 @@ wchar_t *setPointerVarName(void *num, struct Inter *inter) {
     return memWidecat(inter->data.var_name[VN_num], name, false, false);
 }
 
+#define POINTERHASHMACRO(pointer, NAME) size_t len = memWidelen(inter->data.var_name[VN_##NAME]) + 20; \
+wchar_t *name = memWide(len); \
+wchar_t *return_ = NULL; \
+swprintf(name, len, L"%ls%p", inter->data.var_name[VN_obj], pointer); \
+return_ = memWidecpy(name);  /* 再次复制去除多余的空字节 */  \
+memFree(name); \
+return return_
+
 wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
     switch (value->type){
         case V_str:
@@ -104,23 +112,15 @@ wchar_t *getNameFromValue(Value *value, struct Inter *inter) {
             return memWidecpy(inter->data.var_name[VN_pass]);
         case V_file:
             return memWidecat(inter->data.var_name[VN_file], memStrToWcs(value->data.file.path, false), false, true);
-        case V_class:{
-            size_t len = memWidelen(inter->data.var_name[VN_class]) + 20;  // 预留20个字节给指针
-            wchar_t *name = memWide(len);
-            wchar_t *return_ = NULL;
-            swprintf(name, len, L"%ls%p", inter->data.var_name[VN_class], value);
-            return_ = memWidecpy(name);  // 再次复制去除多余的空字节
-            memFree(name);
-            return return_;
+        case V_dict: {
+            POINTERHASHMACRO(value->data.dict.dict, dict);  // 因为有声明变量, 因此需要大括号
         }
-        default:{
-            size_t len = memWidelen(inter->data.var_name[VN_obj]) + 20;
-            wchar_t *name = memWide(len);
-            wchar_t *return_ = NULL;
-            swprintf(name, len, L"%ls%p", inter->data.var_name[VN_obj], value);  // TODO-szh 修改指针为value.value
-            return_ = memWidecpy(name);  // 再次复制去除多余的空字节
-            memFree(name);
-            return return_;
+        case V_class:{
+            POINTERHASHMACRO(value, class);
+        }
+        default:
+        obj: {
+            POINTERHASHMACRO(value, obj);
         }
     }
 }
