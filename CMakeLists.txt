@@ -28,5 +28,7 @@ MESSAGE("project dir is ${PROJECT_SOURCE_DIR}")
 MESSAGE("cmake file in is ${CMAKE_CURRENT_SOURCE_DIR}")
 
 ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/vmcore)
+LINK_DIRECTORIES(${vmcore_BINARY_DIR})  # 添加vmcore的构建目录为寻找lib的目录
+MESSAGE("vmcore on ${vmcore_BINARY_DIR}")
+LINK_LIBRARIES(vmcore)
 ADD_EXECUTABLE(VirtualMath main.c ${SRC_LIST} ${ARGUMENT_LIST})
-TARGET_LINK_LIBRARIES(VirtualMath vmcore)
