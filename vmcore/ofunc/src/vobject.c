@@ -408,7 +408,7 @@ ResultType vobject_repo(O_FUNC){
         case V_dou: {
             char str[30] = { NUL };
             if (value->data.dou.num != 0)
-                snprintf(str, 30, "%Lf", value->data.dou.num);
+                snprintf(str, 30, "%Lg", value->data.dou.num);
             else
                 str[0] = '0';
             repo = memStrToWcs(str, false);

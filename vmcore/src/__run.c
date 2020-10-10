@@ -73,7 +73,7 @@ wchar_t *setIntVarName(vint num, struct Inter *inter) {
 
 wchar_t *setDouVarName(vdou num, struct Inter *inter) {
     wchar_t name[50];
-    swprintf(name, 50, L"%Lf", num);
+    swprintf(name, 50, L"%Lg", num);
     return memWidecat(inter->data.var_name[VN_num], name, false, false);
 }
 

@@ -647,7 +647,7 @@ void printValue(Value *value, FILE *debug, bool print_father, bool print_in) {
             fprintf(debug, "(%lld)", value->data.int_.num);
             break;
         case V_dou:
-            fprintf(debug, "(%Lf)", value->data.dou.num);
+            fprintf(debug, "(%Lf : %Lg)", value->data.dou.num, value->data.dou.num);
             break;
         case V_str:
             fprintf(debug, "'%ls'", value->data.str.str);
