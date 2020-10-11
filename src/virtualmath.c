@@ -37,6 +37,7 @@ void runCodeStdin(Inter *inter, char *hello_string) {
     setResultCore(&result);
     if (hello_string != NULL)
         printf("%s", hello_string);
+
     while (!should_break){
         if (ferror(stdin) || feof(stdin))
             clearerr(stdin);
@@ -52,10 +53,9 @@ void runCodeStdin(Inter *inter, char *hello_string) {
 }
 
 bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st) {
-    ParserMessage *pm = makeParserMessageFile(code_file);
+    ParserMessage *pm = makeParserMessageFile(code_file, is_one);
     *st = makeStatement(0, (code_file == NULL) ? "stdin" : code_file);
-    parserCommandList(pm, inter, true, is_one, *st);
-
+    parserCommandList(pm, inter, true, *st);
     if (pm->status == int_error) {
         fprintf(stderr, "KeyInterrupt\n");
     } else if (pm->status != success)

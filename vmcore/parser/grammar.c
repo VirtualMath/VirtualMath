@@ -1,23 +1,24 @@
 #include "__grammar.h"
 
-static ParserMessage *makeParserMessageCore() {
+static ParserMessage *makeParserMessageCore(bool short_cm) {
     ParserMessage *tmp = memCalloc(1, sizeof(ParserMessage));
     tmp->file = NULL;
     tmp->tm = NULL;
     tmp->status = success;
     tmp->status_message = NULL;
+    tmp->short_cm = short_cm;
     return tmp;
 }
 
-ParserMessage *makeParserMessageFile(char *file_dir) {
-    ParserMessage *tmp = makeParserMessageCore();
+ParserMessage *makeParserMessageFile(char *file_dir, bool short_cm) {
+    ParserMessage *tmp = makeParserMessageCore(short_cm);
     tmp->file = memStrcpy(file_dir == NULL ? "stdin" : file_dir);
     tmp->tm = makeTokenMessageFile(file_dir);
     return tmp;
 }
 
-ParserMessage *makeParserMessageStr(wchar_t *str) {
-    ParserMessage *tmp = makeParserMessageCore();
+ParserMessage *makeParserMessageStr(wchar_t *str, bool short_cm) {
+    ParserMessage *tmp = makeParserMessageCore(short_cm);
     tmp->file = memStrcpy("exec");
     tmp->tm = makeTokenMessageStr(str);
     return tmp;
@@ -44,7 +45,7 @@ void freeParserMessage(ParserMessage *pm, bool self) {
  * | parserCommand MATHER_SEMICOLON
  * | parserCommand MATHER_EOF
  */
-void parserCommandList(P_FUNC, bool global, bool is_one, Statement *st) {
+void parserCommandList(P_FUNC, bool global, Statement *st) {
     int token_type;
     int save_enter = pm->tm->file->filter_data.enter;
     char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
@@ -56,6 +57,7 @@ void parserCommandList(P_FUNC, bool global, bool is_one, Statement *st) {
     pm_KeyInterrupt = signal_reset;
     bak = signal(SIGINT, signalStopPm);
     pm->tm->file->filter_data.enter = 0;
+    bool is_one = pm->short_cm;
 
     while (!should_break){
         token_type = readBackToken(pm);
@@ -82,10 +84,9 @@ void parserCommandList(P_FUNC, bool global, bool is_one, Statement *st) {
                 delToken(pm);
                 if (is_one)
                     should_break = true;
-            }
-            else if (stop == MATHER_SEMICOLON)
+            } else if (stop == MATHER_SEMICOLON)
                 delToken(pm);
-            else  if(stop != MATHER_EOF){
+            else if(stop != MATHER_EOF){
                 if (global) {
                     Token *tk = popNewToken(pm->tm);
                     freeToken(tk, true);
@@ -769,6 +770,8 @@ void parserIf(P_FUNC){
             break;
         }
         case MATHER_ENTER:
+            if (pm->short_cm)
+                goto default_;
             delToken(pm);
             goto again;
         case MATHER_SEMICOLON:
@@ -865,6 +868,8 @@ void parserWhile(P_FUNC){
             break;
         }
         case MATHER_ENTER:
+            if (pm->short_cm)
+                goto default_;
             delToken(pm);
             goto again;
         case MATHER_SEMICOLON:
@@ -959,6 +964,8 @@ void parserTry(P_FUNC){
             break;
         }
         case MATHER_ENTER:
+            if (pm->short_cm)
+                goto default_;
             delToken(pm);
             goto again;
         case MATHER_SEMICOLON:
@@ -1046,25 +1053,36 @@ void parserDef(P_FUNC){
 void parserCode(P_FUNC) {
     long int line = 0;
     Statement *st = makeStatement(line, pm->file);
+    bool backup = pm->short_cm;
+    bool short_cm = false;
     while (true){
-        if (readBackToken(pm) != MATHER_LC)
-            goto again_;
-        line = delToken(pm);
-        break;
-        again_:
-        if (!checkToken(pm, MATHER_ENTER))
-            goto return_;
+        switch (readBackToken(pm)) {
+            case MATHER_LC:
+                line = delToken(pm);
+                goto out;
+            case MATHER_ENTER:
+                delToken(pm);
+                continue;
+            default:
+                short_cm = true;
+                goto out;
+        }
     }
-    parserCommandList(CP_FUNC, false, false, st);
+
+    out:
+    pm->short_cm = short_cm;
+    parserCommandList(CP_FUNC, false, st);
+    pm->short_cm = backup;
     if (!call_success(pm))
         goto error_;
 
-    if (!checkToken(pm, MATHER_RC)) {
+    if (short_cm)
+        addLexToken(pm, MATHER_ENTER);
+    else if (!checkToken(pm, MATHER_RC)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get the }");  // 使用{的行号
         goto error_;
     }
 
-    return_:
     addStatementToken(T_CODE, st, pm);
     return;
 

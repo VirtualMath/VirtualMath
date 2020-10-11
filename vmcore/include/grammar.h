@@ -13,13 +13,14 @@ struct ParserMessage{
     } status;
     char *status_message;
     char *file;
+    bool short_cm;  // 短匹配
 };
 
 typedef struct ParserMessage ParserMessage;
 
-ParserMessage *makeParserMessageFile(char *file_dir);
-ParserMessage *makeParserMessageStr(wchar_t *str);
+ParserMessage *makeParserMessageFile(char *file_dir, bool short_cm);
+ParserMessage *makeParserMessageStr(wchar_t *str, bool short_cm);
 void freeParserMessage(ParserMessage *pm, bool self);
-void parserCommandList(ParserMessage *pm, Inter *inter, bool global, bool is_one, Statement *st);
+void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st);
 
 #endif //VIRTUALMATH_GRAMMAR_H

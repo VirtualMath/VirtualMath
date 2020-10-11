@@ -2,7 +2,7 @@
 
 bool importRunParser(ParserMessage *pm, fline line, char *file, Statement *run_st, FUNC_NT) {
     setResultCore(result);
-    parserCommandList(pm, inter, true, false, run_st);
+    parserCommandList(pm, inter, true, run_st);
     if (pm->status == int_error)
         setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CNEXT_NT);
     else if (pm->status != success) {
@@ -140,7 +140,7 @@ ResultType includeFile(FUNC) {
         goto return_;
 
     new_st = makeStatement(0, file_dir);
-    pm = makeParserMessageFile(file_dir);
+    pm = makeParserMessageFile(file_dir, false);
 
     if (!importRunParser(pm, st->line, st->code_file, new_st, CNEXT_NT))
         goto return_;
@@ -163,7 +163,7 @@ ResultType importVMFileCore(Inter *import_inter, char *path, fline line, char *c
     Statement *run_st = NULL;
     setResultCore(result);
 
-    pm = makeParserMessageFile(path);
+    pm = makeParserMessageFile(path, false);
     run_st = makeStatement(0, path);
 
     if (!importRunParser(pm, line, code_file, run_st, CNEXT_NT))

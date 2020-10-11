@@ -184,9 +184,9 @@ ResultType vm_exec(O_FUNC){
         out = false;
 
     {
-        ParserMessage *pm = makeParserMessageStr(str->value->data.str.str);
+        ParserMessage *pm = makeParserMessageStr(str->value->data.str.str, false);
         new_st = makeStatement(0, "exec");
-        parserCommandList(pm, inter, true, false, new_st);
+        parserCommandList(pm, inter, true, new_st);
 
         if (pm->status == int_error) {
             setResultError(E_KeyInterrupt, KEY_INTERRUPT, LINEFILE, true, CNEXT_NT);

@@ -315,8 +315,8 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         backslashMather(p, mathers->mathers[MATHER_NOTENTER]);
         commentMather(p, mathers->mathers[MATHER_COMMENT]);
         aCharMather(p, mathers->mathers[MATHER_ENTER], '\n');
+        aCharMather(p, mathers->mathers[MATHER_EOF], WEOF);
 
-        charMatherMacro(MATHER_EOF, WEOF);
         strMatherMacro(MATHER_IF, "if");  // 条件判断
         strMatherMacro(MATHER_ELIF, "elif");  // 条件循环
         strMatherMacro(MATHER_WHILE, "while");  // 条件循环
@@ -431,8 +431,9 @@ Token *getToken(LexFile *file, LexMathers *mathers) {
     int status = MATHER_SPACE;
     int filter;
 
-    while ((filter = lexFilter(file, status)) == -1)
+    do
         status = getMatherStatus(file, mathers);
+    while ((filter = lexFilter(file, status)) == -1);
 
     if (status == -2 || status == -3)
         return makeLexToken(status, NULL, NULL, file->line);

@@ -149,9 +149,10 @@ void freeInter(Inter *inter, bool show_gc) {
     freeBaseInterData(inter);
     freePackage(inter->package);
 #if DEBUG
-    if (show_gc && (printf("\nEnter '1' to show gc: "), getc(stdin) == '1')) {
+    wint_t ch;
+    if (show_gc && (printf("\nEnter '1' to show gc: "), (fgetwc(stdin)) == L'1')) {
         printGC(inter);
-        while (getc(stdin) != '\n')
+        while ((ch = fgetwc(stdin)) != '\n' || ch == WEOF)
             PASS;
     }
 #endif
