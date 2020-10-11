@@ -92,9 +92,15 @@ void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
 int readBackToken(ParserMessage *pm){
     Token *tmp = popNewToken(pm->tm);
     int type = tmp->token_type;
-    if (type == -2)
-        syntaxError(pm, lexical_error, tmp->line, 1, "lexical make some error");
-    else if (type == -3)
+    if (type == -2) {
+        if (tmp->data.str == NULL)
+            syntaxError(pm, lexical_error, tmp->line, 1, "lexical make some error");
+        else {
+            char *message = memWcsToStr(tmp->data.str, false);
+            syntaxError(pm, lexical_error, tmp->line, 1, message);
+            memFree(message);
+        }
+    } else if (type == -3)
         syntaxError(pm, int_error, tmp->line, 1, "KeyInterrupt");
     addBackToken(pm->tm->ts, tmp);
     return type;

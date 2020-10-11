@@ -1,5 +1,4 @@
 #include "__grammar.h"
-
 static ParserMessage *makeParserMessageCore(bool short_cm) {
     ParserMessage *tmp = memCalloc(1, sizeof(ParserMessage));
     tmp->file = NULL;

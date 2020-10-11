@@ -6,7 +6,7 @@
 
 void numberMather(wint_t p, LexMather *mather);
 void varMather(wint_t p, LexMather *mather);
-void stringMather(wint_t p, LexMather *mather);
+void stringMather(wint_t p, LexMather *mather, LexFile *file);
 void strMather(wint_t p, LexMather *mather, const wchar_t *dest_p);
 void charMather(wint_t p, LexMather *mather, wint_t dest_p);
 void aCharMather(wint_t p, LexMather *mather, wint_t dest_p);

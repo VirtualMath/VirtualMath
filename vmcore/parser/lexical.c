@@ -61,6 +61,7 @@ LexFile *makeLexFile(char *dir){
         tmp->file = fopen(dir, "r");
         tmp->status = 0;
     }
+    tmp->errsyntax = NULL;
     return tmp;
 }
 

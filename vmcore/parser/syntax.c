@@ -14,7 +14,7 @@
  */
 void numberMather(wint_t p, LexMather *mather){
     if (mather->status == LEXMATHER_START || mather->status == LEXMATHER_ING_1 || mather->status == LEXMATHER_ING_2)
-        if (iswdigit(p) || L'.' == p && mather->status == LEXMATHER_ING_1){
+        if (iswdigit(p) || L'.' == p && mather->status == LEXMATHER_ING_1){  // LEXMATHER_ING_1: 整数匹配
             mather->str = memWideCharcpy(mather->str, 1, true, true, p);
             mather->len += 1;
             if (L'.' == p)
@@ -22,7 +22,7 @@ void numberMather(wint_t p, LexMather *mather){
             else if (mather->status == LEXMATHER_START)
                 mather->status = LEXMATHER_ING_1;
         }
-        else if(mather->status == LEXMATHER_ING_1 || mather->status == LEXMATHER_ING_2){
+        else if(mather->status == LEXMATHER_ING_1 || mather->status == LEXMATHER_ING_2){  // LEXMATHER_ING_2: 小数匹配
             if (iswalpha(p) || L'_' == p){
                 mather->second_str = memWideCharcpy(mather->second_str, 1, true, true, p);
                 mather->status = LEXMATHER_ING_3;
@@ -73,7 +73,7 @@ void varMather(wint_t p, LexMather *mather){
  * @param p
  * @param mather
  */
-void stringMather(wint_t p, LexMather *mather){
+void stringMather(wint_t p, LexMather *mather, LexFile *file){
     if (mather->status == LEXMATHER_START)
         if (L'\"' == p || L'\'' == p){
             mather->status = LEXMATHER_ING_1;
@@ -84,11 +84,12 @@ void stringMather(wint_t p, LexMather *mather){
     else if (mather->status == LEXMATHER_ING_1)
         if (mather->string_type == p)
             mather->status = LEXMATHER_ING_4;
-        else if (L'\\' == p && mather->string_type == '\'')  // 双引号为无转义字符串
+        else if (L'\\' == p)
             mather->status = LEXMATHER_ING_5;
-        else if (WEOF == p)
+        else if (WEOF == p) {
+            file->errsyntax = L"stringMather: don't get quotation marks at the end of string";
             mather->status = LEXMATHER_MISTAKE;
-        else{
+        } else{
             mather->str = memWideCharcpy(mather->str, 1, true, true, p);
             mather->len ++;
             mather->status = LEXMATHER_ING_1;
@@ -107,50 +108,62 @@ void stringMather(wint_t p, LexMather *mather){
             mather->status = LEXMATHER_END_1;
     else if (mather->status == LEXMATHER_ING_5){
         wint_t new = WEOF;
-        switch (p) {
-            case L'n':
-                new = L'\n';
-                break;
-            case L't':
-                new = L'\t';
-                break;
-            case L'b':
-                new = L'\b';
-                break;
-            case L'a':
-                new = L'\a';
-                break;
-            case L'r':
-                new = L'\r';
-                break;
-            case L'\'':
-                new = L'\'';
-                break;
-            case L'"':
-                new = L'"';
-                break;
-            case L'\\':
-                new = L'\\';
-                break;
-            case L'[':
-                mather->status = LEXMATHER_ING_6;
-                break;
-            default :
-            case L'0':
-                mather->status = LEXMATHER_MISTAKE;
-                break;
-        }
-        if (new != WEOF) {
-            mather->str = memWideCharcpy(mather->str, 1, true, true, new);
+        if (mather->string_type == '\'') {
+            switch (p) {
+                case L'n':
+                    new = L'\n';
+                    break;
+                case L't':
+                    new = L'\t';
+                    break;
+                case L'b':
+                    new = L'\b';
+                    break;
+                case L'a':
+                    new = L'\a';
+                    break;
+                case L'r':
+                    new = L'\r';
+                    break;
+                case L'\'':
+                    new = L'\'';
+                    break;
+                case L'"':
+                    new = L'"';
+                    break;
+                case L'\\':
+                    new = L'\\';
+                    break;
+                case L'[':
+                    mather->status = LEXMATHER_ING_6;
+                    break;
+                default :
+                case L'0':
+                    file->errsyntax = L"stringMather: don't support \\0";
+                    mather->status = LEXMATHER_MISTAKE;
+                    break;
+            }
+            if (new != WEOF) {
+                mather->str = memWideCharcpy(mather->str, 1, true, true, new);
+                mather->status = LEXMATHER_ING_1;
+                mather->len++;
+            }
+        } else {  // 双引号为无转义字符串 (只转义双引号)
+            if (p != '"') {
+                mather->str = memWideCharcpy(mather->str, 1, true, true, '\\');
+                mather->len++;
+            }
+            mather->str = memWideCharcpy(mather->str, 1, true, true, p);
+            mather->len++;
             mather->status = LEXMATHER_ING_1;
-            mather->len ++;
         }
     }
     else if (mather->status == LEXMATHER_ING_6)
         if (p == L']')
-            if (mather->ascii <= 0)
+            if (mather->ascii <= 0) {
                 mather->status = LEXMATHER_MISTAKE;
-            else {
+                file->errsyntax = L"stringMather: error ascii <= 0";
+            } else {
                 mather->str = memWideCharcpy(mather->str, 1, true, true, (char)mather->ascii);
                 mather->status = LEXMATHER_ING_1;
                 mather->len ++;
@@ -159,10 +172,14 @@ void stringMather(wint_t p, LexMather *mather){
             wchar_t num_[2] = {(wchar_t)p, 0};
             int num = (int)wcstol(num_, NULL, 10);  // ascii不大于127, 使用int即可
             mather->ascii = (mather->ascii * 10) + num;
-            if (mather->ascii > 127)
+            if (mather->ascii > 127) {
+                file->errsyntax = L"stringMather: error ascii > 127";
                 mather->status = LEXMATHER_MISTAKE;
-        } else
+            }
+        } else {
             mather->status = LEXMATHER_MISTAKE;
+            file->errsyntax = L"stringMather: no support from ascii";
+        }
     else
         mather->status = LEXMATHER_MISTAKE;
 }
@@ -305,13 +322,15 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         p = readChar(file);
         if (pm_KeyInterrupt == signal_appear) {
             pm_KeyInterrupt = signal_check;
+            file->errsyntax = L"singal KeyInterrupt";
             return -3;
         }
 
+        file->errsyntax = NULL;
         numberMather(p ,mathers->mathers[MATHER_NUMBER]);
         varMather(p ,mathers->mathers[MATHER_VAR]);
         spaceMather(p ,mathers->mathers[MATHER_SPACE]);
-        stringMather(p, mathers->mathers[MATHER_STRING]);
+        stringMather(p, mathers->mathers[MATHER_STRING], file);
         backslashMather(p, mathers->mathers[MATHER_NOTENTER]);
         commentMather(p, mathers->mathers[MATHER_COMMENT]);
         aCharMather(p, mathers->mathers[MATHER_ENTER], '\n');
@@ -436,6 +455,6 @@ Token *getToken(LexFile *file, LexMathers *mathers) {
     while ((filter = lexFilter(file, status)) == -1);
 
     if (status == -2 || status == -3)
-        return makeLexToken(status, NULL, NULL, file->line);
+        return makeLexToken(status, file->errsyntax, NULL, file->line);
     return makeLexToken(filter, mathers->mathers[status]->str, mathers->mathers[status]->second_str, file->line);
 }

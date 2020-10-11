@@ -15,6 +15,7 @@ struct LexFile{
         int enter;  // 若计数为0则不忽略enter
     } filter_data;
     long int line;
+    wchar_t *errsyntax;
 };
 
 struct LexMather{
