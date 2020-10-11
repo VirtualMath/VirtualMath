@@ -36,12 +36,12 @@ ResultType objectRepoStrCore(O_FUNC, bool is_repo){
     freeResult(result);
 
     if (name_value != NULL){
-        gc_addTmpLink(&name_value->gc_status);
-        name = getRepoStr(name_value, is_repo, LINEFILE, CNEXT_NT);
-        gc_freeTmpLink(&name_value->gc_status);
-        if (!CHECK_RESULT(result))
+        if (name_value->value->type == V_str)
+            name = name_value->value->data.str.str;
+        else {
+            setResultError(E_TypeException, ONLY_ACC(obj.__name__, str), LINEFILE, true, CNEXT_NT);
             return result->type;
-        freeResult(result);
+        }
     } else
         name = L"unknown";
 
@@ -50,11 +50,11 @@ ResultType objectRepoStrCore(O_FUNC, bool is_repo){
     } else {
         size_t len;
         if (ap[0].value->value->type == V_class)
-            type = L"V_class";
+            type = L"class";
         else
             type = L"object";
         len = memWidelen(name) + 30;
-        repo = memCalloc(len, sizeof(char ));
+        repo = memWide(len);
         swprintf(repo, len, L"(%ls: %ls on %p)", type, name, ap[0].value->value);
     }
 

@@ -412,7 +412,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
         goto error_;
     if (setting) {
         freeResult(result);
-        newObjectSetting(value, name->line, name->code_file, value, result, inter, var_list);
+        newObjectSetting(name_, name->line, name->code_file, value, result, inter, var_list);
         if (!CHECK_RESULT(result))
             goto error_;
     }

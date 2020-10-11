@@ -40,7 +40,7 @@ ResultType str_init(O_FUNC){
         memFree(base->value->data.str.str);
         base->value->data.str.str = memWidecpy(str);
     }
-    setResultBase(result, inter);
+    setResult(result, inter);
     return result->type;
 }
 
@@ -97,7 +97,7 @@ ResultType str_down(O_FUNC){
                            {.must=-1}};
     vint size;
     vint index;
-    wchar_t element[2];  // TODO-szh 设置为空
+    wchar_t element[2] = { NUL };
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -141,7 +141,7 @@ ResultType str_to_list(O_FUNC){
     {
         Argument *new_list = NULL;
         for (vint i = 0; i < size; i ++) {
-            wchar_t str[2] = { NUL };  // TODO-szh 设置为空
+            wchar_t str[2] = { NUL };
             str[0] = ap[0].value->value->data.str.str[i];
             makeStringValue(str, LINEFILE, CNEXT_NT);
             new_list = connectValueArgument(result->value, new_list);
