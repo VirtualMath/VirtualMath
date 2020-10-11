@@ -2,7 +2,7 @@
 #define VIRTUALMATH_MACRO_H
 
 #include <stdio.h>
-#include "errno.h"
+#include <errno.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include <locale.h>
 #include <getopt.h>
 #include <unistd.h>
-#include <ffi.h>
+#include "ffi.h"
 
 #ifdef __linux__
 #include <dlfcn.h>
