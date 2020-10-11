@@ -71,7 +71,7 @@ ResultType listiter_next(O_FUNC){
     getElement(list_, index, LINEFILE, CNEXT_NT);
     if (!CHECK_RESULT(result))
         if (is_indexException(result->value, inter))
-            setResultError(E_StopIterException, L"Stop Iter", LINEFILE, true, CNEXT_NT);
+            setResultError(E_StopIterException, L"stop iter", LINEFILE, true, CNEXT_NT);
         else
             return result->type;
     else {

@@ -152,6 +152,7 @@ ResultType callBack(FUNC) {
     result->value = NULL;
     freeResult(result);
     callBackCorePt(function_value, st->u.call_function.parameter, st->line, st->code_file, CNEXT_NT);
+    setResultErrorSt(E_BaseException, NULL, false, st, CNEXT_NT);  // 显式执行函数才进行错误回溯
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }
@@ -421,7 +422,7 @@ static ResultType callFFunction(LinkValue *function_value, Argument *arg, long i
 
     setResultCore(result);
     if (function_value->value->data.function.function_data.cls->value->type != V_lib) {
-        setResultError(E_ArgumentException, (wchar_t *) L"C function source is not clear", line, file, true, CNEXT_NT);
+        setResultError(E_ArgumentException, (wchar_t *) L"c function source is not clear", line, file, true, CNEXT_NT);
         return R_error;
     }
 
@@ -571,7 +572,7 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, ch
         callClass(function_value, arg, line, file, pt_sep, CNEXT_NT);
     else
         callObject(function_value, arg, line, file, pt_sep, CNEXT_NT);
-    setResultError(E_BaseException, NULL, line, file, false, CNEXT_NT);
+    // callBackCore不执行错误回溯
 
     return_:
     gc_freeTmpLink(&function_value->gc_status);

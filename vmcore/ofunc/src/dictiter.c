@@ -25,7 +25,7 @@ ResultType dictiter_init(O_FUNC){
         if (!CHECK_RESULT(result))
             return result->type;
         if (keys == NULL){
-            setResultError(E_TypeException, L"Object non-key-value pairs (there is no keys method)", LINEFILE, true, CNEXT_NT);
+            setResultError(E_TypeException, L"object non-key-value pairs (there is no keys method)", LINEFILE, true, CNEXT_NT);
             return R_error;
         }
 
@@ -94,7 +94,7 @@ ResultType dictiter_next(O_FUNC){
     if (!CHECK_RESULT(result))
         return result->type;
     if (list_next == NULL){
-        setResultError(E_TypeException, L"Object is not iterable", LINEFILE, true, CNEXT_NT);
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(iter), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 

@@ -21,7 +21,7 @@ ResultType vm_super(O_FUNC){
             result->type = R_opt;
             gc_addTmpLink(&result->value->gc_status);
         } else
-            setResultError(E_SuperException, L"Object has no next father", LINEFILE, true, CNEXT_NT);
+            setResultError(E_SuperException, L"object has no next father", LINEFILE, true, CNEXT_NT);
         return result->type;
     }
 
@@ -39,7 +39,7 @@ ResultType vm_super(O_FUNC){
         gc_addTmpLink(&result->value->gc_status);
     }
     else
-        setResultError(E_SuperException, L"Object has no next father", LINEFILE, true, CNEXT_NT);
+        setResultError(E_SuperException, L"object has no next father", LINEFILE, true, CNEXT_NT);
 
     return result->type;
 }
@@ -132,7 +132,7 @@ ResultType vm_quit(O_FUNC){
     if (arg != NULL)
         setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
     else
-        setResultError(E_QuitException, L"VirtualMath Quit", LINEFILE, true, CNEXT_NT);
+        setResultError(E_QuitException, L"vmcore quit()", LINEFILE, true, CNEXT_NT);
     return R_error;
 }
 

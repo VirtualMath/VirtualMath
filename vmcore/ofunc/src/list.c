@@ -134,7 +134,7 @@ ResultType list_slice_assignment(O_FUNC){
             freeResult(result);
             getIter(iter_obj, 0, LINEFILE, CNEXT_NT);
             if (is_iterStop(result->value, inter)){
-                setResultError(E_TypeException, L"Iter Object Too Short", LINEFILE, true, CNEXT_NT);
+                setResultError(E_TypeException, L"iter Object Too Short", LINEFILE, true, CNEXT_NT);
                 goto return_;
             }
             else if (!CHECK_RESULT(result))
@@ -144,7 +144,7 @@ ResultType list_slice_assignment(O_FUNC){
         freeResult(result);
         getIter(iter_obj, 0, LINEFILE, CNEXT_NT);
         if (CHECK_RESULT(result)) {  // 若没有出现Exception
-            setResultError(E_TypeException, L"Iter Object Too Long", LINEFILE, true, CNEXT_NT);
+            setResultError(E_TypeException, L"iter Object Too Long", LINEFILE, true, CNEXT_NT);
             goto return_;
         } else if (!is_iterStop(result->value, inter))
             goto return_;
@@ -240,10 +240,10 @@ ResultType list_down_assignment(O_FUNC){
     if (index < 0)
         index = size + index;
     if (index >= size){
-        setResultError(E_IndexException, L"Index too max", LINEFILE, true, CNEXT_NT);
+        setResultError(E_IndexException, L"index too max", LINEFILE, true, CNEXT_NT);
         return R_error;
     } else if (index < 0){
-        setResultError(E_IndexException, L"Index less than 0", LINEFILE, true, CNEXT_NT);
+        setResultError(E_IndexException, L"index less than 0", LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     ap[0].value->value->data.list.list[index] = ap[1].value;

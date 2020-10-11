@@ -79,8 +79,7 @@ void freeLexFile(LexFile *file) {
         fclose(file->file);
     memFree(file->str);
     memFree(file);
-    return_:
-    return;
+    return_: return;
 }
 
 /**

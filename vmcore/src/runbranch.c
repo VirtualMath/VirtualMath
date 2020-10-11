@@ -170,7 +170,7 @@ ResultType ifBranch(FUNC) {
             finally = st->info.node;
         else {
             var_list = popVarList(var_list);
-            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CNEXT_NT);
+            setResultError(E_SystemException, L"yield info error", st->line, st->code_file, true, CNEXT_NT);
             return R_error;
         }
     } else {
@@ -303,7 +303,7 @@ ResultType whileBranch(FUNC) {
             finally = st->info.node;
         } else {
             var_list = popVarList(var_list);
-            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CNEXT_NT);
+            setResultError(E_SystemException, L"yield info error", st->line, st->code_file, true, CNEXT_NT);
             return R_error;
         }
     }
@@ -507,7 +507,7 @@ ResultType forBranch(FUNC) {
             finally = st->info.node;
         } else {
             var_list = popVarList(var_list);
-            setResultError(E_SystemException, L"Yield Info Error", st->line, st->code_file, true, CNEXT_NT);
+            setResultError(E_SystemException, L"yield info error", st->line, st->code_file, true, CNEXT_NT);
             return R_error;
         }
     }

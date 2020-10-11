@@ -64,7 +64,7 @@ ResultType file_init(O_FUNC){
         mode = memStrcpy("r");
 
     if (checkFileReadble(path) != 1) {
-        setResultError(E_TypeException, L"File is not readable", LINEFILE, true, CNEXT_NT);
+        setResultError(E_TypeException, L"file is not readable", LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     file->value->data.file.path = path;

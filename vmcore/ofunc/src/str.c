@@ -167,7 +167,7 @@ ResultType str_iter(O_FUNC){
     if (!CHECK_RESULT(result))
         return result->type;
     if (to_list == NULL){
-        setResultError(E_TypeException, L"String cannot be converted to list", LINEFILE, true, CNEXT_NT);
+        setResultError(E_TypeException, L"string cannot be converted to list", LINEFILE, true, CNEXT_NT);
         return R_error;
     }
     gc_addTmpLink(&to_list->gc_status);

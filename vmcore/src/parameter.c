@@ -664,7 +664,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 setResultError(E_ArgumentException, OBJ_NOTSUPPORT(**), line, file, true, CNEXT_NT);
                 goto return_;
             case error_unknown:
-                setResultError(E_ArgumentException, L"Argument Unknown Exception", line, file, true, CNEXT_NT);
+                setResultError(E_ArgumentException, L"argument Unknown Exception", line, file, true, CNEXT_NT);
                 goto return_;
             default:
                 goto break_;

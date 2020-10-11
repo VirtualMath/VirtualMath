@@ -3,16 +3,16 @@
 #include "__macro.h"
 
 // 标准错误信息定义
-#define INSTANCE_ERROR(class)  (wchar_t *) L"Instance error when calling func, call non-" L###class L" " L###class L" method"
+#define INSTANCE_ERROR(class)  (wchar_t *) L"instance error when calling func, call non-" L###class L" " L###class L" method"
 #define VALUE_ERROR(value, acc) (wchar_t *) L###value L" value is not a " L###acc L" (may be modified by an external program)"
 #define ONLY_ACC(var, value) (wchar_t *) L###var L" only accepts " L###value
 #define ERROR_INIT(class) (wchar_t *) L###class L" get wrong initialization parameters"
-#define MANY_ARG (wchar_t *) L"Too many parameters"
-#define FEW_ARG (wchar_t *) L"Too few parameters"
+#define MANY_ARG (wchar_t *) L"too many parameters"
+#define FEW_ARG (wchar_t *) L"too few parameters"
 #define CUL_ERROR(opt) (wchar_t *) L###opt L" operation gets incorrect value"
-#define OBJ_NOTSUPPORT(opt) (wchar_t *) L"Object does not support " L###opt L" operation"
+#define OBJ_NOTSUPPORT(opt) (wchar_t *) L"object does not support " L###opt L" operation"
 #define RETURN_ERROR(func, type) (wchar_t *) L###func L" func should return " L###type L" type data"
-#define KEY_INTERRUPT (wchar_t *) L"KeyInterrupt"
+#define KEY_INTERRUPT (wchar_t *) L"keyInterrupt"
 
 typedef struct Argument Argument;
 typedef struct Inter Inter;

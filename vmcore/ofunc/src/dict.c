@@ -13,7 +13,7 @@ ResultType dict_new(O_FUNC){
     }
 
     if (arg != NULL && arg->type == value_arg) {
-        setResultError(E_ArgumentException, L"Too many argument", LINEFILE, true, CNEXT_NT);
+        setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
