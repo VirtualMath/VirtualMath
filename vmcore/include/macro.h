@@ -2,6 +2,9 @@
 #define VIRTUALMATH_MACRO_H
 
 #include <stdio.h>
+#include <inttypes.h>
+#include <stdint.h>
+
 #include <errno.h>
 #include <math.h>
 #include <string.h>
@@ -16,14 +19,9 @@
 #include <locale.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <dlfcn.h>
 #include "ffi.h"
 
-#ifdef __linux__
-#include <dlfcn.h>
-#else
-#include <windows.h>
-#include "win/dlfcn_win32.h"
-#endif
 
 // 布尔逻辑的定义
 #define bool int

@@ -264,7 +264,7 @@ static bool makeFFIReturn(enum ArgumentFFIType af, void **re_v) {
         case af_usint:
         case af_uint:
         case af_ulint:
-            *re_v = memCalloc(1, sizeof(u_int64_t));  // 无论是int32或者是int64，都申请int64_t的内存 (否则libffi会提升类型，导致内存溢出)
+            *re_v = memCalloc(1, sizeof(uint64_t));  // 无论是int32或者是int64，都申请int64_t的内存 (否则libffi会提升类型，导致内存溢出)
             break;
 
         case af_char:
@@ -303,7 +303,7 @@ static bool FFIReturnValue(enum ArgumentFFIType aft, void *re_v, fline line, cha
         case af_usint:
         case af_uint:
         case af_ulint:
-            makeIntValue((vint)*(u_int64_t *)re_v, line, file, CNEXT_NT);  // 先以(int64_t)读取void *类型的数据, 再转换成(vint)类型 (避免大端和小端模式的行为不同)
+            makeIntValue((vint)*(uint64_t *)re_v, line, file, CNEXT_NT);  // 先以(int64_t)读取void *类型的数据, 再转换成(vint)类型 (避免大端和小端模式的行为不同)
             break;
 
         case af_sint:

@@ -995,11 +995,11 @@ break
 static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
     switch (af->type[i]) {
         setFFIArgFromTypeNumber(af_sint, int16_t);
-        setFFIArgFromTypeNumber(af_usint, u_int16_t);
+        setFFIArgFromTypeNumber(af_usint, uint16_t);
         setFFIArgFromTypeNumber(af_int, int32_t);
-        setFFIArgFromTypeNumber(af_uint, u_int32_t);
+        setFFIArgFromTypeNumber(af_uint, uint32_t);
         setFFIArgFromTypeNumber(af_lint, int64_t);
-        setFFIArgFromTypeNumber(af_ulint, u_int64_t);
+        setFFIArgFromTypeNumber(af_ulint, uint64_t);
 
         setFFIArgFromTypeNumber(af_float, float);
         setFFIArgFromTypeNumber(af_ldouble, long double);
@@ -1024,7 +1024,7 @@ static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
         break;
 
         setFFIArgFromTypeChar(af_char, int8_t);
-        setFFIArgFromTypeChar(af_uchar, u_int8_t);
+        setFFIArgFromTypeChar(af_uchar, uint8_t);
 
         case af_str:
             af->arg_v[i] = memCalloc(1, sizeof(char *));  // af->arg_v是ffi_type **arg_v, 即 *arg_v[]
