@@ -1,12 +1,8 @@
 #include "hellovm.h"
 
 char *HelloString = "Welcome To VirtualMath ("__TIME__", "__DATE__") \n"
-#ifdef __linux__
-                    "On Linux ("CC")\n"
-#else
-                    "On windows ("CC")\n"
-#endif
-                    "VirtualMath Command Line Mode\n";
+                    "On "SYS" ("CC")\n"
+                    "VirtualMath Command Line Mode (CLI: hellovm)\n";
 
 static const struct option long_option[]={
         {"stderr",required_argument,NULL,'o'},
