@@ -231,5 +231,5 @@ gen
 /Demo
 vgcore.*
 .vs
-/bin
-/lib
+/bin*
+/lib*
