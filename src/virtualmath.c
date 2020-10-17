@@ -10,11 +10,7 @@ void runCodeFile(Inter *inter, char *file[]) {
         if ((status = checkFileReadble((*file))) == 3)
             continue;
         else if (status == 2) {
-#if __linux__
-            *file = memStrcat(*file, (*file)[memStrlen(*file) - 1] != '/' ? "/__main__.vm" : "__main__.vm", false, false);
-#else
-            *file = memStrcat(*file, ((*file)[memStrlen(*file) - 1] != '\\' ? "\\__main__.vm" : "__main__.vm"), false, false);
-#endif
+            *file = memStrcat(*file, ((*file)[memStrlen(*file) - 1] != SEP_CH ? SEP"__main__.vm" : "__main__.vm"), false, false);
             if (checkFileReadble(*file) != 1)
                 continue;
         }

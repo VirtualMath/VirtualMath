@@ -27,6 +27,14 @@
 
 #define LINEFILE __LINE__, __FILE__
 
+#ifdef __linux__
+#define SEP "/"
+#define SEP_CH '/'
+#else
+#define SEP "\\"
+#define SEP_CH '\\'
+#endif
+
 #define MD5_SIZE (16)
 #define MD5_STR_LEN (MD5_SIZE * 2)
 #define MD5_STRING (MD5_STR_LEN + 1)
@@ -35,7 +43,5 @@ typedef long long vint;
 typedef long double vdou;
 typedef unsigned long long vhashn;
 typedef unsigned long long fline;
-
-//#define again___
 
 #endif //VIRTUALMATH___MACRO_H

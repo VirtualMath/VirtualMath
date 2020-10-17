@@ -25,21 +25,11 @@ char *splitDir(char * dir){
     char *point = NULL;
     char *return_char = NULL;
 
-#ifdef __unix__
-    if (dir[memStrlen(dir) - 1] == '/')
-#else
-    if (dir[memStrlen(dir) - 1] == '\\')  // TODO-szh 设置 sep
-#endif  // __unix__
-    { dir[memStrlen(dir) - 1] = NUL; }
+    if (dir[memStrlen(dir) - 1] == SEP_CH)
+        dir[memStrlen(dir) - 1] = NUL;
 
-    if (
-#ifdef __unix__
-    (slash = strrchr(dir, '/'))  == NULL
-#else
-    (slash = strchr(dir, '\\'))  == NULL
-#endif  // __unix__
-    )
-    { slash = dir; }
+    if ((slash = strrchr(dir, SEP_CH))  == NULL)
+        slash = dir;
     else
         slash ++;
 

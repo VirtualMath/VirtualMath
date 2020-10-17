@@ -35,15 +35,9 @@ static bool isExist(char **path, bool is_ab, char *file) {
         if (status == 2) {
             if (file == NULL)
                 return false;
-#if __linux__
-            if ((*path)[memStrlen(*path) - 1] != '/')
-                *path = memStrcat(*path, "/", true, false);
+            if ((*path)[memStrlen(*path) - 1] != SEP_CH)
+                *path = memStrcat(*path, SEP, true, false);
             *path = memStrcat(*path, file, true, false);
-#else
-            if ((*path)[memStrlen(*path) - 1] != '\\')
-                *path = memStrcat(*path, "\\", true, false);
-            *path = memStrcat(*path, file, true, false);
-#endif
             return isExist(path, false, NULL);
         } else
             return true;
@@ -74,11 +68,7 @@ int checkFileDir(char **file_dir, FUNC) {
         char arr_cwd[200];
         char *p_cwd = NULL;
         getcwd(arr_cwd, 200);
-#ifdef __linux__
-        p_cwd = memStrcatIter(arr_cwd, false, "/", *file_dir, NULL);
-#else
-        p_cwd = memStrcatIter(arr_cwd, false, "\\", *file_dir);
-#endif
+        p_cwd = memStrcatIter(arr_cwd, false, SEP, *file_dir);
         if (isExist(&p_cwd, false, "__init__.vm")) {
             memFree(*file_dir);
             *file_dir = p_cwd;
@@ -90,13 +80,8 @@ int checkFileDir(char **file_dir, FUNC) {
     path: {
     char *path = memStrcpy(getenv("VIRTUALMATHPATH"));
     for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
-#ifdef __linux__
-        if (*(tmp + (memStrlen(tmp) - 1)) != '/')
-            new_dir = memStrcatIter(tmp, false, "/", *file_dir, NULL);
-#else
-            if (*(tmp + (memStrlen(tmp) - 1)) != '\\')
-                new_dir = memStrcatIter(tmp, false, "\\", *file_dir);
-#endif
+        if (*(tmp + (memStrlen(tmp) - 1)) != SEP_CH)
+            new_dir = memStrcatIter(tmp, false, SEP, *file_dir);
         else
             new_dir = memStrcat(tmp, *file_dir, false, false);
 
