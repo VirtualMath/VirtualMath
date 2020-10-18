@@ -192,8 +192,8 @@ ResultType ifBranch(FUNC) {
         if (ifBranchSafeInterStatement(CFUNC(else_st, var_list, result, belong))) {
             set_result = false;
             result_from = info_else_branch;
-        }
-        freeResult(result);
+        } else
+            freeResult(result);
     }
 
     if (finally != NULL && !runFinally(set_result, ifBranchSafeInterStatement, finally, CNEXT_NT)) {
@@ -867,9 +867,9 @@ ResultType tryBranch(FUNC) {
                     result_from = info_vl_branch;
                     except_list = NULL;
                     else_st = NULL;
-                }
+                } else
+                    freeResult(result);
                 gc_freeTmpLink(&error_value->gc_status);
-                freeResult(result);
             }
         } else
             freeResult(result);
@@ -884,8 +884,8 @@ ResultType tryBranch(FUNC) {
             if (!CHECK_RESULT(result)) {
                 set_result = false;
                 else_st = NULL;
-            }
-            freeResult(result);
+            } else
+                freeResult(result);
         }
         info_vl = except_list->code;
     }

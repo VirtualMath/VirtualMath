@@ -48,6 +48,9 @@ ResultType runStatement(FUNC) {
             break;
         case if_branch:
             type = ifBranch(CNEXT);
+            if (result->value == NULL) {
+                printf("It is NULL\n");
+            }
             break;
         case while_branch:
             type = whileBranch(CNEXT);
