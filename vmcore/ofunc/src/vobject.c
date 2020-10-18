@@ -120,11 +120,9 @@ void vobject_pow_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
         return;
     }
-    if (errno != 0) {
-        wchar_t *err = memStrToWcs(strerror(errno), false);
-        setResultError(E_TypeException, err, LINEFILE, true, CNEXT_NT);  // TODO-szh 设置计算错误
-        memFree(err);
-    } else
+    if (errno != 0)
+        setResultFromERR(E_TypeException, CNEXT_NT);  // TODO-szh 设置计算错误
+    else
         makeDouValue(re, LINEFILE, CNEXT_NT);
 }
 

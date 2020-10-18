@@ -250,6 +250,7 @@ void setResultCore(Result *ru);
 void setResult(Result *ru, Inter *inter);
 void setResultBase(Result *ru, Inter *inter);
 void setResultErrorSt(BaseErrorType type, wchar_t *error_message, bool new, FUNC);
+void setResultFromERR(enum BaseErrorType exc, FUNC_NT);
 void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char *file, bool new, FUNC_NT);
 void setResultOperationNone(Result *ru, Inter *inter, LinkValue *belong);
 void setResultOperation(Result *ru, LinkValue *value);

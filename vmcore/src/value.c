@@ -75,10 +75,10 @@ Value *makeIntValue(vint num, fline line, char *file, FUNC_NT) {
 Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-//    if (isnanl(num) || isinfl(num)) {
-//        setResultError(E_TypeException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
-//        return NULL;
-//    }
+    if (isnanl(num) || isinfl(num)) {
+        setResultError(E_TypeException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
+        return NULL;
+    }
     callBackCore(inter->data.base_obj[B_DOU], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
@@ -338,8 +338,10 @@ void setResultErrorSt(BaseErrorType type, wchar_t *error_message, bool new, Stat
     setResultError(type, error_message, st->line, st->code_file, new, CNEXT_NT);
 }
 
-LinkValue *findBaseError(BaseErrorType type, Inter *inter){  // TODO-szh 撤销该函数
-    return inter->data.base_exc[type];
+void setResultFromERR(enum BaseErrorType exc, FUNC_NT) {
+    wchar_t *err = memStrToWcs(strerror(errno), false);
+    setResultError(exc, err, LINEFILE, true, CNEXT_NT);
+    memFree(err);
 }
 
 static wchar_t *getErrorInfo(LinkValue *exc, int type, FUNC_NT){
@@ -416,7 +418,7 @@ void setResultError(BaseErrorType type, wchar_t *error_message, fline line, char
     if (!new && result->type != R_error)
         return;
     if (new) {
-        LinkValue *exc = findBaseError(type, inter);
+        LinkValue *exc = inter->data.base_exc[type];
         if (exc == NULL)
             exc = inter->data.base_exc[E_BaseException];
         freeResult(result);
