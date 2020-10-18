@@ -140,6 +140,31 @@ ResultType vm_open(O_FUNC){
     return callBackCore(inter->data.base_obj[B_FILE], arg, LINEFILE, 0, CNEXT_NT);
 }
 
+ResultType vm_setAssert(O_FUNC, enum AssertRunType type){
+    LinkValue *function_value = NULL;
+    setResultCore(result);
+    if (arg != NULL) {
+        setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    inter->data.assert_run = type;
+    setResult(result, inter);
+    return result->type;
+}
+
+ResultType vm_assertignore(O_FUNC){
+    return vm_setAssert(CO_FUNC(arg, var_list, result, belong), assert_ignore);
+}
+
+ResultType vm_assertrun(O_FUNC){
+    return vm_setAssert(CO_FUNC(arg, var_list, result, belong), assert_run);
+}
+
+ResultType vm_assertraise(O_FUNC){
+    return vm_setAssert(CO_FUNC(arg, var_list, result, belong), assert_raise);
+}
+
 ResultType vm_exec(O_FUNC){
     ArgumentParser ap[] = {{.type=name_value, .name=L"cm", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"var", .must=0, .long_arg=false},
@@ -241,6 +266,9 @@ void registeredSysFunction(R_FUNC){
                       {L"quit", vm_quit, free_},
                       {L"exec", vm_exec, free_},
                       {L"open", vm_open, free_},
+                      {L"assert_ignore", vm_assertignore, free_},
+                      {L"assert_run", vm_assertrun, free_},
+                      {L"assert_raise", vm_assertraise, free_},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }

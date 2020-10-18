@@ -1058,7 +1058,13 @@ ResultType raiseCode(FUNC){
 ResultType assertCode(FUNC){
     bool result_;
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(st->u.raise_code.value, var_list, result, belong)))
+
+    if (inter->data.assert_run == assert_ignore) {  // 不执行断言
+        setResult(result, inter);
+        return result->type;
+    }
+
+    if (operationSafeInterStatement(CFUNC(st->u.raise_code.value, var_list, result, belong)) || inter->data.assert_run == assert_run)
         return result->type;
 
     result_ = checkBool(result->value, st->line, st->code_file, CNEXT_NT);

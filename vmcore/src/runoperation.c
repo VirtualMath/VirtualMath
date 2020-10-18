@@ -721,9 +721,7 @@ ResultType operationCore(FUNC, wchar_t *name) {
 
     if (getLeftRightValue(&left, &right, CNEXT))  // 不需要释放result
         return result->type;
-
     runOperationFromValue(left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
-
 
     freeResult(&left);
     freeResult(&right);

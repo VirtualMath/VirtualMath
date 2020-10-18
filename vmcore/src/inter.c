@@ -118,6 +118,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.default_pt_type = free_;
     inter->data.var_max = 100;
     inter->data.var_deep = 3;
+    inter->data.assert_run = assert_raise;
 }
 
 void freeBaseInterData(struct Inter *inter){

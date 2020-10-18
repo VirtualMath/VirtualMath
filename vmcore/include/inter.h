@@ -114,6 +114,11 @@ struct Inter{
         int default_pt_type;
         size_t var_max;
         int var_deep;
+        enum AssertRunType {
+            assert_ignore,  // 忽略一切
+            assert_run,  // 仅执行
+            assert_raise,  // 执行并生效
+        } assert_run;
     } data;
 };
 
