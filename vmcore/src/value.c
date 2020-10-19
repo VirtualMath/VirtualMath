@@ -75,7 +75,7 @@ Value *makeIntValue(vint num, fline line, char *file, FUNC_NT) {
 Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    if (isnanl(num) || isinfl(num)) {
+    if (isnan(num) || isinf(num)) {
         setResultError(E_TypeException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
         return NULL;
     }

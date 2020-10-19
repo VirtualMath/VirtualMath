@@ -44,4 +44,5 @@ typedef long double vdou;
 typedef unsigned long long vhashn;
 typedef unsigned long long fline;
 
+
 #endif //VIRTUALMATH___MACRO_H

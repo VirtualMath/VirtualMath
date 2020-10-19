@@ -1057,6 +1057,7 @@ ResultType raiseCode(FUNC){
 
 ResultType assertCode(FUNC){
     bool result_;
+    LinkValue *opt;
     setResultCore(result);
 
     if (inter->data.assert_run == assert_ignore) {  // 不执行断言
@@ -1067,7 +1068,12 @@ ResultType assertCode(FUNC){
     if (operationSafeInterStatement(CFUNC(st->u.raise_code.value, var_list, result, belong)) || inter->data.assert_run == assert_run)
         return result->type;
 
-    result_ = checkBool(result->value, st->line, st->code_file, CNEXT_NT);
+    opt = result->value;  // TODO-szh封装为宏
+    result->value = NULL;
+    freeResult(result);
+
+    result_ = checkBool(opt, st->line, st->code_file, CNEXT_NT);
+    gc_freeTmpLink(&opt->gc_status);
     if (!CHECK_RESULT(result))
         return result->type;
     else if (result_)
