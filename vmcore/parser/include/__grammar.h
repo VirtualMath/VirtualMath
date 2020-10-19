@@ -53,24 +53,16 @@ void parserDecoration(P_FUNC);
 void parserVarControl(P_FUNC);
 
 void syntaxError(ParserMessage *pm, int status,long int line , int num, ...);
-
 int readBackToken(ParserMessage *pm);
 bool checkToken(ParserMessage *pm, int type);
-
 bool commandCallControl_(P_FUNC, MakeControlFunction callBack, int type, Statement **st, bool must_operation, char *error_message);
-
 bool callParserCode(P_FUNC, Statement **st, char *message, long int line);
 bool callParserAs(P_FUNC, Statement **st, char *message);
 bool callChildStatement(P_FUNC, PasersFunction callBack, int type, Statement **st, char *message);
-bool callChildToken(P_FUNC, PasersFunction callBack, int type, Token **tmp, char *message,
-                    int error_type);
-
-bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict,
-                     int sep, int ass, int n_sep);
-
+bool callChildToken(P_FUNC, PasersFunction callBack, int type, Token **tmp, char *message, int error_type);
+bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict, int sep, int ass, int n_sep);
 void twoOperation(P_FUNC, PasersFunction callBack, GetSymbolFunction getSymbol, ChecktLeftToken checkleft,
                   int call_type, int self_type, char *call_name, char *self_name, bool is_right);
-
 void lexEnter(ParserMessage *pm, bool lock);
 
 #endif //VIRTUALMATH___GRAMMAR_H

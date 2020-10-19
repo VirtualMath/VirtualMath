@@ -336,39 +336,39 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         aCharMather(p, mathers->mathers[MATHER_ENTER], '\n');
         aCharMather(p, mathers->mathers[MATHER_EOF], WEOF);
 
-        strMatherMacro(MATHER_IF, "if");  // 条件判断
-        strMatherMacro(MATHER_ELIF, "elif");  // 条件循环
-        strMatherMacro(MATHER_WHILE, "while");  // 条件循环
-        strMatherMacro(MATHER_FOR, "for");  // 遍历
-        strMatherMacro(MATHER_IN, "in");  // 定义类
-        strMatherMacro(MATHER_TRY, "try");  // 定义函数
-        strMatherMacro(MATHER_EXCEPT, "except");  // 定义表达式(匿名函数)
-        strMatherMacro(MATHER_AS, "as");  // 异常捕获
-        strMatherMacro(MATHER_WITH, "with");  // 异常捕获
-        strMatherMacro(MATHER_DO, "do");  // 捕获
-        strMatherMacro(MATHER_ELSE, "else");  // 捕获
-        strMatherMacro(MATHER_FINALLY, "finally");  // 条件分支
-        strMatherMacro(MATHER_DEFAULT, "default");  // 条件-否则
-        strMatherMacro(MATHER_GLOBAL, "global");  // 结束分支
-        strMatherMacro(MATHER_NONLOCAL, "nonlocal");  // 结束分支
+        strMatherMacro(MATHER_IF, "if");
+        strMatherMacro(MATHER_ELIF, "elif");
+        strMatherMacro(MATHER_WHILE, "while");
+        strMatherMacro(MATHER_FOR, "for");
+        strMatherMacro(MATHER_IN, "in");
+        strMatherMacro(MATHER_TRY, "try");
+        strMatherMacro(MATHER_EXCEPT, "catch");
+        strMatherMacro(MATHER_AS, "as");
+        strMatherMacro(MATHER_WITH, "with");
+        strMatherMacro(MATHER_DO, "do");
+        strMatherMacro(MATHER_ELSE, "else");
+        strMatherMacro(MATHER_FINALLY, "end");
+        strMatherMacro(MATHER_DEFAULT, "level");
+        strMatherMacro(MATHER_GLOBAL, "global");
+        strMatherMacro(MATHER_NONLOCAL, "nlocal");
 
-        strMatherMacro(MATHER_PUBLIC, "public");  // 结束分支
-        strMatherMacro(MATHER_PROTECT, "protect");  // break跳出分支(循环、条件等)
-        strMatherMacro(MATHER_PRIVATE, "private");
+        strMatherMacro(MATHER_PUBLIC, "pub");
+        strMatherMacro(MATHER_PROTECT, "pro");
+        strMatherMacro(MATHER_PRIVATE, "pri");
 
         strMatherMacro(MATHER_TRUE, "true");
         strMatherMacro(MATHER_FALSE, "false");
         strMatherMacro(MATHER_NULL, "null");
 
-        strMatherMacro(MATHER_DEF, "def");
+        strMatherMacro(MATHER_DEF, "fun");
         strMatherMacro(MATHER_CLASS, "class");
-        strMatherMacro(MATHER_BLOCK, "block");
+        strMatherMacro(MATHER_BLOCK, "code");
         strMatherMacro(MATHER_BREAK, "break");
         strMatherMacro(MATHER_CONTINUE, "continue");
-        strMatherMacro(MATHER_REGO, "rego");
+        strMatherMacro(MATHER_REGO, "fall");
         strMatherMacro(MATHER_RESTART, "restart");
         strMatherMacro(MATHER_RETURN, "return");
-        strMatherMacro(MATHER_YIELD, "yield");
+        strMatherMacro(MATHER_YIELD, "pause");
         strMatherMacro(MATHER_IMPORT, "import");
         strMatherMacro(MATHER_INCLUDE, "include");
 
@@ -415,12 +415,12 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         charMatherMacro(MATHER_SEMICOLON, ';');
 
         strMatherMacro(MATHER_LINK, "->");
-        strMatherMacro(MATHER_RAISE, "raise");
+        strMatherMacro(MATHER_RAISE, "throw");
         strMatherMacro(MATHER_FROM, "from");
-        strMatherMacro(MATHER_ASSERT, "assert_");
-        strMatherMacro(MATHER_LAMBDA, "lambda");
+        strMatherMacro(MATHER_ASSERT, "assert");
+        strMatherMacro(MATHER_LAMBDA, "def");
         strMatherMacro(MATHER_GOTO, "goto");
-        strMatherMacro(MATHER_LABEL, "label");
+        strMatherMacro(MATHER_LABEL, "mark");
         strMatherMacro(MATHER_PASSVALUE, "...");
         strMatherMacro(MATHER_DEL, "del");
 
