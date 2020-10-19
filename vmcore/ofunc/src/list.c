@@ -110,9 +110,7 @@ ResultType list_slice_assignment(O_FUNC){
     getIter(ap[1].value, 1, LINEFILE, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
-    iter_obj = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(iter_obj, result);
 
     first = 0;
     second = size;

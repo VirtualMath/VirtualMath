@@ -33,17 +33,14 @@ ResultType dictiter_init(O_FUNC){
         freeResult(result);
         callBackCore(keys, NULL, LINEFILE, 0, CNEXT_NT);
         gc_freeTmpLink(&keys->gc_status);
-        if (!CHECK_RESULT(result)) {
+        if (!CHECK_RESULT(result))
             return R_error;
-        }
-        list = result->value;
-        result->value = NULL;
+        GET_RESULT(list, result);
 
         listiter_class = inter->data.base_obj[B_LISTITER];
         gc_addTmpLink(&listiter_class->gc_status);
 
         list_arg = makeValueArgument(list);
-        freeResult(result);
         callBackCore(listiter_class, list_arg, LINEFILE, 0,
                      CNEXT_NT);
         freeArgument(list_arg, true);
@@ -54,9 +51,7 @@ ResultType dictiter_init(O_FUNC){
             return R_error;
         }
 
-        list_iter = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(list_iter, result);
         gc_freeTmpLink(&list->gc_status);
         gc_freeTmpLink(&listiter_class->gc_status);
     }

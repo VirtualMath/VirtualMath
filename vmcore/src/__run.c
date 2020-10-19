@@ -348,10 +348,7 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
     makeStringValue(name, line, file, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto return_;
-
-    name_ = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(name_, result);
     addStrVarCore(setting, var_name, name_, line, file, NULL, CFUNC_NT(var_list, result, value));
     gc_freeTmpLink(&name_->gc_status);
 
@@ -384,10 +381,7 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
     makeStringValue(name, line, file, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto return_;
-
-    name_ = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(name_, result);
 
     gc_freeze(inter, var_list, belong->value->object.var, true);
     addStrVarCore(false, var_name, name_, line, file, var_list, CFUNC_NT(belong->value->object.var, result, value));

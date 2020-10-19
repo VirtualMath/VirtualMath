@@ -14,6 +14,9 @@
 #define RETURN_ERROR(func, type) (wchar_t *) L###func L" func should return " L###type L" type data"
 #define KEY_INTERRUPT (wchar_t *) L"keyInterrupt"
 
+#define GET_RESULT(val, res) do {(val) = (res)->value; (res)->value=NULL; freeResult(res);} while(0)
+#define GET_RESULTONLY(val, res) do {(val) = (res)->value; (res)->value=NULL;} while(0)
+
 typedef struct Argument Argument;
 typedef struct Inter Inter;
 typedef struct VarList VarList;

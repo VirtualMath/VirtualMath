@@ -384,9 +384,7 @@ void callException(LinkValue *exc, wchar_t *message, fline line, char *file, FUN
 
         gc_addTmpLink(&_new_->gc_status);
         callBackCore(_new_, arg, line, file, 0, CNEXT_NT);
-        error = result->value;
-        result->value = NULL;
-        freeResult(result);  // 没有释放error的tmp link, 等于error的tmp link添加了两次
+        GET_RESULT(error, result);  // 没有释放error的tmp link, 等于error的tmp link添加了两次
 
         gc_freeTmpLink(&_new_->gc_status);
         freeArgument(arg, true);

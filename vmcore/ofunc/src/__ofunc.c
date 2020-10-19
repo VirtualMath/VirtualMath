@@ -3,9 +3,7 @@
 LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, FUNC_NT) {
     LinkValue *value = NULL;
     makeCFunctionValue(of, LINEFILE, CNEXT_NT);
-    value = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(value, result);
     addStrVar(name, false, true, value, LINEFILE, false, CNEXT_NT);
     gc_freeTmpLink(&value->gc_status);
     return value;

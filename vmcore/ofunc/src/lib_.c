@@ -98,9 +98,8 @@ ResultType lib_addCore(wchar_t *name_, LinkValue *clib, FUNC_NT) {
     } else {
         makeFFunctionValue(FFI_FN(func), LINEFILE, CFUNC_NT(var_list, result, clib));
         if (CHECK_RESULT(result)) {
-            LinkValue *func_value = result->value;
-            result->value = NULL;
-            freeResult(result);
+            LinkValue *func_value;
+            GET_RESULT(func_value, result);
             addAttributes(name_, false, func_value, LINEFILE, false, CFUNC_NT(var_list, result, clib));
             gc_freeTmpLink(&func_value->gc_status);
             if (CHECK_RESULT(result))

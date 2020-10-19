@@ -40,9 +40,7 @@ ResultType setClass(FUNC) {
         if (!CHECK_RESULT(result))
             goto error_;
         gc_freeTmpLink(&tmp->gc_status);
-        tmp = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(tmp, result);
     }
 
     assCore(st->u.set_class.name, tmp, false, true, CNEXT_NT);
@@ -65,9 +63,7 @@ ResultType setFunction(FUNC) {
     makeVMFunctionValue(st->u.set_function.function, st->u.set_function.parameter, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return result->type;
-    func = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(func, result);
 
     {
         enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
@@ -88,9 +84,7 @@ ResultType setFunction(FUNC) {
         if (!CHECK_RESULT(result))
             goto error_;
         gc_freeTmpLink(&func->gc_status);
-        func = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(func, result);
     }
     assCore(st->u.set_function.name, func, false, true, CNEXT_NT);
     if (CHECK_RESULT(result))  // 若没有出现错误则设定none
@@ -119,9 +113,7 @@ ResultType elementSlice(FUNC) {
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(st->u.slice_.element, var_list, result, belong)))
         return result->type;
-    element = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(element, result);
 
     func_name = st->u.slice_.type == SliceType_down_ ? inter->data.mag_func[M_DOWN] : inter->data.mag_func[M_SLICE];
     _func_ = findAttributes(func_name, false, LINEFILE, true, CFUNC_NT(var_list, result, element));
@@ -143,16 +135,14 @@ ResultType elementSlice(FUNC) {
 }
 
 ResultType callBack(FUNC) {
-    LinkValue *function_value = NULL;
+    LinkValue *func = NULL;
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(st->u.call_function.function, var_list, result, belong)))
         return result->type;
-    function_value = result->value;
-    result->value = NULL;
-    freeResult(result);
-    callBackCorePt(function_value, st->u.call_function.parameter, st->line, st->code_file, CNEXT_NT);
+    GET_RESULT(func, result);
+    callBackCorePt(func, st->u.call_function.parameter, st->line, st->code_file, CNEXT_NT);
     setResultErrorSt(E_BaseException, NULL, false, st, CNEXT_NT);  // 显式执行函数才进行错误回溯
-    gc_freeTmpLink(&function_value->gc_status);
+    gc_freeTmpLink(&func->gc_status);
     return result->type;
 }
 
@@ -588,10 +578,7 @@ ResultType setDecoration(DecorationStatement *ds, LinkValue *value, FUNC_NT) {
         if (operationSafeInterStatement(CFUNC(ds->decoration, var_list, result, belong)))
             break;
         pt = makeValueParameter(makeBaseLinkValueStatement(value, ds->decoration->line, ds->decoration->code_file));
-        decall = result->value;
-        result->value = NULL;
-
-        freeResult(result);
+        GET_RESULT(decall, result);
         callBackCorePt(decall, pt, ds->decoration->line, ds->decoration->code_file, CNEXT_NT);
         gc_freeTmpLink(&decall->gc_status);
         freeParameter(pt, true);

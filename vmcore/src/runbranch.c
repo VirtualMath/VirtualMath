@@ -353,21 +353,15 @@ static int getForHeard(LinkValue **iter, LinkValue **first_yield, StatementList 
         return -1;
     if (result->is_yield){
         iter = NULL;
-        *first_yield = result->value;
-        result->value = NULL;
+        GET_RESULTONLY(*first_yield, result);
         return 1;
     }
-
-    tmp = result->value;
-    result->value = NULL;
-    freeResult(result);
-
+    GET_RESULT(tmp, result);
     getIter(tmp, 1, line, file, CNEXT_NT);
     gc_freeTmpLink(&tmp->gc_status);
     if (!CHECK_RESULT(result))
         return -1;
-    *iter = result->value;
-    result->value = NULL;
+    GET_RESULTONLY(*iter, result);
     return 0;
 }
 
@@ -382,17 +376,13 @@ static int runForHeard(LinkValue *iter, LinkValue *first_yield, StatementList *f
             } else
                 return -1;
         }
-        element = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(element, result);
     } else if (first_yield != NULL)
         element = first_yield;
     else {
         if (operationSafeInterStatement(CFUNC(for_list->condition, var_list, result, belong)))
             return -1;
-        element = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(element, result);
         if (!result->is_yield)
             return 1;
     }
@@ -592,9 +582,7 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
     if (operationSafeInterStatement(CFUNC(with_list->condition, var_list, result, belong)))
         return -1;
 
-    *value = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(*value, result);
     if (with_list->var == NULL) {
         *with_belong = *value;
         gc_addTmpLink(&(*with_belong)->gc_status);
@@ -856,9 +844,7 @@ ResultType tryBranch(FUNC) {
                 else_st = NULL;
             } else {
                 int status;
-                error_value = result->value;
-                result->value = NULL;
-                freeResult(result);
+                GET_RESULT(error_value, result);
 
                 except_list = st->u.try_branch.except_list;
                 status = checkError(&except_list, error_value, CNEXT_NT);
@@ -1067,10 +1053,7 @@ ResultType assertCode(FUNC){
 
     if (operationSafeInterStatement(CFUNC(st->u.raise_code.value, var_list, result, belong)) || inter->data.assert_run == assert_run)
         return result->type;
-
-    opt = result->value;  // TODO-szh封装为宏
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(opt, result);
 
     result_ = checkBool(opt, st->line, st->code_file, CNEXT_NT);
     gc_freeTmpLink(&opt->gc_status);
@@ -1124,10 +1107,8 @@ ResultType gotoLabel(FUNC){
 }
 
 ResultType runLabel(FUNC) {
-    LinkValue *goto_value = result->value;  // goto的值通过result传入, 因此不能进行setResultCore
-    result->value = NULL;
-    freeResult(result);
-
+    LinkValue *goto_value;
+    GET_RESULT(goto_value, result);  // goto的值通过result传入, 因此不能进行setResultCore
     if (st->u.label_.as != NULL)
         assCore(st->u.label_.as, goto_value, false, false, CNEXT_NT);
 

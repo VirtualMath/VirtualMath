@@ -82,10 +82,7 @@ ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
         makeListValue(ap[1].arg, LINEFILE, L_tuple, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return result->type;
-        list = result->value;
-        result->value = NULL;
-        freeResult(result);
-
+        GET_RESULT(list, result);
         addAttributes(L"vaargs", false, list, LINEFILE, true, CFUNC_NT(var_list, result, func));
         gc_freeTmpLink(&list->gc_status);
     }

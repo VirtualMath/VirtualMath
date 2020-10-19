@@ -192,10 +192,8 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, FUNC_NT){
     getIter(list_value, 1, line, file, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
-    iter = result->value;
-    result->value = NULL;
+    GET_RESULT(iter, result);
     while (true) {
-        freeResult(result);
         getIter(iter, 0, line, file, CNEXT_NT);
         if (is_iterStop(result->value, inter)){
             freeResult(result);
@@ -207,6 +205,7 @@ Argument *listToArgument(LinkValue *list_value, long line, char *file, FUNC_NT){
             goto return_;
         }
         at = connectValueArgument(result->value, at);
+        freeResult(result);
     }
     setResult(result, inter);
     return_:
@@ -221,13 +220,11 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
     getIter(dict_value, 1, line, file, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
-    iter = result->value;
-    result->value = NULL;
+    GET_RESULT(iter, result);
     while (true) {
         LinkValue *name_ = NULL;
         wchar_t *name = NULL;
 
-        freeResult(result);
         getIter(iter, 0, line, file, CNEXT_NT);
         if (is_iterStop(result->value, inter)){
             freeResult(result);
@@ -238,9 +235,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
             at = NULL;
             goto return_;
         }
-        name_ = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(name_, result);
 
         getElement(iter, name_, line, file, CNEXT_NT);
         if (!CHECK_RESULT(result)) {
@@ -253,6 +248,7 @@ Argument *dictToArgument(LinkValue *dict_value, long line, char *file, FUNC_NT) 
         at = connectCharNameArgument(result->value, name_, name, at);
         gc_freeTmpLink(&name_->gc_status);
         memFree(name);
+        freeResult(result);
     }
     setResult(result, inter);
     return_:
@@ -277,10 +273,7 @@ ResultType defaultParameter(Parameter **function_ad, vint *num, FUNC_NT) {
         LinkValue *value = NULL;
         if(operationSafeInterStatement(CFUNC(function->data.value, var_list, result, belong)))
             goto return_;
-
-        value = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(value, result);
         assCore(function->data.name, value, false, false, CNEXT_NT);
         gc_freeTmpLink(&value->gc_status);
         if (!CHECK_RESULT(result))
@@ -349,11 +342,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vint
             makeDictValue(NULL, false, LINEFILE, CNEXT_NT);
             if (!CHECK_RESULT(result))
                 return result->type;
-
-            value = result->value;
-            result->value = NULL;
-            freeResult(result);
-
+            GET_RESULT(value, result);
             value->value->data.dict.dict = var_list->hashtable;
             value->value->data.dict.size = max - *num;
             *status = true;
@@ -469,9 +458,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC
         else if (call->type == args_par){
             LinkValue *start = NULL;
             Argument *tmp_at = NULL;
-            start = result->value;
-            result->value = NULL;
-            freeResult(result);
+            GET_RESULT(start, result);
             tmp_at = listToArgument(start, LINEFILE, CNEXT_NT);
             gc_freeTmpLink(&start->gc_status);
             if (!CHECK_RESULT(result))
@@ -481,9 +468,7 @@ ResultType iterParameter(Parameter *call, Argument **base_ad, bool is_dict, FUNC
         else if (call->type == kwargs_par){
             LinkValue *start = NULL;
             Argument *tmp_at = NULL;
-            start = result->value;
-            result->value = NULL;
-            freeResult(result);
+            GET_RESULT(start, result);
             tmp_at = dictToArgument(start, LINEFILE, CNEXT_NT);
             gc_freeTmpLink(&start->gc_status);
             if (!CHECK_RESULT(result))
@@ -629,9 +614,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                     makeListValue(NULL, LINEFILE, L_tuple, CNEXT_NT);
 
                 returnResult(result);
-                tmp = result->value;
-                result->value = NULL;
-                freeResult(result);
+                GET_RESULT(tmp, result);
 
                 assCore(function->data.value, tmp, false, false, CFUNC_NT(function_var, result, belong));
                 gc_freeTmpLink(&tmp->gc_status);
@@ -643,9 +626,7 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
                 LinkValue *tmp;
                 makeDictValue(NULL, true, LINEFILE, CNEXT_NT);
                 returnResult(result);
-                tmp = result->value;
-                result->value = NULL;
-                freeResult(result);
+                GET_RESULT(tmp, result);
 
                 assCore(function->data.value, tmp, false, false, CFUNC_NT(function_var, result, belong));
                 gc_freeTmpLink(&tmp->gc_status);
@@ -880,7 +861,7 @@ void setArgumentFFI(ArgumentFFI *af, unsigned int size) {
 
 void freeArgumentFFI(ArgumentFFI *af) {
     for (unsigned int i=0; i < af->size; i++) {
-        switch (af->type[i]) {  // TODO-szh 改为if-else分支
+        switch (af->type[i]) {
             case af_wstr:
             case af_str:
                 if (af->arg_v[i] != NULL)

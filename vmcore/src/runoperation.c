@@ -129,9 +129,7 @@ ResultType boolNotOperation(FUNC) {
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return result->type;
-    left = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(left, result);
 
     new = !checkBool(left, st->line, st->code_file, CNEXT_NT);
     gc_freeTmpLink(&left->gc_status);
@@ -150,9 +148,7 @@ ResultType boolOperation(FUNC) {
 
     if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return result->type;
-    left = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(left, result);
 
     left_bool = checkBool(left, st->line, st->code_file, CNEXT_NT);
     gc_freeTmpLink(&left->gc_status);
@@ -180,9 +176,7 @@ ResultType pointOperation(FUNC) {
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return result->type;
-    left = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(left, result);
 
     if (st->u.operation.OperationType == OPT_POINT)
         object = left->value->object.var;
@@ -300,9 +294,7 @@ ResultType downDel(Statement *name, FUNC_NT) {
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
         return result->type;
-    iter = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(iter, result);
 
     if (name->u.slice_.type == SliceType_down_)
         _func_ = findAttributes(inter->data.mag_func[M_DOWN_DEL], false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
@@ -344,9 +336,7 @@ ResultType assOperation(FUNC) {
         return_st->u.return_code.value = NULL;
         freeStatement(return_st);
 
-        func = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(func, result);
         assCore(st->u.operation.left->u.call_function.function, func, false, true, CNEXT_NT);
         gc_freeTmpLink(&func->gc_status);
     }
@@ -392,10 +382,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
         memFree(str_name);
         return result->type;
     }
-    name_ = result->value;
-    result->value = NULL;
-    freeResult(result);
-
+    GET_RESULT(name_, result);
     if (name->aut != auto_aut)
         value->aut = name->aut;
 
@@ -459,9 +446,7 @@ ResultType downAss(Statement *name, LinkValue *value, FUNC_NT) {
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
         return result->type;
-    iter = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(iter, result);
 
     if (name->u.slice_.type == SliceType_down_)
         _func_ = findAttributes(inter->data.mag_func[M_DOWN_ASSIGMENT], false, LINEFILE, true, CFUNC_NT(var_list, result, iter));
@@ -576,9 +561,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
         return result->type;
     }
 
-    val = result->value;
-    result->value = NULL;
-    freeResult(result);
+    GET_RESULT(val, result);
     var = findFromVarList(name, int_times, get_var, CFUNC_CORE(var_list));
 
     if (var == NULL) {
@@ -734,9 +717,7 @@ ResultType operationCore2(FUNC, wchar_t *name) {
 
     if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return result->type;
-    left = result->value;
-    result->value = NULL;  // 不使用freeResult, 不需要多余的把result.value设置为none
-
+    GET_RESULTONLY(left, result);  // 不使用freeResult, 不需要多余的把result.value设置为none
     runOperationFromValue(left, NULL, name, st->line, st->code_file, CNEXT_NT);
     gc_freeTmpLink(&left->gc_status);
     return result->type;

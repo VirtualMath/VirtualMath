@@ -283,7 +283,7 @@ ResultType fromImportFile(FUNC) {
     Statement *file = st->u.from_import_file.file;
     char *split_path = NULL;
     char *path = NULL;
-    char md5_str[MD5_STRING];  // TODO-szh 设置为空字符串
+    char md5_str[MD5_STRING] = { NUL };
     VarList *imp_var = NULL;
     LinkValue *imp_value;
     Parameter *pt = st->u.from_import_file.pt;
@@ -307,10 +307,7 @@ ResultType fromImportFile(FUNC) {
         wcs = memStrToWcs(split_path, false);
         makeStringValue(wcs, st->line, st->code_file, CFUNC_NT(var_list, result, imp_value));
         memFree(wcs);
-
-        string = result->value;
-        result->value = NULL;
-        freeResult(result);
+        GET_RESULT(string, result);
 
         newObjectSetting(string, st->line, st->code_file, CFUNC_NT(var_list, result, imp_value));
         gc_freeTmpLink(&string->gc_status);
