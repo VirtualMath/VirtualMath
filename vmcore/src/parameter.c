@@ -369,8 +369,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vint
             }
             setResultErrorSt(E_ArgumentException, FEW_ARG, true, name, CNEXT_NT);
             goto return_;
-        }
-        else if (!checkAut(name->aut, value->aut, name->line, name->code_file, NULL, false, CNEXT_NT))
+        } else if (!checkAut(name->aut, value->aut, name->line, name->code_file, NULL, false, CNEXT_NT))  // 与varAss作用相同
             goto return_;
 
         not_return:

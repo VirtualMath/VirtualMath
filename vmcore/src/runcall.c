@@ -218,23 +218,23 @@ static ResultType callObject(LinkValue *object_value, Argument *arg, fline line,
     return result->type;
 }
 
-static ResultType callCFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT){
+static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT){
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
     Argument *bak;
     setResultCore(result);
-    gc_addTmpLink(&function_value->gc_status);
+    gc_addTmpLink(&func_value->gc_status);
 
-    setFunctionArgument(&arg, &bak, function_value, line, file, pt_sep, CNEXT_NT);
+    setFunctionArgument(&arg, &bak, func_value, line, file, pt_sep, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto return_;
 
-    of = function_value->value->data.function.of;
-    function_var = pushVarList(function_value->value->object.out_var != NULL ? function_value->value->object.out_var : var_list, inter);
+    of = func_value->value->data.function.of;
+    function_var = pushVarList(func_value->value->object.out_var != NULL ? func_value->value->object.out_var : var_list, inter);
     gc_freeze(inter, var_list, function_var, true);
 
     freeResult(result);
-    of(CO_FUNC(arg, function_var, result, function_value));
+    of(CO_FUNC(arg, function_var, result, func_value->belong));  // belong设置为func的belong, 方便权限的认定
     if (result->type == R_func)
         result->type = R_opt;
     else if (result->type != R_opt && result->type != R_error)
@@ -244,7 +244,7 @@ static ResultType callCFunction(LinkValue *function_value, Argument *arg, long i
     popVarList(function_var);
     freeFunctionArgument(arg, bak);
 
-    return_: gc_freeTmpLink(&function_value->gc_status);
+    return_: gc_freeTmpLink(&func_value->gc_status);
     return result->type;
 }
 
@@ -530,7 +530,7 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
         goto return_;
 
     freeResult(result);
-    functionSafeInterStatement(CFUNC(st_func, var_func, result, func_value));  // 运行函数的时候, belong调整为函数本身
+    functionSafeInterStatement(CFUNC(st_func, var_func, result, func_value->belong));  // belong设置为函数的belong，方便权限校对
 
     return_:
     gc_freeze(inter, var_list, var_func, false);

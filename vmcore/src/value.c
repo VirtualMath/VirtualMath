@@ -67,6 +67,7 @@ Value *makeIntValue(vint num, fline line, char *file, FUNC_NT) {
     callBackCore(inter->data.base_obj[B_INT_], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
         return NULL;
+    result->value->belong = belong;
     tmp = result->value->value;
     tmp->data.int_.num = num;
     return tmp;
@@ -619,7 +620,7 @@ bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_lis
 
     if (_del_ != NULL){
         gc_addTmpLink(&_del_->gc_status);
-        if (_del_->belong == NULL || _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value))
+        if (_del_->belong == NULL || _del_->belong->value == object_value || checkAttribution(object_value, _del_->belong->value))
             _del_->belong = makeLinkValue(object_value, inter->base_belong, inter);
         callBackCore(_del_, NULL, LINEFILE, 0, CFUNC_NT(var_list, result, inter->base_belong));
         gc_freeTmpLink(&_del_->gc_status);

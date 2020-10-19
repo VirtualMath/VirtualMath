@@ -111,8 +111,8 @@ ResultType runStatement(FUNC) {
             break;
     }
 
-    if (RUN_TYPE(type) && result->value->aut == auto_aut)
-        result->value->aut = st->aut;
+    if (RUN_TYPE(type) && st->aut != auto_aut)
+        result->value->aut = st->aut;  // 权限覆盖
     result->node = st;
 #if START_GC
     gc_freeTmpLink(&belong->gc_status);

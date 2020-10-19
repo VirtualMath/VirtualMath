@@ -119,7 +119,7 @@ ResultType blockOperation(FUNC) {
     else
         setBlockResult(st, yield_run, result, CFUNC_CORE(var_list));
     if (CHECK_RESULT(result) && st->aut != auto_aut)
-        result->value->aut = st->aut;
+        result->value->aut = st->aut;  // 权限覆盖
     return result->type;
 }
 
@@ -173,10 +173,13 @@ ResultType boolOperation(FUNC) {
 ResultType pointOperation(FUNC) {
     LinkValue *left;
     VarList *object = NULL;
+    bool pri_auto;
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return result->type;
     GET_RESULT(left, result);
+    if (st->aut != auto_aut)
+        left->aut = st->aut;  // 权限覆盖
 
     if (st->u.operation.OperationType == OPT_POINT)
         object = left->value->object.var;
@@ -184,15 +187,15 @@ ResultType pointOperation(FUNC) {
         object = left->value->object.out_var;
 
     if (object == NULL) {
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), st->line, st->code_file, true,
-                       CNEXT_NT);
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), st->line, st->code_file, true, CNEXT_NT);
         goto return_;
     }
     gc_freeze(inter, var_list, object, true);
     operationSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));  // 点运算运算时需要调整belong为点的左值
-    if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, false, CNEXT_NT))
+    pri_auto = result->value->belong == NULL || result->value->belong->value == belong->value || checkAttribution(belong->value, result->value->belong->value);
+    if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, pri_auto, CNEXT_NT))
         PASS;
-    else if (result->value->belong == NULL || result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value))
+    else if (result->value->belong == NULL || result->value->belong->value == left->value || checkAttribution(left->value, result->value->belong->value))  // 检查result所属于的对象是否位左值的父亲
         result->value->belong = left;
     gc_freeze(inter, var_list, object, false);
 
@@ -244,9 +247,8 @@ ResultType varDel(Statement *name, bool check_aut, FUNC_NT) {
     if (check_aut) {
         LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CFUNC_CORE(var_list));
         freeResult(result);
-        if (tmp != NULL && !checkAut(name->aut, tmp->aut, name->line, name->code_file, NULL, false, CNEXT_NT)) {
+        if (tmp != NULL && !checkAut(name->aut, tmp->aut, name->line, name->code_file, NULL, false, CNEXT_NT))
             goto return_;
-        }
     }
     findFromVarList(str_name, int_times, del_var, CFUNC_CORE(var_list));
     setResult(result, inter);
@@ -256,21 +258,18 @@ ResultType varDel(Statement *name, bool check_aut, FUNC_NT) {
 }
 
 ResultType pointDel(Statement *name, FUNC_NT) {
-    Result left;
+    LinkValue *left;
     VarList *object = NULL;
     Statement *right = name->u.operation.right;
 
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
         return result->type;
-    left = *result;
-    setResultCore(result);
+    GET_RESULT(left, result);  // 不关心左值和整体(st)权限
 
-    object = name->u.operation.OperationType == OPT_POINT ? left.value->value->object.var : left.value->value->object.out_var;
-
+    object = name->u.operation.OperationType == OPT_POINT ? left->value->object.var : left->value->object.out_var;
     if (object == NULL) {
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true,
-                       CNEXT_NT);
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true, CNEXT_NT);
         goto return_;
     }
 
@@ -282,7 +281,7 @@ ResultType pointDel(Statement *name, FUNC_NT) {
     gc_freeze(inter, var_list, object, false);
 
     return_:
-    freeResult(&left);
+    gc_freeTmpLink(&left->gc_status);
     return result->type;
 }
 
@@ -311,8 +310,7 @@ ResultType downDel(Statement *name, FUNC_NT) {
         if (!CHECK_RESULT(result))
             goto dderror_;
         freeResult(result);
-        callBackCore(_func_, arg, name->line, name->code_file, 0,
-                     CNEXT_NT);
+        callBackCore(_func_, arg, name->line, name->code_file, 0, CNEXT_NT);
 
         dderror_:
         gc_freeTmpLink(&_func_->gc_status);
@@ -383,15 +381,14 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
         return result->type;
     }
     GET_RESULT(name_, result);
-    if (name->aut != auto_aut)
+    if (name->aut != auto_aut)  // 当左值设定访问权限的时候, 覆盖右值的权限
         value->aut = name->aut;
 
     tmp = findFromVarList(str_name, int_times, read_var, CFUNC_CORE(var_list));
     if (check_aut) {
         if (tmp != NULL && !checkAut(value->aut, tmp->aut, name->line, name->code_file, NULL, false, CNEXT_NT))
             goto error_;
-    } else if (name->aut != auto_aut && tmp != NULL)
-        tmp->aut = value->aut;
+    }
 
     if (tmp == NULL || !run || !setVarFunc(tmp, value, name->line, name->code_file, CNEXT_NT))
         addFromVarList(str_name, name_, int_times, value, CFUNC_CORE(var_list));
@@ -479,21 +476,18 @@ ResultType downAss(Statement *name, LinkValue *value, FUNC_NT) {
 }
 
 ResultType pointAss(Statement *name, LinkValue *value, FUNC_NT) {
-    Result left;
+    LinkValue *left;
     Statement *right = name->u.operation.right;
     VarList *object = NULL;
 
     setResultCore(result);
     if (operationSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
         return result->type;
-    left = *result;
-    setResultCore(result);
+    GET_RESULT(left, result);  // 不关心左值和整体(st)权限
 
-    object = name->u.operation.OperationType == OPT_POINT ? left.value->value->object.var : left.value->value->object.out_var;
-
+    object = name->u.operation.OperationType == OPT_POINT ? left->value->object.var : left->value->object.out_var;
     if (object == NULL) {
-        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true,
-                       CNEXT_NT);
+        setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), name->line, name->code_file, true, CNEXT_NT);
         goto return_;
     }
 
@@ -505,7 +499,7 @@ ResultType pointAss(Statement *name, LinkValue *value, FUNC_NT) {
     gc_freeze(inter, var_list, object, false);
 
     return_:
-    freeResult(&left);
+    gc_freeTmpLink(&left->gc_status);
     return result->type;
 }
 
@@ -569,7 +563,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
             setResultOperationBase(result, val);
         } else
             setNameException(val, name, st->line, st->code_file, CNEXT_NT);
-    } else if (checkAut(st->aut, var->aut, st->line, st->code_file, NULL, true, CNEXT_NT)) {
+    } else if (checkAut(st->aut, var->aut, st->line, st->code_file, name, true, CNEXT_NT)) {  // 默认访问权限为pri
         bool run = st->type == base_var ? st->u.base_var.run : st->type == base_svar ? st->u.base_svar.run : false;
         if (!run || !runVarFunc(var, st->line, st->code_file, CNEXT_NT))
             setResultOperationBase(result, var);
@@ -587,7 +581,7 @@ ResultType getBaseValue(FUNC) {
         result->type = R_opt;
         gc_addTmpLink(&result->value->gc_status);
     }
-    else
+    else {
         switch (st->u.base_value.type) {
             case number_str: {
                 if (wcschr(st->u.base_value.str, '.') == NULL)
@@ -612,6 +606,8 @@ ResultType getBaseValue(FUNC) {
                 makeStringValue(st->u.base_value.str, st->line, st->code_file, CNEXT_NT);
                 break;
         }
+        result->value->belong = belong;
+    }
     return result->type;
 }
 

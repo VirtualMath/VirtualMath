@@ -28,7 +28,7 @@ bool checkBool(LinkValue *value, fline line, char *file, FUNC_NT);
 wchar_t *getRepoStr(LinkValue *value, bool is_repo, fline line, char *file, FUNC_NT);
 bool is_iterStop(LinkValue *value, Inter *inter);
 bool is_indexException(LinkValue *value, Inter *inter);
-bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, FUNC_NT);
+bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, wchar_t *name, bool pri_auto, FUNC_NT);
 LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class);
 int run_init(LinkValue *obj, Argument *arg, fline line, char *file, FUNC_NT);
 bool setBoolAttrible(bool value, wchar_t *var, fline line, char *file, LinkValue *obj, FUNC_NT);

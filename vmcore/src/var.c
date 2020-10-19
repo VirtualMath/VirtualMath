@@ -155,8 +155,21 @@ static void addVarCore(Var **base, wchar_t *name, LinkValue *value, LinkValue *n
             *base = makeVar(name, value, name_, inter);
             break;
         } else if (eqWide((*base)->name, name)) {
-            (*base)->value->value = value->value;
-            (*base)->value->belong = value->belong;
+            enum ValueAuthority aut = (*base)->value->aut;
+            (*base)->value = copyLinkValue(value, inter);
+            switch (aut) {
+                default:
+                case public_aut:
+                case auto_aut:
+                    break;
+                case protect_aut:
+                    if (value->aut != private_aut)
+                        (*base)->value->aut = protect_aut;
+                    break;
+                case private_aut:
+                    (*base)->value->aut = private_aut;
+                    break;
+            }
             break;
         }
     }

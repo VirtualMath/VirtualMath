@@ -361,7 +361,7 @@ LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, 
     LinkValue *attr;
     gc_freeze(inter, var_list, belong->value->object.var, true);
     attr = findStrVar(name, free_old, line, file, nowrun, CFUNC_NT(belong->value->object.var, result, belong));
-    if (attr != NULL && (attr->belong == NULL || attr->belong->value != belong->value && checkAttribution(belong->value, attr->belong->value)))
+    if (attr != NULL && (attr->belong == NULL || attr->belong->value == belong->value || checkAttribution(belong->value, attr->belong->value)))
         attr->belong = belong;
     gc_freeze(inter, var_list, belong->value->object.var, false);
     return attr;
@@ -522,12 +522,12 @@ bool is_indexException(LinkValue *value, Inter *inter) {
     return value->value == inter->data.base_exc[E_IndexException]->value || checkAttribution(value->value, inter->data.base_exc[E_IndexException]->value);
 }
 
-bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, char *name, bool pri_auto, FUNC_NT) {
+bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, char *file, wchar_t *name, bool pri_auto, FUNC_NT) {
     if ((value == public_aut || (!pri_auto && value == auto_aut)) && (base != public_aut && base != auto_aut)) {
         if (name == NULL)
             setResultError(E_PermissionsException, L"wrong Permissions: access variables as public", line, file, true, CNEXT_NT);
         else {
-            wchar_t *message = memWidecat(L"wrong Permissions: access variables as public: ", memStrToWcs(name, false), false, true);
+            wchar_t *message = memWidecat(L"wrong Permissions: access variables as public: ", name, false, false);
             setResultError(E_PermissionsException, message, line, file, true, CNEXT_NT);
             memFree(message);
         }
@@ -536,7 +536,7 @@ bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, c
         if (name == NULL)
             setResultError(E_PermissionsException, L"wrong Permissions: access variables as protect", line, file, true, CNEXT_NT);
         else {
-            wchar_t *message = memWidecat(L"wrong Permissions: access variables as protect: ", memStrToWcs(name, false), false, true);
+            wchar_t *message = memWidecat(L"wrong Permissions: access variables as protect: ", name, false, false);
             setResultError(E_PermissionsException, message, line, file, true, CNEXT_NT);
             memFree(message);
         }
