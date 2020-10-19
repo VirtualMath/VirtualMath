@@ -34,7 +34,7 @@ struct Statement{
         import_file,
         from_import_file,
         default_var,
-        assert,
+        assert_,
         label_,
         goto_,
     } type;
@@ -86,7 +86,7 @@ struct Statement{
                 OPT_ASS = 5,
                 OPT_POINT = 6,  // 成员运算
                 OPT_BLOCK = 7,  // 代码块
-                OPT_LINK = 8,  // 获取外部成员 TODO-szh 该名为OUTPOINT
+                OPT_OUTPOINT = 8,  // 获取外部成员 TODO-szh 该名为OUTPOINT
                 OPT_INTDIV = 9,
                 OPT_MOD = 10,
                 OPT_POW = 11,

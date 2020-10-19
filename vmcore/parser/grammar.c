@@ -191,7 +191,7 @@ void parserCommand(P_FUNC){
             break;
         case MATHER_ASSERT :
             status = commandCallControl_(CP_FUNC, makeAssertStatement, T_ASSERT, &st, true,
-                                         "parserAssert: Don't get conditions after assert");
+                                         "parserAssert: Don't get conditions after assert_");
             break;
         case MATHER_INCLUDE :
             status = commandCallControl_(CP_FUNC, makeIncludeStatement, T_INCLUDE, &st, true,
@@ -1446,7 +1446,7 @@ bool taliLink(P_FUNC, Token *left_token, Statement **st){
     delToken(pm);
     if (!callChildStatement(CP_FUNC, parserNegate, T_NEGATE, &right_st, "Don't get a Negate after link"))
         return false;
-    *st = makeOperationStatement(OPT_LINK, left_token->data.st, right_st);
+    *st = makeOperationStatement(OPT_OUTPOINT, left_token->data.st, right_st);
     return true;
 }
 

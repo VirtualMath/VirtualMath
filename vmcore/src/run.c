@@ -97,7 +97,7 @@ ResultType runStatement(FUNC) {
         case default_var:
             type = setDefault(CNEXT);
             break;
-        case assert:
+        case assert_:
             type = assertCode(CNEXT);
             break;
         case goto_:

@@ -293,7 +293,7 @@ Statement *makeRaiseStatement(Statement *value, fline line, char *file){
 
 Statement *makeAssertStatement(Statement *conditions, fline line, char *file){
     Statement *tmp = makeStatement(line, file);
-    tmp->type = assert;
+    tmp->type = assert_;
     tmp->u.assert.conditions = conditions;
     return tmp;
 }
@@ -487,7 +487,7 @@ void freeStatement(Statement *st){
             case default_var:
                 freeParameter(st->u.default_var.var, true);
                 break;
-            case assert:
+            case assert_:
                 freeStatement(st->u.assert.conditions);
                 break;
             case label_:
@@ -657,7 +657,7 @@ Statement *copyStatementCore(Statement *st){
         case default_var:
             new->u.default_var.var = copyParameter(st->u.default_var.var);
             break;
-        case assert:
+        case assert_:
             new->u.assert.conditions = copyStatement(st->u.assert.conditions);
             break;
         case label_:
