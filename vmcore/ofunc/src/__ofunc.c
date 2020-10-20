@@ -66,8 +66,9 @@ void iterBaseClassFunc(NameFunc *list, LinkValue *belong, FUNC_CORE){
 }
 
 LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter) {
-    Inherit *father_value = NULL;
-    Value *new = NULL;
+    Inherit *father_value;
+    Value *new;
+    LinkValue *re;
     {
         Argument *arg = makeValueArgument(inherit);
         gc_addTmpLink(&inherit->gc_status);
@@ -76,7 +77,9 @@ LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter) {
         gc_freeTmpLink(&inherit->gc_status);
     }
     new = makeClassValue(inter->var_list, inter, father_value);
-    return makeLinkValue(new, inter->base_belong, inter);
+    re = makeLinkValue(new, inter->base_belong, inter);
+    gc_freeTmpLink(&new->gc_status);
+    return re;
 }
 
 bool checkIndex(vint *index, const vint *size, FUNC_NT){

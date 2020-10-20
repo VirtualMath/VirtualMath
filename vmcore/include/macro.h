@@ -24,6 +24,7 @@
 #include "ffi.h"
 
 
+
 // 布尔逻辑的定义
 #define bool int
 #define true 1

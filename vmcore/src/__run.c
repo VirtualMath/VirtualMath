@@ -549,7 +549,9 @@ LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
     Inherit *object_father = getInheritFromValueCore(class);
     VarList *new_var = copyVarList(class->value->object.out_var, false, inter);
     Value *new_object = makeObject(inter, NULL, new_var, object_father);
-    return makeLinkValue(new_object, belong, inter);
+    LinkValue *re = makeLinkValue(new_object, belong, inter);
+    gc_freeTmpLink(&new_object->gc_status);
+    return re;
 }
 
 static int init_new(LinkValue *obj, Argument *arg, fline line, char *file, FUNC_NT) {

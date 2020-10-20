@@ -23,6 +23,7 @@ ResultType function_new(O_FUNC){
         VarList *new_var = copyVarList(var_list, false, inter);
         Value *new_object = makeObject(inter, NULL, new_var, object_father);
         value = makeLinkValue(new_object, belong, inter);
+        gc_freeTmpLink(&new_object->gc_status);
     }
 
     value->value->type = V_func;

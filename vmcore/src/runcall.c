@@ -14,6 +14,7 @@ ResultType setClass(FUNC) {
     freeArgument(call, false);
 
     tmp = makeLinkValue(makeClassValue(var_list, inter, class_inherit), belong, inter);
+    gc_freeTmpLink(&tmp->value->gc_status);
     gc_addTmpLink(&tmp->gc_status);
     freeResult(result);
 

@@ -90,11 +90,13 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
     {
         Value *global_belong = makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL);
         g_belong = makeLinkValue(global_belong, belong, inter);
+        gc_freeTmpLink(&global_belong->gc_status);
         inter->base_belong = g_belong;
         gc_addStatementLink(&inter->base_belong->gc_status);
     }
 
     inter->data.base_obj[B_OBJECT] = makeLinkValue(object, g_belong, inter);
+    gc_freeTmpLink(&object->gc_status);
     gc_addStatementLink(&inter->data.base_obj[B_OBJECT]->gc_status);
     for (Inherit *ih=g_belong->value->object.inherit; ih != NULL; ih = ih->next) {
         if (ih->value->value == object)

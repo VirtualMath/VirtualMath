@@ -12,7 +12,7 @@ ResultType runStatement(FUNC) {
     setResultCore(result);
     gc_addTmpLink(&belong->gc_status);
 
-    switch (st->type) {
+    switch (st->type) {  // TODO-list 优化： 只有指定的st需要执行gc
         case base_value:
             type = getBaseValue(CNEXT);
             break;

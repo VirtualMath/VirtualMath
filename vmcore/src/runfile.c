@@ -212,11 +212,14 @@ static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int st
 
         freeResult(result);
         runImportFile(imp_inter, path, status, CNEXT);
-        if (!CHECK_RESULT(result))
+        if (!CHECK_RESULT(result)) {
+            gc_freeTmpLink(&pg->gc_status);
             return false;
+        }
     } else
         *is_new = false;
     *imp_value = makeLinkValue(pg, belong, inter);
+    gc_freeTmpLink(&pg->gc_status);
     gc_addTmpLink(&(*imp_value)->gc_status);
     return true;
 }

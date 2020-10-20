@@ -4,6 +4,7 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
     Value *tmp, *list_tmp = inter->base;
     tmp = memCalloc(1, sizeof(Value));
     setGC(&tmp->gc_status);
+    gc_addTmpLink(&tmp->gc_status);
     tmp->type = V_obj;
     tmp->gc_next = NULL;
     if (inter->data.base_obj[B_OBJECT] != NULL && inherit == NULL)
@@ -270,7 +271,7 @@ void freeValue(Value **value) {
     return_: return;
 }
 
-LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter){
+LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter){  // TODO-szh 为LinkValue添加gc_tmpLink
     LinkValue *tmp;
     LinkValue *list_tmp = inter->link_base;
     tmp = memCalloc(1, sizeof(Value));
