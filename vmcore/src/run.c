@@ -48,9 +48,6 @@ ResultType runStatement(FUNC) {
             break;
         case if_branch:
             type = ifBranch(CNEXT);
-            if (result->value == NULL) {
-                printf("It is NULL\n");
-            }
             break;
         case while_branch:
             type = whileBranch(CNEXT);
@@ -114,10 +111,56 @@ ResultType runStatement(FUNC) {
     if (RUN_TYPE(type) && st->aut != auto_aut)
         result->value->aut = st->aut;  // 权限覆盖
     result->node = st;
-#if START_GC
     gc_freeTmpLink(&belong->gc_status);
+#if START_GC
     gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
 #endif
+    return type;
+}
+
+ResultType runStatementOpt(FUNC) {  // 不运行gc机制
+    ResultType type = R_not;
+    setResultCore(result);
+    gc_addTmpLink(&belong->gc_status);
+
+    switch (st->type) {
+        case base_value:
+            type = getBaseValue(CNEXT);
+            break;
+        case base_var:
+            type = getVar(CNEXT, getBaseVarInfo);
+            break;
+        case base_svar:
+            type = getVar(CNEXT, getBaseSVarInfo);
+            break;
+        case base_list:
+            type = getList(CNEXT);
+            break;
+        case base_dict:
+            type = getDict(CNEXT);
+            break;
+        case base_lambda:
+            type = setLambda(CNEXT);
+            break;
+        case operation:
+            type = operationStatement(CNEXT);
+            break;
+        case slice_:
+            type = elementSlice(CNEXT);
+            break;
+        case call_function:
+            type = callBack(CNEXT);
+            break;
+        default:
+            setResult(result, inter);
+            errasert(runStatementOpt default);
+            break;
+    }
+
+    if (RUN_TYPE(type) && st->aut != auto_aut)
+        result->value->aut = st->aut;  // 权限覆盖
+    result->node = st;
+    gc_freeTmpLink(&belong->gc_status);
     return type;
 }
 
@@ -196,10 +239,7 @@ ResultType iterStatement(FUNC) {
         setResultOperationNone(result, inter, belong);
     result->node = base;
 
-#if START_GC
     gc_freeTmpLink(&belong->gc_status);
-    gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
-#endif
     signal(SIGINT, bak);
     return result->type;
 }
@@ -255,10 +295,7 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
         setResultOperationNone(result, inter, belong);
     result->node = base;
 
-#if START_GC
     gc_freeTmpLink(&belong->gc_status);
-    gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
-#endif
     signal(SIGINT, bak);
     return result->type;
 }
@@ -266,11 +303,11 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
 // 若需要中断执行, 则返回true
 bool operationSafeInterStatement(FUNC){
     ResultType type;
-    type = iterStatement(CNEXT);
+    assert(st->next == NULL);  // opt 以单句形式存在
+    type = runStatementOpt(CNEXT);
     if (RUN_TYPE(type))
         return false;
-    else if (type != return_code && type != R_error)
-        setResultErrorSt(E_ResultException, L"Operation get not support result type", true, st, CNEXT_NT);
+    assert(type == return_code || type == R_error);
     return true;
 }
 

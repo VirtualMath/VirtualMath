@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <math.h>
 #include <string.h>
@@ -29,5 +30,11 @@
 #define false 0
 #define NUL ((char)0)
 #define WNUL ((wchar_t)0)
+
+#ifdef NDEBUG
+#define errasert(e) ((void)0)
+#else
+#define errasert(e) __assert_fail (#e, __FILE__, __LINE__, __ASSERT_FUNCTION)
+#endif
 
 #endif //VIRTUALMATH_MACRO_H
