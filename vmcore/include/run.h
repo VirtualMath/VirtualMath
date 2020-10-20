@@ -16,7 +16,7 @@ typedef struct DecorationStatement DecorationStatement;
 
 typedef ResultType (*VarInfo)(wchar_t **name, int *times, FUNC);
 
-ResultType globalIterStatement(Result *result, Inter *inter, Statement *st);
+ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool p_clock);
 bool operationSafeInterStatement(FUNC);
 bool ifBranchSafeInterStatement(FUNC);
 bool functionSafeInterStatement(FUNC);

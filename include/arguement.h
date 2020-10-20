@@ -8,6 +8,7 @@ struct Args{
     char *out_file;
     char *in_file;
     bool run_commandLine;
+    bool p_clock;
 };
 extern struct Args args;
 typedef struct Args Args;

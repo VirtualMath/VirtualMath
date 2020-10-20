@@ -8,13 +8,14 @@ static const struct option long_option[]={
         {"stderr",required_argument,NULL,'o'},
         {"stdout",required_argument,NULL,'e'},
         {"stdin",required_argument,NULL,'i'},
-        {"not-run-cl",required_argument,NULL,'n'},
+        {"not-run-cl",no_argument,NULL,'n'},
+        {"print-clock",no_argument,NULL,'p'},
         {NULL,0,NULL,0}
 };
 
-static const char *short_option = "o:e:i:n";
+static const char *short_option = "o:e:i:np";
 
-Args args = {.out_file=NULL, .error_file=NULL, .in_file=NULL, .run_commandLine=true};
+Args args = {.out_file=NULL, .error_file=NULL, .in_file=NULL, .run_commandLine=true, .p_clock=false};
 
 /**
  * 参数设置, args是全局结构体, 保存全局的参数设置
@@ -43,6 +44,9 @@ int getArgs(const int argc, char **argv)
                 break;
             case 'n':
                 args.run_commandLine = false;
+                break;
+            case 'p':
+                args.p_clock = true;
                 break;
             case '?':
                 fprintf(stderr, "[Error]: get not success args : -%c\n", (char)optopt);

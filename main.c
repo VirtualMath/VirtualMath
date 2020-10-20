@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     }
     memVirtualMathUseJmp = true;
 
-    if (getArgs(argc, argv))  // 命令行参数设定
+    if (getArgs(argc, argv) == -1)  // 命令行参数设定
         return 2;
 
     initVirtualMath();

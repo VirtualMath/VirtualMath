@@ -249,12 +249,13 @@ ResultType iterStatement(FUNC) {
  * @param inter
  * @return
  */
-ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
+ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool p_clock) {
     ResultType type;
     VarList *var_list = NULL;
     Statement *base;
     LinkValue *belong = inter->base_belong;
     void *bak = NULL;
+    clock_t start, stop;
 
     if (st == NULL){
         setResult(result, inter);
@@ -264,6 +265,8 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
     is_KeyInterrupt = signal_reset;
     bak = signal(SIGINT, signalStopInter);
     gc_addTmpLink(&belong->gc_status);
+
+    start = clock();
     do {
         base = st;
         var_list = inter->var_list;
@@ -290,11 +293,14 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st) {
                 base = base->next;
         }
     } while (type == R_restart && result->times == 0);
+    stop = clock();
 
     if (type != R_error && type != R_func)
         setResultOperationNone(result, inter, belong);
     result->node = base;
 
+    if (p_clock)
+        printf("run times = %Lf sec\n", (double long)(stop - start) / CLOCKS_PER_SEC);
     gc_freeTmpLink(&belong->gc_status);
     signal(SIGINT, bak);
     return result->type;

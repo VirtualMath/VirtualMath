@@ -154,7 +154,7 @@ ResultType importVMFileCore(Inter *import_inter, char *path, fline line, char *c
     if (!importRunParser(pm, line, code_file, run_st, CNEXT_NT))
         goto return_;
 
-    globalIterStatement(result, import_inter, run_st);
+    globalIterStatement(result, import_inter, run_st, false);
     if (!CHECK_RESULT(result))
         setResultError(E_BaseException, NULL, line, code_file, false, CNEXT_NT);
     else

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include <time.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -34,8 +35,12 @@
 
 #ifdef NDEBUG
 #define errasert(e) ((void)0)
+#elifdef __assert_fail
+#define errasert(e) __assert_fail(#e, __FILE__, __LINE__, __ASSERT_FUNCTION)
+#elifdef _assert
+#define errasert(e) _assert(#e, __FILE__, __LINE__)
 #else
-#define errasert(e) __assert_fail (#e, __FILE__, __LINE__, __ASSERT_FUNCTION)
+#define errasert(e) fprintf(stderr, "%s %s %s %s\n", #e, __FILE__, __LINE__)
 #endif
 
 #endif //VIRTUALMATH_MACRO_H

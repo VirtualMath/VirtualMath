@@ -15,9 +15,9 @@ void runCodeFile(Inter *inter, char *file[]) {
                 continue;
         }
         if (runParser(*file, inter, false, &pst)) {
-            globalIterStatement(&result, inter, pst);
+            globalIterStatement(&result, inter, pst, true);
             if (result.type == R_error) {
-                printError(&result, inter, true);
+                printError(&result, inter, args.p_clock);
                 should_break = true;
             }
             freeStatement(pst);
@@ -39,7 +39,7 @@ void runCodeStdin(Inter *inter, char *hello_string) {
             clearerr(stdin);
         fprintf(stdout, ">>> ");
         if (runParser(NULL, inter, true, &pst)) {
-            globalIterStatement(&result, inter, pst);
+            globalIterStatement(&result, inter, pst, false);
             if (result.type == R_error && !(should_break = is_quitExc(result.value, inter)))
                 printError(&result, inter, true);
             freeStatement(pst);
