@@ -511,7 +511,7 @@ static ResultType setNameException(LinkValue *val, wchar_t *name, fline line, ch
     gc_addTmpLink(&val->gc_status);
 
     setResultError(E_NameExceptiom, message, line, file, true, CNEXT_NT);
-    addAttributes(inter->data.mag_func[M_VAL], false, val, line, file, true, CFUNC_NT(var_list, &tmp, result->value));
+    addAttributes(inter->data.mag_func[M_VAL], false, val, line, file, true, CFUNC_NT(var_list, &tmp, result->value));  // 将错误设置为__val__
     if (!RUN_TYPE(tmp.type)) {
         freeResult(result);
         *result = tmp;
@@ -520,7 +520,7 @@ static ResultType setNameException(LinkValue *val, wchar_t *name, fline line, ch
 
     freeResult(&tmp);
     _attr_ = findAttributes(inter->data.mag_func[M_ATTR], false, LINEFILE, true, CFUNC_NT(var_list, &tmp, belong));
-    if (!RUN_TYPE(tmp.type)) {
+    if (!RUN_TYPE(tmp.type)) {  // 回调__attr__并把错误作为参数
         freeResult(result);
         *result = tmp;
         goto return_;
