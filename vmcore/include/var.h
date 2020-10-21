@@ -65,7 +65,6 @@ VarList *popVarList(VarList *base);
 VarList *copyVarListCore(VarList *base, Inter *inter);
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter);
 VarList *connectVarListBack(VarList *base, VarList *back);
-bool comparVarList(VarList *dest, VarList *src);
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base);
 
 vint findDefault(DefaultVar *base, wchar_t *name);

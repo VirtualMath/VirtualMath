@@ -3,42 +3,14 @@
 #if START_GC
 static void gc_iterVar(Var *var);
 static void gc_iterLinkValue(LinkValue *value);
-static void gc_fatherValue(Inherit *value);
 static void gc_iterValue(Value *value);
 static void gc_varList(VarList *vl);
 static void gc_iterHashTable(HashTable *ht);
 
-static void resetGC(GCStatus *gcs){
-    gcs->continue_ = false;
-    gcs->link = 0;
-}
+#define resetGC(gcs) ((gcs)->continue_ = false, (gcs)->link = 0)
 
-void setGC(GCStatus *gcs){
-    resetGC(gcs);
-    gcs->tmp_link = 0;
-    gcs->statement_link = 0;
-    gcs->c_value = not_free;
-}
-
-void gc_addTmpLink(GCStatus *gcs){
-    gcs->tmp_link ++;
-}
-
-void gc_addLink(GCStatus *gcs){
-    gcs->link ++;
-}
-
-void gc_addStatementLink(GCStatus *gcs){
-    gcs->statement_link ++;
-}
-
-void gc_freeStatementLink(GCStatus *gcs){
-    gcs->statement_link --;
-}
-
-void gc_freeTmpLink(GCStatus *gcs){
-    gcs->tmp_link --;
-}
+// 若(gcs)->continue_为true, 则直接返回; 若为false则自增(+1后为false), 并返回自增前的值
+//#define gc_iterAlready(gcs) ((gcs)->continue_) || (((gcs)->continue_)++)  // TODO-szh 不能达到预期的效果
 
 static bool gc_iterAlready(GCStatus *gcs){
     bool return_ = gcs->continue_;
@@ -46,18 +18,9 @@ static bool gc_iterAlready(GCStatus *gcs){
     return return_;
 }
 
-static bool gc_needFree(GCStatus *gcs){
-    return (gcs->statement_link == 0 && gcs->tmp_link == 0 && gcs->link == 0);
-}
-
-static void gc_resetValue(Value *value){
-    value->gc_status.c_value = not_free;
-}
-
-static bool gc_needFreeValue(Value *value){
-    return (gc_needFree(&value->gc_status) && value->gc_status.c_value == need_free);
-}
-
+#define gc_needFree(gcs) ((gcs)->statement_link == 0 && (gcs)->tmp_link == 0 && (gcs)->link == 0)
+#define gc_resetValue(value) ((value)->gc_status.c_value = not_free)
+#define gc_needFreeValue(value) (gc_needFree(&(value)->gc_status) && (value)->gc_status.c_value == need_free)
 
 static void gc_iterLinkValue(LinkValue *value){
     if (value == NULL)
@@ -69,11 +32,6 @@ static void gc_iterLinkValue(LinkValue *value){
     }
 }
 
-static void gc_fatherValue(Inherit *value){
-    for (PASS; value != NULL; value = value->next)
-        gc_iterLinkValue(value->value);
-}
-
 static void gc_iterValue(Value *value){
     if (value == NULL)
         return;
@@ -82,7 +40,11 @@ static void gc_iterValue(Value *value){
         return;
     gc_varList(value->object.var);
     gc_varList(value->object.out_var);
-    gc_fatherValue(value->object.inherit);
+    {
+        Inherit *ih = value->object.inherit;
+        for (PASS; ih != NULL; ih = ih->next)
+            gc_iterLinkValue(ih->value);
+    }
     gc_resetValue(value);
     switch (value->type) {
         case V_list:
@@ -127,19 +89,16 @@ static void gc_iterVar(Var *var){
     }
 }
 
-static void gc_resetBase(Inter *inter){
-    for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->gc_next)
-        resetGC(&value_base->gc_status);
-
-    for (LinkValue *link_base = inter->link_base; link_base != NULL; link_base = link_base->gc_next)
-        resetGC(&link_base->gc_status);
-
-    for (HashTable *hash_base = inter->hash_base; hash_base != NULL; hash_base = hash_base->gc_next)
-        resetGC(&hash_base->gc_status);
-
-    for (Var *var_base = inter->base_var; var_base != NULL; var_base = var_base->gc_next)
-        resetGC(&var_base->gc_status);
-}
+#define gc_resetBase(inter) do {  \
+    for (Value *value_base = (inter)->base; value_base != NULL; value_base = value_base->gc_next)  \
+        {resetGC(&value_base->gc_status);}  \
+    for (LinkValue *link_base = (inter)->link_base; link_base != NULL; link_base = link_base->gc_next)   \
+        {resetGC(&link_base->gc_status);}   \
+    for (HashTable *hash_base = (inter)->hash_base; hash_base != NULL; hash_base = hash_base->gc_next)  \
+        {resetGC(&hash_base->gc_status);}  \
+    for (Var *var_base = (inter)->base_var; var_base != NULL; var_base = var_base->gc_next)  \
+        {resetGC(&var_base->gc_status);}  \
+} while(0)
 
 static void gc_checkBase(Inter *inter){
     for (Value *value_base = inter->base; value_base != NULL; value_base = value_base->gc_next)
@@ -247,6 +206,7 @@ void gc_run(Inter *inter, VarList *run_var, int var_list, int link_value, int va
         gc_iterValue(tmp);
     }
     va_end(arg);
+
     gc_checkBase(inter);
     gc_checkDel(inter);
     gc_freeBase(inter);
@@ -257,19 +217,13 @@ static void gc_freezeHashTable(HashTable *ht, bool is_lock){
     if (ht == NULL)
         return;
 
-    if (is_lock)
+    if (is_lock) {
         gc_addTmpLink(&ht->gc_status);
-    else
+    } else {
         gc_freeTmpLink(&ht->gc_status);
+    }
 
     gc_iterAlready(&ht->gc_status);
-}
-
-static void gc_iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
-    for (PASS; freeze != NULL; freeze = freeze->next){
-        if (!comparVarList(freeze, base))
-            gc_freezeHashTable(freeze->hashtable, is_lock);
-    }
 }
 
 /**
@@ -281,6 +235,13 @@ static void gc_iterFreezeVarList(VarList *freeze, VarList *base, bool is_lock){
  */
 void gc_freeze(Inter *inter, VarList *freeze, VarList *base, bool is_lock){
     gc_resetBase(inter);
-    gc_iterFreezeVarList(freeze, base, is_lock);
+    for (PASS; freeze != NULL; freeze = freeze->next){
+        for (VarList *src = base; src != NULL; src = src->next) {
+            if (src->hashtable != freeze->hashtable) {
+                gc_freezeHashTable(freeze->hashtable, is_lock);
+                break;
+            }
+        }
+    }
 }
 #endif

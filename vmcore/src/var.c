@@ -269,13 +269,6 @@ VarList *connectVarListBack(VarList *base, VarList *back){
     return base;
 }
 
-bool comparVarList(VarList *dest, VarList *src) {
-    for (PASS; src != NULL; src = src->next)
-        if (src->hashtable == dest->hashtable)
-            return true;
-    return false;
-}
-
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base) {
     VarList *tmp = base == NULL ? makeVarList(inter, true) : base;
     for (PASS; value != NULL; value = value->next) {
