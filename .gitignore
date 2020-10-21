@@ -233,3 +233,5 @@ vgcore.*
 .vs
 /bin*
 /lib*
+gmon.out
+profile.txt

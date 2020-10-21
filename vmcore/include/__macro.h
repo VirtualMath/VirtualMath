@@ -2,6 +2,7 @@
 #define VIRTUALMATH___MACRO_H
 #include "macro.h"
 
+
 // PASS语句的定义
 #define PASS
 

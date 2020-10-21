@@ -38,14 +38,14 @@ void gc_runDelAll(struct Inter *inter);
 void gc_freeze(struct Inter *inter, struct VarList *freeze, struct VarList *base, bool is_lock);
 void gc_run(struct Inter *inter, struct VarList *run_var, int var_list, int link_value, int value, ...);
 #else
-#define gc_freeze(...)
-#define gc_run(...)
-#define setGC(...)
-#define gc_addTmpLink(...)
-#define gc_addStatementLink(...)
-#define gc_freeTmpLink(...)
-#define gc_freeStatementLink(...)
-#define gc_runDelAll(...)
+#define gc_freeze(...) ((void)0)
+#define gc_run(...) ((void)0)
+#define setGC(...) ((void)0)
+#define gc_addTmpLink(...) ((void)0)
+#define gc_addStatementLink(...) ((void)0)
+#define gc_freeTmpLink(...) ((void)0)
+#define gc_freeStatementLink(...) ((void)0)
+#define gc_runDelAll(...) ((void)0)
 #endif
 
 #endif //VIRTUALMATH_GC_H

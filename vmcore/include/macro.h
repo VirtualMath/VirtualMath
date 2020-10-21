@@ -22,9 +22,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <dlfcn.h>
-#include "ffi.h"
-
-
+#include <ffi.h>
 
 // 布尔逻辑的定义
 #define bool int
@@ -35,12 +33,14 @@
 
 #ifdef NDEBUG
 #define errasert(e) ((void)0)
-#elifdef __assert_fail
+#else
+#ifdef __assert_fail
 #define errasert(e) __assert_fail(#e, __FILE__, __LINE__, __ASSERT_FUNCTION)
-#elifdef _assert
+#elif defined(_assert)
 #define errasert(e) _assert(#e, __FILE__, __LINE__)
 #else
 #define errasert(e) fprintf(stderr, "%s %s %s %s\n", #e, __FILE__, __LINE__)
+#endif
 #endif
 
 #endif //VIRTUALMATH_MACRO_H

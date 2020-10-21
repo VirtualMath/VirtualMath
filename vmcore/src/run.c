@@ -9,6 +9,7 @@
  */
 ResultType runStatement(FUNC) {
     ResultType type = R_not;
+    bool run_gc = st->next == NULL;  // 若st已经没有下一部了则执行gc
     setResultCore(result);
     gc_addTmpLink(&belong->gc_status);
 
@@ -33,33 +34,43 @@ ResultType runStatement(FUNC) {
             break;
         case operation:
             type = operationStatement(CNEXT);
+            run_gc = true;
             break;
         case set_class:
             type = setClass(CNEXT);
+            run_gc = true;
             break;
         case set_function:
             type = setFunction(CNEXT);
+            run_gc = true;
             break;
         case slice_:
             type = elementSlice(CNEXT);
+            run_gc = true;
             break;
         case call_function:
             type = callBack(CNEXT);
+            run_gc = true;
             break;
         case if_branch:
             type = ifBranch(CNEXT);
+            run_gc = true;
             break;
         case while_branch:
             type = whileBranch(CNEXT);
+            run_gc = true;
             break;
         case for_branch:
             type = forBranch(CNEXT);
+            run_gc = true;
             break;
         case with_branch:
             type = withBranch(CNEXT);
+            run_gc = true;
             break;
         case try_branch:
             type = tryBranch(CNEXT);
+            run_gc = true;
             break;
         case break_cycle:
             type = breakCycle(CNEXT);
@@ -84,12 +95,15 @@ ResultType runStatement(FUNC) {
             break;
         case include_file:
             type = includeFile(CNEXT);
+            run_gc = true;
             break;
         case import_file:
             type = importFile(CNEXT);
+            run_gc = true;
             break;
         case from_import_file:
             type = fromImportFile(CNEXT);
+            run_gc = true;
             break;
         case default_var:
             type = setDefault(CNEXT);
@@ -113,7 +127,8 @@ ResultType runStatement(FUNC) {
     result->node = st;
     gc_freeTmpLink(&belong->gc_status);
 #if START_GC
-    gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
+    if (run_gc)
+        gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
 #endif
     return type;
 }
