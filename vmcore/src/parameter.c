@@ -533,8 +533,8 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
     function = copyParameter(function_base);
     tmp_function = function;
     setResultCore(result);
-    gc_freeze(inter, function_var, NULL, true);
-    gc_freeze(inter, var_list, NULL, true);
+    gc_freeze(inter, function_var, true);
+    gc_freeze(inter, var_list, true);
 
     while (true){
         if (call == NULL && function == NULL)
@@ -654,8 +654,8 @@ ResultType setParameterCore(fline line, char *file, Argument *call, Parameter *f
     setResult(result, inter);
 
     return_:
-    gc_freeze(inter, function_var, NULL, false);
-    gc_freeze(inter, var_list, NULL, false);
+    gc_freeze(inter, function_var, false);
+    gc_freeze(inter, var_list, false);
     freeParameter(tmp_function, true);
     return result->type;
 }
@@ -763,7 +763,7 @@ int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak,
     int return_;
     setResultCore(result);
 
-    gc_freeze(inter, var_list, NULL, true);
+    gc_freeze(inter, var_list, true);
     for (PASS; arg != NULL && arg->type != name_arg; arg = arg->next)
         PASS;
     if (arg == NULL) {
@@ -792,7 +792,7 @@ int parserNameArgument(ArgumentParser ap[], Argument *arg, ArgumentParser **bak,
 
     return_:
     freeVarList(tmp);
-    gc_freeze(inter, var_list, NULL, false);
+    gc_freeze(inter, var_list, false);
     if (bak != NULL)
         *bak = ap;
     return return_;

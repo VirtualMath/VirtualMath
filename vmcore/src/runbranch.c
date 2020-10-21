@@ -11,7 +11,7 @@ static bool checkNumber(FUNC){
 static void newBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status, Inter *inter){
     if (new_var != NULL)
         new_var->next = NULL;
-    gc_freeze(inter, new_var, NULL, true);
+    gc_freeze(inter, new_var, true);
     branch_st->info.var_list = new_var;
     branch_st->info.node = node->type == yield_code ? node->next : node;
     branch_st->info.branch.sl_node = sl_node;
@@ -715,7 +715,7 @@ ResultType withBranch(FUNC) {
         }
     }
 
-    gc_freeze(inter, new, var_list, true);
+    gc_freeze(inter, new, true);
     if (run_block) {
         if (vl_info == NULL)
             vl_info = with_list->code;
@@ -784,7 +784,7 @@ ResultType withBranch(FUNC) {
         result_from = info_finally_branch;
     }
 
-    gc_freeze(inter, new, var_list, false);
+    gc_freeze(inter, new, false);
     setWithResult(yield_run, with_list, st, result, value, _enter_, _exit_, with_belong, result_from, CFUNC_CORE(new));
     if (set_result)
         setResult(result, inter);

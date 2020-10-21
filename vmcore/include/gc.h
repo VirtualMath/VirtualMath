@@ -37,7 +37,7 @@ typedef struct GCStatus GCStatus;
 
 void gc_runDelAll(struct Inter *inter);
 
-void gc_freeze(struct Inter *inter, struct VarList *freeze, struct VarList *base, bool is_lock);
+void gc_freeze(struct Inter *inter, struct VarList *freeze, bool is_lock);
 void gc_run(struct Inter *inter, struct VarList *run_var, int var_list, int link_value, int value, ...);
 #else
 #define gc_addTmpLink(gcs) ((void)0)

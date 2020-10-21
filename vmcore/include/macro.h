@@ -32,15 +32,10 @@
 #define WNUL ((wchar_t)0)
 
 #ifdef NDEBUG
-#define errasert(e) ((void)0)
+#define err_asert(e) ((void)0)
 #else
-#ifdef __assert_fail
-#define errasert(e) __assert_fail(#e, __FILE__, __LINE__, __ASSERT_FUNCTION)
-#elif defined(_assert)
-#define errasert(e) _assert(#e, __FILE__, __LINE__)
-#else
-#define errasert(e) fprintf(stderr, "%s %s %s %s\n", #e, __FILE__, __LINE__)
+#define err_asert(e) fprintf(stderr, "%s %s %d\n", #e, __FILE__, __LINE__)
 #endif
-#endif
+
 
 #endif //VIRTUALMATH_MACRO_H

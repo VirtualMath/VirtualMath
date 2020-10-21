@@ -31,7 +31,7 @@ bool iterClassFunc(NameFunc *list, FUNC_NT){
     object_var->next = var_list;
     inter->data.default_pt_type = object_free_;
 
-    gc_freeze(inter, object_backup, NULL, true);
+    gc_freeze(inter, object_backup, true);
     for (PASS; list->of != NULL; list++) {
         LinkValue *value = registeredFunctionCore(list->of, list->name, CFUNC_NT(object_var, result, belong));
         if (!CHECK_RESULT(result)) {
@@ -41,7 +41,7 @@ bool iterClassFunc(NameFunc *list, FUNC_NT){
         value->value->data.function.function_data.pt_type = list->type;
         freeResult(result);
     }
-    gc_freeze(inter, object_backup, NULL, false);
+    gc_freeze(inter, object_backup, false);
 
     object_var->next = object_backup;
     inter->data.default_pt_type = bak;

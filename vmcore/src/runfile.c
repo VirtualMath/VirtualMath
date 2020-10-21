@@ -235,7 +235,7 @@ ResultType importFile(FUNC) {
     char md5_str[MD5_STRING];
 
     setResultCore(result);
-    gc_freeze(inter, var_list, NULL, true);
+    gc_freeze(inter, var_list, true);
 
     importFileCore(&path, &split_path, &status, CFUNC(file, var_list, result, belong));
     if (!CHECK_RESULT(result))
@@ -260,7 +260,7 @@ ResultType importFile(FUNC) {
     return_:
     memFree(split_path);
     memFree(path);
-    gc_freeze(inter, var_list, NULL, false);
+    gc_freeze(inter, var_list, false);
     return result->type;
 }
 
@@ -293,7 +293,7 @@ ResultType fromImportFile(FUNC) {
     Parameter *as = st->u.from_import_file.as != NULL ? st->u.from_import_file.as : st->u.from_import_file.pt;
 
     setResultCore(result);
-    gc_freeze(inter, var_list, NULL, true);
+    gc_freeze(inter, var_list, true);
     importFileCore(&path, &split_path, &status, CFUNC(file, var_list, result, belong));
     if (!CHECK_RESULT(result))
         goto return_;
@@ -332,6 +332,6 @@ ResultType fromImportFile(FUNC) {
     return_:
     memFree(path);
     memFree(split_path);
-    gc_freeze(inter, var_list, NULL, false);
+    gc_freeze(inter, var_list, false);
     return result->type;
 }

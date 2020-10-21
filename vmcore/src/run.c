@@ -13,7 +13,7 @@ ResultType runStatement(FUNC) {
     setResultCore(result);
     gc_addTmpLink(&belong->gc_status);
 
-    switch (st->type) {  // TODO-list 优化： 只有指定的st需要执行gc
+    switch (st->type) {
         case base_value:
             type = getBaseValue(CNEXT);
             break;
@@ -46,7 +46,6 @@ ResultType runStatement(FUNC) {
             break;
         case slice_:
             type = elementSlice(CNEXT);
-            run_gc = true;
             break;
         case call_function:
             type = callBack(CNEXT);
@@ -168,7 +167,7 @@ ResultType runStatementOpt(FUNC) {  // 不运行gc机制
             break;
         default:
             setResult(result, inter);
-            errasert(runStatementOpt default);
+            err_asert(runStatementOpt default);
             break;
     }
 

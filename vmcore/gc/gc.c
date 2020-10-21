@@ -230,18 +230,11 @@ static void gc_freezeHashTable(HashTable *ht, bool is_lock){
  * 冻结不可达的VarList的hashTable
  * @param inter
  * @param freeze
- * @param base
  * @param is_lock
  */
-void gc_freeze(Inter *inter, VarList *freeze, VarList *base, bool is_lock){
+void gc_freeze(Inter *inter, VarList *freeze, bool is_lock) {
     gc_resetBase(inter);
-    for (PASS; freeze != NULL; freeze = freeze->next){
-        for (VarList *src = base; src != NULL; src = src->next) {
-            if (src->hashtable != freeze->hashtable) {
-                gc_freezeHashTable(freeze->hashtable, is_lock);
-                break;
-            }
-        }
-    }
+    for (PASS; freeze != NULL; freeze = freeze->next)
+        gc_freezeHashTable(freeze->hashtable, is_lock);
 }
 #endif

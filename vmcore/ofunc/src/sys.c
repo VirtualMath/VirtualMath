@@ -233,7 +233,7 @@ ResultType vm_exec(O_FUNC){
         if (out)
             run->next = var_list;
         else
-            gc_freeze(inter, var_list, run, true);
+            gc_freeze(inter, var_list, true);
     } else
         run = var_list;
 
@@ -242,7 +242,7 @@ ResultType vm_exec(O_FUNC){
 
     if (var != NULL) {
         if (!out)
-            gc_freeze(inter, var_list, run, false);
+            gc_freeze(inter, var_list, false);
         freeVarList(run);
     }
 
