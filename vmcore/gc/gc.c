@@ -10,13 +10,7 @@ static void gc_iterHashTable(HashTable *ht);
 #define resetGC(gcs) ((gcs)->continue_ = false, (gcs)->link = 0)
 
 // 若(gcs)->continue_为true, 则直接返回; 若为false则自增(+1后为false), 并返回自增前的值
-//#define gc_iterAlready(gcs) ((gcs)->continue_) || (((gcs)->continue_)++)  // TODO-szh 不能达到预期的效果
-
-static bool gc_iterAlready(GCStatus *gcs){
-    bool return_ = gcs->continue_;
-    gcs->continue_ = true;
-    return return_;
-}
+#define gc_iterAlready(gcs) (((gcs)->continue_) ? true : (((gcs)->continue_ = true), false))
 
 #define gc_needFree(gcs) ((gcs)->statement_link == 0 && (gcs)->tmp_link == 0 && (gcs)->link == 0)
 #define gc_resetValue(value) ((value)->gc_status.c_value = not_free)
@@ -211,30 +205,5 @@ void gc_run(Inter *inter, VarList *run_var, int var_list, int link_value, int va
     gc_checkDel(inter);
     gc_freeBase(inter);
     gc_runDel(inter, run_var);
-}
-
-static void gc_freezeHashTable(HashTable *ht, bool is_lock){
-    if (ht == NULL)
-        return;
-
-    if (is_lock) {
-        gc_addTmpLink(&ht->gc_status);
-    } else {
-        gc_freeTmpLink(&ht->gc_status);
-    }
-
-    gc_iterAlready(&ht->gc_status);
-}
-
-/**
- * 冻结不可达的VarList的hashTable
- * @param inter
- * @param freeze
- * @param is_lock
- */
-void gc_freeze(Inter *inter, VarList *freeze, bool is_lock) {
-    gc_resetBase(inter);
-    for (PASS; freeze != NULL; freeze = freeze->next)
-        gc_freezeHashTable(freeze->hashtable, is_lock);
 }
 #endif

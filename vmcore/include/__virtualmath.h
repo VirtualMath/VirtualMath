@@ -26,6 +26,7 @@
 #if DEBUG
 /* DEBUG所使用的函数 */
 void printGC(Inter *inter);
+void printGCHS(Inter *inter);
 void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link);
 void printValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link);
 void printVarGC(char *tag, Inter *inter);

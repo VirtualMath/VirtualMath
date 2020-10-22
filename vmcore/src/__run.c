@@ -359,11 +359,9 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
 
 LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT) {
     LinkValue *attr;
-    gc_freeze(inter, var_list, true);
     attr = findStrVar(name, free_old, line, file, nowrun, CFUNC_NT(belong->value->object.var, result, belong));
     if (attr != NULL && (attr->belong == NULL || attr->belong->value == belong->value || checkAttribution(belong->value, attr->belong->value)))
         attr->belong = belong;
-    gc_freeze(inter, var_list, false);
     return attr;
 }
 
@@ -382,11 +380,7 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
     if (!CHECK_RESULT(result))
         goto return_;
     GET_RESULT(name_, result);
-
-    gc_freeze(inter, var_list, true);
     addStrVarCore(false, var_name, name_, line, file, var_list, CFUNC_NT(belong->value->object.var, result, value));
-    gc_freeze(inter, var_list, false);
-
     gc_freeTmpLink(&name_->gc_status);
 
     return_:

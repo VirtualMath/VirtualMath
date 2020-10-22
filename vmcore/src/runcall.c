@@ -24,10 +24,8 @@ ResultType setClass(FUNC) {
         inter->data.default_pt_type = object_free_;
         tmp->value->object.var->next = var_list;
 
-        gc_freeze(inter, var_backup, true);
         // 运行类定义的时候需要调整belong
         functionSafeInterStatement(CFUNC(st->u.set_class.st, tmp->value->object.var, result, tmp));
-        gc_freeze(inter, var_backup, false);
 
         tmp->value->object.var->next = var_backup;
         inter->data.default_pt_type = pt_type_bak;
@@ -232,7 +230,6 @@ static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int l
 
     of = func_value->value->data.function.of;
     function_var = pushVarList(func_value->value->object.out_var != NULL ? func_value->value->object.out_var : var_list, inter);
-    gc_freeze(inter, var_list, true);
 
     freeResult(result);
     of(CO_FUNC(arg, function_var, result, func_value->belong));  // belong设置为func的belong, 方便权限的认定
@@ -241,7 +238,6 @@ static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int l
     else if (result->type != R_opt && result->type != R_error)
         setResult(result, inter);
 
-    gc_freeze(inter, var_list, false);
     popVarList(function_var);
     freeFunctionArgument(arg, bak);
 
@@ -465,7 +461,6 @@ static void updateFunctionYield(Statement *func_st, Statement *node){
 
 static void newFunctionYield(Statement *func_st, Statement *node, VarList *new_var, Inter *inter){
     new_var->next = NULL;
-    gc_freeze(inter, new_var, true);
     func_st->info.var_list = new_var;
     func_st->info.node = node->type == yield_code ? node->next : node;
     func_st->info.have_info = true;
@@ -516,7 +511,6 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
     if (yield_run)
         st_func = st_func->info.node;
 
-    gc_freeze(inter, var_list, true);
     setFunctionArgument(&arg, &bak, func_value, line, file, pt_sep, CNEXT_NT);
     if (!CHECK_RESULT(result))
         goto return_;
@@ -534,7 +528,6 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
     functionSafeInterStatement(CFUNC(st_func, var_func, result, func_value->belong));  // belong设置为函数的belong，方便权限校对
 
     return_:
-    gc_freeze(inter, var_list, false);
     setFunctionResult(func_value, yield_run, result, CFUNC_CORE(var_func));
     gc_freeTmpLink(&func_value->gc_status);
     return result->type;

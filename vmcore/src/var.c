@@ -78,13 +78,16 @@ void freeHashTable(HashTable **value) {
     return_: return;
 }
 
-VarList *makeVarList(Inter *inter, bool make_hash) {
+VarList *makeVarList(Inter *inter, bool make_hash, HashTable *hs) {
     VarList *tmp = calloc(1, sizeof(VarList));
     tmp->next = NULL;
     if (make_hash)
         tmp->hashtable = makeHashTable(inter);
-    else
-        tmp->hashtable = NULL;
+    else {
+        assert(hs != NULL);
+        tmp->hashtable = hs;
+    }
+    gc_addTmpLink(&tmp->hashtable->gc_status);
     tmp->default_var = NULL;
     return tmp;
 }
@@ -95,6 +98,8 @@ VarList *freeVarList(VarList *vl) {
     next_var = vl->next;
     for (PASS; vl->default_var != NULL; vl->default_var = freeDefaultVar(vl->default_var))
         PASS;
+    if (vl->hashtable != NULL)
+        gc_freeTmpLink(&vl->hashtable->gc_status);
     memFree(vl);
     return_:
     return next_var;
@@ -234,21 +239,9 @@ void addFromVarList(wchar_t *name, LinkValue *name_, vint times, LinkValue *valu
 }
 
 VarList *pushVarList(VarList *base, Inter *inter){
-    VarList *new = makeVarList(inter, true);
+    VarList *new = makeVarList(inter, true, NULL);
     new->next = base;
     return new;
-}
-
-VarList *popVarList(VarList *base) {
-    if (base->next == NULL)
-        return base;
-    return freeVarList(base);
-}
-
-VarList *copyVarListCore(VarList *base, Inter *inter){
-    VarList *tmp = makeVarList(inter, false);
-    tmp->hashtable = base->hashtable;
-    return tmp;
 }
 
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter){
@@ -270,7 +263,7 @@ VarList *connectVarListBack(VarList *base, VarList *back){
 }
 
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base) {
-    VarList *tmp = base == NULL ? makeVarList(inter, true) : base;
+    VarList *tmp = base == NULL ? makeVarList(inter, true, NULL) : base;
     for (PASS; value != NULL; value = value->next) {
         VarList *new = copyVarList(value->value->value->object.var, false, inter);
         tmp = connectVarListBack(tmp, new);

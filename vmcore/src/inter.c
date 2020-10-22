@@ -10,7 +10,7 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     tmp->package = NULL;
 
     setBaseInterData(tmp);
-    tmp->var_list = makeVarList(tmp, true);
+    tmp->var_list = makeVarList(tmp, true, NULL);
 
     if (out != NULL) {
         tmp->data.inter_stdout = fopen(out, "w");
@@ -149,21 +149,30 @@ void freeInter(Inter *inter, bool show_gc) {
     gc_runDelAll(inter);
     freeBaseInterData(inter);
     freePackage(inter->package);
+    freeVarList(inter->var_list);
+
 #if DEBUG
     wint_t ch;
     if (show_gc && (printf("\nEnter '1' to show gc: "), (fgetwc(stdin)) == L'1')) {
         printGC(inter);
         while ((ch = fgetwc(stdin)) != '\n' || ch == WEOF)
             PASS;
-    }
+    } else
+        show_gc = false;
 #endif
-    freeVarList(inter->var_list);
+
     while (inter->base != NULL)
         freeValue(&inter->base);
     while (inter->base_var != NULL)
         freeVar(&inter->base_var);
     while (inter->link_base != NULL)
         freeLinkValue(&inter->link_base);
+
+#if DEBUG
+    if (show_gc)
+        printGCHS(inter);
+#endif
+
     while (inter->hash_base != NULL)
         freeHashTable(&inter->hash_base);
     memFree(inter);
@@ -219,20 +228,26 @@ void printGC(Inter *inter){
     long int lv_tmp = 0;
     long int v_st = 0;
     long int v_tmp = 0;
-    long int h_tmp = 0;
     printLinkValueGC("\n\nprintLinkValueGC TAG : freeInter", inter, &lv_tmp, &lv_st);
     printValueGC("\nprintValueGC TAG : freeInter", inter, &v_tmp, &v_st);
     printVarGC("\nprintVarGC TAG : freeInter", inter);
-    printHashTableGC("\nprintHashTableGC TAG : freeInter", inter, &h_tmp);
     printf("\n");
 
     printf("linkvalue tmp       link = %ld\n", lv_tmp);
     printf("linkvalue statement link = %ld\n", lv_st);
     printf("    value tmp       link = %ld\n", v_tmp);
     printf("    value statement link = %ld\n", v_st);
-    printf("hashtable tmp       link = %ld\n", h_tmp);
-    printf("      tmp link     count = %ld\n", lv_tmp + v_tmp + h_tmp);
+    printf("      tmp link     count = %ld\n", lv_tmp + v_tmp);
     printf("statement link     count = %ld\n", lv_st + v_st);
+#endif
+
+}
+
+void printGCHS(Inter *inter){  // 只输出hashtable
+#if START_GC
+    long int h_tmp = 0;
+    printHashTableGC("\nprintHashTableGC TAG : freeInter", inter, &h_tmp);
+    printf("\nhashtable tmp       link = %ld\n", h_tmp);
 #endif
 
 }
@@ -300,14 +315,13 @@ void printVarGC(char *tag, Inter *inter){
             printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
             printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
             printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);
+            printf("str_name = %ls\n", base->name);
+            printf("name = ");
+            printValue(base->name_->value, stdout, false, true);
+            printf("\nvalue = ");
+            printValue(base->value->value, stdout, false, true);
+            printf("\n-------------------------------------------\n");
         }
-
-        printf("str_name = %ls\n", base->name);
-        printf("name = ");
-        printValue(base->name_->value, stdout, false, true);
-        printf("\nvalue = ");
-        printValue(base->value->value, stdout, false, true);
-        printf("\n-------------------------------------------\n");
         base = base->gc_next;
     }
     printf("printVarGC TAG : END\n");

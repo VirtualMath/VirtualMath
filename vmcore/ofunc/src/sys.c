@@ -173,7 +173,6 @@ ResultType vm_exec(O_FUNC){
     LinkValue *str;
     LinkValue *var;
     LinkValue *out;
-    bool out_;
     Statement *new_st;
     VarList *run;
 
@@ -204,7 +203,6 @@ ResultType vm_exec(O_FUNC){
             setResultError(E_TypeException, L"missing parameters: var", LINEFILE, true, CNEXT_NT);
             return R_error;
         }
-        out_ = out->value->data.bool_.bool_;
     } else
         out = false;
 
@@ -228,23 +226,17 @@ ResultType vm_exec(O_FUNC){
     }
 
     if (var != NULL) {
-        run = makeVarList(inter, false);
-        run->hashtable = var->value->data.dict.dict;
+        run = makeVarList(inter, false, var->value->data.dict.dict);
         if (out)
             run->next = var_list;
-        else
-            gc_freeze(inter, var_list, true);
     } else
         run = var_list;
 
     includeSafeInterStatement(CFUNC(new_st, run, result, belong));
     freeStatement(new_st);
 
-    if (var != NULL) {
-        if (!out)
-            gc_freeze(inter, var_list, false);
+    if (var != NULL)
         freeVarList(run);
-    }
 
     return result->type;
 }

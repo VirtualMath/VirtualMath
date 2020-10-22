@@ -81,7 +81,6 @@ static void updateBlockYield(Statement *block_st, Statement *node){
 
 static void newBlockYield(Statement *block_st, Statement *node, VarList *new_var, Inter *inter){
     new_var->next = NULL;
-    gc_freeze(inter, new_var, true);
     block_st->info.var_list = new_var;
     block_st->info.node = node->type == yield_code ? node->next : node;
     block_st->info.have_info = true;
@@ -190,14 +189,12 @@ ResultType pointOperation(FUNC) {
         setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), st->line, st->code_file, true, CNEXT_NT);
         goto return_;
     }
-    gc_freeze(inter, var_list, true);
     operationSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));  // 点运算运算时需要调整belong为点的左值
     pri_auto = result->value->belong == NULL || result->value->belong->value == belong->value || checkAttribution(belong->value, result->value->belong->value);
     if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, pri_auto, CNEXT_NT))
         PASS;
     else if (result->value->belong == NULL || result->value->belong->value == left->value || checkAttribution(left->value, result->value->belong->value))  // 检查result所属于的对象是否位左值的父亲
         result->value->belong = left;
-    gc_freeze(inter, var_list, false);
 
     return_:
     gc_freeTmpLink(&left->gc_status);
@@ -273,12 +270,10 @@ ResultType pointDel(Statement *name, FUNC_NT) {
         goto return_;
     }
 
-    gc_freeze(inter, var_list, true);
     if (right->type == T_OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_OUTPOINT))
         pointDel(name->u.operation.right, CFUNC_NT(object, result, belong));
     else
         delCore(name->u.operation.right, true, CFUNC_NT(object, result, belong));
-    gc_freeze(inter, var_list, false);
 
     return_:
     gc_freeTmpLink(&left->gc_status);
@@ -491,12 +486,10 @@ ResultType pointAss(Statement *name, LinkValue *value, FUNC_NT) {
         goto return_;
     }
 
-    gc_freeze(inter, var_list, true);
     if (right->type == T_OPERATION && (right->u.operation.OperationType == OPT_POINT || right->u.operation.OperationType == OPT_OUTPOINT))
         pointAss(name->u.operation.right, value, CFUNC_NT(object, result, belong));
     else
         assCore(name->u.operation.right, value, true, false, CFUNC_NT(object, result, belong));
-    gc_freeze(inter, var_list, false);
 
     return_:
     gc_freeTmpLink(&left->gc_status);

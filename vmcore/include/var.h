@@ -2,6 +2,8 @@
 #define VIRTUALMATH_VAR_H
 
 #define MAX_SIZE (8)
+#define copyVarListCore(base, inter) makeVarList((inter), false, (base)->hashtable)
+#define popVarList(base) (((base)->next == NULL) ? (base) : freeVarList(base))
 
 struct Var{
     GCStatus gc_status;
@@ -50,7 +52,7 @@ void freeVar(Var **var);
 HashTable *makeHashTable(Inter *inter);
 void freeHashTable(HashTable **value);
 
-VarList *makeVarList(Inter *inter, bool make_hash);
+VarList *makeVarList(Inter *inter, bool make_hash, HashTable *hs);
 VarList *freeVarList(VarList *vl);
 
 vhashn time33(wchar_t *key);
@@ -61,8 +63,6 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
 void addFromVarList(wchar_t *name, LinkValue *name_, vint times, LinkValue *value, FUNC_CORE);
 
 VarList *pushVarList(VarList *base, Inter *inter);
-VarList *popVarList(VarList *base);
-VarList *copyVarListCore(VarList *base, Inter *inter);
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter);
 VarList *connectVarListBack(VarList *base, VarList *back);
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base);
