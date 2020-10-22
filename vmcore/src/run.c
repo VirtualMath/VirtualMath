@@ -127,7 +127,7 @@ ResultType runStatement(FUNC) {
     gc_freeTmpLink(&belong->gc_status);
 #if START_GC
     if (run_gc)
-        gc_run(inter, var_list, 1, 2, 0, var_list, belong, result->value);
+        gc_run(inter, var_list);
 #endif
     return type;
 }

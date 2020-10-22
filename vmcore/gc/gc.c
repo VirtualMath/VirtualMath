@@ -183,24 +183,8 @@ static void gc_freeBase(Inter *inter){
             var_base = &(*var_base)->gc_next;
 }
 
-void gc_run(Inter *inter, VarList *run_var, int var_list, int link_value, int value, ...){
+void gc_run(Inter *inter, VarList *run_var){
     gc_resetBase(inter);
-    va_list arg;
-    va_start(arg, value);
-    for (int i =0;i < var_list;i ++){
-        VarList *tmp = va_arg(arg, VarList *);
-        gc_varList(tmp);
-    }
-    for (int i =0;i < link_value;i ++){
-        LinkValue *tmp = va_arg(arg, LinkValue *);
-        gc_iterLinkValue(tmp);
-    }
-    for (int i =0;i < value;i ++){
-        Value *tmp = va_arg(arg, Value *);
-        gc_iterValue(tmp);
-    }
-    va_end(arg);
-
     gc_checkBase(inter);
     gc_checkDel(inter);
     gc_freeBase(inter);

@@ -1,12 +1,15 @@
 #include "__run.h"
 
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit) {
-    Value *tmp, *list_tmp = inter->base;
+    register Value **list_tmp = &inter->base;
+    Value *last;
+    Value *tmp;
     tmp = memCalloc(1, sizeof(Value));
     setGC(&tmp->gc_status);
     gc_addTmpLink(&tmp->gc_status);
     tmp->type = V_obj;
     tmp->gc_next = NULL;
+
     if (inter->data.base_obj[B_OBJECT] != NULL && inherit == NULL)
         inherit = makeInherit(inter->data.base_obj[B_OBJECT]);
     if (out_var == NULL && inherit != NULL)
@@ -15,18 +18,11 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
     tmp->object.out_var = out_var;
     tmp->object.inherit = inherit;
 
-    if (list_tmp == NULL){
-        inter->base = tmp;
-        tmp->gc_last = NULL;
-        goto return_;
-    }
-    for (PASS; list_tmp->gc_next != NULL; list_tmp = list_tmp->gc_next)
-        PASS;
+    for (last = NULL; (*list_tmp) != NULL; list_tmp = &(*list_tmp)->gc_next)
+        last = *list_tmp;
 
-    list_tmp->gc_next = tmp;
-    tmp->gc_last = list_tmp;
-
-    return_:
+    *list_tmp = tmp;
+    tmp->gc_last = last;
     return tmp;
 }
 
@@ -272,26 +268,21 @@ void freeValue(Value **value) {
 }
 
 LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter){  // TODO-szh 为LinkValue添加gc_tmpLink
+    LinkValue **list_tmp = &inter->link_base;
+    LinkValue *last;
     LinkValue *tmp;
-    LinkValue *list_tmp = inter->link_base;
     tmp = memCalloc(1, sizeof(Value));
     tmp->belong = belong;
     tmp->value = value;
+    tmp->gc_next = NULL;
     setGC(&tmp->gc_status);
-    if (list_tmp == NULL){
-        inter->link_base = tmp;
-        tmp->gc_last = NULL;
-        goto return_;
-    }
 
-    for (PASS; list_tmp->gc_next != NULL; list_tmp = list_tmp->gc_next)
-        PASS;
+    for (last = NULL; *list_tmp != NULL; list_tmp = &(*list_tmp)->gc_next)
+        last = *list_tmp;
 
-    list_tmp->gc_next = tmp;
-    tmp->gc_last = list_tmp;
+    *list_tmp = tmp;
+    tmp->gc_last = last;
     tmp->aut = auto_aut;
-
-    return_:
     return tmp;
 }
 

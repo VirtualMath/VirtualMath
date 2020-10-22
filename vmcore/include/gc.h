@@ -35,7 +35,7 @@ typedef struct GCStatus GCStatus;
 #define gc_freeStatementLink(gcs) ((gcs)->statement_link --)
 #define setGC(gcs) ((gcs)->continue_ = false, (gcs)->link = 0, (gcs)->tmp_link = 0, (gcs)->statement_link = 0, (gcs)->c_value = not_free)
 void gc_runDelAll(struct Inter *inter);
-void gc_run(struct Inter *inter, struct VarList *run_var, int var_list, int link_value, int value, ...);
+void gc_run(struct Inter *inter, struct VarList *run_var);
 #else
 #define gc_addTmpLink(gcs) ((void)0)
 #define gc_addStatementLink(gcs) ((void)0)

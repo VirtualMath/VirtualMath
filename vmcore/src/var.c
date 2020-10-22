@@ -1,7 +1,8 @@
 #include "__virtualmath.h"
 
 Var *makeVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter) {
-    Var *list_tmp = inter->base_var;
+    Var **list_tmp = &inter->base_var;
+    Var *last;
     Var *tmp;
     tmp = memCalloc(1, sizeof(Var));
     setGC(&tmp->gc_status);
@@ -9,22 +10,12 @@ Var *makeVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     tmp->value = copyLinkValue(value, inter);
     tmp->name_ = copyLinkValue(name_, inter);
     tmp->next = NULL;
-
     tmp->gc_next = NULL;
-    tmp->gc_last = NULL;
 
-    if (list_tmp == NULL){
-        inter->base_var = tmp;
-        tmp->gc_last = NULL;
-        goto return_;
-    }
-
-    for (PASS; list_tmp->gc_next !=  NULL; list_tmp = list_tmp->gc_next)
-            PASS;
-    list_tmp->gc_next = tmp;
-    tmp->gc_last = list_tmp;
-
-    return_:
+    for (last = NULL; *list_tmp !=  NULL; list_tmp = &(*list_tmp)->gc_next)
+        last = *list_tmp;
+    *list_tmp = tmp;
+    tmp->gc_last = last;
     return tmp;
 }
 
@@ -42,26 +33,19 @@ void freeVar(Var **var) {
 }
 
 HashTable *makeHashTable(Inter *inter) {
-    HashTable *list_tmp = inter->hash_base;
+    register HashTable **list_tmp = &inter->hash_base;
+    HashTable *last;
     HashTable *tmp;
     tmp = memCalloc(1, sizeof(Value));
     tmp->hashtable = (Var **)calloc(MAX_SIZE, sizeof(Var *));
     setGC(&tmp->gc_status);
+    gc_addTmpLink(&tmp->gc_status);
     tmp->gc_next = NULL;
-    tmp->gc_last = NULL;
 
-    if (list_tmp == NULL){
-        inter->hash_base = tmp;
-        tmp->gc_last = NULL;
-        goto return_;
-    }
-
-    for (PASS; list_tmp->gc_next != NULL; list_tmp = list_tmp->gc_next)
-        PASS;
-    list_tmp->gc_next = tmp;
-    tmp->gc_last = list_tmp;
-
-    return_:
+    for (last = NULL; *list_tmp != NULL; list_tmp = &(*list_tmp)->gc_next)
+        last = *list_tmp;
+    *list_tmp = tmp;
+    tmp->gc_last = last;
     return tmp;
 }
 
@@ -86,8 +70,8 @@ VarList *makeVarList(Inter *inter, bool make_hash, HashTable *hs) {
     else {
         assert(hs != NULL);
         tmp->hashtable = hs;
+        gc_addTmpLink(&tmp->hashtable->gc_status);
     }
-    gc_addTmpLink(&tmp->hashtable->gc_status);
     tmp->default_var = NULL;
     return tmp;
 }
