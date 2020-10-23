@@ -35,7 +35,6 @@ struct VarList{
 };
 
 enum VarOperation {
-    get_var,
     read_var,
     del_var,
 };

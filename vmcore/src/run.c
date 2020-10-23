@@ -9,7 +9,7 @@
  */
 ResultType runStatement(FUNC) {
     ResultType type = R_not;
-    bool run_gc = st->next == NULL;  // 若st已经没有下一部了则执行gc
+    bool run_gc = false;  // 若st已经没有下一部了则执行gc
     setResultCore(result);
     gc_addTmpLink(&belong->gc_status);
 
@@ -22,6 +22,7 @@ ResultType runStatement(FUNC) {
             break;
         case base_svar:
             type = getVar(CNEXT, getBaseSVarInfo);
+            run_gc = true;
             break;
         case base_list:
             type = getList(CNEXT);
@@ -38,38 +39,30 @@ ResultType runStatement(FUNC) {
             break;
         case set_class:
             type = setClass(CNEXT);
-            run_gc = true;
             break;
         case set_function:
             type = setFunction(CNEXT);
-            run_gc = true;
             break;
         case slice_:
             type = elementSlice(CNEXT);
             break;
         case call_function:
             type = callBack(CNEXT);
-            run_gc = true;
             break;
         case if_branch:
             type = ifBranch(CNEXT);
-            run_gc = true;
             break;
         case while_branch:
             type = whileBranch(CNEXT);
-            run_gc = true;
             break;
         case for_branch:
             type = forBranch(CNEXT);
-            run_gc = true;
             break;
         case with_branch:
             type = withBranch(CNEXT);
-            run_gc = true;
             break;
         case try_branch:
             type = tryBranch(CNEXT);
-            run_gc = true;
             break;
         case break_cycle:
             type = breakCycle(CNEXT);
@@ -126,13 +119,13 @@ ResultType runStatement(FUNC) {
     result->node = st;
     gc_freeTmpLink(&belong->gc_status);
 #if START_GC
-    if (run_gc)
+    if (run_gc && SHOULD_RUNGC(inter))
         gc_run(inter, var_list);
 #endif
     return type;
 }
 
-ResultType runStatementOpt(FUNC) {  // 不运行gc机制
+ResultType runStatementOpt(bool run_gc, FUNC) {  // 不运行gc机制
     ResultType type = R_not;
     setResultCore(result);
     gc_addTmpLink(&belong->gc_status);
@@ -174,6 +167,10 @@ ResultType runStatementOpt(FUNC) {  // 不运行gc机制
     if (RUN_TYPE(type) && st->aut != auto_aut)
         result->value->aut = st->aut;  // 权限覆盖
     result->node = st;
+#if START_GC
+    if (run_gc && SHOULD_RUNGC(inter))
+        gc_run(inter, var_list);
+#endif
     gc_freeTmpLink(&belong->gc_status);
     return type;
 }
@@ -324,7 +321,17 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool
 bool operationSafeInterStatement(FUNC){
     ResultType type;
     assert(st->next == NULL);  // opt 以单句形式存在
-    type = runStatementOpt(CNEXT);
+    type = runStatementOpt(true, CNEXT);
+    if (RUN_TYPE(type))
+        return false;
+    assert(type == return_code || type == R_error);
+    return true;
+}
+
+bool optSafeInterStatement(FUNC){
+    ResultType type;
+    assert(st->next == NULL);  // opt 以单句形式存在
+    type = runStatementOpt(false, CNEXT);
     if (RUN_TYPE(type))
         return false;
     assert(type == return_code || type == R_error);

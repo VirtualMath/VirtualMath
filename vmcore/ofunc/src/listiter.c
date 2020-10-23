@@ -15,7 +15,7 @@ ResultType listiter_init(O_FUNC){
         return R_error;
     }
 
-    index = makeLinkValue(makeIntValue(0, LINEFILE, CNEXT_NT), ap[0].value, inter);
+    index = makeLinkValue(makeIntValue(0, LINEFILE, CNEXT_NT), ap[0].value, auto_aut, inter);
     if (!CHECK_RESULT(result))
         return result->type;
 

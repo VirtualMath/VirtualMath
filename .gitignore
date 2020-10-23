@@ -235,3 +235,5 @@ vgcore.*
 /lib*
 gmon.out
 profile.txt
+call_graph.dot
+output.png

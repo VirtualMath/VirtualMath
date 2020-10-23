@@ -218,7 +218,7 @@ static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int st
         }
     } else
         *is_new = false;
-    *imp_value = makeLinkValue(pg, belong, inter);
+    *imp_value = makeLinkValue(pg, belong, auto_aut, inter);
     gc_freeTmpLink(&pg->gc_status);
     gc_addTmpLink(&(*imp_value)->gc_status);
     return true;

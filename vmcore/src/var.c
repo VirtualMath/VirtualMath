@@ -4,14 +4,15 @@ Var *makeVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     Var **list_tmp = &inter->base_var;
     Var *last;
     Var *tmp;
-    tmp = memCalloc(1, sizeof(Var));
+    MACRO_CALLOC(tmp, 1, sizeof(Var));
     setGC(&tmp->gc_status);
     tmp->name = memWidecpy(name);
-    tmp->value = copyLinkValue(value, inter);
-    tmp->name_ = copyLinkValue(name_, inter);
+    tmp->value = value;
+    tmp->name_ = name_;
     tmp->next = NULL;
     tmp->gc_next = NULL;
 
+    // var 不算入 inter 的 run_gc 中
     for (last = NULL; *list_tmp !=  NULL; list_tmp = &(*list_tmp)->gc_next)
         last = *list_tmp;
     *list_tmp = tmp;
@@ -36,12 +37,13 @@ HashTable *makeHashTable(Inter *inter) {
     register HashTable **list_tmp = &inter->hash_base;
     HashTable *last;
     HashTable *tmp;
-    tmp = memCalloc(1, sizeof(Value));
-    tmp->hashtable = (Var **)calloc(MAX_SIZE, sizeof(Var *));
+    MACRO_CALLOC(tmp, 1, sizeof(HashTable));
+    MACRO_CALLOC(tmp->hashtable, MAX_SIZE, sizeof(Var *));
     setGC(&tmp->gc_status);
     gc_addTmpLink(&tmp->gc_status);
     tmp->gc_next = NULL;
 
+    // hashTable 不算入 inter 的 run_gc 中
     for (last = NULL; *list_tmp != NULL; list_tmp = &(*list_tmp)->gc_next)
         last = *list_tmp;
     *list_tmp = tmp;
@@ -144,21 +146,7 @@ static void addVarCore(Var **base, wchar_t *name, LinkValue *value, LinkValue *n
             *base = makeVar(name, value, name_, inter);
             break;
         } else if (eqWide((*base)->name, name)) {
-            enum ValueAuthority aut = (*base)->value->aut;
-            (*base)->value = copyLinkValue(value, inter);
-            switch (aut) {
-                default:
-                case public_aut:
-                case auto_aut:
-                    break;
-                case protect_aut:
-                    if (value->aut != private_aut)
-                        (*base)->value->aut = protect_aut;
-                    break;
-                case private_aut:
-                    (*base)->value->aut = private_aut;
-                    break;
-            }
+            (*base)->value = value;
             break;
         }
     }
@@ -190,7 +178,7 @@ LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTabl
             goto return_;
         }
     }
-    return_: return operating == get_var ? copyLinkValue(tmp, inter) : tmp;
+    return_: return tmp;
 }
 
 /**

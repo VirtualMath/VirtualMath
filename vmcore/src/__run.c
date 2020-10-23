@@ -302,7 +302,7 @@ void freeFunctionArgument(Argument *arg, Argument *base) {
 LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT){
     LinkValue *tmp = NULL;
     wchar_t *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, get_var, CFUNC_CORE(var_list));
+    tmp = findFromVarList(name_, 0, read_var, CFUNC_CORE(var_list));
     memFree(name_);
     if (tmp != NULL && nowrun) {
         setResultCore(result);
@@ -360,8 +360,10 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
 LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT) {
     LinkValue *attr;
     attr = findStrVar(name, free_old, line, file, nowrun, CFUNC_NT(belong->value->object.var, result, belong));
-    if (attr != NULL && (attr->belong == NULL || attr->belong->value == belong->value || checkAttribution(belong->value, attr->belong->value)))
+    if (attr != NULL && attr->belong != NULL && attr->belong->value != belong->value && checkAttribution(belong->value, attr->belong->value)) {
+        attr = copyLinkValue(attr, inter);
         attr->belong = belong;
+    }
     return attr;
 }
 
@@ -543,7 +545,7 @@ LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
     Inherit *object_father = getInheritFromValueCore(class);
     VarList *new_var = copyVarList(class->value->object.out_var, false, inter);
     Value *new_object = makeObject(inter, NULL, new_var, object_father);
-    LinkValue *re = makeLinkValue(new_object, belong, inter);
+    LinkValue *re = makeLinkValue(new_object, belong, auto_aut, inter);
     gc_freeTmpLink(&new_object->gc_status);
     return re;
 }

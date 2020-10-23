@@ -16,6 +16,7 @@
 
 #define GET_RESULT(val, res) do {(val) = (res)->value; (res)->value=NULL; freeResult(res);} while(0)
 #define GET_RESULTONLY(val, res) do {(val) = (res)->value; (res)->value=NULL;} while(0)
+#define copyLinkValue(val, inter) makeLinkValue((val)->value, (val)->belong, (val)->aut, (inter))
 
 typedef struct Argument Argument;
 typedef struct Inter Inter;
@@ -231,9 +232,8 @@ enum BaseErrorType{
 
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit);
 void freeValue(Value **Value);
-LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter);
+LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority aut, Inter *inter);
 void freeLinkValue(LinkValue **value);
-LinkValue *copyLinkValue(LinkValue *value, Inter *inter);
 Value *useNoneValue(Inter *inter, Result *result);
 Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT);
 Value *makePassValue(fline line, char *file, FUNC_NT);

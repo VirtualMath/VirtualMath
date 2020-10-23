@@ -50,9 +50,9 @@ ResultType dict_down(O_FUNC){
     {
         LinkValue *element = NULL;
         wchar_t *name = getNameFromValue(ap[1].value->value, inter->data.var_deep, inter);
-        element = findVar(name, get_var, inter, ap[0].value->value->data.dict.dict);
+        element = findVar(name, read_var, inter, ap[0].value->value->data.dict.dict);
         if (element != NULL)
-            setResultOperationBase(result, copyLinkValue(element, inter));
+            setResultOperationBase(result, element);
         else {
             wchar_t *message = memWidecat(L"Dict could not find key value: ", name, false, false);
             setResultError(E_KeyException, message, LINEFILE, true, CNEXT_NT);

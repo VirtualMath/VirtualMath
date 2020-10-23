@@ -18,6 +18,7 @@ typedef ResultType (*VarInfo)(wchar_t **name, int *times, FUNC);
 
 ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool p_clock);
 bool operationSafeInterStatement(FUNC);
+bool optSafeInterStatement(FUNC);
 bool ifBranchSafeInterStatement(FUNC);
 bool functionSafeInterStatement(FUNC);
 bool includeSafeInterStatement(FUNC);

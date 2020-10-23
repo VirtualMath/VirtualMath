@@ -75,7 +75,7 @@ LinkValue *makeBaseChildClass(LinkValue *inherit, Inter *inter) {
         gc_freeTmpLink(&inherit->gc_status);
     }
     new = makeClassValue(inter->var_list, inter, father_value);
-    re = makeLinkValue(new, inter->base_belong, inter);
+    re = makeLinkValue(new, inter->base_belong, auto_aut, inter);
     gc_freeTmpLink(&new->gc_status);
     return re;
 }

@@ -89,13 +89,13 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
 
     {
         Value *global_belong = makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL);
-        g_belong = makeLinkValue(global_belong, belong, inter);
+        g_belong = makeLinkValue(global_belong, belong, auto_aut, inter);
         gc_freeTmpLink(&global_belong->gc_status);
         inter->base_belong = g_belong;
         gc_addStatementLink(&inter->base_belong->gc_status);
     }
 
-    inter->data.base_obj[B_OBJECT] = makeLinkValue(object, g_belong, inter);
+    inter->data.base_obj[B_OBJECT] = makeLinkValue(object, g_belong, auto_aut, inter);
     gc_freeTmpLink(&object->gc_status);
     gc_addStatementLink(&inter->data.base_obj[B_OBJECT]->gc_status);
     for (Inherit *ih=g_belong->value->object.inherit; ih != NULL; ih = ih->next) {
@@ -106,7 +106,7 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
 
     {
         Result result;
-        Argument *arg = makeValueArgument(makeLinkValue(object, g_belong, inter));
+        Argument *arg = makeValueArgument(makeLinkValue(object, g_belong, auto_aut, inter));
         setResultCore(&result);
         object_new(CO_FUNC(arg, inter->var_list, &result, g_belong));
 

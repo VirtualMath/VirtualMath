@@ -41,10 +41,10 @@ void gc_run(struct Inter *inter, struct VarList *run_var);
 #define gc_addStatementLink(gcs) ((void)0)
 #define gc_addLink(gcs) ((void)0)
 #define gc_freeTmpLink(gcs) ((void)0)
+#define gc_freeStatementLink(gcs) ((void)0)
+#define setGC(...) ((void)0)
 
 #define gc_run(...) ((void)0)
-#define setGC(...) ((void)0)
-#define gc_freeStatementLink(gcs) ((void)0)
 #define gc_runDelAll(...) ((void)0)
 #endif
 

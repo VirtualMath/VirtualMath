@@ -126,7 +126,7 @@ ResultType boolNotOperation(FUNC) {
     bool new;
     LinkValue *left;
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return result->type;
     GET_RESULT(left, result);
 
@@ -145,7 +145,7 @@ ResultType boolOperation(FUNC) {
     LinkValue *left;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return result->type;
     GET_RESULT(left, result);
 
@@ -157,14 +157,14 @@ ResultType boolOperation(FUNC) {
     freeResult(result);
     if (st->u.operation.OperationType == OPT_AND) {  // 与运算
         if (left_bool)
-            operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong));
+            optSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong));
         else
             setResultOperation(result, left);
     } else {  // 或运算
         if (left_bool)
             setResultOperation(result, left);
         else
-            operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong));
+            optSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong));
     }
     return result->type;
 }
@@ -174,7 +174,7 @@ ResultType pointOperation(FUNC) {
     VarList *object = NULL;
     bool pri_auto;
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
+    if (optSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return result->type;
     GET_RESULT(left, result);
     if (st->aut != auto_aut)
@@ -189,12 +189,14 @@ ResultType pointOperation(FUNC) {
         setResultError(E_TypeException, OBJ_NOTSUPPORT(->/.), st->line, st->code_file, true, CNEXT_NT);
         goto return_;
     }
-    operationSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));  // 点运算运算时需要调整belong为点的左值
-    pri_auto = result->value->belong == NULL || result->value->belong->value == belong->value || checkAttribution(belong->value, result->value->belong->value);
+    optSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));  // 点运算运算时需要调整belong为点的左值
+    pri_auto = result->value->belong == NULL || result->value->belong->value == belong->value || checkAttribution(belong->value, result->value->belong->value);  // 检查获取的value是是否属于belong, 或属于belong的父亲
     if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, pri_auto, CNEXT_NT))
         PASS;
-    else if (result->value->belong == NULL || result->value->belong->value == left->value || checkAttribution(left->value, result->value->belong->value))  // 检查result所属于的对象是否位左值的父亲
+    else if (result->value->belong != NULL && result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value)) { // 检查result所属于的对象是否位左值的父亲(若是则需要重新设定belong)
+        result->value = copyLinkValue(result->value, inter);
         result->value->belong = left;
+    }
 
     return_:
     gc_freeTmpLink(&left->gc_status);
@@ -260,7 +262,7 @@ ResultType pointDel(Statement *name, FUNC_NT) {
     Statement *right = name->u.operation.right;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
         return result->type;
     GET_RESULT(left, result);  // 不关心左值和整体(st)权限
 
@@ -286,7 +288,7 @@ ResultType downDel(Statement *name, FUNC_NT) {
     Parameter *pt = name->u.slice_.index;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
         return result->type;
     GET_RESULT(iter, result);
 
@@ -334,7 +336,7 @@ ResultType assOperation(FUNC) {
         gc_freeTmpLink(&func->gc_status);
     }
     else{
-        if (operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)))
+        if (optSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)))
             return result->type;
         value = result->value;
 
@@ -436,7 +438,7 @@ ResultType downAss(Statement *name, LinkValue *value, FUNC_NT) {
     Parameter *pt = name->u.slice_.index;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(name->u.slice_.element, var_list, result, belong)))
         return result->type;
     GET_RESULT(iter, result);
 
@@ -476,7 +478,7 @@ ResultType pointAss(Statement *name, LinkValue *value, FUNC_NT) {
     VarList *object = NULL;
 
     setResultCore(result);
-    if (operationSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(name->u.operation.left, var_list, result, belong)))
         return result->type;
     GET_RESULT(left, result);  // 不关心左值和整体(st)权限
 
@@ -549,7 +551,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
     }
 
     GET_RESULT(val, result);
-    var = findFromVarList(name, int_times, get_var, CFUNC_CORE(var_list));
+    var = findFromVarList(name, int_times, read_var, CFUNC_CORE(var_list));
 
     if (var == NULL) {
         if (st->type == base_svar && !st->u.base_svar.is_var) {
@@ -640,7 +642,7 @@ ResultType getDict(FUNC) {
     }
 
     freeResult(result);
-    LinkValue *value = makeLinkValue(tmp_value, belong, inter);
+    LinkValue *value = makeLinkValue(tmp_value, belong, auto_aut, inter);
     setResultOperation(result, value);
     freeArgument(at, false);
 
@@ -672,12 +674,12 @@ ResultType setDefault(FUNC){
 }
 
 bool getLeftRightValue(Result *left, Result *right, FUNC){
-    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return true;
     *left = *result;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(st->u.operation.right, var_list, result, belong)))
         return true;
     *right = *result;
     setResultCore(result);
@@ -704,7 +706,7 @@ ResultType operationCore2(FUNC, wchar_t *name) {
     LinkValue *left;
     setResultCore(result);
 
-    if (operationSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
+    if (optSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return result->type;
     GET_RESULTONLY(left, result);  // 不使用freeResult, 不需要多余的把result.value设置为none
     runOperationFromValue(left, NULL, name, st->line, st->code_file, CNEXT_NT);

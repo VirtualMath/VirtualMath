@@ -49,6 +49,11 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     }
 
     registeredFunctionName(tmp, belong);
+    printf("start run gc = %d sec\n", tmp->data.run_gc);
+    tmp->data.start_gc = true;
+#if START_GC
+    gc_run(tmp, tmp->var_list);
+#endif
     return tmp;
 }
 
@@ -119,6 +124,8 @@ void setBaseInterData(struct Inter *inter){
     inter->data.var_max = 100;
     inter->data.var_deep = 3;
     inter->data.assert_run = assert_raise;
+    inter->data.run_gc = 0;
+    inter->data.start_gc = false;
 }
 
 void freeBaseInterData(struct Inter *inter){

@@ -6,6 +6,7 @@
 extern jmp_buf memVirtualMath_Env;
 extern bool memVirtualMathUseJmp;
 
+void memError(void);
 void *memCalloc(size_t num, size_t size);
 void *memRealloc(void *old, size_t size);
 char *memStrcpy(const char *str);
@@ -27,5 +28,7 @@ wchar_t *memStrToWcs(char *str, bool free_old);
 #define memWide(size) (wchar_t *)memCalloc((size) + 1, sizeof(wchar_t))
 #define memStrlen(p) (((p) == NULL) ? 0 :strlen((p)))
 #define memWidelen(p) (((p) == NULL) ? 0 :wcslen((p)))
+
+#define MACRO_CALLOC(var, n, size) (((var = (typeof(var))calloc(n, size)) == NULL) ? (memError()) : (var))
 
 #endif //VIRTUALMATH_MEM_H

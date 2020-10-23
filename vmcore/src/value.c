@@ -4,7 +4,7 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
     register Value **list_tmp = &inter->base;
     Value *last;
     Value *tmp;
-    tmp = memCalloc(1, sizeof(Value));
+    MACRO_CALLOC(tmp, 1, sizeof(Value));
     setGC(&tmp->gc_status);
     gc_addTmpLink(&tmp->gc_status);
     tmp->type = V_obj;
@@ -267,22 +267,23 @@ void freeValue(Value **value) {
     return_: return;
 }
 
-LinkValue *makeLinkValue(Value *value, LinkValue *belong, Inter *inter){  // TODO-szh 为LinkValue添加gc_tmpLink
+LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority aut, Inter *inter) {  // TODO-szh 为LinkValue添加gc_tmpLink
     LinkValue **list_tmp = &inter->link_base;
     LinkValue *last;
     LinkValue *tmp;
-    tmp = memCalloc(1, sizeof(Value));
+    MACRO_CALLOC(tmp, 1, sizeof(LinkValue));
     tmp->belong = belong;
     tmp->value = value;
     tmp->gc_next = NULL;
     setGC(&tmp->gc_status);
 
+    inter->data.run_gc ++;
     for (last = NULL; *list_tmp != NULL; list_tmp = &(*list_tmp)->gc_next)
         last = *list_tmp;
 
     *list_tmp = tmp;
     tmp->gc_last = last;
-    tmp->aut = auto_aut;
+    tmp->aut = aut;
     return tmp;
 }
 
@@ -296,15 +297,6 @@ void freeLinkValue(LinkValue **value) {
 
     memFree(free_value);
     return_: return;
-}
-
-LinkValue *copyLinkValue(LinkValue *value, Inter *inter) {
-    LinkValue *tmp = NULL;
-    if (value == NULL)
-        return NULL;
-    tmp = makeLinkValue(value->value, value->belong, inter);
-    tmp->aut = value->aut;
-    return tmp;
 }
 
 void setResultCore(Result *ru) {
@@ -610,10 +602,12 @@ bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_lis
     LinkValue *_del_ = findStrVarOnly(inter->data.mag_func[M_DEL], false, CFUNC_CORE(object_value->object.var));
     setResultCore(result);
 
-    if (_del_ != NULL){
+    if (_del_ != NULL){  // TODO-szh 让__del__只运行一次
         gc_addTmpLink(&_del_->gc_status);
-        if (_del_->belong == NULL || _del_->belong->value == object_value || checkAttribution(object_value, _del_->belong->value))
-            _del_->belong = makeLinkValue(object_value, inter->base_belong, inter);
+        if (_del_->belong != NULL && _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value)) {  // 与point运算道理相同
+            _del_ = copyLinkValue(_del_, inter);
+            _del_->belong = makeLinkValue(object_value, inter->base_belong, auto_aut, inter);
+        }
         callBackCore(_del_, NULL, LINEFILE, 0, CFUNC_NT(var_list, result, inter->base_belong));
         gc_freeTmpLink(&_del_->gc_status);
         return true;

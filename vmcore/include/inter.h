@@ -3,6 +3,10 @@
 
 struct Result;
 
+/* 100 大概是最好的值 */
+#define RUNGC (100)
+#define SHOULD_RUNGC(inter) ((inter)->data.start_gc && (inter)->data.run_gc >= RUNGC)
+
 #define BASEOBJSZIE (17)
 #define VARNAMESIZE (10)
 #define BASEEXCESIZE (19)
@@ -119,6 +123,8 @@ struct Inter{
             assert_run,  // 仅执行
             assert_raise,  // 执行并生效
         } assert_run;
+        int run_gc;  // gc的启动计数
+        bool start_gc;  // 是否启动gc
     } data;
 };
 

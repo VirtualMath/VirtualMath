@@ -22,7 +22,7 @@ ResultType function_new(O_FUNC){
         Inherit *object_father = getInheritFromValueCore(inter->data.base_obj[B_FUNCTION]);
         VarList *new_var = copyVarList(var_list, false, inter);
         Value *new_object = makeObject(inter, NULL, new_var, object_father);
-        value = makeLinkValue(new_object, belong, inter);
+        value = makeLinkValue(new_object, belong, auto_aut, inter);
         gc_freeTmpLink(&new_object->gc_status);
     }
 
@@ -86,8 +86,7 @@ ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
         GET_RESULT(list, result);
         addAttributes(L"vaargs", false, list, LINEFILE, true, CFUNC_NT(var_list, result, func));
         gc_freeTmpLink(&list->gc_status);
-    }
-    else
+    } else
         findFromVarList(L"vaargs", 0, del_var, CFUNC_CORE(var_list));
 
     if (CHECK_RESULT(result))

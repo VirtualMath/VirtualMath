@@ -13,7 +13,7 @@ ResultType setClass(FUNC) {
     class_inherit = setFather(call);
     freeArgument(call, false);
 
-    tmp = makeLinkValue(makeClassValue(var_list, inter, class_inherit), belong, inter);
+    tmp = makeLinkValue(makeClassValue(var_list, inter, class_inherit), belong, auto_aut, inter);
     gc_freeTmpLink(&tmp->value->gc_status);
     gc_addTmpLink(&tmp->gc_status);
     freeResult(result);
@@ -241,7 +241,12 @@ static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int l
     popVarList(function_var);
     freeFunctionArgument(arg, bak);
 
-    return_: gc_freeTmpLink(&func_value->gc_status);
+    return_:
+#if START_GC
+    if (SHOULD_RUNGC(inter))
+        gc_run(inter, var_list);
+#endif
+    gc_freeTmpLink(&func_value->gc_status);
     return result->type;
 }
 
@@ -536,28 +541,32 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
 ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, int pt_sep, FUNC_NT) {
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
-    if (function_value->value->type == V_func) {
-        switch (function_value->value->data.function.type) {
-            case vm_func:
-                callVMFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
-                break;
-            case c_func:
-                callCFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
-                break;
-            case f_func:
-                callFFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
-                break;
-            default:
-                setResultError(E_SystemException, L"function type error", line, file, true, CNEXT_NT);
-                goto return_;
-        }
-    } else if (function_value->value->type == V_class)
-        callClass(function_value, arg, line, file, pt_sep, CNEXT_NT);
-    else
-        callObject(function_value, arg, line, file, pt_sep, CNEXT_NT);
+    switch (function_value->value->type) {
+        case V_func:
+            switch (function_value->value->data.function.type) {
+                case vm_func:
+                    callVMFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
+                    break;
+                case c_func:
+                    callCFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
+                    break;
+                case f_func:
+                    callFFunction(function_value, arg, line, file, pt_sep, CNEXT_NT);
+                    break;
+                default:
+                    setResultError(E_SystemException, L"function type error", line, file, true, CNEXT_NT);
+                    break;
+            }
+            break;
+        case V_class:
+            callClass(function_value, arg, line, file, pt_sep, CNEXT_NT);
+            break;
+        default :
+            callObject(function_value, arg, line, file, pt_sep, CNEXT_NT);
+            break;
+    }
     // callBackCore不执行错误回溯
 
-    return_:
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;
 }
