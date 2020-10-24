@@ -25,17 +25,6 @@ void registeredBaseFunction(struct LinkValue *father, Inter *inter){
         (*list)(CR_FUNC(father, inter->var_list));
 }
 
-void presetting(Inter *inter) {
-    LinkValue *func = inter->data.base_obj[B_FUNCTION];
-    LinkValue *func_new = NULL;
-    LinkValue *func_init = NULL;
-
-    functionPresetting(func, &func_new, &func_init, inter);
-    strFunctionPresetting(func, func_new, func_init, inter);
-
-    functionPresettingLast(func, func_new, func_init, inter);
-}
-
 void registeredFunctionName(Inter *inter, LinkValue *belong){
     makeBaseObject(inter, belong);
 
@@ -56,7 +45,7 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
     makeBasePointer(inter);
 
     makeBaseStr(inter);
-    presetting(inter);
+    functionPresetting(inter->data.base_obj[B_FUNCTION], inter);
 
     registeredObject(inter->base_belong, CFUNC_CORE(inter->var_list));
     registeredBaseFunction(inter->base_belong, inter);

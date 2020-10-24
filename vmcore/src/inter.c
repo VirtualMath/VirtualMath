@@ -1,5 +1,4 @@
 #include "__virtualmath.h"
-#define setName(str) memStrToWcs(str, false)
 
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
@@ -49,7 +48,6 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     }
 
     registeredFunctionName(tmp, belong);
-    printf("start run gc = %d sec\n", tmp->data.run_gc);
     tmp->data.start_gc = true;
 #if START_GC
     gc_run(tmp, tmp->var_list);
@@ -57,6 +55,7 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
     return tmp;
 }
 
+#define setName(str) memStrToWcs(str, false)
 void setBaseInterData(struct Inter *inter){
     inter->data.var_name[VN_str] = setName("str_");
     inter->data.var_name[VN_num] = setName("num_");
@@ -73,14 +72,6 @@ void setBaseInterData(struct Inter *inter){
     inter->data.mag_func[M_ENTER] = setName("__enter__");
     inter->data.mag_func[M_EXIT] = setName("__exit__");
     inter->data.mag_func[M_NEW] = setName("__new__");
-    inter->data.mag_func[M_ADD] = setName("+");
-    inter->data.mag_func[M_SUB] = setName("-");
-    inter->data.mag_func[M_MUL] = setName("*");
-    inter->data.mag_func[M_DIV] = setName("/");
-    inter->data.mag_func[M_CALL] = setName("()");
-    inter->data.mag_func[M_DEL] = setName("__del__");
-    inter->data.mag_func[M_DOWN] = setName("[]");
-    inter->data.mag_func[M_SLICE] = setName("[:]");
     inter->data.mag_func[M_ITER] = setName("__iter__");
     inter->data.mag_func[M_NEXT] = setName("__next__");
     inter->data.mag_func[M_REPO] = setName("__repo__");
@@ -90,12 +81,22 @@ void setBaseInterData(struct Inter *inter){
     inter->data.mag_func[M_FATHER] = setName("__father__");
     inter->data.mag_func[M_MESSAGE] = setName("__message__");
     inter->data.mag_func[M_STR] = setName("__str__");
+    inter->data.mag_func[M_DEL] = setName("__del__");
+    inter->data.mag_func[M_ATTR] = setName("__attr__");
+    inter->data.mag_func[M_VAL] = setName("__val__");
+
+    inter->data.mag_func[M_ADD] = setName("+");
+    inter->data.mag_func[M_SUB] = setName("-");
+    inter->data.mag_func[M_MUL] = setName("*");
+    inter->data.mag_func[M_DIV] = setName("/");
+    inter->data.mag_func[M_CALL] = setName("()");
+    inter->data.mag_func[M_DOWN] = setName("[]");
+    inter->data.mag_func[M_SLICE] = setName("[:]");
+
     inter->data.mag_func[M_DOWN_ASSIGMENT] = setName("[]=");
     inter->data.mag_func[M_SLICE_ASSIGMENT] = setName("[:]=");
     inter->data.mag_func[M_DOWN_DEL] = setName("del[]");
     inter->data.mag_func[M_SLICE_DEL] = setName("del[:]");
-    inter->data.mag_func[M_ATTR] = setName("__attr__");
-    inter->data.mag_func[M_VAL] = setName("__val__");
 
     inter->data.mag_func[M_INTDIV] = setName("//");
     inter->data.mag_func[M_MOD] = setName("%");
@@ -126,7 +127,10 @@ void setBaseInterData(struct Inter *inter){
     inter->data.assert_run = assert_raise;
     inter->data.run_gc = 0;
     inter->data.start_gc = false;
+    inter->data.free_mode = false;
+    inter->data.opt_mode = om_normal;
 }
+#undef setName
 
 void freeBaseInterData(struct Inter *inter){
     gc_freeStatementLink(&inter->base_belong->gc_status);

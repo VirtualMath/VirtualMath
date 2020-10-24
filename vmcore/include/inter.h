@@ -125,6 +125,12 @@ struct Inter{
         } assert_run;
         int run_gc;  // gc的启动计数
         bool start_gc;  // 是否启动gc
+        bool free_mode;  // 自由模式
+        enum OptMode {
+            om_free,
+            om_normal,
+            om_simple,
+        } opt_mode;
     } data;
 };
 

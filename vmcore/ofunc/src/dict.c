@@ -132,7 +132,7 @@ ResultType dict_keys(O_FUNC){
     for (int index=0; index < MAX_SIZE; index++){
         Var *tmp = ap[0].value->value->data.dict.dict->hashtable[index];
         for (PASS; tmp != NULL; tmp = tmp->next)
-            list = connectValueArgument(copyLinkValue(tmp->name_, inter), list);
+            list = connectValueArgument(COPY_LINKVALUE(tmp->name_, inter), list);
     }
     makeListValue(list, LINEFILE, L_list, CNEXT_NT);
     freeArgument(list, true);
@@ -247,11 +247,11 @@ ResultType dict_str(O_FUNC){
 void registeredDict(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_DICT];
     NameFunc tmp[] = {{L"keys", dict_keys, object_free_},
-                      {inter->data.mag_func[M_NEW], dict_new, class_free_},
-                      {inter->data.mag_func[M_DOWN], dict_down, object_free_},
-                      {inter->data.mag_func[M_ITER], dict_iter, object_free_},
-                      {inter->data.mag_func[M_REPO], dict_repo, object_free_},
-                      {inter->data.mag_func[M_STR], dict_str, object_free_},
+                      {inter->data.mag_func[M_NEW], dict_new, class_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DOWN], dict_down, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_ITER], dict_iter, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_REPO], dict_repo, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_STR], dict_str, object_free_, .var=nfv_notpush},
                       {inter->data.mag_func[M_DOWN_ASSIGMENT], dict_down_assignment, object_free_},
                       {inter->data.mag_func[M_DOWN_DEL], dict_down_del, object_free_},
                       {NULL, NULL}};

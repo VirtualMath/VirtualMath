@@ -1,5 +1,13 @@
 #include "__ofunc.h"
 
+LinkValue *intCore(LinkValue *belong, LinkValue *class, Inter *inter) {
+    LinkValue *value;
+    value = make_new(inter, belong, class);
+    value->value->type = V_int;
+    value->value->data.int_.num = 0;
+    return value;
+}
+
 ResultType int_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -12,7 +20,7 @@ ResultType int_new(O_FUNC){
     }
 
     setResultCore(result);
-    value = make_new(inter, belong, ap[0].value);
+    value = make_new(inter, belong, ap[0].value);  // 需要保持和``intCore``效果相同
     value->value->type = V_int;
     value->value->data.int_.num = 0;
     run_init(value, arg, LINEFILE, CNEXT_NT);
@@ -65,8 +73,8 @@ ResultType int_init(O_FUNC){
 
 void registeredInt(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_INT_];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  int_new,  class_free_},
-                      {inter->data.mag_func[M_INIT], int_init, object_free_},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  int_new,  class_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], int_init, object_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"int", object, belong, inter);

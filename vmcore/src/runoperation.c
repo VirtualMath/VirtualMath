@@ -1,9 +1,9 @@
 #include "__run.h"
 
 static bool getLeftRightValue(Result *left, Result *right, FUNC);
-static ResultType operationCore(FUNC, wchar_t *name);
-ResultType operationCore2(FUNC, wchar_t *name);
-ResultType assOperation(FUNC);
+static ResultType operationCore(FUNC, wchar_t *name, enum OperationType type);
+static ResultType operationCore2(FUNC, wchar_t *name, enum OperationType type);
+static ResultType assOperation(FUNC);
 ResultType pointOperation(FUNC);
 ResultType blockOperation(FUNC);
 ResultType boolNotOperation(FUNC);
@@ -16,9 +16,8 @@ ResultType boolOperation(FUNC);
  * @param var_list
  * @return
  */
-
-#define OPT_CASE(TYPE) case OPT_##TYPE: operationCore(CNEXT, inter->data.mag_func[M_##TYPE]); break
-#define OPT_CASE2(TYPE) case OPT_##TYPE: operationCore2(CNEXT, inter->data.mag_func[M_##TYPE]); break
+#define OPT_CASE(TYPE) case OPT_##TYPE: operationCore(CNEXT, inter->data.mag_func[M_##TYPE], OPT_##TYPE); break
+#define OPT_CASE2(TYPE) case OPT_##TYPE: operationCore2(CNEXT, inter->data.mag_func[M_##TYPE], OPT_##TYPE); break
 ResultType operationStatement(FUNC) {
     setResultCore(result);
     switch (st->u.operation.OperationType) {
@@ -73,6 +72,7 @@ ResultType operationStatement(FUNC) {
     return result->type;
 }
 #undef OPT_CASE
+#undef OPT_CASE2
 
 static void updateBlockYield(Statement *block_st, Statement *node){
     block_st->info.node = node->type == yield_code ? node->next : node;
@@ -194,7 +194,7 @@ ResultType pointOperation(FUNC) {
     if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, pri_auto, CNEXT_NT))
         PASS;
     else if (result->value->belong != NULL && result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value)) { // 检查result所属于的对象是否位左值的父亲(若是则需要重新设定belong)
-        result->value = copyLinkValue(result->value, inter);
+        result->value = COPY_LINKVALUE(result->value, inter);
         result->value->belong = left;
     }
 
@@ -686,7 +686,8 @@ bool getLeftRightValue(Result *left, Result *right, FUNC){
     return false;
 }
 
-ResultType operationCore(FUNC, wchar_t *name) {
+#define OPT_CASE(NAME, FUNC_NAME) case OPT_##NAME: vobject_##FUNC_NAME##_base(CFUNC_VOBJ(var_list, result, belong, left.value->value, right.value->value)); break
+static ResultType operationCore(FUNC, wchar_t *name, enum OperationType type) {
     Result left;
     Result right;
     setResultCore(&left);
@@ -695,24 +696,61 @@ ResultType operationCore(FUNC, wchar_t *name) {
 
     if (getLeftRightValue(&left, &right, CNEXT))  // 不需要释放result
         return result->type;
-    runOperationFromValue(left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
+
+    if (IS_BUILTIN_VALUE(left.value->value, inter)) {
+        switch (type) {
+            OPT_CASE(ADD, add);
+            OPT_CASE(SUB, sub);
+            OPT_CASE(MUL, mul);
+            OPT_CASE(DIV, div);
+            OPT_CASE(INTDIV, intdiv);
+            OPT_CASE(MOD, mod);
+            OPT_CASE(POW, pow);
+            OPT_CASE(EQ, eq);
+            OPT_CASE(NOTEQ, noteq);
+            OPT_CASE(MOREEQ, moreeq);
+            OPT_CASE(LESSEQ, lesseq);
+            OPT_CASE(MORE, more);
+            OPT_CASE(LESS, less);
+            OPT_CASE(BAND, band);
+            OPT_CASE(BOR, bor);
+            OPT_CASE(BXOR, bxor);
+            OPT_CASE(BL, bl);
+            OPT_CASE(BR, br);
+            default:
+                goto default_mode;
+        }
+    } else
+        default_mode: runOperationFromValue(left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
 
     freeResult(&left);
     freeResult(&right);
     return result->type;
 }
+#undef OPT_CASE
 
-ResultType operationCore2(FUNC, wchar_t *name) {
+#define OPT_CASE(NAME, FUNC_NAME) case OPT_##NAME: vobject_##FUNC_NAME##_base(CFUNC_VOBJR(var_list, result, belong, left->value)); break
+static ResultType operationCore2(FUNC, wchar_t *name, enum OperationType type) {
     LinkValue *left;
     setResultCore(result);
 
     if (optSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)))
         return result->type;
     GET_RESULTONLY(left, result);  // 不使用freeResult, 不需要多余的把result.value设置为none
-    runOperationFromValue(left, NULL, name, st->line, st->code_file, CNEXT_NT);
+
+    if (IS_BUILTIN_VALUE(left->value, inter)) {
+        switch (type) {
+            OPT_CASE(BNOT, bnot);
+            OPT_CASE(NEGATE, negate);
+            default:
+                goto default_mode;
+        }
+    } else
+        default_mode: runOperationFromValue(left, NULL, name, st->line, st->code_file, CNEXT_NT);
     gc_freeTmpLink(&left->gc_status);
     return result->type;
 }
+#undef OPT_CASE
 
 ResultType runOperationFromValue(LinkValue *self, LinkValue *arg, wchar_t *name, fline line, char *file, FUNC_NT) {
     LinkValue *_func_;

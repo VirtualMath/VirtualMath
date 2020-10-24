@@ -1,5 +1,13 @@
 #include "__ofunc.h"
 
+LinkValue *strCore(LinkValue *belong, LinkValue *class, Inter *inter) {
+    LinkValue *value;
+    value = make_new(inter, belong, class);
+    value->value->type = V_str;
+    value->value->data.str.str = NULL;  // 设置为NULL, 因此strCore不能单独使用, strCore()后需要显式设定str的内容
+    return value;
+}
+
 ResultType str_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -13,7 +21,7 @@ ResultType str_new(O_FUNC){
     }
     freeResult(result);
 
-    value = make_new(inter, belong, ap[0].value);
+    value = make_new(inter, belong, ap[0].value);  // 保持与strCore的行为相同
     value->value->type = V_str;
     value->value->data.str.str = memWidecpy(L"");
     run_init(value, arg, LINEFILE, CNEXT_NT);
@@ -184,10 +192,13 @@ ResultType str_iter(O_FUNC){
 
 void registeredStr(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_STR];
-    NameFunc tmp[] = {{L"to_list", str_to_list, object_free_},
-                      {inter->data.mag_func[M_ITER], str_iter, object_free_},
-                      {inter->data.mag_func[M_DOWN], str_down, object_free_},
-                      {inter->data.mag_func[M_SLICE], str_slice, object_free_},
+    NameFunc tmp[] = {{L"to_list", str_to_list, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NEW], str_new, class_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], str_init, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_SLICE], str_slice, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_ITER], str_iter, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DOWN], str_down, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_SLICE], str_slice, object_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
@@ -224,7 +235,7 @@ LinkValue *makeStrFromOf(LinkValue *str, LinkValue *new, LinkValue *init, wchar_
     return return_;
 }
 
-LinkValue *makeFunctionFromValue(LinkValue *func, LinkValue *new, LinkValue *init, OfficialFunction of, LinkValue *belong, VarList *var_list, Inter *inter) {
+static LinkValue *makeFunctionFromValue(LinkValue *func, LinkValue *new, LinkValue *init, OfficialFunction of, LinkValue *belong, VarList *var_list, Inter *inter) {
     LinkValue *new_func;
     new_func = callClassOf(func, inter, new, init);
     new_func->value->data.function.type = c_func;
@@ -248,9 +259,9 @@ void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func
     LinkValue *init_name = NULL;
     wchar_t *init_name_ = setStrVarName(inter->data.mag_func[M_INIT], false, inter);
 
-    new_func = makeFunctionFromValue(func, func_new, func_init, str_new, obj, obj->value->object.var, inter);
+    new_func = makeFunctionFromValue(func, func_new, func_init, str_new, obj, NULL, inter);  // 声明为内联函数
+    init_func = makeFunctionFromValue(func, func_new, func_init, str_init, obj, NULL, inter);
     new_func->value->data.function.function_data.pt_type = class_free_;
-    init_func = makeFunctionFromValue(func, func_new, func_init, str_init, obj, obj->value->object.var, inter);
     init_func->value->data.function.function_data.pt_type = object_free_;
 
 

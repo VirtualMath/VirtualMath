@@ -147,7 +147,7 @@ wchar_t *getNameFromValue(Value *value, int deep, Inter *inter) {
  * @param return_ VarList的返回值
  * @return 是否位yield模式
  */
-bool popYieldVarList(Statement *st, VarList **return_, VarList *out_var, Inter *inter){
+bool popYieldVarList(Statement *st, VarList **return_, VarList *out_var, Inter *inter) {
     bool yield_run;
     if ((yield_run = st->info.have_info)) {
         *return_ = st->info.var_list;
@@ -361,7 +361,7 @@ LinkValue *findAttributes(wchar_t *name, bool free_old, fline line, char *file, 
     LinkValue *attr;
     attr = findStrVar(name, free_old, line, file, nowrun, CFUNC_NT(belong->value->object.var, result, belong));
     if (attr != NULL && attr->belong != NULL && attr->belong->value != belong->value && checkAttribution(belong->value, attr->belong->value)) {
-        attr = copyLinkValue(attr, inter);
+        attr = COPY_LINKVALUE(attr, inter);
         attr->belong = belong;
     }
     return attr;
@@ -544,7 +544,7 @@ bool checkAut(enum ValueAuthority value, enum ValueAuthority base, fline line, c
 LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
     Inherit *object_father = getInheritFromValueCore(class);
     VarList *new_var = copyVarList(class->value->object.out_var, false, inter);
-    Value *new_object = makeObject(inter, NULL, new_var, object_father);
+    Value *new_object = makeObject(inter, NULL, new_var, true, object_father);
     LinkValue *re = makeLinkValue(new_object, belong, auto_aut, inter);
     gc_freeTmpLink(&new_object->gc_status);
     return re;

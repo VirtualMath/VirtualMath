@@ -1,5 +1,13 @@
 #include "__ofunc.h"
 
+LinkValue *douCore(LinkValue *belong, LinkValue *class, Inter *inter) {
+    LinkValue *value;
+    value = make_new(inter, belong, class);
+    value->value->type = V_dou;
+    value->value->data.dou.num = 0.;
+    return value;
+}
+
 ResultType dou_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -65,8 +73,8 @@ ResultType dou_init(O_FUNC){
 
 void registeredDou(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_DOU];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], dou_new, class_free_},
-                      {inter->data.mag_func[M_INIT], dou_init, object_free_},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], dou_new, class_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], dou_init, object_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"dou", object, belong, inter);

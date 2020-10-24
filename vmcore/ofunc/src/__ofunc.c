@@ -1,8 +1,18 @@
 #include "__ofunc.h"
 
-LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, FUNC_NT) {
+LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, enum NameFuncVar nfv, FUNC_NT) {
     LinkValue *value = NULL;
-    makeCFunctionValue(of, LINEFILE, CNEXT_NT);
+    switch (nfv) {
+        case nfv_notpush:
+            makeCFunctionValue(of, LINEFILE, true, false, CNEXT_NT);
+            break;
+        case nfv_inline:
+            makeCFunctionValue(of, LINEFILE, false, true, CNEXT_NT);
+            break;
+        default:
+            makeCFunctionValue(of, LINEFILE, true, true, CNEXT_NT);
+            break;
+    }
     GET_RESULT(value, result);
     addStrVar(name, false, true, value, LINEFILE, false, CNEXT_NT);
     gc_freeTmpLink(&value->gc_status);
@@ -12,7 +22,7 @@ LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, FUNC_NT) {
 bool iterNameFunc(NameFunc *list, FUNC_NT){
     setResultCore(result);
     for (PASS; list->of != NULL; list++) {
-        LinkValue *value = registeredFunctionCore(list->of, list->name, CNEXT_NT);
+        LinkValue *value = registeredFunctionCore(list->of, list->name, list->var, CNEXT_NT);
         if (!CHECK_RESULT(result))
             return false;
         value->value->data.function.function_data.pt_type = list->type;
@@ -32,7 +42,7 @@ bool iterClassFunc(NameFunc *list, FUNC_NT){
     inter->data.default_pt_type = object_free_;
 
     for (PASS; list->of != NULL; list++) {
-        LinkValue *value = registeredFunctionCore(list->of, list->name, CFUNC_NT(object_var, result, belong));
+        LinkValue *value = registeredFunctionCore(list->of, list->name, list->var, CFUNC_NT(object_var, result, belong));
         if (!CHECK_RESULT(result)) {
             return_ = false;
             break;

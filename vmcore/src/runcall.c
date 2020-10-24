@@ -221,6 +221,7 @@ static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int l
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
     Argument *bak;
+    bool push = func_value->value->data.function.function_data.push;
     setResultCore(result);
     gc_addTmpLink(&func_value->gc_status);
 
@@ -229,8 +230,10 @@ static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int l
         goto return_;
 
     of = func_value->value->data.function.of;
-    function_var = pushVarList(func_value->value->object.out_var != NULL ? func_value->value->object.out_var : var_list, inter);
-
+    if (push)
+        function_var = pushVarList(func_value->value->object.out_var != NULL ? func_value->value->object.out_var : var_list, inter);
+    else
+        function_var = func_value->value->object.out_var != NULL ? func_value->value->object.out_var : var_list;
     freeResult(result);
     of(CO_FUNC(arg, function_var, result, func_value->belong));  // belong设置为func的belong, 方便权限的认定
     if (result->type == R_func)
@@ -238,7 +241,8 @@ static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int l
     else if (result->type != R_opt && result->type != R_error)
         setResult(result, inter);
 
-    popVarList(function_var);
+    if (push)
+        popVarList(function_var);
     freeFunctionArgument(arg, bak);
 
     return_:
@@ -464,30 +468,51 @@ static void updateFunctionYield(Statement *func_st, Statement *node){
     func_st->info.have_info = true;
 }
 
-static void newFunctionYield(Statement *func_st, Statement *node, VarList *new_var, Inter *inter){
-    new_var->next = NULL;
+static void newFunctionYield(Statement *func_st, Statement *node, bool push, VarList *new_var, Inter *inter){
+    if (push)
+        new_var->next = NULL;
     func_st->info.var_list = new_var;
     func_st->info.node = node->type == yield_code ? node->next : node;
     func_st->info.have_info = true;
+    func_st->info.branch.func.push = push;
 }
 
-static void setFunctionResult(LinkValue *func_value, bool yield_run, Result *result, FUNC_CORE) {
+static void setFunctionResult(LinkValue *func_value, bool yield_run, bool push, Result *result, FUNC_CORE) {
     Statement *st_func = func_value->value->data.function.function;
     if (yield_run) {
         if (result->type == R_yield) {
             updateFunctionYield(st_func, result->node);
             result->type = R_opt;
             result->is_yield = true;
-        } else
-            freeRunInfo(st_func);
+        } else {
+            if (st_func->info.var_list != NULL && push)
+                freeVarList(st_func->info.var_list);
+            setRunInfo(st_func);
+        }
     } else {
         if (result->type == R_yield) {
-            newFunctionYield(st_func, result->node, var_list, inter);
+            newFunctionYield(st_func, result->node, push, var_list, inter);
             result->type = R_opt;
             result->is_yield = true;
-        } else
-            popVarList(var_list);
+        } else {
+            if (push)
+                popVarList(var_list);
+        }
     }
+}
+
+static bool popFuncYieldVarList(Statement *st, VarList **return_, VarList *out_var, bool *push, Inter *inter) {
+    bool yield_run;
+    if ((yield_run = st->info.have_info)) {
+        *push = st->info.branch.func.push;
+        *return_ = st->info.var_list;
+        if (*push)
+            (*return_)->next = out_var;  // 若是push进来的var_list, 则需要重新链接
+    } else if (*push)
+        *return_ = pushVarList(out_var, inter);
+    else
+        *return_ = out_var;
+    return yield_run;
 }
 
 static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT) {
@@ -496,6 +521,7 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
     Statement *st_func = NULL;
     Parameter *pt_func = func_value->value->data.function.pt;
     bool yield_run = false;
+    bool push = func_value->value->data.function.function_data.push;
     setResultCore(result);
     st_func = func_value->value->data.function.function;
 
@@ -511,8 +537,9 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
             out_var = var_list;  // 当out_var等于空的时候为内联函数
         else
             out_var = func_value->value->object.out_var;
-        yield_run = popYieldVarList(st_func, &var_func, out_var, inter);
+        yield_run = popFuncYieldVarList(st_func, &var_func, out_var, &push, inter);
     }
+
     if (yield_run)
         st_func = st_func->info.node;
 
@@ -521,10 +548,8 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
         goto return_;
     freeResult(result);
 
-    gc_addTmpLink(&var_func->hashtable->gc_status);
     setParameterCore(line, file, arg, pt_func, var_func, CFUNC_NT(var_list, result, func_value));
     freeFunctionArgument(arg, bak);
-    gc_freeTmpLink(&var_func->hashtable->gc_status);
 
     if (!CHECK_RESULT(result))
         goto return_;
@@ -533,7 +558,7 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int 
     functionSafeInterStatement(CFUNC(st_func, var_func, result, func_value->belong));  // belong设置为函数的belong，方便权限校对
 
     return_:
-    setFunctionResult(func_value, yield_run, result, CFUNC_CORE(var_func));
+    setFunctionResult(func_value, yield_run, push, result, CFUNC_CORE(var_func));
     gc_freeTmpLink(&func_value->gc_status);
     return result->type;
 }

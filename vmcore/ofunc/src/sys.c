@@ -17,7 +17,7 @@ ResultType vm_super(O_FUNC){
     arg_child = ap[1].value->value;
     if (arg_child == arg_father) {
         if (arg_child->object.inherit != NULL){
-            result->value = copyLinkValue(arg_child->object.inherit->value, inter);
+            result->value = COPY_LINKVALUE(arg_child->object.inherit->value, inter);
             result->type = R_opt;
             gc_addTmpLink(&result->value->gc_status);
         } else
@@ -28,7 +28,7 @@ ResultType vm_super(O_FUNC){
     for (Inherit *self_father = arg_child->object.inherit; self_father != NULL; self_father = self_father->next) {
         if (self_father->value->value == arg_father) {
             if (self_father->next != NULL)
-                next_father = copyLinkValue(self_father->next->value, inter);
+                next_father = COPY_LINKVALUE(self_father->next->value, inter);
             break;
         }
     }
@@ -141,7 +141,6 @@ ResultType vm_open(O_FUNC){
 }
 
 ResultType vm_setAssert(O_FUNC, enum AssertRunType type){
-    LinkValue *function_value = NULL;
     setResultCore(result);
     if (arg != NULL) {
         setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
@@ -163,6 +162,86 @@ ResultType vm_assertrun(O_FUNC){
 
 ResultType vm_assertraise(O_FUNC){
     return vm_setAssert(CO_FUNC(arg, var_list, result, belong), assert_raise);
+}
+
+ResultType vm_selfunCore(O_FUNC, bool type){
+    LinkValue *function_value = NULL;
+    ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
+    bool push;
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+    function_value = ap[0].value;
+    push = function_value->value->data.function.function_data.push;
+    if (push && !type) {  // 原本是push, 现在设定为非push
+        function_value->value->data.function.function_data.push = false;
+        if (function_value->value->object.out_var != NULL)
+            function_value->value->object.out_var = pushVarList(function_value->value->object.out_var, inter);
+    } else if (!push && type){
+        if (function_value->value->object.out_var != NULL)
+            function_value->value->object.out_var = popVarList(function_value->value->object.out_var);
+    }
+
+    result->value = function_value;
+    gc_addTmpLink(&result->value->gc_status);
+    result->type = R_opt;
+    return R_opt;
+}
+
+ResultType vm_selfun(O_FUNC){
+    return vm_selfunCore(CO_FUNC(arg, var_list, result, belong), false);
+}
+
+ResultType vm_nselfun(O_FUNC){
+    return vm_selfunCore(CO_FUNC(arg, var_list, result, belong), true);
+}
+
+ResultType vm_setfreemode(O_FUNC, bool type){
+    setResultCore(result);
+    if (arg != NULL) {
+        setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    inter->data.free_mode = type;
+    setResult(result, inter);
+    return result->type;
+}
+
+ResultType vm_freemode(O_FUNC){
+    return vm_setfreemode(CO_FUNC(arg, var_list, result, belong), true);
+}
+
+ResultType vm_nfreemode(O_FUNC){
+    return vm_setfreemode(CO_FUNC(arg, var_list, result, belong), false);
+}
+
+ResultType vm_opt_mode(O_FUNC, enum OptMode mode){
+    setResultCore(result);
+    if (arg != NULL) {
+        setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    inter->data.opt_mode = mode;
+    setResult(result, inter);
+    return result->type;
+}
+
+ResultType vm_free_opt(O_FUNC){
+    return vm_opt_mode(CO_FUNC(arg, var_list, result, belong), om_free);
+}
+
+ResultType vm_normal_opt(O_FUNC){
+    return vm_opt_mode(CO_FUNC(arg, var_list, result, belong), om_normal);
+}
+
+ResultType vm_simple_opt(O_FUNC){
+    return vm_opt_mode(CO_FUNC(arg, var_list, result, belong), om_simple);
 }
 
 ResultType vm_exec(O_FUNC){
@@ -242,25 +321,32 @@ ResultType vm_exec(O_FUNC){
 }
 
 void registeredSysFunction(R_FUNC){
-    NameFunc tmp[] = {{L"super", vm_super, free_},
-                      {L"freemethod", vm_freemethod, free_},
-                      {L"staticmethod", vm_staticmethod, free_},
-                      {L"staticclassmethod", vm_classmethod, free_},
-                      {L"staticobjectmethod", vm_objectmethod, free_},
-                      {L"classmethod", vm_classfreemethod, free_},
-                      {L"objectmethod", vm_objectfreemethod, free_},
-                      {L"simplemethod", vm_allfreemethod, free_},
-                      {L"simplestaticmethod", vm_allstaticmethod, free_},
-                      {L"clsmethod", vm_clsfreemethod, free_},
-                      {L"clsstaticmethod", vm_clsmethod, free_},
-                      {L"isnowrun", vm_isnowrun, free_},
-                      {L"disnowrun", vm_disnowrun, free_},
-                      {L"quit", vm_quit, free_},
-                      {L"exec", vm_exec, free_},
-                      {L"open", vm_open, free_},
-                      {L"assert_ignore", vm_assertignore, free_},
-                      {L"assert_run", vm_assertrun, free_},
-                      {L"assert_raise", vm_assertraise, free_},
+    NameFunc tmp[] = {{L"super", vm_super, free_, .var=nfv_notpush},
+                      {L"freemethod", vm_freemethod, free_, .var=nfv_notpush},
+                      {L"staticmethod", vm_staticmethod, free_, .var=nfv_notpush},
+                      {L"staticclassmethod", vm_classmethod, free_, .var=nfv_notpush},
+                      {L"staticobjectmethod", vm_objectmethod, free_, .var=nfv_notpush},
+                      {L"classmethod", vm_classfreemethod, free_, .var=nfv_notpush},
+                      {L"objectmethod", vm_objectfreemethod, free_, .var=nfv_notpush},
+                      {L"simplemethod", vm_allfreemethod, free_, .var=nfv_notpush},
+                      {L"simplestaticmethod", vm_allstaticmethod, free_, .var=nfv_notpush},
+                      {L"clsmethod", vm_clsfreemethod, free_, .var=nfv_notpush},
+                      {L"clsstaticmethod", vm_clsmethod, free_, .var=nfv_notpush},
+                      {L"isnowrun", vm_isnowrun, free_, .var=nfv_notpush},
+                      {L"disnowrun", vm_disnowrun, free_, .var=nfv_notpush},
+                      {L"quit", vm_quit, free_, .var=nfv_notpush},
+                      {L"exec", vm_exec, free_, .var=nfv_notpush},
+                      {L"open", vm_open, free_, .var=nfv_notpush},
+                      {L"assert_ignore", vm_assertignore, free_, .var=nfv_notpush},
+                      {L"assert_run", vm_assertrun, free_, .var=nfv_notpush},
+                      {L"assert_raise", vm_assertraise, free_, .var=nfv_notpush},
+                      {L"selfun", vm_selfun, free_, .var=nfv_notpush},
+                      {L"nselfun", vm_nselfun, free_, .var=nfv_notpush},
+                      {L"free_mode", vm_freemode, free_, .var=nfv_notpush},
+                      {L"normal_mode", vm_nfreemode, free_, .var=nfv_notpush},
+                      {L"free_opt", vm_free_opt, free_, .var=nfv_notpush},
+                      {L"normal_opt", vm_normal_opt, free_, .var=nfv_notpush},
+                      {L"simple_opt", vm_simple_opt, free_, .var=nfv_notpush},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }

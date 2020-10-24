@@ -1,8 +1,6 @@
 #include "__ofunc.h"
-
-typedef void (*base_opt)(LinkValue *, Result *, struct Inter *, VarList *var_list, Value *, Value *);
-
-void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+typedef void (*base_opt)(FUNC_VOBJ);
+void vobject_add_base(FUNC_VOBJ) {
     setResultCore(result);
     if (left->type == V_int && right->type == V_int)
         makeIntValue(left->data.int_.num + right->data.int_.num, LINEFILE, CNEXT_NT);
@@ -20,7 +18,7 @@ void vobject_add_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         setResultError(E_TypeException, CUL_ERROR(Add), LINEFILE, true, CNEXT_NT);
 }
 
-void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_sub_base(FUNC_VOBJ) {
     setResultCore(result);
     if (left->type == V_int && right->type == V_int)
         makeIntValue(left->data.int_.num - right->data.int_.num, LINEFILE, CNEXT_NT);
@@ -36,7 +34,7 @@ void vobject_sub_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         setResultError(E_TypeException, CUL_ERROR(Sub), LINEFILE, true, CNEXT_NT);
 }
 
-void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_mul_base(FUNC_VOBJ) {
     setResultCore(result);
     if (left->type == V_int && right->type == V_int)
         makeIntValue(left->data.int_.num * right->data.int_.num, LINEFILE, CNEXT_NT);
@@ -59,7 +57,7 @@ void vobject_mul_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         setResultError(E_TypeException, CUL_ERROR(Mul), LINEFILE, true, CNEXT_NT);
 }
 
-void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_div_base(FUNC_VOBJ) {
     setResultCore(result);
     if (right->type == V_int && right->data.int_.num == 0 || right->type == V_dou && !(right->data.dou.num != 0))  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
         setResultError(E_TypeException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
@@ -76,7 +74,7 @@ void vobject_div_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
 }
 
-void vobject_intdiv_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_intdiv_base(FUNC_VOBJ) {
     setResultCore(result);
     if (right->type == V_int && right->data.int_.num == 0 || right->type == V_dou && (vint)right->data.dou.num == 0)  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
         setResultError(E_TypeException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
@@ -93,7 +91,7 @@ void vobject_intdiv_base(LinkValue *belong, Result *result, struct Inter *inter,
         setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
 }
 
-void vobject_mod_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_mod_base(FUNC_VOBJ) {
     setResultCore(result);
     if (right->type == V_int && right->data.int_.num == 0)  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
         setResultError(E_TypeException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
@@ -104,7 +102,7 @@ void vobject_mod_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
 }
 
-void vobject_pow_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_pow_base(FUNC_VOBJ) {
     setResultCore(result);
     errno = 0;  // 初始化error
     vdou re;
@@ -126,7 +124,7 @@ void vobject_pow_base(LinkValue *belong, Result *result, struct Inter *inter, Va
         makeDouValue(re, LINEFILE, CNEXT_NT);
 }
 
-void vobject_eq_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_eq_base(FUNC_VOBJ) {
     setResultCore(result);
     if (left->type == V_int && right->type == V_int)
         makeBoolValue(left->data.int_.num == right->data.int_.num, LINEFILE, CNEXT_NT);
@@ -144,7 +142,7 @@ void vobject_eq_base(LinkValue *belong, Result *result, struct Inter *inter, Var
         makeBoolValue(left == right, LINEFILE, CNEXT_NT);
 }
 
-void vobject_noteq_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) {
+void vobject_noteq_base(FUNC_VOBJ) {
     setResultCore(result);
     if (left->type == V_int && right->type == V_int)
         makeBoolValue(left->data.int_.num != right->data.int_.num, LINEFILE, CNEXT_NT);
@@ -162,7 +160,7 @@ void vobject_noteq_base(LinkValue *belong, Result *result, struct Inter *inter, 
         makeBoolValue(left != right, LINEFILE, CNEXT_NT);
 }
 
-#define BITMACRO(SYMBOL, NAME, TYPE) void vobject_##NAME##_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) { \
+#define BITMACRO(SYMBOL, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
     if (left->type == V_int && right->type == V_int) \
         makeIntValue(left->data.int_.num SYMBOL right->data.int_.num, LINEFILE, CNEXT_NT); \
@@ -175,7 +173,7 @@ BITMACRO(|, bor, Bit Or)
 BITMACRO(^, bxor, Bit Xor)
 #undef BITMACRO
 
-#define BITMOVEMACRO(SYMBOL1, SYMBOL2, NAME, TYPE) void vobject_##NAME##_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) { \
+#define BITMOVEMACRO(SYMBOL1, SYMBOL2, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
     if (left->type == V_int && right->type == V_int) { \
         if (right->data.int_.num >= 0) \
@@ -190,7 +188,7 @@ BITMOVEMACRO(<<, >>, bl, Bit Left)
 BITMOVEMACRO(>>, <<, br, Bit Right)
 #undef BITMOVEMACRO
 
-#define COMPAREMACRO(SYMBOL, NAME, TYPE) void vobject_##NAME##_base(LinkValue *belong, Result *result, struct Inter *inter, VarList *var_list, Value *left, Value *right) { \
+#define COMPAREMACRO(SYMBOL, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
     if (left->type == V_int && right->type == V_int) \
         makeBoolValue(left->data.int_.num SYMBOL right->data.int_.num, LINEFILE, CNEXT_NT); \
@@ -229,14 +227,11 @@ ResultType vobject_opt_core(O_FUNC, base_opt func){
     left = ap[0].value->value;
     right = ap[1].value->value;
 
-    func(belong, result, inter, var_list, left, right);
+    func(CFUNC_VOBJ(var_list, result, belong, left, right));
     return result->type;
 }
 
-#define COMPAREFUNCMACRO(TYPE) ResultType vobject_##TYPE(O_FUNC){ \
-    return vobject_opt_core(CO_FUNC(arg, var_list, result, belong), vobject_##TYPE##_base); \
-}
-
+#define COMPAREFUNCMACRO(TYPE) ResultType vobject_##TYPE(O_FUNC){ return vobject_opt_core(CO_FUNC(arg, var_list, result, belong), vobject_##TYPE##_base); }
 COMPAREFUNCMACRO(add)
 COMPAREFUNCMACRO(sub)
 COMPAREFUNCMACRO(mul)
@@ -257,19 +252,8 @@ COMPAREFUNCMACRO(bl)
 COMPAREFUNCMACRO(br)
 #undef COMPAREFUNCMACRO
 
-ResultType vobject_negate(O_FUNC){
-    Value *left = NULL;
-    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.must=-1}};
+void vobject_negate_base(FUNC_VOBJR) {
     setResultCore(result);
-    {
-        parserArgumentUnion(ap, arg, CNEXT_NT);
-        if (!CHECK_RESULT(result))
-            return result->type;
-        freeResult(result);
-    }
-
-    left = ap[0].value->value;
     switch (left->type) {
         case V_int:
             makeIntValue(-(left->data.int_.num), LINEFILE, CNEXT_NT);
@@ -293,25 +277,13 @@ ResultType vobject_negate(O_FUNC){
             setResultError(E_TypeException, CUL_ERROR(Negate), LINEFILE, true, CNEXT_NT);
             break;
     }
-    return result->type;
 }
 
-ResultType vobject_bnot(O_FUNC){
-    Value *left = NULL;
-    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
-                           {.must=-1}};
+void vobject_bnot_base(FUNC_VOBJR) {
     setResultCore(result);
-    {
-        parserArgumentUnion(ap, arg, CNEXT_NT);
-        if (!CHECK_RESULT(result))
-            return result->type;
-        freeResult(result);
-    }
-
-    left = ap[0].value->value;
     switch (left->type) {
         case V_int:
-            makeIntValue(~(left->data.int_.num), LINEFILE, CNEXT_NT);
+            makeIntValue(~(unsigned long long)(left->data.int_.num), LINEFILE, CNEXT_NT);
             break;
         case V_bool:
             makeBoolValue(!(left->data.bool_.bool_), LINEFILE, CNEXT_NT);
@@ -323,6 +295,31 @@ ResultType vobject_bnot(O_FUNC){
             setResultError(E_TypeException, CUL_ERROR(Negate), LINEFILE, true, CNEXT_NT);
             break;
     }
+}
+
+ResultType vobject_negate(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    vobject_negate_base(CFUNC_VOBJR(var_list, result, belong, ap[0].value->value));
+    return result->type;
+}
+
+ResultType vobject_bnot(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    vobject_bnot_base(CFUNC_VOBJR(var_list, result, belong, ap[0].value->value));
     return result->type;
 }
 
@@ -447,32 +444,32 @@ ResultType vobject_repo(O_FUNC){
 
 void registeredVObject(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_VOBJECT];
-    NameFunc tmp[] = {{inter->data.mag_func[M_ADD], vobject_add, object_free_},
-                      {inter->data.mag_func[M_SUB], vobject_sub, object_free_},
-                      {inter->data.mag_func[M_MUL], vobject_mul, object_free_},
-                      {inter->data.mag_func[M_DIV], vobject_div, object_free_},
-                      {inter->data.mag_func[M_BOOL], vobject_bool, object_free_},
-                      {inter->data.mag_func[M_REPO], vobject_repo, object_free_},
-                      {inter->data.mag_func[M_STR], vobject_repo, object_free_},
-                      {inter->data.mag_func[M_INTDIV], vobject_intdiv, object_free_},
-                      {inter->data.mag_func[M_MOD], vobject_mod, object_free_},
-                      {inter->data.mag_func[M_POW], vobject_pow, object_free_},
+    NameFunc tmp[] = {{inter->data.mag_func[M_ADD], vobject_add, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_SUB], vobject_sub, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MUL], vobject_mul, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DIV], vobject_div, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BOOL], vobject_bool, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_REPO], vobject_repo, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_STR], vobject_repo, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INTDIV], vobject_intdiv, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MOD], vobject_mod, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_POW], vobject_pow, object_free_, .var=nfv_notpush},
 
-                      {inter->data.mag_func[M_EQ], vobject_eq, object_free_},
-                      {inter->data.mag_func[M_NOTEQ], vobject_noteq, object_free_},
-                      {inter->data.mag_func[M_MOREEQ], vobject_moreeq, object_free_},
-                      {inter->data.mag_func[M_LESSEQ], vobject_lesseq, object_free_},
-                      {inter->data.mag_func[M_MORE], vobject_more, object_free_},
-                      {inter->data.mag_func[M_LESS], vobject_less, object_free_},
+                      {inter->data.mag_func[M_EQ], vobject_eq, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NOTEQ], vobject_noteq, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MOREEQ], vobject_moreeq, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_LESSEQ], vobject_lesseq, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MORE], vobject_more, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_LESS], vobject_less, object_free_, .var=nfv_notpush},
 
-                      {inter->data.mag_func[M_BAND], vobject_band, object_free_},
-                      {inter->data.mag_func[M_BOR], vobject_bor, object_free_},
-                      {inter->data.mag_func[M_BXOR], vobject_bxor, object_free_},
-                      {inter->data.mag_func[M_BL], vobject_bl, object_free_},
-                      {inter->data.mag_func[M_BR], vobject_br, object_free_},
+                      {inter->data.mag_func[M_BAND], vobject_band, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BOR], vobject_bor, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BXOR], vobject_bxor, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BL], vobject_bl, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BR], vobject_br, object_free_, .var=nfv_notpush},
 
-                      {inter->data.mag_func[M_NEGATE], vobject_negate, object_free_},
-                      {inter->data.mag_func[M_BNOT], vobject_bnot, object_free_},
+                      {inter->data.mag_func[M_NEGATE], vobject_negate, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BNOT], vobject_bnot, object_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"vobject", object, belong, inter);

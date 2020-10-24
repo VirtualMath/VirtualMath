@@ -1,5 +1,12 @@
 #include "__ofunc.h"
 
+LinkValue *passCore(LinkValue *belong, LinkValue *class, Inter *inter) {
+    LinkValue *value;
+    value = make_new(inter, belong, class);
+    value->value->type = V_ell;
+    return value;
+}
+
 ResultType pass_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -20,7 +27,7 @@ ResultType pass_new(O_FUNC){
 
 void registeredEllipisis(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_PASS];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], pass_new, class_free_},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], pass_new, class_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"ellipsis", object, belong, inter);

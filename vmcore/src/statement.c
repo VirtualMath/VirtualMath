@@ -22,13 +22,12 @@ void setRunInfo(Statement *st){
     st->info.branch.with_._enter_ = NULL;
     st->info.branch.with_.with_belong = NULL;
     st->info.branch.for_.iter = NULL;
+    st->info.branch.func.push = true;
 }
 
 void freeRunInfo(Statement *st) {
-    if (st->info.var_list != NULL) {
-        gc_freeTmpLink(&st->info.var_list->hashtable->gc_status);
+    if (st->info.var_list != NULL)
         freeVarList(st->info.var_list);
-    }
     if (st->info.branch.with_.value != NULL)
         gc_freeTmpLink(&st->info.branch.with_.value->gc_status);
     if (st->info.branch.with_._exit_ != NULL)

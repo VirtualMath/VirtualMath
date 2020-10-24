@@ -1,6 +1,6 @@
 #include "__run.h"
 
-Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit) {
+Value *makeObject(Inter *inter, VarList *object, VarList *out_var, bool set_out_var, Inherit *inherit) {
     register Value **list_tmp = &inter->base;
     Value *last;
     Value *tmp;
@@ -12,7 +12,7 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inhe
 
     if (inter->data.base_obj[B_OBJECT] != NULL && inherit == NULL)
         inherit = makeInherit(inter->data.base_obj[B_OBJECT]);
-    if (out_var == NULL && inherit != NULL)
+    if (set_out_var && out_var == NULL && inherit != NULL)
         out_var = copyVarList(inherit->value->value->object.out_var, false, inter);
     tmp->object.var = makeObjectVarList(inherit, inter, object);
     tmp->object.out_var = out_var;
@@ -40,9 +40,12 @@ Value *useNoneValue(Inter *inter, Result *result) {
 Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.base_obj[B_BOOL], NULL, line, file, 0, CNEXT_NT);
-    if (!CHECK_RESULT(result))
-        return NULL;
+    if (inter->data.free_mode) {
+        callBackCore(inter->data.base_obj[B_BOOL], NULL, line, file, 0, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return NULL;
+    } else
+        setResultOperation(result, boolCore(belong, inter->data.base_obj[B_BOOL], inter));
     tmp = result->value->value;
     tmp->data.bool_.bool_ = bool_num;
     return tmp;
@@ -51,9 +54,12 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT) {
 Value *makePassValue(fline line, char *file, FUNC_NT){  // TODO-szh 让切片支持该语法 检查语法解析器支持 a[::]的语法
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.base_obj[B_PASS], NULL, line, file, 0, CNEXT_NT);
-    if (!CHECK_RESULT(result))
-        return NULL;
+    if (inter->data.free_mode) {
+        callBackCore(inter->data.base_obj[B_PASS], NULL, line, file, 0, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return NULL;
+    } else
+        setResultOperation(result, passCore(belong, inter->data.base_obj[B_PASS], inter));
     tmp = result->value->value;
     return tmp;
 }
@@ -61,9 +67,12 @@ Value *makePassValue(fline line, char *file, FUNC_NT){  // TODO-szh 让切片支
 Value *makeIntValue(vint num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.base_obj[B_INT_], NULL, line, file, 0, CNEXT_NT);
-    if (!CHECK_RESULT(result))
-        return NULL;
+    if (inter->data.free_mode) {
+        callBackCore(inter->data.base_obj[B_INT_], NULL, line, file, 0, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return NULL;
+    } else
+        setResultOperation(result, intCore(belong, inter->data.base_obj[B_INT_], inter));
     result->value->belong = belong;
     tmp = result->value->value;
     tmp->data.int_.num = num;
@@ -77,9 +86,12 @@ Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
         setResultError(E_TypeException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
         return NULL;
     }
-    callBackCore(inter->data.base_obj[B_DOU], NULL, line, file, 0, CNEXT_NT);
-    if (!CHECK_RESULT(result))
-        return NULL;
+    if (inter->data.free_mode) {
+        callBackCore(inter->data.base_obj[B_DOU], NULL, line, file, 0, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return NULL;
+    } else
+        setResultOperation(result, douCore(belong, inter->data.base_obj[B_DOU], inter));
     tmp = result->value->value;
     tmp->data.dou.num = num;
     return tmp;
@@ -99,12 +111,13 @@ Value *makePointerValue(void *p, fline line, char *file, FUNC_NT) {
 Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
-    callBackCore(inter->data.base_obj[B_STR], NULL, line, file, 0, CNEXT_NT);
-    if (!CHECK_RESULT(result))
-        return NULL;
-
+    if (inter->data.free_mode) {
+        callBackCore(inter->data.base_obj[B_STR], NULL, line, file, 0, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return NULL;
+    } else
+        setResultOperation(result, strCore(belong, inter->data.base_obj[B_STR], inter));
     tmp = result->value->value;
-    memFree(tmp->data.str.str);
     tmp->data.str.str = memWidecpy(str);
     return tmp;
 }
@@ -118,16 +131,12 @@ Value *makeVMFunctionValue(Statement *st, Parameter *pt, FUNC_NT) {
     tmp->data.function.function = copyStatement(st);
     tmp->data.function.pt = copyParameter(pt);
     tmp->data.function.function_data.cls = belong;
-    for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
-        vl_next = vl->next;
-        freeVarList(vl);
-    }
     tmp->object.out_var = copyVarList(var_list, false, inter);
     result->value->belong = belong;
     return tmp;
 }
 
-Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT) {
+Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, bool set_var, bool push, FUNC_NT) {
     Value *tmp = NULL;
     callBackCore(inter->data.base_obj[B_FUNCTION], NULL, line, file, 0, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -137,11 +146,13 @@ Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT) 
     tmp->data.function.of = of;
     tmp->data.function.function_data.pt_type = inter->data.default_pt_type;
     tmp->data.function.function_data.cls = belong;
-    for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
-        vl_next = vl->next;
-        freeVarList(vl);
-    }
-    tmp->object.out_var = copyVarList(var_list, false, inter);
+    tmp->data.function.function_data.push = push;
+    if (set_var) {
+        tmp->object.out_var = copyVarList(var_list, false, inter);
+        if (!push)
+            tmp->object.out_var = pushVarList(tmp->object.out_var, inter);
+    } else
+        tmp->object.out_var = NULL;
     result->value->belong = belong;
     return tmp;
 }
@@ -155,18 +166,12 @@ Value *makeFFunctionValue(void (*ffunc)(), fline line, char *file, FUNC_NT) {
     tmp->data.function.type = f_func;
     tmp->data.function.ffunc = ffunc;
     tmp->data.function.function_data.cls = belong;
-    for (VarList *vl = tmp->object.out_var, *vl_next; vl != NULL; vl = vl_next) {
-        vl_next = vl->next;
-        freeVarList(vl);
-    }
-    tmp->object.out_var = copyVarList(var_list, false, inter);
     result->value->belong = belong;
     return tmp;
 }
 
-LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, OfficialFunction function_init, LinkValue *belong, VarList *var_list, Inter *inter) {
+LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, LinkValue *belong, VarList *var_list, Inter *inter) {
     Argument *arg = makeValueArgument(func);
-    Argument *init_arg = NULL;
     LinkValue *return_ = NULL;
     Result result;
 
@@ -175,19 +180,12 @@ LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFun
     return_ = result.value;
     result.value = NULL;
     freeResult(&result);
-
-    init_arg = makeValueArgument(return_);
-    function_init(CO_FUNC(init_arg, func->value->object.var, &result, func));
-    freeResult(&result);
-    freeArgument(init_arg, true);
     freeArgument(arg, true);
 
     return_->value->data.function.type = c_func;
     return_->value->data.function.of = of;
     return_->value->data.function.function_data.pt_type = inter->data.default_pt_type;
     return_->value->data.function.function_data.cls = belong;
-    for (VarList *vl = return_->value->object.out_var; vl != NULL; vl = freeVarList(vl))
-        PASS;
     return_->value->object.out_var = copyVarList(var_list, false, inter);
     return_->belong = belong;
     gc_freeTmpLink(&return_->gc_status);
@@ -197,7 +195,7 @@ LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFun
 Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
     Value *tmp;
     VarList *new_var = copyVarList(var_list, false, inter);
-    tmp = makeObject(inter, NULL, new_var, father);
+    tmp = makeObject(inter, NULL, new_var, true, father);
     tmp->type = V_class;
     return tmp;
 }
@@ -605,7 +603,7 @@ bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_lis
     if (_del_ != NULL){  // TODO-szh 让__del__只运行一次
         gc_addTmpLink(&_del_->gc_status);
         if (_del_->belong != NULL && _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value)) {  // 与point运算道理相同
-            _del_ = copyLinkValue(_del_, inter);
+            _del_ = COPY_LINKVALUE(_del_, inter);
             _del_->belong = makeLinkValue(object_value, inter->base_belong, auto_aut, inter);
         }
         callBackCore(_del_, NULL, LINEFILE, 0, CFUNC_NT(var_list, result, inter->base_belong));

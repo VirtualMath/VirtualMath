@@ -205,7 +205,7 @@ static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int st
         setResultCore(result);
         *is_new = true;
         imp_inter = deriveInter(belong, inter);
-        pg = makeObject(inter, imp_inter->var_list, copyVarList(var_list, false, inter), NULL);
+        pg = makeObject(inter, imp_inter->var_list, copyVarList(var_list, false, inter), true, NULL);
         if (!is_lock)
             inter->package = makePackage(pg, md5_str, split, inter->package);  // 只有当不是保护读入或私密读入的时才可以记录
         imp_inter->package = inter->package;

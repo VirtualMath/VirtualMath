@@ -226,19 +226,13 @@ VarList *copyVarList(VarList *base, bool n_new, Inter *inter){
     return new;
 }
 
-VarList *connectVarListBack(VarList *base, VarList *back){
-    VarList **tmp = NULL;
-    for (tmp = &base; *tmp != NULL; tmp = &(*tmp)->next)
-        PASS;
-    *tmp = back;
-    return base;
-}
-
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base) {
     VarList *tmp = base == NULL ? makeVarList(inter, true, NULL) : base;
-    for (PASS; value != NULL; value = value->next) {
-        VarList *new = copyVarList(value->value->value->object.var, false, inter);
-        tmp = connectVarListBack(tmp, new);
-    }
+    VarList *next = tmp;
+    assert(tmp != NULL);
+    while (next->next != NULL)
+        next = next->next;
+    for (PASS; value != NULL;next = next->next, value = value->next)
+        next->next = copyVarListCore(value->value->value->object.var, inter);  // 复制一个
     return tmp;
 }

@@ -3,7 +3,7 @@
 
 #define MAX_SIZE (8)
 #define copyVarListCore(base, inter) makeVarList((inter), false, (base)->hashtable)
-#define popVarList(base) (((base)->next == NULL) ? (base) : freeVarList(base))
+#define popVarList(base) (((base) == NULL) ? (base) : freeVarList(base))
 
 struct Var{
     GCStatus gc_status;

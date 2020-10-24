@@ -73,9 +73,9 @@ ResultType object_str(O_FUNC){
 
 void registeredObject(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_OBJECT];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  object_new,  class_free_},
-                      {inter->data.mag_func[M_REPO], object_repo, all_free_},
-                      {inter->data.mag_func[M_STR],  object_str,  all_free_},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  object_new,  class_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_REPO], object_repo, all_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_STR],  object_str,  all_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"object", object, belong, inter);
@@ -88,7 +88,7 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
     Value *object = makeClassValue(inter->var_list, inter, NULL);
 
     {
-        Value *global_belong = makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, NULL);
+        Value *global_belong = makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, true, NULL);
         g_belong = makeLinkValue(global_belong, belong, auto_aut, inter);
         gc_freeTmpLink(&global_belong->gc_status);
         inter->base_belong = g_belong;

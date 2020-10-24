@@ -1,5 +1,13 @@
 #include "__ofunc.h"
 
+LinkValue *boolCore(LinkValue *belong, LinkValue *class, Inter *inter) {
+    LinkValue *value;
+    value = make_new(inter, belong, class);
+    value->value->type = V_bool;
+    value->value->data.bool_.bool_ = false;
+    return value;
+}
+
 ResultType bool_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -45,8 +53,8 @@ ResultType bool_init(O_FUNC){
 
 void registeredBool(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_BOOL];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], bool_new, class_free_},
-                      {inter->data.mag_func[M_INIT], bool_init, object_free_},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], bool_new, class_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], bool_init, object_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"bool", object, belong, inter);

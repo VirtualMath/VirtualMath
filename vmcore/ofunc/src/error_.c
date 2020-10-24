@@ -45,7 +45,7 @@ void registeredExcIter(R_FUNC){
                    {NULL, NULL}};
     {
         LinkValue *object = inter->data.base_exc[E_BaseException];
-        NameFunc tmp[] = {{L"__init__", base_exception_init, object_free_},
+        NameFunc tmp[] = {{L"__init__", base_exception_init, object_free_, .var=nfv_notpush},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addBaseClassVar(L"BaseException", object, belong, inter);

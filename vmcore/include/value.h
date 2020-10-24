@@ -16,7 +16,12 @@
 
 #define GET_RESULT(val, res) do {(val) = (res)->value; (res)->value=NULL; freeResult(res);} while(0)
 #define GET_RESULTONLY(val, res) do {(val) = (res)->value; (res)->value=NULL;} while(0)
-#define copyLinkValue(val, inter) makeLinkValue((val)->value, (val)->belong, (val)->aut, (inter))
+
+#define COPY_LINKVALUE(val, inter) makeLinkValue((val)->value, (val)->belong, (val)->aut, (inter))
+
+#define NORMAL_BUILTIN(val) ((val)->type != V_obj && (val)->type != V_class)
+#define SIMPLE_BUILTIN(val, inter) (((val)->object.inherit != NULL && (val)->object.inherit->next != NULL) && (val)->object.inherit->next->value->value == (inter)->data.base_obj[B_VOBJECT]->value)
+#define IS_BUILTIN_VALUE(val, inter) (((inter)->data.opt_mode == om_normal && NORMAL_BUILTIN(val)) || (inter->data.opt_mode == om_simple && NORMAL_BUILTIN(val) && SIMPLE_BUILTIN(val, inter)))
 
 typedef struct Argument Argument;
 typedef struct Inter Inter;
@@ -95,6 +100,7 @@ struct Function{
         } pt_type;
         LinkValue *cls;
         bool run;  // 是否为即时调用
+        bool push;  // 是否需要push var
     } function_data;
 };
 
@@ -230,7 +236,7 @@ enum BaseErrorType{
     E_QuitException,
 };
 
-Value *makeObject(Inter *inter, VarList *object, VarList *out_var, Inherit *inherit);
+Value *makeObject(Inter *inter, VarList *object, VarList *out_var, bool set_out_var, Inherit *inherit);
 void freeValue(Value **Value);
 LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority aut, Inter *inter);
 void freeLinkValue(LinkValue **value);
@@ -242,8 +248,8 @@ Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT);
 Value *makePointerValue(void *p, fline line, char *file, FUNC_NT);
 Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, FUNC_NT);
-Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, FUNC_NT);
-LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, OfficialFunction function_init, LinkValue *belong, VarList *var_list, Inter *inter);
+Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, bool set_var, bool push, FUNC_NT);
+LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, LinkValue *belong, VarList *var_list, Inter *inter);
 Value *makeFFunctionValue(void (*ffunc)(), fline line, char *file, FUNC_NT);
 Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father);
 Value *makeListValue(Argument *arg, fline line, char *file, enum ListType type, FUNC_NT);

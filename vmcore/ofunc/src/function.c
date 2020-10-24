@@ -4,6 +4,7 @@ static void setFunctionData(Value *value, LinkValue *cls, Inter *inter) {
     value->data.function.function_data.pt_type = inter->data.default_pt_type;
     value->data.function.function_data.cls = cls;
     value->data.function.function_data.run = false;
+    value->data.function.function_data.push = true;
 }
 
 ResultType function_new(O_FUNC){
@@ -18,10 +19,9 @@ ResultType function_new(O_FUNC){
         return R_error;
     }
 
-    {
+    {  // 不使用make_new, 需要设定makeObject的set_out_var
         Inherit *object_father = getInheritFromValueCore(inter->data.base_obj[B_FUNCTION]);
-        VarList *new_var = copyVarList(var_list, false, inter);
-        Value *new_object = makeObject(inter, NULL, new_var, object_father);
+        Value *new_object = makeObject(inter, NULL, NULL, false, object_father);  // 不加入out_var
         value = makeLinkValue(new_object, belong, auto_aut, inter);
         gc_freeTmpLink(&new_object->gc_status);
     }
@@ -96,7 +96,8 @@ ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
 
 void registeredFunction(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_FUNCTION];
-    NameFunc tmp[] = {{L"set", function_set, object_free_},
+    NameFunc tmp[] = {{L"set", function_set, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], function_init, object_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"func", object, belong, inter);
@@ -110,20 +111,15 @@ void makeBaseFunction(Inter *inter){
     inter->data.base_obj[B_FUNCTION] = function;
 }
 
-void functionPresetting(LinkValue *func, LinkValue **func_new, LinkValue **func_init, Inter *inter) {
-    *func_new = makeCFunctionFromOf(function_new, func, function_new, function_init, func, inter->var_list, inter);
-    *func_init = makeCFunctionFromOf(function_init, func, function_new, function_init, func, inter->var_list, inter);
-    (*func_new)->value->data.function.function_data.pt_type = class_free_;
-    (*func_init)->value->data.function.function_data.pt_type = object_free_;
-}
-
-void functionPresettingLast(LinkValue *func, LinkValue *func_new, LinkValue *func_init, Inter *inter) {
+void functionPresetting(LinkValue *func, Inter *inter) {  // 提前注册func_new
     Result result;
     VarList *object_var = func->value->object.var;
+    LinkValue *func_new;
     setResultCore(&result);
 
+    func_new = makeCFunctionFromOf(function_new, func, function_new, func, NULL, inter);  // var_list为NULL, 即声明为内联函数 (若不声明为内联函数则改为inter.var_list即可)
+    func_new->value->data.function.function_data.pt_type = class_free_;
     addStrVar(inter->data.mag_func[M_NEW], false, true, func_new, LINEFILE, false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
-    addStrVar(inter->data.mag_func[M_INIT], false, true, func_init, LINEFILE, false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
 }

@@ -251,6 +251,9 @@ struct Statement{
             struct{
                 LinkValue *iter;
             } for_;
+            struct {
+                bool push;
+            } func;
         } branch;
     } info;
     fline line;

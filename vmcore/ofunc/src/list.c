@@ -314,7 +314,7 @@ ResultType list_down(O_FUNC){
     if (!checkIndex(&index, &size, CNEXT_NT))
         return result->type;
     element = ap[0].value->value->data.list.list[index];
-    setResultOperationBase(result, copyLinkValue(element, inter));
+    setResultOperationBase(result, COPY_LINKVALUE(element, inter));
     return result->type;
 }
 
@@ -436,9 +436,9 @@ void registeredList(R_FUNC){
 
     {
         LinkValue *object = inter->data.base_obj[B_LIST];
-        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], list_new, class_free_},
-                          {inter->data.mag_func[M_DOWN_ASSIGMENT], list_down_assignment, object_free_},
-                          {inter->data.mag_func[M_SLICE_ASSIGMENT], list_slice_assignment, object_free_},
+        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], list_new, class_free_, .var=nfv_notpush},
+                          {inter->data.mag_func[M_DOWN_ASSIGMENT], list_down_assignment, object_free_, .var=nfv_notpush},
+                          {inter->data.mag_func[M_SLICE_ASSIGMENT], list_slice_assignment, object_free_, .var=nfv_notpush},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addBaseClassVar(L"list", object, belong, inter);

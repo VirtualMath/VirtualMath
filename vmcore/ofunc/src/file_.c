@@ -354,20 +354,20 @@ ResultType file_enter(O_FUNC){
 
 void registeredFile(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_FILE];
-    NameFunc tmp[] = {{L"read", file_read, object_free_},
-                      {L"write", file_write, object_free_},
-                      {L"close", file_close, object_free_},
-                      {L"get_seek", file_get_seek, object_free_},
-                      {L"seek", file_seek, object_free_},
-                      {L"readline", file_readline, object_free_},
-                      {L"end", file_isend, object_free_},
-                      {L"err", file_iserr, object_free_},
-                      {L"clean", file_clean_err, object_free_},
-                      {inter->data.mag_func[M_ENTER], file_enter, object_free_},
-                      {inter->data.mag_func[M_DEL], file_close, object_free_},
-                      {inter->data.mag_func[M_EXIT], file_close, object_free_},
-                      {inter->data.mag_func[M_NEW], file_new, class_free_},
-                      {inter->data.mag_func[M_INIT], file_init, object_free_},
+    NameFunc tmp[] = {{L"read", file_read, object_free_, .var=nfv_notpush},
+                      {L"write", file_write, object_free_, .var=nfv_notpush},
+                      {L"close", file_close, object_free_, .var=nfv_notpush},
+                      {L"get_seek", file_get_seek, object_free_, .var=nfv_notpush},
+                      {L"seek", file_seek, object_free_, .var=nfv_notpush},
+                      {L"readline", file_readline, object_free_, .var=nfv_notpush},
+                      {L"end", file_isend, object_free_, .var=nfv_notpush},
+                      {L"err", file_iserr, object_free_, .var=nfv_notpush},
+                      {L"clean", file_clean_err, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_ENTER], file_enter, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DEL], file_close, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_EXIT], file_close, object_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NEW], file_new, class_free_, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], file_init, object_free_, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"file", object, belong, inter);
