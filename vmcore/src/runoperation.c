@@ -244,6 +244,7 @@ ResultType listDel(Statement *name, FUNC_NT) {
 ResultType varDel(Statement *name, bool check_aut, FUNC_NT) {
     wchar_t *str_name = NULL;
     int int_times = 0;
+    LinkValue *get;
     setResultCore(result);
     getVarInfo(&str_name, &int_times, CFUNC(name, var_list, result, belong));
     if (!CHECK_RESULT(result)) {
@@ -256,8 +257,16 @@ ResultType varDel(Statement *name, bool check_aut, FUNC_NT) {
         if (tmp != NULL && !checkAut(name->aut, tmp->aut, name->line, name->code_file, NULL, false, CNEXT_NT))
             goto return_;
     }
-    findFromVarList(str_name, int_times, del_var, CFUNC_CORE(var_list));
-    setResult(result, inter);
+    get = findFromVarList(str_name, int_times, del_var, CFUNC_CORE(var_list));
+    if (get != NULL)
+        setResult(result, inter);
+    else {  // 变量没有删除成功
+        setResultError(E_PermissionsException, L"wrong Permissions: Variable deletion failed"
+                                                                  ", please confirm that the variable belongs to"
+                                                                  " the left value and the number of layers is correct"
+                                                                  , name->line, name->code_file, true, CNEXT_NT);
+        // 变量删除失败，可能原因是层数错误
+    }
     return_:
     memFree(str_name);
     return result->type;
