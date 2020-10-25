@@ -172,7 +172,6 @@ ResultType boolOperation(FUNC) {
 ResultType pointOperation(FUNC) {
     LinkValue *left;
     VarList *object = NULL;
-    bool pri_auto;
     setResultCore(result);
     if (optSafeInterStatement(CFUNC(st->u.operation.left, var_list, result, belong)) || result->value->value->type == V_none)
         return result->type;
@@ -190,16 +189,21 @@ ResultType pointOperation(FUNC) {
         goto return_;
     }
     optSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));  // 点运算运算时需要调整belong为点的左值
-    // TODO-szh 该检查移动到 get_var 中
-    pri_auto = result->value->belong == NULL || result->value->belong->value == belong->value || checkAttribution(belong->value, result->value->belong->value);  // 检查获取的value是是否属于belong, 或属于belong的父亲
-    if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, pri_auto, CNEXT_NT))
-        PASS;
-    else if (result->value->belong != NULL && result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value)) { // 检查result所属于的对象是否位左值的父亲(若是则需要重新设定belong)
-        gc_freeTmpLink(&result->value->gc_status);
-        result->value = COPY_LINKVALUE(result->value, inter);
-        gc_addTmpLink(&result->value->gc_status);
-        result->value->belong = left;
+
+    if (CHECK_RESULT(result)) {
+        /*
+            class A() {
+                pri:a = 10
+                    fun pa(self) {  # 使用 ``z = A(); z.pa()`` 的方式调用该函数, belong被设置为`z`
+                        self.a  # 左值即belong
+                        A.a  # 左值是belong的父亲
+                }
+            }
+         */
+        bool pri_auto = left->value == belong->value || checkAttribution(belong->value, left->value);  // 判断左值是否即belong，或者是belong的父亲
+        checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, pri_auto, CNEXT_NT);
     }
+    // belong的设定再get_var中已经设定了
 
     return_:
     gc_freeTmpLink(&left->gc_status);
@@ -562,6 +566,11 @@ ResultType getVar(FUNC, VarInfo var_info) {
         } else
             setNameException(val, name, st->line, st->code_file, CNEXT_NT);
     } else if (checkAut(st->aut, var->aut, st->line, st->code_file, name, true, CNEXT_NT)) {  // 默认访问权限为pri
+        if (var->belong != NULL && var->belong->value != belong->value && checkAttribution(belong->value, var->belong->value)) { // 检查var所属于的对象是否位左值的父亲(若是则需要重新设定belong)
+            var = COPY_LINKVALUE(var, inter);
+            var->belong = belong;
+        }
+
         bool run = st->type == base_var ? st->u.base_var.run : st->type == base_svar ? st->u.base_svar.run : false;
         if (!run || !runVarFunc(var, st->line, st->code_file, CNEXT_NT))
             setResultOperationBase(result, var);
