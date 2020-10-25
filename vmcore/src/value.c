@@ -122,6 +122,20 @@ Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT) {
     return tmp;
 }
 
+Value *makeFileValue(FILE *file_, char *mode, bool is_std, char *path, fline line, char *file, FUNC_NT) {
+    Value *tmp = NULL;
+    setResultCore(result);
+    callBackCore(inter->data.base_obj[B_FILE], NULL, line, file, 0, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return NULL;
+    tmp = result->value->value;
+    tmp->data.file.file = file_;
+    tmp->data.file.mode = memStrcpy(mode);
+    tmp->data.file.path = memStrcpy(path);
+    tmp->data.file.is_std = is_std;
+    return tmp;
+}
+
 Value *makeVMFunctionValue(Statement *st, Parameter *pt, FUNC_NT) {
     Value *tmp = NULL;
     callBackCore(inter->data.base_obj[B_FUNCTION], NULL, st->line, st->code_file, 0, CNEXT_NT);
@@ -600,12 +614,12 @@ bool callDel(Value *object_value, Result *result, Inter *inter, VarList *var_lis
     LinkValue *_del_ = findStrVarOnly(inter->data.mag_func[M_DEL], false, CFUNC_CORE(object_value->object.var));
     setResultCore(result);
 
-    if (_del_ != NULL){  // TODO-szh 让__del__只运行一次
-        gc_addTmpLink(&_del_->gc_status);
+    if (_del_ != NULL){
         if (_del_->belong != NULL && _del_->belong->value != object_value && checkAttribution(object_value, _del_->belong->value)) {  // 与point运算道理相同
             _del_ = COPY_LINKVALUE(_del_, inter);
             _del_->belong = makeLinkValue(object_value, inter->base_belong, auto_aut, inter);
         }
+        gc_addTmpLink(&_del_->gc_status);
         callBackCore(_del_, NULL, LINEFILE, 0, CFUNC_NT(var_list, result, inter->base_belong));
         gc_freeTmpLink(&_del_->gc_status);
         return true;

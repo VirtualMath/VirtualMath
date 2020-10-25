@@ -247,6 +247,7 @@ Value *makeIntValue(vint num, fline line, char *file, FUNC_NT);
 Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT);
 Value *makePointerValue(void *p, fline line, char *file, FUNC_NT);
 Value *makeStringValue(wchar_t *str, fline line, char *file, FUNC_NT);
+Value *makeFileValue(FILE *file_, char *mode, bool is_std, char *path, fline line, char *file, FUNC_NT);
 Value *makeVMFunctionValue(struct Statement *st, struct Parameter *pt, FUNC_NT);
 Value *makeCFunctionValue(OfficialFunction of, fline line, char *file, bool set_var, bool push, FUNC_NT);
 LinkValue *makeCFunctionFromOf(OfficialFunction of, LinkValue *func, OfficialFunction function_new, LinkValue *belong, VarList *var_list, Inter *inter);

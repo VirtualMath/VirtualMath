@@ -47,7 +47,7 @@ Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
         tmp->data.is_stdin = true;
     }
 
-    registeredFunctionName(tmp, belong);
+    registeredFunctionName(belong, tmp);
     tmp->data.start_gc = true;
 #if START_GC
     gc_run(tmp, tmp->var_list);

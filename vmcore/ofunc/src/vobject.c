@@ -387,7 +387,7 @@ ResultType vobject_repo(O_FUNC){
     freeResult(result);
     value = ap[0].value->value;
 
-    switch (value->type){
+    switch (value->type){  // node和list以及dict都不再此处设定
         case V_int: {
             char str[30] = { NUL };
             snprintf(str, 30, "%lld", value->data.int_.num);
@@ -433,6 +433,13 @@ ResultType vobject_repo(O_FUNC){
         case V_ell:
             repo = memStrToWcs("...", false);
             break;
+        case V_file: {
+            size_t len = memStrlen(value->data.file.path) + memStrlen(value->data.file.mode) + 20;
+            char str[len];  // 变长数组
+            snprintf(str, len, "(file on %s %s)", value->data.file.path, value->data.file.mode);
+            repo = memStrToWcs(str, false);
+            break;
+        }
         default:
             setResultError(E_TypeException, CUL_ERROR(repo/str), LINEFILE, true, CNEXT_NT);
             return R_error;

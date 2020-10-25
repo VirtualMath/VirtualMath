@@ -63,7 +63,6 @@ void addFromVarList(wchar_t *name, LinkValue *name_, vint times, LinkValue *valu
 
 VarList *pushVarList(VarList *base, Inter *inter);
 VarList *copyVarList(VarList *base, bool n_new, Inter *inter);
-VarList *connectVarListBack(VarList *base, VarList *back);
 VarList *makeObjectVarList(Inherit *value, Inter *inter, VarList *base);
 
 vint findDefault(DefaultVar *base, wchar_t *name);

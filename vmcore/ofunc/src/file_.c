@@ -48,7 +48,7 @@ ResultType file_init(O_FUNC){
         return R_error;
     }
 
-    if (ap[1].value->value == NULL) {
+    if (ap[1].value == NULL) {
         setResult(result, inter);
         return result->type;
     } else if (ap[1].value->value->type != V_str) {
@@ -364,7 +364,7 @@ void registeredFile(R_FUNC){
                       {L"err", file_iserr, object_free_, .var=nfv_notpush},
                       {L"clean", file_clean_err, object_free_, .var=nfv_notpush},
                       {inter->data.mag_func[M_ENTER], file_enter, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_DEL], file_close, object_free_, .var=nfv_notpush},
+//                      {inter->data.mag_func[M_DEL], file_close, object_free_, .var=nfv_notpush},
                       {inter->data.mag_func[M_EXIT], file_close, object_free_, .var=nfv_notpush},
                       {inter->data.mag_func[M_NEW], file_new, class_free_, .var=nfv_notpush},
                       {inter->data.mag_func[M_INIT], file_init, object_free_, .var=nfv_notpush},

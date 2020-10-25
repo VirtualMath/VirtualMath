@@ -37,8 +37,8 @@ struct NameFunc{
 };
 typedef struct NameFunc NameFunc;
 
-void registeredBaseFunction(struct LinkValue *father, Inter *inter);
-void registeredFunctionName(Inter *inter, LinkValue *belong);
+void registeredBaseFunction(struct LinkValue *belong, Inter *inter);
+void registeredFunctionName(LinkValue *belong, Inter *inter);
 
 // 普通模式函数
 LinkValue *intCore(LinkValue *belong, LinkValue *class, Inter *inter);

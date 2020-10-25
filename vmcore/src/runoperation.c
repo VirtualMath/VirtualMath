@@ -190,11 +190,14 @@ ResultType pointOperation(FUNC) {
         goto return_;
     }
     optSafeInterStatement(CFUNC(st->u.operation.right, object, result, left));  // 点运算运算时需要调整belong为点的左值
+    // TODO-szh 该检查移动到 get_var 中
     pri_auto = result->value->belong == NULL || result->value->belong->value == belong->value || checkAttribution(belong->value, result->value->belong->value);  // 检查获取的value是是否属于belong, 或属于belong的父亲
     if (!CHECK_RESULT(result) || !checkAut(left->aut, result->value->aut, st->line, st->code_file, NULL, pri_auto, CNEXT_NT))
         PASS;
     else if (result->value->belong != NULL && result->value->belong->value != left->value && checkAttribution(left->value, result->value->belong->value)) { // 检查result所属于的对象是否位左值的父亲(若是则需要重新设定belong)
+        gc_freeTmpLink(&result->value->gc_status);
         result->value = COPY_LINKVALUE(result->value, inter);
+        gc_addTmpLink(&result->value->gc_status);
         result->value->belong = left;
     }
 

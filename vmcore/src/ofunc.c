@@ -20,13 +20,38 @@ static Registered base_func_list[] = {registeredVObject,
                                       registeredIOFunction,
                                       NULL};
 
-void registeredBaseFunction(struct LinkValue *father, Inter *inter){
+void registeredBaseFunction(LinkValue *belong, Inter *inter){
     for (Registered *list = base_func_list; *list != NULL; list++)
-        (*list)(CR_FUNC(father, inter->var_list));
+        (*list)(CR_FUNC(belong, inter->var_list));
 }
 
-void registeredFunctionName(Inter *inter, LinkValue *belong){
-    makeBaseObject(inter, belong);
+static void registeredStdFile(FILE *std, char *path, char *mode, wchar_t *name, LinkValue *belong, Inter *inter) {
+    Result result;
+    setResultCore(&result);
+
+    makeFileValue(std, mode, true, path, LINEFILE, CFUNC_NT(inter->var_list, &result, belong));
+    if (RUN_TYPE(result.type)) {
+        LinkValue *new = result.value;
+        result.value = NULL;
+        freeResult(&result);
+        addStrVar(name, false, false, new, LINEFILE, false, CFUNC_NT(inter->var_list, &result, belong));
+        gc_freeTmpLink(&new->gc_status);
+        if (!RUN_TYPE(result.type))
+            goto error;
+        freeResult(&result);
+    } else {
+        error: printError(&result, inter, true);
+    }
+}
+
+static void registeredBaseVar(LinkValue *belong, Inter *inter){
+    registeredStdFile(stdin, "stdin", "r", L"stdin", belong, inter);
+    registeredStdFile(stdout, "stdout", "w", L"stdout", belong, inter);
+    registeredStdFile(stderr, "stderr", "w", L"stderr", belong, inter);
+}
+
+void registeredFunctionName(LinkValue *belong, Inter *inter) {
+    makeBaseObject(inter, belong);  // 在makeBaseObject之前base_belong还是NULL, object要关联于belong参数给定的值(用于import的时候)
 
     makeBaseVObject(inter);
 
@@ -45,8 +70,9 @@ void registeredFunctionName(Inter *inter, LinkValue *belong){
     makeBasePointer(inter);
 
     makeBaseStr(inter);
-    functionPresetting(inter->data.base_obj[B_FUNCTION], inter);
+    functionPresetting(inter->data.base_obj[B_FUNCTION], inter);  // 预设定function的__new__方法
 
     registeredObject(inter->base_belong, CFUNC_CORE(inter->var_list));
     registeredBaseFunction(inter->base_belong, inter);
+    registeredBaseVar(inter->base_belong, inter);
 }
