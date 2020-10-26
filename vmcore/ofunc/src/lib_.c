@@ -172,12 +172,12 @@ ResultType lib_attr(O_FUNC){
 
 void registeredLib(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_LIB];
-    NameFunc tmp[] = {{L"close", lib_close, object_free_, .var=nfv_notpush},
-                      {L"add", lib_add, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_NEW], lib_new, class_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_INIT], lib_init, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_DEL], lib_close, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_ATTR], lib_attr, object_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{L"close", lib_close, fp_obj, .var=nfv_notpush},
+                      {L"add", lib_add, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NEW], lib_new, fp_class, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], lib_init, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DEL], lib_close, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_ATTR], lib_attr, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"clib", object, belong, inter);

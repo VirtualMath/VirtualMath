@@ -162,29 +162,29 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
     Argument *tmp = NULL;
     LinkValue *self;
     LinkValue *func;
+    LinkValue *cls;
     enum FunctionPtType pt_type = _func->value->data.function.function_data.pt_type;
     setResultCore(result);
 
+    cls = _func->value->data.function.function_data.cls;  // cls 是绑定的, 无法直接赋值的
+    func = _func;  // func 是绑定的
     switch (pt_sep) {
         case 0:
-            func = _func;
-            self = pt_type == cls_free_ || pt_type == cls_static_ ? _func->value->data.function.function_data.cls : _func->belong;
+            self = _func->belong;
             *base = *arg;
             break;
         case 1: {
             if (*arg != NULL) {
-                if (pt_type == static_) {
+                if (pt_type == fp_cls)
+                    cls = (*arg)->data.value;
+                else if (pt_type == fp_func_)
                     func = (*arg)->data.value;
-                    self = NULL;  // static_模式不需要self
-                }
-                else {
-                    func = _func;
+                else
                     self = (*arg)->data.value;
-                }
                 *arg = (*arg)->next;  // 忽略第一个arg, 但是不释放(在该函数外部统一释放)
                 *base = *arg;
             } else {
-                error_:
+                error2:
                 setResultError(E_ArgumentException, FEW_ARG, line, file, true, CNEXT_NT);
                 return R_error;
             }
@@ -192,13 +192,26 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
         }
         case 2: {
             if (*arg != NULL && (*arg)->next != NULL) {
-                func = (*arg)->data.value;
-                self = (*arg)->next->data.value;  // 第一个参数是func, 第二个是self; 这样做保证了和形参调用的一致
-
+                if (pt_type == fp_cls || pt_type == fp_cls_class || pt_type == fp_cls_obj || pt_type == fp_cls_all)  // 没有func的情况下赋值给cls
+                    cls = (*arg)->data.value;
+                else  // 否则赋值给func
+                    func = (*arg)->data.value;
+                self = (*arg)->next->data.value;
                 *arg = (*arg)->next->next;
                 *base = *arg;
             } else
-                goto error_;
+                goto error2;
+            break;
+        }
+        case 3: {
+            if (*arg != NULL && (*arg)->next != NULL && (*arg)->next->next != NULL) {
+                func = (*arg)->data.value;
+                cls = (*arg)->next->data.value;
+                self = (*arg)->next->next->data.value;
+                *arg = (*arg)->next->next->next;
+                *base = *arg;
+            } else
+                goto error2;
             break;
         }
         default:
@@ -206,18 +219,19 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             return R_error;
     }
 
-    if (pt_type != free_ && self == NULL) {
-        setResultError(E_ArgumentException, L"function does not belong to anything(not self)", line, file, true, CNEXT_NT);
-        return R_error;
-    }
+    // TODO-szh 检查此处把self设置为NULL后出现错误
+    if (pt_type != fp_cls && pt_type != fp_no_ && pt_type != fp_func_ && pt_type != fp_func_cls && self == NULL)
+        goto error;
+    if ((pt_type == fp_cls || pt_type == fp_func_cls || pt_type == fp_cls_obj || pt_type == fp_cls_class) && cls == NULL)
+        goto error;
 
     switch (pt_type) {
-        case static_:
+        case fp_func_:
             tmp = makeValueArgument(func);
             tmp->next = *arg;
             *arg = tmp;
             break;
-        case class_static_:
+        case fp_func_class:
             tmp = makeValueArgument(func);
             if (self->value->type != V_class) {
                 Inherit *ih = self->value->object.inherit;
@@ -236,14 +250,19 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
                 tmp->next = *arg;
             *arg = tmp;
             break;
-        case cls_static_:
-        case all_static_:
+        case fp_func_cls:
+            tmp = makeValueArgument(func);
+            tmp->next = makeValueArgument(cls);
+            tmp->next->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_func_all:
             tmp = makeValueArgument(func);
             tmp->next = makeValueArgument(self);
             tmp->next->next = *arg;
             *arg = tmp;
             break;
-        case object_static_:
+        case fp_func_obj:
             tmp = makeValueArgument(func);
             if (self->value->type != V_class){
                 tmp->next = makeValueArgument(self);
@@ -253,7 +272,7 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
                 tmp->next = *arg;
             *arg = tmp;
             break;
-        case class_free_:
+        case fp_class:
             if (self->value->type != V_class){
                 Inherit *ih = self->value->object.inherit;
                 self = NULL;
@@ -269,17 +288,94 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
                 *arg = tmp;
             }  // 若无class则不对arg做任何调整
             break;
-        case object_free_:
+        case fp_obj:
             if (self->value->type != V_class) {
                 tmp = makeValueArgument(self);
                 tmp->next = *arg;
                 *arg = tmp;
             }
             break;
-        case cls_free_:
-        case all_free_:
+        case fp_cls:
+            tmp = makeValueArgument(cls);
+            tmp->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_all:
             tmp = makeValueArgument(self);
             tmp->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_cls_obj:
+            tmp = makeValueArgument(cls);
+            if (self->value->type != V_class) {
+                tmp->next = makeValueArgument(self);
+                tmp->next->next = *arg;
+            } else
+                tmp->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_cls_all:
+            tmp = makeValueArgument(cls);
+            tmp->next = makeValueArgument(self);
+            tmp->next->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_func_cls_all:
+            tmp = makeValueArgument(func);
+            tmp->next = makeValueArgument(cls);
+            tmp->next->next = makeValueArgument(self);
+            tmp->next->next->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_func_cls_obj:
+            tmp = makeValueArgument(func);
+            tmp->next = makeValueArgument(cls);
+            if (self->value->type != V_class) {
+                tmp->next->next = makeValueArgument(self);
+                tmp->next->next->next = *arg;
+            } else
+                tmp->next->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_cls_class:
+            tmp = makeValueArgument(cls);
+
+            if (self->value->type != V_class) {
+                Inherit *ih = self->value->object.inherit;
+                self = NULL;
+                for (PASS; ih != NULL; ih = ih->next)  // 使用循环的方式检查
+                    if (ih->value->value->type == V_class) {
+                        self = ih->value;
+                        break;
+                    }
+            }
+
+            if (self != NULL) {
+                tmp->next = makeValueArgument(self);
+                tmp->next->next = *arg;
+            } else
+                tmp->next = *arg;
+            *arg = tmp;
+            break;
+        case fp_func_cls_class:
+            tmp = makeValueArgument(func);
+            tmp->next = makeValueArgument(cls);
+
+            if (self->value->type != V_class) {
+                Inherit *ih = self->value->object.inherit;
+                self = NULL;
+                for (PASS; ih != NULL; ih = ih->next)  // 使用循环的方式检查
+                    if (ih->value->value->type == V_class) {
+                        self = ih->value;
+                        break;
+                    }
+            }
+
+            if (self != NULL) {
+                tmp->next->next = makeValueArgument(self);
+                tmp->next->next->next = *arg;
+            } else
+                tmp->next->next = *arg;
             *arg = tmp;
             break;
         default:
@@ -287,6 +383,10 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
     }
     setResultBase(result, inter);
     return result->type;
+
+    error:
+    setResultError(E_ArgumentException, L"function does not belong to anything(not self)", line, file, true, CNEXT_NT);
+    return R_error;
 }
 
 void freeFunctionArgument(Argument *arg, Argument *base) {

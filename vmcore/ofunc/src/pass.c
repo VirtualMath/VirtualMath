@@ -27,7 +27,7 @@ ResultType pass_new(O_FUNC){
 
 void registeredEllipisis(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_PASS];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], pass_new, class_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], pass_new, fp_class, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"ellipsis", object, belong, inter);

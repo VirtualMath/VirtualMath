@@ -21,7 +21,7 @@ ResultType setClass(FUNC) {
     {
         enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
         VarList *var_backup = tmp->value->object.var->next;
-        inter->data.default_pt_type = object_free_;
+        inter->data.default_pt_type = fp_obj;
         tmp->value->object.var->next = var_list;
 
         // 运行类定义的时候需要调整belong
@@ -67,7 +67,7 @@ ResultType setFunction(FUNC) {
     {
         enum FunctionPtType pt_type_bak = inter->data.default_pt_type;
         VarList *var_backup = func->value->object.var->next;
-        inter->data.default_pt_type = object_free_;
+        inter->data.default_pt_type = fp_obj;
         func->value->object.var->next = var_list;
         // 运行函数初始化模块的时候需要调整belong
         functionSafeInterStatement(CFUNC(st->u.set_function.first_do, func->value->object.var, result, func));

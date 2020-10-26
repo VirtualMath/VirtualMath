@@ -55,7 +55,7 @@ ResultType function_init(O_FUNC){
     if (ap[1].value != NULL) {
         Statement *return_ = makeBaseLinkValueStatement(ap[1].value, LINEFILE);
         func->value->data.function.function = makeReturnStatement(return_, LINEFILE);
-        func->value->data.function.function_data.pt_type = free_;
+        func->value->data.function.function_data.pt_type = fp_no_;
         func->value->data.function.type = vm_func;
     }
 
@@ -96,8 +96,8 @@ ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
 
 void registeredFunction(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_FUNCTION];
-    NameFunc tmp[] = {{L"set", function_set, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_INIT], function_init, object_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{L"set", function_set, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], function_init, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"func", object, belong, inter);
@@ -118,7 +118,7 @@ void functionPresetting(LinkValue *func, Inter *inter) {  // 提前注册func_ne
     setResultCore(&result);
 
     func_new = makeCFunctionFromOf(function_new, func, function_new, func, NULL, inter);  // var_list为NULL, 即声明为内联函数 (若不声明为内联函数则改为inter.var_list即可)
-    func_new->value->data.function.function_data.pt_type = class_free_;
+    func_new->value->data.function.function_data.pt_type = fp_class;
     addStrVar(inter->data.mag_func[M_NEW], false, true, func_new, LINEFILE, false, CFUNC_NT(object_var, &result, func));
     freeResult(&result);
     freeResult(&result);

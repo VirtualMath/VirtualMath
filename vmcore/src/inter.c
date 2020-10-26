@@ -121,7 +121,7 @@ void setBaseInterData(struct Inter *inter){
     inter->data.mag_func[M_NOT] = setName("!");
     inter->data.mag_func[M_NEGATE] = setName("-s");
 
-    inter->data.default_pt_type = free_;
+    inter->data.default_pt_type = fp_no_;
     inter->data.var_max = 100;
     inter->data.var_deep = 3;
     inter->data.assert_run = assert_raise;

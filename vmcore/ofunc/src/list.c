@@ -419,14 +419,14 @@ ResultType list_str(O_FUNC){
 void registeredList(R_FUNC){
     {
         LinkValue *object = inter->data.base_obj[B_TUPLE];
-        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], tuple_new, class_free_},
-                          {inter->data.mag_func[M_DOWN], list_down, object_free_},
-                          {inter->data.mag_func[M_SLICE], list_slice, object_free_},
-                          {inter->data.mag_func[M_ITER], list_iter, object_free_},
-                          {inter->data.mag_func[M_REPO], list_repo, object_free_},
-                          {inter->data.mag_func[M_STR], list_str, object_free_},
-                          {inter->data.mag_func[M_DOWN_DEL], list_down_del, object_free_},
-                          {inter->data.mag_func[M_SLICE_DEL], list_slice_del, object_free_},
+        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], tuple_new, fp_class},
+                          {inter->data.mag_func[M_DOWN], list_down, fp_obj},
+                          {inter->data.mag_func[M_SLICE], list_slice, fp_obj},
+                          {inter->data.mag_func[M_ITER], list_iter, fp_obj},
+                          {inter->data.mag_func[M_REPO], list_repo, fp_obj},
+                          {inter->data.mag_func[M_STR], list_str, fp_obj},
+                          {inter->data.mag_func[M_DOWN_DEL], list_down_del, fp_obj},
+                          {inter->data.mag_func[M_SLICE_DEL], list_slice_del, fp_obj},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addBaseClassVar(L"tuple", object, belong, inter);
@@ -436,9 +436,9 @@ void registeredList(R_FUNC){
 
     {
         LinkValue *object = inter->data.base_obj[B_LIST];
-        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], list_new, class_free_, .var=nfv_notpush},
-                          {inter->data.mag_func[M_DOWN_ASSIGMENT], list_down_assignment, object_free_, .var=nfv_notpush},
-                          {inter->data.mag_func[M_SLICE_ASSIGMENT], list_slice_assignment, object_free_, .var=nfv_notpush},
+        NameFunc tmp[] = {{inter->data.mag_func[M_NEW], list_new, fp_class, .var=nfv_notpush},
+                          {inter->data.mag_func[M_DOWN_ASSIGMENT], list_down_assignment, fp_obj, .var=nfv_notpush},
+                          {inter->data.mag_func[M_SLICE_ASSIGMENT], list_slice_assignment, fp_obj, .var=nfv_notpush},
                           {NULL, NULL}};
         gc_addTmpLink(&object->gc_status);
         addBaseClassVar(L"list", object, belong, inter);

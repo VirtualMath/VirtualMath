@@ -53,8 +53,8 @@ ResultType vm_input(O_FUNC){
 }
 
 void registeredIOFunction(R_FUNC){
-    NameFunc tmp[] = {{L"print", vm_print, free_, .var=nfv_notpush},
-                      {L"input", vm_input, free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{L"print", vm_print, fp_no_, .var=nfv_notpush},
+                      {L"input", vm_input, fp_no_, .var=nfv_notpush},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }

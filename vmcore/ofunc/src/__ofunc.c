@@ -39,7 +39,7 @@ bool iterClassFunc(NameFunc *list, FUNC_NT){
 
     setResultCore(result);
     object_var->next = var_list;
-    inter->data.default_pt_type = object_free_;
+    inter->data.default_pt_type = fp_func_obj;
 
     for (PASS; list->of != NULL; list++) {
         LinkValue *value = registeredFunctionCore(list->of, list->name, list->var, CFUNC_NT(object_var, result, belong));

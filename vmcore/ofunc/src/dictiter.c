@@ -124,9 +124,9 @@ ResultType dictiter_down(O_FUNC){
 
 void registeredDictIter(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_DICTITER];
-    NameFunc tmp[] = {{inter->data.mag_func[M_INIT], dictiter_init, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_NEXT], dictiter_next, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_DOWN], dictiter_down, object_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{inter->data.mag_func[M_INIT], dictiter_init, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NEXT], dictiter_next, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DOWN], dictiter_down, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"dictiter", object, belong, inter);

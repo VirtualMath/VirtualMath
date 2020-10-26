@@ -246,14 +246,14 @@ ResultType dict_str(O_FUNC){
 
 void registeredDict(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_DICT];
-    NameFunc tmp[] = {{L"keys", dict_keys, object_free_},
-                      {inter->data.mag_func[M_NEW], dict_new, class_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_DOWN], dict_down, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_ITER], dict_iter, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_REPO], dict_repo, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_STR], dict_str, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_DOWN_ASSIGMENT], dict_down_assignment, object_free_},
-                      {inter->data.mag_func[M_DOWN_DEL], dict_down_del, object_free_},
+    NameFunc tmp[] = {{L"keys", dict_keys,                                           fp_obj},
+                      {inter->data.mag_func[M_NEW], dict_new,                        fp_class, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DOWN], dict_down,                      fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_ITER], dict_iter,                      fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_REPO], dict_repo,                      fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_STR], dict_str,                        fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DOWN_ASSIGMENT], dict_down_assignment, fp_obj},
+                      {inter->data.mag_func[M_DOWN_DEL], dict_down_del,              fp_obj},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"dict", object, belong, inter);

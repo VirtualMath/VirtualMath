@@ -90,8 +90,8 @@ ResultType listiter_next(O_FUNC){
 
 void registeredListIter(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_LISTITER];
-    NameFunc tmp[] = {{inter->data.mag_func[M_INIT], listiter_init, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_NEXT], listiter_next, object_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{inter->data.mag_func[M_INIT], listiter_init, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NEXT], listiter_next, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"listiter", object, belong, inter);

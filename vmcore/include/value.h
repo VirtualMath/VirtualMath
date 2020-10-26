@@ -87,16 +87,27 @@ struct Function{
     void (*ffunc)();  // ffi导入的func
     struct {
         enum FunctionPtType {
-            free_,  // 不包含任何隐式传递的参数
-            static_,  // 不包含self参数
-            object_static_,  // self参数不允许class
-            class_static_,  // self参数允许一切，但转换为类
-            all_static_, // self参数允许一切
-            cls_static_,  // 使用function自带的cls作为参数
-            object_free_,  // 同object_static_但不包含func参数
-            class_free_,  // 同object_static_但不包含func参数
-            all_free_,  // 允许class或者object
-            cls_free_,  // 使用function自带的cls作为参数
+            fp_no_,  // 不包含任何隐式传递的参数
+            fp_func_,  // 不包含self参数
+            fp_func_obj,  // self参数不允许class
+            fp_func_class,  // self参数允许一切，但转换为类
+            fp_func_all, // self参数允许一切
+            fp_func_cls,  // 使用function自带的cls作为参数
+            fp_obj,  // 同object_static_但不包含func参数
+            fp_class,  // 同object_static_但不包含func参数
+            fp_all,  // 允许class或者object
+            fp_cls,  // 使用function自带的cls作为参数
+
+            // 组合
+            fp_func_cls_obj,
+            fp_func_cls_class,
+            fp_func_cls_all,
+
+            fp_cls_obj,
+            fp_cls_class,
+            fp_cls_all,
+            // obj和class没有同时存在的意义, 可以使用内置函数直接获取obj所对应的class
+            // 直接设定class的目的是修饰类方法
         } pt_type;
         LinkValue *cls;
         bool run;  // 是否为即时调用

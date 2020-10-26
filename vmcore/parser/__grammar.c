@@ -207,7 +207,7 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
     Parameter *new_pt = NULL;
     Token *tmp;
     bool last_pt = false;
-    int is_sep = 0;  // 0: 不需要处理 1: 是is_sep 2: 处理过is_sep
+    int is_sep = 0;  // 0: 不需要处理 1: 是is_sep 2: 处理过is_sep (当匹配到;设置is_sep为1)
     enum {
         s_1,  // only_value模式
         s_2,  // name_value模式
@@ -224,7 +224,7 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
 
     for (int count = 0; !last_pt; count++){  // 计算匹配到parameter的个数
         tmp = NULL;
-        if (is_sep == 1 || !is_formal && count > 1)  // 限制实参的;分隔符前最多只有两个参数
+        if (is_sep == 1 || !is_formal && count > 2)  // 限制实参的;分隔符前最多只有三个参数
             is_sep = 2;
         if (!is_dict && status != s_2 && checkToken(pm, MATHER_MUL))  // is_formal关闭对*args的支持
             status = s_3;

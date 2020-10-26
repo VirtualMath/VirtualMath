@@ -53,8 +53,8 @@ ResultType pointer_init(O_FUNC){
 
 void registeredPointer(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_POINTER];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], pointer_new, class_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_INIT], pointer_init, object_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW], pointer_new, fp_class, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], pointer_init, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"pointer", object, belong, inter);

@@ -73,9 +73,9 @@ ResultType object_str(O_FUNC){
 
 void registeredObject(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_OBJECT];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  object_new,  class_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_REPO], object_repo, all_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_STR],  object_str,  all_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  object_new,  fp_class, .var=nfv_notpush},
+                      {inter->data.mag_func[M_REPO], object_repo, fp_all, .var=nfv_notpush},
+                      {inter->data.mag_func[M_STR],  object_str,  fp_all, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"object", object, belong, inter);

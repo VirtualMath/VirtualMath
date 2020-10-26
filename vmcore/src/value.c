@@ -603,7 +603,7 @@ bool needDel(Value *object_value, Inter *inter) {
     if (_del_ == NULL)
         return false;
     type = _del_->value->data.function.function_data.pt_type;
-    if ((type == object_free_ || type == object_static_) && object_value->type == V_class)
+    if ((type == fp_obj || type == fp_func_obj) && object_value->type == V_class)
         return false;
     if (_del_->belong == NULL || _del_->belong->value == object_value || checkAttribution(object_value, _del_->belong->value))
         return true;

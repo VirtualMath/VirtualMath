@@ -192,13 +192,13 @@ ResultType str_iter(O_FUNC){
 
 void registeredStr(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_STR];
-    NameFunc tmp[] = {{L"to_list", str_to_list, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_NEW], str_new, class_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_INIT], str_init, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_SLICE], str_slice, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_ITER], str_iter, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_DOWN], str_down, object_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_SLICE], str_slice, object_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{L"to_list", str_to_list, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NEW], str_new, fp_class, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], str_init, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_SLICE], str_slice, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_ITER], str_iter, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DOWN], str_down, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_SLICE], str_slice, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
@@ -261,8 +261,8 @@ void strFunctionPresetting(LinkValue *func, LinkValue *func_new, LinkValue *func
 
     new_func = makeFunctionFromValue(func, func_new, func_init, str_new, obj, NULL, inter);  // 声明为内联函数
     init_func = makeFunctionFromValue(func, func_new, func_init, str_init, obj, NULL, inter);
-    new_func->value->data.function.function_data.pt_type = class_free_;
-    init_func->value->data.function.function_data.pt_type = object_free_;
+    new_func->value->data.function.function_data.pt_type = fp_class;
+    init_func->value->data.function.function_data.pt_type = fp_obj;
 
 
     new_name = makeStrFromOf(obj, new_func, init_func, inter->data.mag_func[M_NEW], inter);

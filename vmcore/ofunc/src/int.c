@@ -73,8 +73,8 @@ ResultType int_init(O_FUNC){
 
 void registeredInt(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_INT_];
-    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  int_new,  class_free_, .var=nfv_notpush},
-                      {inter->data.mag_func[M_INIT], int_init, object_free_, .var=nfv_notpush},
+    NameFunc tmp[] = {{inter->data.mag_func[M_NEW],  int_new,  fp_class, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INIT], int_init, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"int", object, belong, inter);
