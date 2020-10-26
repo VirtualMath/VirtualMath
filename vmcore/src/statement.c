@@ -99,6 +99,7 @@ Statement *makeBaseVarStatement(wchar_t *name, Statement *times, fline line, cha
     tmp->type = base_var;
     tmp->u.base_var.name = memWidecpy(name);
     tmp->u.base_var.times = times;
+    tmp->u.base_var.link = NULL;
     tmp->u.base_var.run = true;
     return tmp;
 }
@@ -381,6 +382,8 @@ void freeStatement(Statement *st){
             case base_var:
                 memFree(st->u.base_var.name);
                 freeStatement(st->u.base_var.times);
+                if (st->u.base_var.link != NULL)
+                    gc_freeStatementLink(&st->u.base_var.link->gc_status);
                 break;
             case del_:
                 freeStatement(st->u.del_.var);
@@ -545,6 +548,10 @@ Statement *copyStatementCore(Statement *st){
             new->u.base_var.name = memWidecpy(st->u.base_var.name);
             new->u.base_var.times = copyStatement(st->u.base_var.times);
             new->u.base_var.run = st->u.base_var.run;
+            if (st->u.base_var.link != NULL) {
+                new->u.base_var.link = st->u.base_var.link;
+                gc_addStatementLink(&new->u.base_var.link->gc_status);
+            }
             break;
         case del_:
             new->u.del_.var = copyStatement(st->u.del_.var);

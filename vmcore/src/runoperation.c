@@ -252,12 +252,12 @@ ResultType varDel(Statement *name, bool check_aut, FUNC_NT) {
         return result->type;
     }
     if (check_aut) {
-        LinkValue *tmp = findFromVarList(str_name, int_times, read_var, CFUNC_CORE(var_list));
+        LinkValue *tmp = findFromVarList(str_name, int_times, NULL, read_var, CFUNC_CORE(var_list));
         freeResult(result);
         if (tmp != NULL && !checkAut(name->aut, tmp->aut, name->line, name->code_file, NULL, false, CNEXT_NT))
             goto return_;
     }
-    get = findFromVarList(str_name, int_times, del_var, CFUNC_CORE(var_list));
+    get = findFromVarList(str_name, int_times, NULL, del_var, CFUNC_CORE(var_list));
     if (get != NULL)
         setResult(result, inter);
     else {  // 变量没有删除成功
@@ -397,7 +397,7 @@ ResultType varAss(Statement *name, LinkValue *value, bool check_aut, bool settin
     if (name->aut != auto_aut)  // 当左值设定访问权限的时候, 覆盖右值的权限
         value->aut = name->aut;
 
-    tmp = findFromVarList(str_name, int_times, read_var, CFUNC_CORE(var_list));
+    tmp = findFromVarList(str_name, int_times, NULL, read_var, CFUNC_CORE(var_list));
     if (check_aut) {
         if (tmp != NULL && !checkAut(value->aut, tmp->aut, name->line, name->code_file, NULL, false, CNEXT_NT))
             goto error_;
@@ -557,23 +557,34 @@ ResultType getVar(FUNC, VarInfo var_info) {
     int int_times = 0;
     wchar_t *name = NULL;
     LinkValue *var;
-    LinkValue *val;
+    LinkValue *name_;
+    Var *re_var;
 
     setResultCore(result);
-    var_info(&name, &int_times, CNEXT);
-    if (!CHECK_RESULT(result)) {
-        memFree(name);
-        return result->type;
-    }
 
-    GET_RESULT(val, result);
-    var = findFromVarList(name, int_times, read_var, CFUNC_CORE(var_list));
+    if (st->type == base_var && st->u.base_var.link != NULL) {
+        var = st->u.base_var.link->value;
+        name_ = st->u.base_var.link->name_;
+        gc_addTmpLink(&name_->gc_status);
+    } else {
+        var_info(&name, &int_times, CNEXT);
+        if (!CHECK_RESULT(result)) {
+            memFree(name);
+            return result->type;
+        }
+        GET_RESULT(name_, result);
+        var = findFromVarList(name, int_times, &re_var, read_var, CFUNC_CORE(var_list));
+        if (re_var != NULL && (st->u.base_var.times == NULL || st->u.base_var.times->type == base_value)) {  // 变量折叠 TODO-szh 增加开关 处理del var的情况
+            gc_addStatementLink(&re_var->gc_status);
+            st->u.base_var.link = re_var;
+        }
+    }
 
     if (var == NULL) {
         if (st->type == base_svar && !st->u.base_svar.is_var) {
-            setResultOperationBase(result, val);
+            setResultOperationBase(result, name_);
         } else
-            setNameException(val, name, st->line, st->code_file, CNEXT_NT);
+            setNameException(name_, name, st->line, st->code_file, CNEXT_NT);
     } else if (checkAut(st->aut, var->aut, st->line, st->code_file, name, true, CNEXT_NT)) {  // 默认访问权限为pri
         if (var->belong != NULL && var->belong->value != belong->value && checkAttribution(belong->value, var->belong->value)) { // 检查var所属于的对象是否位左值的父亲(若是则需要重新设定belong)
             var = COPY_LINKVALUE(var, inter);
@@ -585,7 +596,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
             setResultOperationBase(result, var);
     }
 
-    gc_freeTmpLink(&val->gc_status);
+    gc_freeTmpLink(&name_->gc_status);
     memFree(name);
     return result->type;
 }
@@ -623,6 +634,12 @@ ResultType getBaseValue(FUNC) {
                 break;
         }
         result->value->belong = belong;
+        // 常量折叠 TODO-szh 增设开关
+        memFree(st->u.base_value.str);
+        st->u.base_value.type = link_value;
+        st->u.base_value.value = result->value;
+        st->u.base_value.str = NULL;
+        gc_addStatementLink(&result->value->gc_status);
     }
     return result->type;
 }
@@ -743,6 +760,16 @@ static ResultType operationCore(FUNC, wchar_t *name, enum OperationType type) {
         }
     } else
         default_mode: runOperationFromValue(left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
+
+    if (st->u.operation.left->type == base_value && st->u.operation.right->type == base_value) {  // 常量表达式折叠 TODO-szh 添加开关
+        freeStatement(st->u.operation.left);
+        freeStatement(st->u.operation.right);
+        st->type = base_value;
+        st->u.base_value.str = NULL;
+        st->u.base_value.value = result->value;
+        st->u.base_value.type = link_value;
+        gc_addStatementLink(&result->value->gc_status);
+    }
 
     freeResult(&left);
     freeResult(&right);

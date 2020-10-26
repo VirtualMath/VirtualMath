@@ -161,7 +161,7 @@ void updateHashTable(HashTable *update, HashTable *new, Inter *inter) {
 }
 
 
-LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTable *ht) {
+LinkValue *findVar(wchar_t *name, VarOperation operating, Var **re, HashTable *ht) {
     LinkValue *tmp = NULL;
     vhashn index = time33(name);
     for (Var **base = &ht->hashtable[index]; *base != NULL; base = &(*base)->next){
@@ -172,6 +172,8 @@ LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTabl
                 (*base)->next = NULL;
                 *base = next;
             }
+            if (re != NULL)
+                *re = *base;  // 返回值
             goto return_;
         }
     }
@@ -186,16 +188,16 @@ LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTabl
  * @param var_list
  * @return
  */
-LinkValue *findFromVarList(wchar_t *name, vint times, VarOperation operating, FUNC_CORE) {
+LinkValue *findFromVarList(wchar_t *name, vint times, Var **re, VarOperation operating, FUNC_CORE) {  // TODO-szh 去掉对inter的依赖
     LinkValue *tmp = NULL;
     vint base = findDefault(var_list->default_var, name) + times;
     for (vint i = 0; i < base && var_list->next != NULL; i++)
         var_list = var_list->next;
     if (operating == del_var && var_list != NULL)
-        tmp = findVar(name, del_var, inter, var_list->hashtable);
+        tmp = findVar(name, del_var, re, var_list->hashtable);
     else {
         for (PASS; var_list != NULL && tmp == NULL; var_list = var_list->next)
-            tmp = findVar(name, operating, inter, var_list->hashtable);
+            tmp = findVar(name, operating, re, var_list->hashtable);
     }
     return tmp;
 }

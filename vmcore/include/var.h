@@ -55,8 +55,9 @@ VarList *makeVarList(Inter *inter, bool make_hash, HashTable *hs);
 VarList *freeVarList(VarList *vl);
 
 vhashn time33(wchar_t *key);
-LinkValue *findVar(wchar_t *name, VarOperation operating, Inter *inter, HashTable *ht);
-LinkValue *findFromVarList(wchar_t *name, vint times, VarOperation operating, FUNC_CORE);
+LinkValue *findVar(wchar_t *name, VarOperation operating, Var **re, HashTable *ht);
+LinkValue *findFromVarList(wchar_t *name, vint times, Var **re, VarOperation operating, struct Inter *inter,
+                           struct VarList *var_list);
 void addVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter, HashTable *ht);
 void updateHashTable(HashTable *update, HashTable *new, Inter *inter);
 void addFromVarList(wchar_t *name, LinkValue *name_, vint times, LinkValue *value, FUNC_CORE);

@@ -55,6 +55,7 @@ struct Statement{
         struct base_var{
             wchar_t *name;
             struct Statement *times;
+            struct Var *link;  // link 模式
             bool run;
         } base_var;
         struct{

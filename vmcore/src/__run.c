@@ -219,7 +219,6 @@ ResultType setFunctionArgument(Argument **arg, Argument **base, LinkValue *_func
             return R_error;
     }
 
-    // TODO-szh 检查此处把self设置为NULL后出现错误
     if (pt_type != fp_cls && pt_type != fp_no_ && pt_type != fp_func_ && pt_type != fp_func_cls && self == NULL)
         goto error;
     if ((pt_type == fp_cls || pt_type == fp_func_cls || pt_type == fp_cls_obj || pt_type == fp_cls_class) && cls == NULL)
@@ -402,7 +401,7 @@ void freeFunctionArgument(Argument *arg, Argument *base) {
 LinkValue *findStrVar(wchar_t *name, bool free_old, fline line, char *file, bool nowrun, FUNC_NT){
     LinkValue *tmp = NULL;
     wchar_t *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, read_var, CFUNC_CORE(var_list));
+    tmp = findFromVarList(name_, 0, NULL, read_var, CFUNC_CORE(var_list));
     memFree(name_);
     if (tmp != NULL && nowrun) {
         setResultCore(result);
@@ -419,7 +418,7 @@ LinkValue *findStrVarOnly(wchar_t *name, bool free_old, FUNC_CORE) {
 LinkValue *checkStrVar(wchar_t *name, bool free_old, FUNC_CORE){
     LinkValue *tmp = NULL;
     wchar_t *name_ = setStrVarName(name, free_old, inter);
-    tmp = findFromVarList(name_, 0, read_var, CFUNC_CORE(var_list));
+    tmp = findFromVarList(name_, 0, NULL, read_var, CFUNC_CORE(var_list));
     memFree(name_);
     return tmp;
 }
@@ -440,7 +439,7 @@ void addStrVar(wchar_t *name, bool free_old, bool setting, LinkValue *value, fli
     gc_addTmpLink(&value->gc_status);
 
     if (run) {
-        LinkValue *tmp = findFromVarList(name, 0, read_var, CFUNC_CORE(var_list));
+        LinkValue *tmp = findFromVarList(name, 0, NULL, read_var, CFUNC_CORE(var_list));
         if (tmp != NULL && !setVarFunc(tmp, value, line, file, CNEXT_NT))
             goto return_;
     }
@@ -473,7 +472,7 @@ bool addAttributes(wchar_t *name, bool free_old, LinkValue *value, fline line, c
     setResultCore(result);
 
     if (run) {
-        LinkValue *tmp = findFromVarList(name, 0, read_var, CFUNC_CORE(belong->value->object.var));
+        LinkValue *tmp = findFromVarList(name, 0, NULL, read_var, CFUNC_CORE(belong->value->object.var));
         if (tmp != NULL && !setVarFunc(tmp, value, line, file, CFUNC_NT(belong->value->object.var, result, belong)))
             goto return_;
     }

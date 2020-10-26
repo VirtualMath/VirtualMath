@@ -50,7 +50,7 @@ ResultType dict_down(O_FUNC){
     {
         LinkValue *element = NULL;
         wchar_t *name = getNameFromValue(ap[1].value->value, inter->data.var_deep, inter);
-        element = findVar(name, read_var, inter, ap[0].value->value->data.dict.dict);
+        element = findVar(name, read_var, NULL, ap[0].value->value->data.dict.dict);
         if (element != NULL)
             setResultOperationBase(result, element);
         else {
@@ -80,7 +80,7 @@ ResultType dict_down_del(O_FUNC){
     {
         LinkValue *element = NULL;
         wchar_t *name = getNameFromValue(ap[1].value->value, inter->data.var_deep, inter);
-        element = findVar(name, del_var, inter, ap[0].value->value->data.dict.dict);
+        element = findVar(name, del_var, NULL, ap[0].value->value->data.dict.dict);
         if (element != NULL)
             setResult(result, inter);
         else{

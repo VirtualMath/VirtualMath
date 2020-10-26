@@ -87,7 +87,7 @@ ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
         addAttributes(L"vaargs", false, list, LINEFILE, true, CFUNC_NT(var_list, result, func));
         gc_freeTmpLink(&list->gc_status);
     } else
-        findFromVarList(L"vaargs", 0, del_var, CFUNC_CORE(var_list));
+        findFromVarList(L"vaargs", 0, NULL, del_var, CFUNC_CORE(var_list));
 
     if (CHECK_RESULT(result))
         setResultOperation(result, func);

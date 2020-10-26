@@ -358,7 +358,7 @@ ResultType parameterFromVar(Parameter **function_ad, VarList *function_var, vint
         }
 
         freeResult(result);
-        value = findFromVarList(str_name, int_times, del_var, CFUNC_CORE(var_list));  // 形式参数取值不需要执行变量式函数
+        value = findFromVarList(str_name, int_times, NULL, del_var, CFUNC_CORE(var_list));  // 形式参数取值不需要执行变量式函数
         memFree(str_name);
 
         if(value == NULL) {
