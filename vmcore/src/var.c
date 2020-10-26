@@ -1,8 +1,6 @@
 #include "__virtualmath.h"
 
 Var *makeVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter) {
-    Var **list_tmp = &inter->base_var;
-    Var *last;
     Var *tmp;
     MACRO_CALLOC(tmp, 1, sizeof(Var));
     setGC(&tmp->gc_status);
@@ -12,11 +10,11 @@ Var *makeVar(wchar_t *name, LinkValue *value, LinkValue *name_, Inter *inter) {
     tmp->next = NULL;
     tmp->gc_next = NULL;
 
-    // var 不算入 inter 的 run_gc 中
-    for (last = NULL; *list_tmp !=  NULL; list_tmp = &(*list_tmp)->gc_next)
-        last = *list_tmp;
-    *list_tmp = tmp;
-    tmp->gc_last = last;
+    tmp->gc_next = inter->base_var;
+    tmp->gc_last = NULL;
+    if (inter->base_var != NULL)
+        inter->base_var->gc_last = tmp;
+    inter->base_var = tmp;
     return tmp;
 }
 
@@ -34,8 +32,6 @@ void freeVar(Var **var) {
 }
 
 HashTable *makeHashTable(Inter *inter) {
-    register HashTable **list_tmp = &inter->hash_base;
-    HashTable *last;
     HashTable *tmp;
     MACRO_CALLOC(tmp, 1, sizeof(HashTable));
     MACRO_CALLOC(tmp->hashtable, MAX_SIZE, sizeof(Var *));
@@ -44,10 +40,11 @@ HashTable *makeHashTable(Inter *inter) {
     tmp->gc_next = NULL;
 
     // hashTable 不算入 inter 的 run_gc 中
-    for (last = NULL; *list_tmp != NULL; list_tmp = &(*list_tmp)->gc_next)
-        last = *list_tmp;
-    *list_tmp = tmp;
-    tmp->gc_last = last;
+    tmp->gc_next = inter->hash_base;
+    tmp->gc_last = NULL;
+    if (inter->hash_base != NULL)
+        inter->hash_base->gc_last = tmp;
+    inter->hash_base = tmp;
     return tmp;
 }
 

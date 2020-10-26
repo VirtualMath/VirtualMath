@@ -1,8 +1,6 @@
 #include "__run.h"
 
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, bool set_out_var, Inherit *inherit) {
-    register Value **list_tmp = &inter->base;
-    Value *last;
     Value *tmp;
     MACRO_CALLOC(tmp, 1, sizeof(Value));
     setGC(&tmp->gc_status);
@@ -18,11 +16,11 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, bool set_out_
     tmp->object.out_var = out_var;
     tmp->object.inherit = inherit;
 
-    for (last = NULL; (*list_tmp) != NULL; list_tmp = &(*list_tmp)->gc_next)
-        last = *list_tmp;
-
-    *list_tmp = tmp;
-    tmp->gc_last = last;
+    tmp->gc_next = inter->base;
+    tmp->gc_last = NULL;
+    if (inter->base != NULL)
+        inter->base->gc_last = tmp;
+    inter->base = tmp;
     return tmp;
 }
 
@@ -280,8 +278,6 @@ void freeValue(Value **value) {
 }
 
 LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority aut, Inter *inter) {  // TODO-szh 为LinkValue添加gc_tmpLink
-    LinkValue **list_tmp = &inter->link_base;
-    LinkValue *last;
     LinkValue *tmp;
     MACRO_CALLOC(tmp, 1, sizeof(LinkValue));
     tmp->belong = belong;
@@ -290,11 +286,12 @@ LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority au
     setGC(&tmp->gc_status);
 
     inter->data.run_gc ++;
-    for (last = NULL; *list_tmp != NULL; list_tmp = &(*list_tmp)->gc_next)
-        last = *list_tmp;
+    tmp->gc_next = inter->link_base;
+    tmp->gc_last = NULL;
+    if (inter->link_base != NULL)
+        inter->link_base->gc_last = tmp;
+    inter->link_base = tmp;
 
-    *list_tmp = tmp;
-    tmp->gc_last = last;
     tmp->aut = aut;
     return tmp;
 }
