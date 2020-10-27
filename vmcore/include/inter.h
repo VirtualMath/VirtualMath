@@ -131,6 +131,12 @@ struct Inter{
             om_normal,
             om_simple,
         } opt_mode;
+
+        bool value_folding;  // 常量折叠[on]
+        bool var_folding;  // 变量折叠[off]
+        bool opt_folding;  // 表达式折叠[on]
+        bool cyc_folding;  // 在循环内部自动打开折叠
+        bool func_folding;  // 在函数内部自动打开
     } data;
 };
 

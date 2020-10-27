@@ -129,6 +129,12 @@ void setBaseInterData(struct Inter *inter){
     inter->data.start_gc = false;
     inter->data.free_mode = false;
     inter->data.opt_mode = om_normal;
+
+    inter->data.value_folding = true;
+    inter->data.var_folding = false;
+    inter->data.opt_folding = true;
+    inter->data.func_folding = true;
+    inter->data.cyc_folding = true;
 }
 #undef setName
 

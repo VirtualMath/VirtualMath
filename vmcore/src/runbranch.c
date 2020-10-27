@@ -1,5 +1,12 @@
 #include "__run.h"
 
+#define SET_FOLDING_BRANCH(folding_bak, set_folding, inter)bool folding_bak[] = {(inter)->data.value_folding /*[0]*/, \
+(inter)->data.var_folding /*[1]*/, (inter)->data.opt_folding /*[2]*/}; \
+bool set_folding = (inter)->data.func_folding; \
+if (set_folding) { (inter)->data.value_folding = (inter)->data.var_folding = (inter)->data.opt_folding = true;}
+
+#define SET_FOLDING_END(folding_bak, set_folding, inter) if (set_folding) {(inter)->data.value_folding = (folding_bak)[0];(inter)->data.var_folding = (folding_bak)[1];(inter)->data.opt_folding = (folding_bak)[2];}
+
 static bool checkNumber(FUNC){
     if (!isType(result->value->value, V_int)) {
         setResultErrorSt(E_TypeException, L"Don't get a int of layers", true, st, CNEXT_NT);
@@ -276,6 +283,7 @@ ResultType whileBranch(FUNC) {
     bool yield_run = false;
     bool do_while = st->u.while_branch.type == do_while_;
     enum StatementInfoStatus result_from = info_first_do;
+    SET_FOLDING_BRANCH(folding_bak, set_folding, inter)  // 不需要分号
 
     setResultCore(result);
     yield_run = popYieldVarList(st, &var_list, var_list, inter);
@@ -341,6 +349,7 @@ ResultType whileBranch(FUNC) {
     setBranchResult(yield_run, while_list, st, result, result_from, CFUNC_CORE(var_list));
     if (set_result)
         setResult(result, inter);
+    SET_FOLDING_END(folding_bak, set_folding, inter)  // 不需要分号
     return result->type;
 }
 
@@ -467,6 +476,7 @@ ResultType forBranch(FUNC) {
     LinkValue *iter = NULL;
     enum StatementInfoStatus result_from = info_first_do;
 
+    SET_FOLDING_BRANCH(folding_bak, set_folding, inter)  // 不需要分号
     setResultCore(result);
 
     yield_run = popYieldVarList(st, &var_list, var_list, inter);
@@ -550,6 +560,7 @@ ResultType forBranch(FUNC) {
 
     if (set_result)
         setResult(result, inter);
+    SET_FOLDING_END(folding_bak, set_folding, inter)
     return result->type;
 }
 

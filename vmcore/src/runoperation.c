@@ -562,7 +562,7 @@ ResultType getVar(FUNC, VarInfo var_info) {
 
     setResultCore(result);
 
-    if (st->type == base_var && st->u.base_var.link != NULL) {
+    if (inter->data.var_folding && st->type == base_var && st->u.base_var.link != NULL) {
         var = st->u.base_var.link->value;
         name_ = st->u.base_var.link->name_;
         gc_addTmpLink(&name_->gc_status);
@@ -574,9 +574,14 @@ ResultType getVar(FUNC, VarInfo var_info) {
         }
         GET_RESULT(name_, result);
         var = findFromVarList(name, int_times, &re_var, read_var, CFUNC_CORE(var_list));
-        if (re_var != NULL && (st->u.base_var.times == NULL || st->u.base_var.times->type == base_value)) {  // 变量折叠 TODO-szh 增加开关 处理del var的情况
-            gc_addStatementLink(&re_var->gc_status);
-            st->u.base_var.link = re_var;
+        if (inter->data.var_folding) {
+            if (re_var != NULL && (st->u.base_var.times == NULL || st->u.base_var.times->type == base_value)) {  // 变量折叠
+                gc_addStatementLink(&re_var->gc_status);
+                st->u.base_var.link = re_var;
+            }
+        } else if (st->u.base_var.link != NULL) {  // 复位
+            gc_freeStatementLink(&st->u.base_var.link->gc_status);
+            st->u.base_var.link = NULL;
         }
     }
 
@@ -634,12 +639,13 @@ ResultType getBaseValue(FUNC) {
                 break;
         }
         result->value->belong = belong;
-        // 常量折叠 TODO-szh 增设开关
-        memFree(st->u.base_value.str);
-        st->u.base_value.type = link_value;
-        st->u.base_value.value = result->value;
-        st->u.base_value.str = NULL;
-        gc_addStatementLink(&result->value->gc_status);
+        if (inter->data.value_folding) {  // 常量折叠
+            memFree(st->u.base_value.str);
+            st->u.base_value.type = link_value;
+            st->u.base_value.value = result->value;
+            st->u.base_value.str = NULL;
+            gc_addStatementLink(&result->value->gc_status);
+        }
     }
     return result->type;
 }
@@ -761,7 +767,7 @@ static ResultType operationCore(FUNC, wchar_t *name, enum OperationType type) {
     } else
         default_mode: runOperationFromValue(left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
 
-    if (st->u.operation.left->type == base_value && st->u.operation.right->type == base_value) {  // 常量表达式折叠 TODO-szh 添加开关
+    if (inter->data.opt_folding && st->u.operation.left->type == base_value && st->u.operation.right->type == base_value) {  // 常量表达式折叠
         freeStatement(st->u.operation.left);
         freeStatement(st->u.operation.right);
         st->type = base_value;
