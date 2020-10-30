@@ -228,6 +228,8 @@ gen
 
 # Compiled Static libraries
 *.lai
+
+#VirtualMath file
 /Demo
 vgcore.*
 .vs

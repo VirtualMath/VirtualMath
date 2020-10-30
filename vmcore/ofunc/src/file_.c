@@ -60,7 +60,7 @@ ResultType file_init(O_FUNC){
     if (ap[2].value != NULL && ap[2].value->value->type == V_str)
         mode = memWcsToStr(ap[2].value->value->data.str.str, false);
     else
-        mode = memStrcpy("r");
+        mode = memStrcpy("rt");  // 默认模式是rt
 
     if (checkFileReadble(path) != 1) {
         setResultError(E_TypeException, L"file is not readable", LINEFILE, true, CNEXT_NT);
@@ -97,7 +97,6 @@ ResultType file_read(O_FUNC){
     fseek(file->value->data.file.file, 0L, SEEK_CUR);  // 改变文件状态(什么都没做)
     if (ap[1].value != NULL) {  // 指定数量读取
         size_t n;
-        wint_t ch;
         if (ap[1].value->value->type == V_int)
             n = ap[1].value->value->data.int_.num;
         else if (ap[1].value->value->type == V_dou)
@@ -107,11 +106,10 @@ ResultType file_read(O_FUNC){
             return R_error;
         }
         tmp = memWide(n);
-        for (int count=0; count < n && (ch = getwc(file->value->data.file.file)) != WEOF; count++)
-            tmp[count] = ch;
+        fgetws(tmp, n, file->value->data.file.file);
     } else {
         size_t n = 0;
-        size_t step = 50;
+        size_t step = 50;  // 一次性申请足够的内存, 不够则再增加50字节
         wint_t ch;
         tmp = NULL;
         for (int count=1; (ch = fgetwc(file->value->data.file.file)) != WEOF; count++) {  // 全部读取
@@ -185,7 +183,7 @@ ResultType file_write(O_FUNC){
     }
 
     fseek(file->value->data.file.file, 0L, 1);  // 改变文件状态(什么都没做)
-    fprintf(file->value->data.file.file, "%ls", ap[1].value->value->data.str.str);
+    fputws(ap[1].value->value->data.str.str, file->value->data.file.file);  // 使用fputws代替fwprintf
     setResult(result, inter);
     return result->type;
 }
@@ -208,6 +206,28 @@ ResultType file_get_seek(O_FUNC){
 
     seek = ftell(file->value->data.file.file);
     makeIntValue(seek, LINEFILE, CNEXT_NT);
+    return result->type;
+}
+
+ResultType file_flush(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    LinkValue *file;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if ((file = ap[0].value)->value->type != V_file || file->value->data.file.file == NULL) {
+        setResultError(E_TypeException, INSTANCE_ERROR(file), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    if (fflush(file->value->data.file.file) == 0)  // 若出现错误则返回EOF, 否则返回0
+        setResult(result, inter);
+    else
+        setResultFromERR(E_TypeException, CNEXT_NT);
     return result->type;
 }
 
@@ -363,6 +383,7 @@ void registeredFile(R_FUNC){
                       {L"end", file_isend, fp_obj, .var=nfv_notpush},
                       {L"err", file_iserr, fp_obj, .var=nfv_notpush},
                       {L"clean", file_clean_err, fp_obj, .var=nfv_notpush},
+                      {L"flush", file_flush, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_ENTER], file_enter, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_DEL], file_close, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_EXIT], file_close, fp_obj, .var=nfv_notpush},
