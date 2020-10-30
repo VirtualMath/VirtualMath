@@ -1,6 +1,6 @@
 #include "__virtualmath.h"
 
-Token *makeToken(long int line) {
+Token *makeToken(fline line) {
     Token *tmp = memCalloc(1, sizeof(Token));
     tmp->token_type = 0;
     tmp->data.str = NULL;
@@ -11,7 +11,7 @@ Token *makeToken(long int line) {
     return tmp;
 }
 
-Token *makeLexToken(int type, wchar_t *str, wchar_t *second_str, long int line) {
+Token *makeLexToken(int type, wchar_t *str, wchar_t *second_str, fline line) {
     Token *tmp = makeToken(line);
     tmp->token_type = type;
     tmp->data.str = memWidecpy(str);
@@ -27,7 +27,7 @@ Token *makeStatementToken(int type, struct Statement *st){
 }
 
 long freeToken(Token *tk, bool free_st) {
-    long int line = 0;
+    fline line = 0;
     FREE_BASE(tk, return_);
     line = tk->line;
     memFree(tk->data.str);

@@ -49,7 +49,7 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT) {
     return tmp;
 }
 
-Value *makePassValue(fline line, char *file, FUNC_NT){  // TODO-szh 让切片支持该语法 检查语法解析器支持 a[::]的语法
+Value *makePassValue(fline line, char *file, FUNC_NT){
     Value *tmp = NULL;
     setResultCore(result);
     if (inter->data.free_mode) {

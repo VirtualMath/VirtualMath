@@ -217,7 +217,7 @@ static ResultType callObject(LinkValue *object_value, Argument *arg, fline line,
     return result->type;
 }
 
-static ResultType callCFunction(LinkValue *func_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT){
+static ResultType callCFunction(LinkValue *func_value, Argument *arg, fline line, char *file, int pt_sep, FUNC_NT){
     VarList *function_var = NULL;
     OfficialFunction of = NULL;
     Argument *bak;
@@ -407,7 +407,7 @@ static ResultType getFuncargs(LinkValue *function_value, ArgumentFFI *af, fline 
     return result->type;
 }
 
-static ResultType callFFunction(LinkValue *function_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT){
+static ResultType callFFunction(LinkValue *function_value, Argument *arg, fline line, char *file, int pt_sep, FUNC_NT){
     ffi_cif cif;
     ffi_type *re;
     unsigned int size;
@@ -515,7 +515,7 @@ static bool popFuncYieldVarList(Statement *st, VarList **return_, VarList *out_v
     return yield_run;
 }
 
-static ResultType callVMFunction(LinkValue *func_value, Argument *arg, long int line, char *file, int pt_sep, FUNC_NT) {
+static ResultType callVMFunction(LinkValue *func_value, Argument *arg, fline line, char *file, int pt_sep, FUNC_NT) {
     Argument *bak;
     VarList *var_func = NULL;
     Statement *st_func = NULL;

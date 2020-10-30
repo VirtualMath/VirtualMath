@@ -20,7 +20,7 @@ inline void twoOperation(P_FUNC, PasersFunction callBack, GetSymbolFunction getS
         Token *left_token = NULL;
         Token *right_token = NULL;
         Statement *st = NULL;
-        long int line;
+        fline line;
 
         if (readBackToken(pm) != self_type) {
             if (!callChildStatement(CP_FUNC, callBack, call_type, &st, NULL))
@@ -63,7 +63,7 @@ inline void twoOperation(P_FUNC, PasersFunction callBack, GetSymbolFunction getS
  * @param message 错误信息
  * @param status 错误类型
  */
-void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
+void syntaxError(ParserMessage *pm, int status, fline line, int num, ...) {
     char *message = NULL;
 
     if (pm->status != success)
@@ -80,7 +80,7 @@ void syntaxError(ParserMessage *pm, int status, long int line, int num, ...) {
     va_end(message_args);
 
     char info[100];
-    snprintf(info, 100, "\non line %ld\nin file ", line);
+    snprintf(info, 100, "\non line %llu\nin file ", line);
     message = memStrcat(message, info, true, false);
     message = memStrcat(message, pm->file, true, false);
 
@@ -106,10 +106,10 @@ int readBackToken(ParserMessage *pm){
     return type;
 }
 
-bool checkToken(ParserMessage *pm, int type){
+bool checkToken(ParserMessage *pm, int type, fline *line) {
     if (readBackToken(pm) != type)
         return false;
-    delToken(pm);
+    line != NULL ? (*line = delToken(pm)) : delToken(pm);
     return true;
 }
 
@@ -124,7 +124,7 @@ bool commandCallControl_(P_FUNC, MakeControlFunction callBack, int type, Stateme
     freeToken(tmp_token, false);
     return true;
 }
-bool callParserCode(P_FUNC, Statement **st, char *message, long int line) {
+bool callParserCode(P_FUNC, Statement **st, char *message, fline line) {
     Token *tmp;
     *st = NULL;
     parserCode(CP_FUNC);
@@ -202,10 +202,9 @@ bool callChildStatement(P_FUNC, PasersFunction callBack, int type, Statement **s
  * @param ass 设定赋值符号
  * @return
  */
-bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is_list, bool is_dict,
-                     int sep, int ass, int n_sep) {
+bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is_list, int n_sep, bool is_dict, int sep,
+                int ass, bool space) {
     Parameter *new_pt = NULL;
-    Token *tmp;
     bool last_pt = false;
     int is_sep = 0;  // 0: 不需要处理 1: 是is_sep 2: 处理过is_sep (当匹配到;设置is_sep为1)
     enum {
@@ -223,88 +222,103 @@ bool parserParameter(P_FUNC, Parameter **pt, bool enter, bool is_formal, bool is
         status = s_1;
 
     for (int count = 0; !last_pt; count++){  // 计算匹配到parameter的个数
-        tmp = NULL;
+        Statement *st;
+        fline line;
+        int pt_type = value_par;
+
         if (is_sep == 1 || !is_formal && count > 2)  // 限制实参的;分隔符前最多只有三个参数
             is_sep = 2;
-        if (!is_dict && status != s_2 && checkToken(pm, MATHER_MUL))  // is_formal关闭对*args的支持
+        if (!is_dict && status != s_2 && checkToken(pm, MATHER_MUL, NULL))  // is_formal关闭对*args的支持
             status = s_3;
-        else if (!is_list && checkToken(pm, MATHER_POW))  // is_formal关闭对*args的支持
+        else if (!is_list && checkToken(pm, MATHER_POW, NULL))  // is_formal关闭对*args的支持
             status = s_4;
 
-        parserOr(CP_FUNC);
-        if (!call_success(pm))
-            goto error_;
-        if (readBackToken(pm) != T_OR) {
-            if (status == s_3) {
-                long int line = pm->tm->ts->token_list->line;
-                syntaxError(pm, syntax_error, line, 1, "Don't get a parameter after *");
-                goto error_;
-            }
-            break;
-        }
-        tmp = popNewToken(pm->tm);
-        int pt_type = value_par;
-        if (status == s_1){
-            if (!checkToken(pm, sep)){
-                if (is_sep == 0 && n_sep != -1 && checkToken(pm, n_sep))
-                    is_sep = 1;
-                else if (is_list || !checkToken(pm, ass))  // // is_list关闭对name_value的支持
-                    last_pt = true;
-                else {
-                    pt_type = name_par;
-                    status = s_2;
-                }
-            }
-        }
-        else if (status == s_2){
-            pt_type = name_par;
-            if (!checkToken(pm, ass))
-                goto error_;
-        }
-        else if (status == s_3){
-            pt_type = args_par;
-            if (!checkToken(pm, sep))
-                last_pt = true;
-        }
+        if (space && checkToken(pm, sep, &line))
+            st = makeBaseValueStatement(null_value, line, pm->file);  // 空白符号
         else {
-            pt_type = kwargs_par;
-            if (!checkToken(pm, sep))
-                last_pt = true;
+            Token *tmp;
+            parserOr(CP_FUNC);
+            if (!call_success(pm))
+                goto error_;
+            if (readBackToken(pm) != T_OR) {
+                if (status == s_3) {
+                    line = pm->tm->ts->token_list->line;
+                    syntaxError(pm, syntax_error, line, 1, "Don't get a parameter after *");
+                    goto error_;
+                }
+                break;
+            }
+            tmp = popNewToken(pm->tm);
+            st = tmp->data.st;
+            freeToken(tmp, false);
+        }
+
+        switch (status) {
+            case s_1:
+                if (!checkToken(pm, sep, NULL)) {
+                    if (is_sep == 0 && n_sep != -1 && checkToken(pm, n_sep, NULL))
+                        is_sep = 1;
+                    else if (is_list || !checkToken(pm, ass, NULL))  // // is_list关闭对name_value的支持
+                        last_pt = true;
+                    else {
+                        pt_type = name_par;
+                        status = s_2;
+                    }
+                }
+                break;
+            case s_2:
+                pt_type = name_par;
+                if (!checkToken(pm, ass, NULL)) {
+                    freeStatement(st);
+                    goto error_;
+                }
+                break;
+            case s_3:
+                pt_type = args_par;
+                if (!checkToken(pm, sep, NULL))
+                    last_pt = true;
+                break;
+            default:
+                pt_type = kwargs_par;
+                if (!checkToken(pm, sep, NULL))
+                    last_pt = true;
+                break;
         }
 
         if (pt_type == value_par)
-            new_pt = connectValueParameter(tmp->data.st, new_pt, is_sep == 1);
+            new_pt = connectValueParameter(st, new_pt, is_sep == 1);
         else if (pt_type == name_par){
             Statement *tmp_value;
-            if (!callChildStatement(CP_FUNC, parserOr, T_OR, &tmp_value, "Don't get a parameter value"))
+            if (!callChildStatement(CP_FUNC, parserOr, T_OR, &tmp_value, "Don't get a parameter value")) {
+                freeStatement(st);
                 goto error_;
-            new_pt = connectNameParameter(tmp_value, tmp->data.st, new_pt);
-            if (!checkToken(pm, sep))
+            }
+            new_pt = connectNameParameter(tmp_value, st, new_pt);
+            if (!checkToken(pm, sep, NULL))
                 last_pt = true;
         }
         else if (pt_type == args_par){
-            new_pt = connectArgsParameter(tmp->data.st, new_pt, is_sep == 1);
+            new_pt = connectArgsParameter(st, new_pt, is_sep == 1);
             if (is_formal)
                 status = s_2;  // 是否规定*args只出现一次
             else
                 status = s_1;
         }
         else {
-            new_pt = connectKwargsParameter(tmp->data.st, new_pt);
+            new_pt = connectKwargsParameter(st, new_pt);
             if (is_formal)
                 last_pt = true; // 是否规定**kwargs只出现一次
             else
                 status = s_2;
         }
-        freeToken(tmp, false);
     }
+
     *pt = new_pt;
     if (enter)
         lexEnter(pm, false);
     return true;
 
     error_:
-    freeToken(tmp, true);
     freeParameter(new_pt, true);
     *pt = NULL;
     if (enter)

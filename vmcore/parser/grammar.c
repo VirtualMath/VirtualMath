@@ -233,7 +233,7 @@ void parserDecoration(P_FUNC){
     Statement *st = NULL;
     DecorationStatement *ds = NULL;
     int tmp;
-    long int line = 0;
+    fline line = 0;
     while ((tmp = readBackToken(pm)) == MATHER_AT || tmp == MATHER_ENTER){
         Statement *dst = NULL;
         line = delToken(pm);
@@ -276,7 +276,7 @@ void parserLabel(P_FUNC){
     Statement *command = NULL;
     int tmp;
     wchar_t *label = NULL;
-    long int line = delToken(pm);
+    fline line = delToken(pm);
 
     if ((tmp = readBackToken(pm)) == MATHER_STRING || tmp == MATHER_VAR) {
         Token *label_ = popNewToken(pm->tm);
@@ -287,10 +287,10 @@ void parserLabel(P_FUNC){
         goto error_;
     }
 
-    if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &var, "Don't get a label var"))
+    if (checkToken(pm, MATHER_AS, NULL) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &var, "Don't get a label var"))
         goto error_;
 
-    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &command, "Don't get a label command"))
+    if (checkToken(pm, MATHER_COLON, NULL) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &command, "Don't get a label command"))
         goto error_;
 
 
@@ -318,15 +318,15 @@ void parserGoto(P_FUNC){
     Statement *label = NULL;
     Statement *times = NULL;
     Statement *return_ = NULL;
-    long int line = delToken(pm);
+    fline line = delToken(pm);
 
     if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &label, "Don't get a goto label"))
         goto error_;
 
-    if (checkToken(pm, MATHER_AT) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &times, "Don't get a goto times"))
+    if (checkToken(pm, MATHER_AT, NULL) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &times, "Don't get a goto times"))
         goto error_;
 
-    if (checkToken(pm, MATHER_COLON) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &return_, "Don't get a goto return"))
+    if (checkToken(pm, MATHER_COLON, NULL) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &return_, "Don't get a goto return"))
         goto error_;
 
     st = makeGotoStatement(return_, times, label, line, pm->file);
@@ -352,9 +352,9 @@ void parserImport(P_FUNC) {
     Statement *st = NULL;
     bool is_lock = false;
     int token_type = readBackToken(pm);
-    long int line = delToken(pm);
+    fline line = delToken(pm);
 
-    if (checkToken(pm, MATHER_COLON)) {
+    if (checkToken(pm, MATHER_COLON, NULL)) {
         switch (readBackToken(pm)) {
             case MATHER_PUBLIC:
                 break;
@@ -373,7 +373,7 @@ void parserImport(P_FUNC) {
         goto return_;
     if (token_type == MATHER_IMPORT) {
         Statement *as = NULL;
-        if (checkToken(pm, MATHER_AS) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &as, "Don't get a as after import")) {
+        if (checkToken(pm, MATHER_AS, NULL) && !callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &as, "Don't get a as after import")) {
             freeStatement(opt);
             goto return_;
         }
@@ -382,21 +382,21 @@ void parserImport(P_FUNC) {
     else{
         Parameter *pt = NULL;
         Parameter *as = NULL;
-        if (!checkToken(pm, MATHER_IMPORT)) {
+        if (!checkToken(pm, MATHER_IMPORT, NULL)) {
             syntaxError(pm, syntax_error, opt->line, 1, "Don't get a as after import");
             freeStatement(opt);
             goto return_;
         }
-        if (checkToken(pm, MATHER_MUL))  // 导入所有
+        if (checkToken(pm, MATHER_MUL, NULL))  // 导入所有
             goto mul_;
-        if (!parserParameter(CP_FUNC, &pt, false, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT,
-                             -1) || pt == NULL) {
+        if (!parserParameter(CP_FUNC, &pt, false, false, false,
+                             -1, false, MATHER_COMMA, MATHER_ASSIGNMENT, false) || pt == NULL) {
             syntaxError(pm, syntax_error, line, 1, "Don't get any value to import");
             freeStatement(opt);
             goto return_;
         }
-        if (checkToken(pm, MATHER_AS) && (!parserParameter(CP_FUNC, &as, false, true, false, false,
-                                                           MATHER_COMMA, MATHER_ASSIGNMENT, -1) || as == NULL)) {
+        if (checkToken(pm, MATHER_AS, NULL) && (!parserParameter(CP_FUNC, &as, false, true, false, -1, false,
+                                                                 MATHER_COMMA, MATHER_ASSIGNMENT, false) || as == NULL)) {
             freeParameter(pt, true);
             syntaxError(pm, syntax_error, opt->line, 1, "Don't get any value after import");
             freeStatement(opt);
@@ -433,8 +433,8 @@ void parserVarControl(P_FUNC) {
     Statement *st = NULL;
     Token *tmp = NULL;
     int token_type = readBackToken(pm);
-    long int line = delToken(pm);
-    if (!parserParameter(CP_FUNC, &var, false, true, true, true, MATHER_COMMA, MATHER_ASSIGNMENT, -1) || var == NULL) {
+    fline line = delToken(pm);
+    if (!parserParameter(CP_FUNC, &var, false, true, true, -1, true, MATHER_COMMA, MATHER_ASSIGNMENT, false) || var == NULL) {
         syntaxError(pm, syntax_error, line, 1, "Don't get any var");
         goto return_;
     }
@@ -457,7 +457,7 @@ void parserControl(P_FUNC, MakeControlFunction callBack, int type, bool must_ope
     Statement *opt = NULL;
     Statement *st = NULL;
     Token *tmp = NULL;
-    long int line = delToken(pm);
+    fline line = delToken(pm);
     parserOperation(CP_FUNC);
     if (call_success(pm) && readBackToken(pm) == T_OPERATION){
         tmp = popNewToken(pm->tm);
@@ -478,7 +478,7 @@ void parserControl(P_FUNC, MakeControlFunction callBack, int type, bool must_ope
 void parserDo(P_FUNC){
     Statement *st = NULL;
     Statement *do_code = NULL;
-    long int line = delToken(pm);
+    fline line = delToken(pm);
     if (readBackToken(pm) == MATHER_WHILE){  // do...while语句
         if (!callChildStatement(CP_FUNC, parserWhile, T_WHILE_BRANCH, &st, "Don't get a while code"))
             goto error_;
@@ -515,7 +515,7 @@ void parserDo(P_FUNC){
                 st->u.set_function.first_do = do_code;
                 break;
             case MATHER_DO: {
-                long int tmp_line = delToken(pm);
+                fline tmp_line = delToken(pm);
                 if (readBackToken(pm) != MATHER_WHILE){
                     syntaxError(pm, syntax_error, tmp_line, 1, "Don't get while after do");
                     goto error_;
@@ -552,12 +552,12 @@ void parserFor(P_FUNC){
     Statement *finally_st = NULL;
     Statement *do_st = NULL;
     StatementList *sl = NULL;
-    long int line = delToken(pm);
+    fline line = delToken(pm);
     {
         Statement *code_tmp = NULL, *var_tmp = NULL, *iter_tmp = NULL;
         if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &var_tmp, "Don't get a for var"))
             goto error_;
-        if (!checkToken(pm, MATHER_IN)){
+        if (!checkToken(pm, MATHER_IN, NULL)){
             freeStatement(var_tmp);
             syntaxError(pm, syntax_error, line, 1, "Don't get in after for");
             goto error_;
@@ -579,13 +579,13 @@ void parserFor(P_FUNC){
         case MATHER_DO: {
             if (do_st != NULL || else_st != NULL)
                 goto default_;
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (!callParserCode(CP_FUNC, &do_st, "Don't get a for...do code", tmp_line))
                 goto error_;
             goto again;
         }
         case MATHER_ELSE: {
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (else_st != NULL) {
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else\n");
                 goto error_;
@@ -595,7 +595,7 @@ void parserFor(P_FUNC){
             goto again;
         }
         case MATHER_FINALLY: {
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (!callParserCode(CP_FUNC, &finally_st, "Don't get a for...finally code", tmp_line))
                 goto error_;
             break;
@@ -635,8 +635,8 @@ void parserWith(P_FUNC){
     Statement *else_st = NULL;
     Statement *finally_st = NULL;
     StatementList *sl = NULL;
-    long int line = 0;
-    long int tmp_line;
+    fline line = 0;
+    fline tmp_line;
 
     line = delToken(pm);
     if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, &condition_tmp, "Don't get a with operation"))
@@ -814,7 +814,7 @@ void parserWhile(P_FUNC){
     Statement *do_st = NULL;
     StatementList *sl = NULL;
     bool have_while = false;
-    long int line = 0;
+    fline line = 0;
     again:
     switch (readBackToken(pm)) {
         case MATHER_WHILE: {
@@ -845,13 +845,13 @@ void parserWhile(P_FUNC){
         case MATHER_DO: {
             if (do_st != NULL || else_st != NULL)
                 goto default_;
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (!callParserCode(CP_FUNC, &do_st, "Don't get a while...do code", tmp_line))
                 goto error_;
             goto again;
         }
         case MATHER_ELSE: {
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (else_st != NULL) {
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else\n");
                 goto error_;
@@ -861,7 +861,7 @@ void parserWhile(P_FUNC){
             goto again;
         }
         case MATHER_FINALLY: {
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (!callParserCode(CP_FUNC, &finally_st, "Don't get a while...finally code", tmp_line))
                 goto error_;
             break;
@@ -913,7 +913,7 @@ void parserTry(P_FUNC){
     Statement *else_st = NULL;
     Statement *finally_st = NULL;
     StatementList *sl = NULL;
-    long int line = 0;
+    fline line = 0;
     again:
     switch (readBackToken(pm)) {
         case MATHER_TRY:{
@@ -926,7 +926,7 @@ void parserTry(P_FUNC){
         }
         case MATHER_EXCEPT: {
             Statement *code_tmp = NULL, *var_tmp = NULL, *condition_tmp = NULL;
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (else_st != NULL) {
                 syntaxError(pm, syntax_error, tmp_line, 1, "get except after else");
                 goto error_;
@@ -947,7 +947,7 @@ void parserTry(P_FUNC){
             goto again;
         }
         case MATHER_ELSE: {
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (else_st != NULL) {
                 syntaxError(pm, syntax_error, tmp_line, 1, "get else after else");
                 goto error_;
@@ -957,7 +957,7 @@ void parserTry(P_FUNC){
             goto again;
         }
         case MATHER_FINALLY: {
-            long int tmp_line = delToken(pm);
+            fline tmp_line = delToken(pm);
             if (!callParserCode(CP_FUNC, &finally_st, "Don't get a try...finally code", tmp_line))
                 goto error_;
             break;
@@ -1005,19 +1005,20 @@ void parserDef(P_FUNC){
     Statement *code_tmp = NULL;
     Parameter *pt = NULL;
     int type = readBackToken(pm);
-    long int line = delToken(pm);
+    fline line = delToken(pm);
 
     if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &name_tmp, "Don't get a func/class name"))
         goto error_;
 
-    if (!checkToken(pm, MATHER_LP))
+    if (!checkToken(pm, MATHER_LP, NULL))
         goto get_code;
-    if (!parserParameter(CP_FUNC, &pt, true, true, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, type == MATHER_DEF ? MATHER_SEMICOLON : -1)) {
+    if (!parserParameter(CP_FUNC, &pt, true, true, false, type == MATHER_DEF ? MATHER_SEMICOLON : -1, false,
+                         MATHER_COMMA, MATHER_ASSIGNMENT, false)) {
         lexEnter(pm, false);
         syntaxError(pm, syntax_error, line, 1, "Don't get a func/V_class parameter");
         goto error_;
     }
-    if (!checkToken(pm, MATHER_RP)) {
+    if (!checkToken(pm, MATHER_RP, NULL)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get a func/V_class ) after parameter");
         goto error_;
     }
@@ -1050,7 +1051,7 @@ void parserDef(P_FUNC){
  * @param inter
  */
 void parserCode(P_FUNC) {
-    long int line = 0;
+    fline line = 0;
     Statement *st = makeStatement(line, pm->file);
     bool backup = pm->short_cm;
     bool short_cm = false;
@@ -1077,7 +1078,7 @@ void parserCode(P_FUNC) {
 
     if (short_cm)
         addLexToken(pm, MATHER_ENTER);
-    else if (!checkToken(pm, MATHER_RC)) {
+    else if (!checkToken(pm, MATHER_RC, NULL)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get the }");  // 使用{的行号
         goto error_;
     }
@@ -1146,7 +1147,7 @@ void parserTuple(P_FUNC){
     Parameter *pt = NULL;
     Statement *st = NULL;
     Token *tmp = NULL;
-    long int line = 0;
+    fline line = 0;
     if (readBackToken(pm) == MATHER_MUL) {
         line = pm->tm->ts->token_list->line;
         goto parserPt;
@@ -1163,7 +1164,7 @@ void parserTuple(P_FUNC){
     addToken_(pm ,tmp);
 
     parserPt:
-    if (!parserParameter(CP_FUNC, &pt, false, false, true, false, MATHER_COMMA, MATHER_ASSIGNMENT, -1)) {
+    if (!parserParameter(CP_FUNC, &pt, false, false, true, -1, false, MATHER_COMMA, MATHER_ASSIGNMENT, false)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get tuple element");
         goto return_;
     }
@@ -1384,15 +1385,16 @@ void parserNot(P_FUNC){
  */
 bool tailCall(P_FUNC, Token *left_token, Statement **st){
     Parameter *pt = NULL;
-    long int line = delToken(pm);
+    fline line = delToken(pm);
 
-    if (checkToken(pm, MATHER_RP))
+    if (checkToken(pm, MATHER_RP, NULL))
         goto not_pt;
-    if (!parserParameter(CP_FUNC, &pt, true, false, false, false, MATHER_COMMA, MATHER_ASSIGNMENT, MATHER_SEMICOLON)) {
+    if (!parserParameter(CP_FUNC, &pt, true, false, false, MATHER_SEMICOLON, false, MATHER_COMMA, MATHER_ASSIGNMENT,
+                         false)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get call parameter");
         return false;
     }
-    if (!checkToken(pm, MATHER_RP)) {
+    if (!checkToken(pm, MATHER_RP, NULL)) {
         freeParameter(pt, true);
         syntaxError(pm, syntax_error, line, 1, "Don't get ) from call back");
         return false;
@@ -1407,23 +1409,26 @@ bool tailSlice(P_FUNC, Token *left_token, Statement **st){
     Parameter *pt = NULL;
     Token *tmp = NULL;
     enum SliceType type;  // 0-slice  1-down
-    long int line = delToken(pm);
+    fline line = delToken(pm);
 
-    if (!callChildToken(CP_FUNC, parserOr, T_OR, &tmp, "Don't get slice/down element", syntax_error))
-        return false;
-    else if (readBackToken(pm) == MATHER_COLON)
+    if (readBackToken(pm) == MATHER_COLON)
         type = SliceType_slice_;
-    else
-        type = SliceType_down_;
-    line = tmp->line;
-    addToken_(pm ,tmp);
+    else {
+        if (!callChildToken(CP_FUNC, parserOr, T_OR, &tmp, "Don't get slice/down element", syntax_error))
+            return false;
+        else if (readBackToken(pm) == MATHER_COLON)
+            type = SliceType_slice_;
+        else
+            type = SliceType_down_;
+        line = tmp->line;
+        addToken_(pm ,tmp);
+    }
 
-    if (!parserParameter(CP_FUNC, &pt, true, true, true, true,
-                         (type == SliceType_down_ ? MATHER_COMMA : MATHER_COLON), MATHER_ASSIGNMENT, -1)) {
+    if (!parserParameter(CP_FUNC, &pt, true, true, true, -1, true, (type == SliceType_down_ ? MATHER_COMMA : MATHER_COLON), MATHER_ASSIGNMENT, true)) {
         syntaxError(pm, syntax_error, line, 1, "Don't get slice element");
         return false;
     }
-    if (!checkToken(pm, MATHER_RB)){
+    if (!checkToken(pm, MATHER_RB, NULL)){
         freeParameter(pt, true);
         syntaxError(pm, syntax_error, line, 1, "Don't get ] from slice");
         return false;
@@ -1517,13 +1522,13 @@ void parserNegate(P_FUNC){
  */
 int getOperation(P_FUNC, int right_type, Statement **st, char *name){
     *st = NULL;
-    if (checkToken(pm, right_type))
+    if (checkToken(pm, right_type, NULL))
         goto return_;
 
     if (!callChildStatement(CP_FUNC, parserOperation, T_OPERATION, st, NULL))
         return 0;
 
-    if (!checkToken(pm, right_type)){
+    if (!checkToken(pm, right_type, NULL)){
         freeStatement(*st);
         return -1;
     }
@@ -1573,13 +1578,13 @@ void parserBaseValue(P_FUNC){
         case MATHER_LAMBDA:  {
             Parameter *pt = NULL;
             Statement *lambda_st = NULL;
-            if (!parserParameter(CP_FUNC, &pt, false, true, false, false, MATHER_COMMA,
-                                 MATHER_ASSIGNMENT, -1)) {
+            if (!parserParameter(CP_FUNC, &pt, false, true, false, -1, false, MATHER_COMMA,
+                                 MATHER_ASSIGNMENT, false)) {
                 freeToken(value_token, true);
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a lambda parameter");
                 goto return_;
             }
-            if (!checkToken(pm, MATHER_COLON)) {
+            if (!checkToken(pm, MATHER_COLON, NULL)) {
                 lambda_st = makeStatement(value_token->line, pm->file);
                 goto not_lambda_st;
             }
@@ -1597,7 +1602,7 @@ void parserBaseValue(P_FUNC){
             break;
         case MATHER_SVAR: {
             Statement *svar_st = NULL;
-            bool is_var = checkToken(pm, MATHER_COLON);
+            bool is_var = checkToken(pm, MATHER_COLON, NULL);
             if (!callChildStatement(CP_FUNC, parserBaseValue, T_BASEVALUE, &svar_st, NULL)) {
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get super var after $");
                 freeToken(value_token, true);
@@ -1660,14 +1665,14 @@ void parserBaseValue(P_FUNC){
         case MATHER_LC: {
             Parameter *pt = NULL;
             int parser_status;
-            parser_status = parserParameter(CP_FUNC, &pt, true, false, false, true, MATHER_COMMA,
-                                            MATHER_COLON, -1);
+            parser_status = parserParameter(CP_FUNC, &pt, true, false, false, -1, true, MATHER_COMMA,
+                                            MATHER_COLON, false);
             if (!parser_status) {
                 freeToken(value_token, true);
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a dict parameter");
                 goto return_;
             }
-            if (!checkToken(pm, MATHER_RC)) {
+            if (!checkToken(pm, MATHER_RC, NULL)) {
                 freeToken(value_token, true);
                 freeParameter(pt, true);
                 syntaxError(pm, syntax_error, value_token->line, 1, "Don't get a } after dict");

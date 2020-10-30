@@ -175,9 +175,9 @@ TokenMessage *makeTokenMessageFile(char *file_dir);
 TokenMessage *makeTokenMessageStr(wchar_t *str);
 void freeTokenMessage(TokenMessage *tm, bool self, bool free_st);
 
-Token *makeToken(long int line);
+Token *makeToken(fline line);
 long freeToken(Token *tk, bool free_st);
-Token *makeLexToken(int type, wchar_t *str, wchar_t *second_str, long int line);
+Token *makeLexToken(int type, wchar_t *str, wchar_t *second_str, fline line);
 Token *makeStatementToken(int type, struct Statement *st);
 
 extern Token *getToken(LexFile *file, LexMathers *mathers);
