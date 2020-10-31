@@ -1,7 +1,7 @@
 #include "__ofunc.h"
 typedef void (*base_opt)(FUNC_VOBJ);
 
-#define OPERATION_DEFAULT(M_NAME, ERR_NAME) do{ if (is_left) {runOperationFromValue(right, left, right, inter->data.mag_func[M_##M_NAME], LINEFILE, CNEXT_NT);} else {setResultError(E_TypeException, CUL_ERROR(ERR_NAME), LINEFILE, true, CNEXT_NT);} }while(0)
+#define OPERATION_DEFAULT(M_NAME_, ERR_NAME) do{ if (is_left) {runOperationFromValue(right, left, right, inter->data.mag_func[M_##M_NAME_], LINEFILE, CNEXT_NT);} else {setResultError(E_TypeException, CUL_ERROR(ERR_NAME), LINEFILE, true, CNEXT_NT);} }while(0)
 
 void vobject_add_base(FUNC_VOBJ) {
     setResultCore(result);
@@ -86,7 +86,7 @@ void vobject_intdiv_base(FUNC_VOBJ) {
         makeIntValue(left->value->data.int_.num / (vint)right->value->data.dou.num, LINEFILE, CNEXT_NT);
     else if (left->value->type == V_dou && right->value->type == V_dou)
         makeIntValue((vint)left->value->data.dou.num / (vint)right->value->data.dou.num, LINEFILE, CNEXT_NT);
-    else OPERATION_DEFAULT(INTDIV, int div);
+    else OPERATION_DEFAULT(INTDIV, Int Div);
 }
 
 void vobject_mod_base(FUNC_VOBJ) {
@@ -96,7 +96,7 @@ void vobject_mod_base(FUNC_VOBJ) {
     else if (left->value->type == V_int && right->value->type == V_int) {
         lldiv_t div_result = lldiv(left->value->data.int_.num, right->value->data.int_.num);
         makeIntValue(div_result.rem, LINEFILE, CNEXT_NT);
-    } else OPERATION_DEFAULT(MOD, mod);
+    } else OPERATION_DEFAULT(MOD, Mod);
 }
 
 void vobject_pow_base(FUNC_VOBJ) {
@@ -112,7 +112,7 @@ void vobject_pow_base(FUNC_VOBJ) {
     else if (left->value->type == V_dou && right->value->type == V_dou)
         re = powl(left->value->data.dou.num, right->value->data.dou.num);
     else {
-        OPERATION_DEFAULT(POW, pow);
+        OPERATION_DEFAULT(POW, Pow);
         return;
     }
     if (errno != 0)
@@ -135,7 +135,7 @@ void vobject_eq_base(FUNC_VOBJ) {
         makeBoolValue((char *)left->value->data.pointer.pointer == (char *)right->value->data.pointer.pointer, LINEFILE, CNEXT_NT);
     else if (left->value->type == V_str && right->value->type == V_str)
         makeBoolValue(eqWide(left->value->data.str.str, left->value->data.str.str), LINEFILE, CNEXT_NT);
-    else OPERATION_DEFAULT(EQ, eq);  // TODO-szh 再obj中添加兜底操作
+    else OPERATION_DEFAULT(EQ, Eq);
 }
 
 void vobject_noteq_base(FUNC_VOBJ) {
@@ -152,14 +152,14 @@ void vobject_noteq_base(FUNC_VOBJ) {
         makeBoolValue((char *)left->value->data.pointer.pointer != (char *)right->value->data.pointer.pointer, LINEFILE, CNEXT_NT);
     else if (left->value->type == V_str && right->value->type == V_str)
         makeBoolValue(!(eqWide(left->value->data.str.str, left->value->data.str.str)), LINEFILE, CNEXT_NT);
-    else OPERATION_DEFAULT(NOTEQ, not eq);
+    else OPERATION_DEFAULT(NOTEQ, Not Eq);
 }
 
-#define BITMACRO(SYMBOL, M_NAME, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
+#define BITMACRO(SYMBOL, M_NAME_, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
     if (left->value->type == V_int && right->value->type == V_int) \
         makeIntValue(left->value->data.int_.num SYMBOL right->value->data.int_.num, LINEFILE, CNEXT_NT); \
-    else OPERATION_DEFAULT(M_NAME, TYPE); \
+    else OPERATION_DEFAULT(M_NAME_, TYPE); \
 }
 
 BITMACRO(&, BAND, band, Bit And)
@@ -167,21 +167,21 @@ BITMACRO(|, BOR, bor, Bit Or)
 BITMACRO(^, BXOR, bxor, Bit Xor)
 #undef BITMACRO
 
-#define BITMOVEMACRO(SYMBOL1, SYMBOL2, M_NAME, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
+#define BITMOVEMACRO(SYMBOL1, SYMBOL2, M_NAME_, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
     if (left->value->type == V_int && right->value->type == V_int) { \
         if (right->value->data.int_.num >= 0) \
             makeIntValue(left->value->data.int_.num SYMBOL1 (unsigned)right->value->data.int_.num, LINEFILE, CNEXT_NT); \
         else \
             makeIntValue(left->value->data.int_.num SYMBOL2 (unsigned)(-right->value->data.int_.num), LINEFILE, CNEXT_NT); \
-    } else OPERATION_DEFAULT(M_NAME, TYPE); \
+    } else OPERATION_DEFAULT(M_NAME_, TYPE); \
 }
 
 BITMOVEMACRO(<<, >>, BL, bl, Bit Left)
 BITMOVEMACRO(>>, <<, BR, br, Bit Right)
 #undef BITMOVEMACRO
 
-#define COMPAREMACRO(SYMBOL, M_NAME, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
+#define COMPAREMACRO(SYMBOL, M_NAME_, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
     if (left->value->type == V_int && right->value->type == V_int) \
         makeBoolValue(left->value->data.int_.num SYMBOL right->value->data.int_.num, LINEFILE, CNEXT_NT); \
@@ -193,7 +193,7 @@ BITMOVEMACRO(>>, <<, BR, br, Bit Right)
         makeBoolValue(left->value->data.dou.num SYMBOL right->value->data.dou.num, LINEFILE, CNEXT_NT); \
     else if (left->value->type == V_pointer && right->value->type == V_pointer) \
         makeBoolValue((char *)left->value->data.pointer.pointer SYMBOL (char *)right->value->data.pointer.pointer, LINEFILE, CNEXT_NT); \
-    else OPERATION_DEFAULT(M_NAME, TYPE); \
+    else OPERATION_DEFAULT(M_NAME_, TYPE); \
 }
 
 COMPAREMACRO(>, MORE, more, More)
@@ -220,7 +220,7 @@ ResultType vobject_opt_core(O_FUNC, base_opt func){
     left = ap[1].value;
     right = ap[2].value;
 
-    func(CFUNC_VOBJ(var_list, result, belong, left, right, (ap[0].value == left)));  // 如果 (ap[0].value == left) 为 true 则代表 is_left 模式
+    func(CFUNC_VOBJ(var_list, result, belong, left, right, (ap[0].value->value == left->value)));  // 如果 (ap[0].value->value == left->value) 为 true 则代表 is_left 模式
     return result->type;
 }
 
@@ -450,9 +450,6 @@ void registeredVObject(R_FUNC){
                       {inter->data.mag_func[M_SUB], vobject_sub, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_MUL], vobject_mul, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_DIV], vobject_div, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_BOOL], vobject_bool, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_REPO], vobject_repo, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_STR], vobject_repo, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_INTDIV], vobject_intdiv, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_MOD], vobject_mod, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_POW], vobject_pow, fp_obj, .var=nfv_notpush},
@@ -472,6 +469,10 @@ void registeredVObject(R_FUNC){
 
                       {inter->data.mag_func[M_NEGATE], vobject_negate, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_BNOT], vobject_bnot, fp_obj, .var=nfv_notpush},
+
+                      {inter->data.mag_func[M_BOOL], vobject_bool, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_REPO], vobject_repo, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_STR], vobject_repo, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"vobject", object, belong, inter);
