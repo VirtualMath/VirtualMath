@@ -125,12 +125,12 @@ struct Inter{
         } assert_run;
         int run_gc;  // gc的启动计数
         bool start_gc;  // 是否启动gc
-        bool free_mode;  // 自由模式
+        bool free_mode;  // 自由模式(若为true, 则在makeValue的使用完全通过callBack执行)
         enum OptMode {
-            om_free,
-            om_normal,
-            om_simple,
-        } opt_mode;
+            om_free,  // 完全通过callBack执行
+            om_normal,  // 只要ValueType不是obj或class就通过静态方法执行
+            om_simple,  // buildin 类型都通过静态方法执行
+        } opt_mode;  // 表达式执行模式
 
         bool value_folding;  // 常量折叠[on]
         bool var_folding;  // 变量折叠[off]

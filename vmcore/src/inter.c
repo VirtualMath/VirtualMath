@@ -251,11 +251,17 @@ void printGC(Inter *inter){
     printf("\n");
 
     printf("linkvalue tmp       link = %ld\n", lv_tmp);
-    printf("linkvalue statement link = %ld\n", lv_st);
+#ifdef PRINT_ST
+    printf("linkvalue statement link = %ld\n", lv_st);  // 因为常量常量折叠, 因此通常不需要显示st link
+#endif // PRINT_ST
     printf("    value tmp       link = %ld\n", v_tmp);
     printf("    value statement link = %ld\n", v_st);
     printf("      tmp link     count = %ld\n", lv_tmp + v_tmp);
+#ifdef PRINT_ST
     printf("statement link     count = %ld\n", lv_st + v_st);
+#else
+    printf("statement link     count = %ld\n", v_st);
+#endif // PRINT_ST
 #endif
 
 }
@@ -278,7 +284,12 @@ void printLinkValueGC(char *tag, Inter *inter, long *tmp_link, long *st_link) {
     while (base != NULL) {
         tmp += labs(base->gc_status.tmp_link);
         st += labs(base->gc_status.statement_link);
-        if (base->gc_status.tmp_link != 0 || base->gc_status.statement_link != 0) {
+#ifdef PRINT_ST
+        if (base->gc_status.tmp_link != 0 || base->gc_status.statement_link != 0)
+#else
+        if (base->gc_status.tmp_link != 0)
+#endif
+        {
             printf("inter->link_base.tmp_link       = %ld :: %p\n", base->gc_status.tmp_link, base);
             printf("inter->link_base.statement_link = %ld :: %p\n", base->gc_status.statement_link, base);
             printf("inter->link_base.link           = %ld :: %p\n", base->gc_status.link, base);

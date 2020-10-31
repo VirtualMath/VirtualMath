@@ -730,7 +730,69 @@ bool getLeftRightValue(Result *left, Result *right, FUNC){
     return false;
 }
 
-#define OPT_CASE(NAME, FUNC_NAME) case OPT_##NAME: vobject_##FUNC_NAME##_base(CFUNC_VOBJ(var_list, result, belong, left.value->value, right.value->value)); break
+ResultType runOperationFromValue(LinkValue *self, LinkValue *left, LinkValue *right, wchar_t *name, fline line, char *file, FUNC_NT) {
+    LinkValue *_func_;
+    setResultCore(result);
+    gc_addTmpLink(&self->gc_status);
+    gc_addTmpLink(&left->gc_status);
+    gc_addTmpLink(&right->gc_status);
+
+    _func_ = findAttributes(name, false, LINEFILE, true, CFUNC_NT(var_list, result, self));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
+
+    if (_func_ != NULL){
+        Argument *f_arg = NULL;
+        f_arg = makeValueArgument(left);
+        if (right != NULL)
+            f_arg->next = makeValueArgument(right);
+        gc_addTmpLink(&_func_->gc_status);
+        callBackCore(_func_, f_arg, line, file, 0, CNEXT_NT);
+        gc_freeTmpLink(&_func_->gc_status);
+        freeArgument(f_arg, true);
+    }
+    else {
+        wchar_t *message = memWidecat(L"Object not support ", name, false, false);
+        setResultError(E_TypeException, message, line, file, true, CNEXT_NT);
+        memFree(message);
+    }
+    return_:
+    gc_freeTmpLink(&self->gc_status);
+    gc_freeTmpLink(&left->gc_status);
+    gc_freeTmpLink(&right->gc_status);
+    return result->type;
+}
+
+ResultType runOperationFromValue2(LinkValue *self, wchar_t *name, fline line, char *file, FUNC_NT) {
+    LinkValue *_func_;
+    gc_addTmpLink(&self->gc_status);
+    setResultCore(result);
+
+    _func_ = findAttributes(name, false, LINEFILE, true, CFUNC_NT(var_list, result, self));
+    if (!CHECK_RESULT(result))
+        goto return_;
+    freeResult(result);
+
+    if (_func_ != NULL){
+        Argument *f_arg = NULL;
+        f_arg = makeValueArgument(self);
+        gc_addTmpLink(&_func_->gc_status);
+        callBackCore(_func_, f_arg, line, file, 0, CNEXT_NT);
+        gc_freeTmpLink(&_func_->gc_status);
+        freeArgument(f_arg, true);
+    }
+    else {
+        wchar_t *message = memWidecat(L"Object not support ", name, false, false);
+        setResultError(E_TypeException, message, line, file, true, CNEXT_NT);
+        memFree(message);
+    }
+    return_:
+    gc_freeTmpLink(&self->gc_status);
+    return result->type;
+}
+
+#define OPT_CASE(NAME, FUNC_NAME) case OPT_##NAME: vobject_##FUNC_NAME##_base(CFUNC_VOBJ_LEFT(var_list, result, belong, left.value, right.value)); break
 static ResultType operationCore(FUNC, wchar_t *name, enum OperationType type) {
     Result left;
     Result right;
@@ -765,7 +827,7 @@ static ResultType operationCore(FUNC, wchar_t *name, enum OperationType type) {
                 goto default_mode;
         }
     } else
-        default_mode: runOperationFromValue(left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
+        default_mode: runOperationFromValue(left.value, left.value, right.value, name, st->line, st->code_file, CNEXT_NT);
 
     if (inter->data.opt_folding && st->u.operation.left->type == base_value && st->u.operation.right->type == base_value) {  // 常量表达式折叠
         freeStatement(st->u.operation.left);
@@ -783,7 +845,7 @@ static ResultType operationCore(FUNC, wchar_t *name, enum OperationType type) {
 }
 #undef OPT_CASE
 
-#define OPT_CASE(NAME, FUNC_NAME) case OPT_##NAME: vobject_##FUNC_NAME##_base(CFUNC_VOBJR(var_list, result, belong, left->value)); break
+#define OPT_CASE(NAME, FUNC_NAME) case OPT_##NAME: vobject_##FUNC_NAME##_base(CFUNC_VOBJR(var_list, result, belong, left)); break
 static ResultType operationCore2(FUNC, wchar_t *name, enum OperationType type) {
     LinkValue *left;
     setResultCore(result);
@@ -800,41 +862,8 @@ static ResultType operationCore2(FUNC, wchar_t *name, enum OperationType type) {
                 goto default_mode;
         }
     } else
-        default_mode: runOperationFromValue(left, NULL, name, st->line, st->code_file, CNEXT_NT);
+        default_mode: runOperationFromValue2(left, name, st->line, st->code_file, CNEXT_NT);
     gc_freeTmpLink(&left->gc_status);
     return result->type;
 }
 #undef OPT_CASE
-
-ResultType runOperationFromValue(LinkValue *self, LinkValue *arg, wchar_t *name, fline line, char *file, FUNC_NT) {
-    LinkValue *_func_;
-    gc_addTmpLink(&self->gc_status);
-    if (arg != NULL)
-        gc_addTmpLink(&arg->gc_status);
-    setResultCore(result);
-
-    _func_ = findAttributes(name, false, LINEFILE, true, CFUNC_NT(var_list, result, self));
-    if (!CHECK_RESULT(result))
-        goto return_;
-    freeResult(result);
-
-    if (_func_ != NULL){
-        Argument *f_arg = NULL;
-        if (arg != NULL)
-            f_arg = makeValueArgument(arg);
-        gc_addTmpLink(&_func_->gc_status);
-        callBackCore(_func_, f_arg, line, file, 0, CNEXT_NT);
-        gc_freeTmpLink(&_func_->gc_status);
-        freeArgument(f_arg, true);
-    }
-    else {
-        wchar_t *message = memWidecat(L"Object not support ", name, false, false);
-        setResultError(E_TypeException, message, line, file, true, CNEXT_NT);
-        memFree(message);
-    }
-    return_:
-    gc_freeTmpLink(&self->gc_status);
-    if (arg != NULL)
-        gc_freeTmpLink(&arg->gc_status);
-    return result->type;
-}

@@ -26,10 +26,11 @@
 #define R_FUNC struct LinkValue *belong, FUNC_CORE
 #define CR_FUNC(belong, var_list) belong, CFUNC_CORE(var_list)
 
-#define FUNC_VOBJ struct LinkValue *belong, struct Result *result, struct Inter *inter, struct VarList *var_list, struct Value *left, struct Value *right
-#define CFUNC_VOBJ(var_list, result, belong, left, right) belong, result, inter, var_list, left, right
+#define FUNC_VOBJ struct LinkValue *belong, struct Result *result, struct Inter *inter, struct VarList *var_list, struct LinkValue *left, struct LinkValue *right, bool is_left
+#define CFUNC_VOBJ_LEFT(var_list, result, belong, left, right) belong, result, inter, var_list, left, right, true
+#define CFUNC_VOBJ(var_list, result, belong, left, right, is_left) belong, result, inter, var_list, left, right, is_left
 
-#define FUNC_VOBJR struct LinkValue *belong, struct Result *result, struct Inter *inter, struct VarList *var_list, struct Value *left
+#define FUNC_VOBJR struct LinkValue *belong, struct Result *result, struct Inter *inter, struct VarList *var_list, struct LinkValue *left
 #define CFUNC_VOBJR(var_list, result, belong, left) belong, result, inter, var_list, left
 
 #define LINEFILE __LINE__, __FILE__

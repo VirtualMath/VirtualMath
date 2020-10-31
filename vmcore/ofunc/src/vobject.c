@@ -1,121 +1,118 @@
 #include "__ofunc.h"
 typedef void (*base_opt)(FUNC_VOBJ);
+
+#define OPERATION_DEFAULT(M_NAME, ERR_NAME) do{ if (is_left) {runOperationFromValue(right, left, right, inter->data.mag_func[M_##M_NAME], LINEFILE, CNEXT_NT);} else {setResultError(E_TypeException, CUL_ERROR(ERR_NAME), LINEFILE, true, CNEXT_NT);} }while(0)
+
 void vobject_add_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (left->type == V_int && right->type == V_int)
-        makeIntValue(left->data.int_.num + right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_dou)
-        makeDouValue(left->data.int_.num + right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_int)
-        makeDouValue(left->data.dou.num + right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_dou)
-        makeDouValue(left->data.dou.num + right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if(left->type == V_str && right->type == V_str){
-        wchar_t *new_string = memWidecat(left->data.str.str, right->data.str.str, false, false);
+    if (left->value->type == V_int && right->value->type == V_int)
+        makeIntValue(left->value->data.int_.num + right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        makeDouValue(left->value->data.int_.num + right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_int)
+        makeDouValue(left->value->data.dou.num + right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        makeDouValue(left->value->data.dou.num + right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if(left->value->type == V_str && right->value->type == V_str){
+        wchar_t *new_string = memWidecat(left->value->data.str.str, right->value->data.str.str, false, false);
         makeStringValue(new_string, LINEFILE, CNEXT_NT);
         memFree(new_string);
-    } else
-        setResultError(E_TypeException, CUL_ERROR(Add), LINEFILE, true, CNEXT_NT);
+    } else OPERATION_DEFAULT(ADD, Add);
 }
 
 void vobject_sub_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (left->type == V_int && right->type == V_int)
-        makeIntValue(left->data.int_.num - right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_dou)
-        makeDouValue(left->data.int_.num - right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_int)
-        makeDouValue(left->data.dou.num - right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_dou)
-        makeDouValue(left->data.dou.num - right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_pointer && right->type == V_pointer)
-        makeIntValue((char *)left->data.pointer.pointer - (char *)right->data.pointer.pointer, LINEFILE, CNEXT_NT);
-    else
-        setResultError(E_TypeException, CUL_ERROR(Sub), LINEFILE, true, CNEXT_NT);
+    if (left->value->type == V_int && right->value->type == V_int)
+        makeIntValue(left->value->data.int_.num - right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        makeDouValue(left->value->data.int_.num - right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_int)
+        makeDouValue(left->value->data.dou.num - right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        makeDouValue(left->value->data.dou.num - right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_pointer && right->value->type == V_pointer)
+        makeIntValue((char *)left->value->data.pointer.pointer - (char *)right->value->data.pointer.pointer, LINEFILE, CNEXT_NT);
+    else OPERATION_DEFAULT(SUB, Sub);
 }
 
 void vobject_mul_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (left->type == V_int && right->type == V_int)
-        makeIntValue(left->data.int_.num * right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_dou)
-        makeDouValue(left->data.int_.num * right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_int)
-        makeDouValue(left->data.dou.num * right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_dou)
-        makeDouValue(left->data.dou.num * right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if(left->type == V_int && right->type == V_str) {
-        Value *tmp = left;
-        left = right;
-        right = tmp;
+    if (left->value->type == V_int && right->value->type == V_int)
+        makeIntValue(left->value->data.int_.num * right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        makeDouValue(left->value->data.int_.num * right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_int)
+        makeDouValue(left->value->data.dou.num * right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        makeDouValue(left->value->data.dou.num * right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if(left->value->type == V_int && right->value->type == V_str) {
+        Value *tmp = left->value;
+        left->value = right->value;
+        right->value = tmp;
         goto mul_str;
-    } else if(left->type == V_str && right->type == V_int) mul_str: {
-        wchar_t *new_string = memWidecpySelf(left->data.str.str, right->data.int_.num);
+    } else if(left->value->type == V_str && right->value->type == V_int) mul_str: {
+        wchar_t *new_string = memWidecpySelf(left->value->data.str.str, right->value->data.int_.num);
         makeStringValue(new_string, LINEFILE, CNEXT_NT);
         memFree(new_string);
-    } else
-        setResultError(E_TypeException, CUL_ERROR(Mul), LINEFILE, true, CNEXT_NT);
+    } else OPERATION_DEFAULT(MUL, Mul);
 }
 
 void vobject_div_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (right->type == V_int && right->data.int_.num == 0 || right->type == V_dou && !(right->data.dou.num != 0))  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
+    if (right->value->type == V_int && right->value->data.int_.num == 0 || right->value->type == V_dou && !(right->value->data.dou.num != 0))  // !(right->value->data.dou.num != 0) 因为long double检查是否位0时容易出错
         setResultError(E_ValueException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_int) {
-        lldiv_t div_result = lldiv(left->data.int_.num, right->data.int_.num);
+    else if (left->value->type == V_int && right->value->type == V_int) {
+        lldiv_t div_result = lldiv(left->value->data.int_.num, right->value->data.int_.num);
         makeIntValue(div_result.quot, LINEFILE, CNEXT_NT);
-    } else if (left->type == V_dou && right->type == V_int)
-        makeDouValue(left->data.dou.num / (vdou)right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_dou)
-        makeDouValue((vdou)left->data.int_.num / right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_dou)
-        makeDouValue(left->data.dou.num / right->data.dou.num, LINEFILE, CNEXT_NT);
-    else
-        setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
+    } else if (left->value->type == V_dou && right->value->type == V_int)
+        makeDouValue(left->value->data.dou.num / (vdou)right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        makeDouValue((vdou)left->value->data.int_.num / right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        makeDouValue(left->value->data.dou.num / right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else OPERATION_DEFAULT(DIV, Div);
 }
 
 void vobject_intdiv_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (right->type == V_int && right->data.int_.num == 0 || right->type == V_dou && (vint)right->data.dou.num == 0)  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
+    if (right->value->type == V_int && right->value->data.int_.num == 0 || right->value->type == V_dou && (vint)right->value->data.dou.num == 0)  // !(right->value->data.dou.num != 0) 因为long double检查是否位0时容易出错
         setResultError(E_TypeException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_int) {
-        lldiv_t div_result = lldiv(left->data.int_.num, right->data.int_.num);
+    else if (left->value->type == V_int && right->value->type == V_int) {
+        lldiv_t div_result = lldiv(left->value->data.int_.num, right->value->data.int_.num);
         makeIntValue(div_result.quot, LINEFILE, CNEXT_NT);
-    } else if (left->type == V_dou && right->type == V_int)
-        makeIntValue((vint)left->data.dou.num / right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_dou)
-        makeIntValue(left->data.int_.num / (vint)right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_dou)
-        makeIntValue((vint)left->data.dou.num / (vint)right->data.dou.num, LINEFILE, CNEXT_NT);
-    else
-        setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
+    } else if (left->value->type == V_dou && right->value->type == V_int)
+        makeIntValue((vint)left->value->data.dou.num / right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        makeIntValue(left->value->data.int_.num / (vint)right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        makeIntValue((vint)left->value->data.dou.num / (vint)right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else OPERATION_DEFAULT(INTDIV, int div);
 }
 
 void vobject_mod_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (right->type == V_int && right->data.int_.num == 0)  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
+    if (right->value->type == V_int && right->value->data.int_.num == 0)  // !(right->value->data.dou.num != 0) 因为long double检查是否位0时容易出错
         setResultError(E_TypeException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_int) {
-        lldiv_t div_result = lldiv(left->data.int_.num, right->data.int_.num);
+    else if (left->value->type == V_int && right->value->type == V_int) {
+        lldiv_t div_result = lldiv(left->value->data.int_.num, right->value->data.int_.num);
         makeIntValue(div_result.rem, LINEFILE, CNEXT_NT);
-    } else
-        setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
+    } else OPERATION_DEFAULT(MOD, mod);
 }
 
 void vobject_pow_base(FUNC_VOBJ) {
     setResultCore(result);
     errno = 0;  // 初始化error
     vdou re;
-    if (left->type == V_int && right->type == V_int)
-        re = pow(left->data.int_.num, right->data.int_.num);
-    else if (left->type == V_dou && right->type == V_int)
-        re = powl(left->data.dou.num, right->data.int_.num);
-    else if (left->type == V_int && right->type == V_dou)
-        re = powl(left->data.int_.num, right->data.dou.num);
-    else if (left->type == V_dou && right->type == V_dou)
-        re = powl(left->data.dou.num, right->data.dou.num);
+    if (left->value->type == V_int && right->value->type == V_int)
+        re = pow(left->value->data.int_.num, right->value->data.int_.num);
+    else if (left->value->type == V_dou && right->value->type == V_int)
+        re = powl(left->value->data.dou.num, right->value->data.int_.num);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        re = powl(left->value->data.int_.num, right->value->data.dou.num);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        re = powl(left->value->data.dou.num, right->value->data.dou.num);
     else {
-        setResultError(E_TypeException, CUL_ERROR(Div), LINEFILE, true, CNEXT_NT);
+        OPERATION_DEFAULT(POW, pow);
         return;
     }
     if (errno != 0)
@@ -126,94 +123,90 @@ void vobject_pow_base(FUNC_VOBJ) {
 
 void vobject_eq_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (left->type == V_int && right->type == V_int)
-        makeBoolValue(left->data.int_.num == right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_dou)
-        makeBoolValue(left->data.int_.num == right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_int)
-        makeBoolValue(left->data.dou.num == right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_dou)
-        makeBoolValue(left->data.dou.num == right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_pointer && right->type == V_pointer)
-        makeBoolValue((char *)left->data.pointer.pointer == (char *)right->data.pointer.pointer, LINEFILE, CNEXT_NT);
-    else if (left->type == V_str && right->type == V_str)
-        makeBoolValue(eqWide(left->data.str.str, left->data.str.str), LINEFILE, CNEXT_NT);
-    else
-        makeBoolValue(left == right, LINEFILE, CNEXT_NT);
+    if (left->value->type == V_int && right->value->type == V_int)
+        makeBoolValue(left->value->data.int_.num == right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        makeBoolValue(left->value->data.int_.num == right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_int)
+        makeBoolValue(left->value->data.dou.num == right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        makeBoolValue(left->value->data.dou.num == right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_pointer && right->value->type == V_pointer)
+        makeBoolValue((char *)left->value->data.pointer.pointer == (char *)right->value->data.pointer.pointer, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_str && right->value->type == V_str)
+        makeBoolValue(eqWide(left->value->data.str.str, left->value->data.str.str), LINEFILE, CNEXT_NT);
+    else OPERATION_DEFAULT(EQ, eq);  // TODO-szh 再obj中添加兜底操作
 }
 
 void vobject_noteq_base(FUNC_VOBJ) {
     setResultCore(result);
-    if (left->type == V_int && right->type == V_int)
-        makeBoolValue(left->data.int_.num != right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_int && right->type == V_dou)
-        makeBoolValue(left->data.int_.num != right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_int)
-        makeBoolValue(left->data.dou.num != right->data.int_.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_dou && right->type == V_dou)
-        makeBoolValue(left->data.dou.num != right->data.dou.num, LINEFILE, CNEXT_NT);
-    else if (left->type == V_pointer && right->type == V_pointer)
-        makeBoolValue((char *)left->data.pointer.pointer != (char *)right->data.pointer.pointer, LINEFILE, CNEXT_NT);
-    else if (left->type == V_str && right->type == V_str)
-        makeBoolValue(!(eqWide(left->data.str.str, left->data.str.str)), LINEFILE, CNEXT_NT);
-    else
-        makeBoolValue(left != right, LINEFILE, CNEXT_NT);
+    if (left->value->type == V_int && right->value->type == V_int)
+        makeBoolValue(left->value->data.int_.num != right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_int && right->value->type == V_dou)
+        makeBoolValue(left->value->data.int_.num != right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_int)
+        makeBoolValue(left->value->data.dou.num != right->value->data.int_.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_dou && right->value->type == V_dou)
+        makeBoolValue(left->value->data.dou.num != right->value->data.dou.num, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_pointer && right->value->type == V_pointer)
+        makeBoolValue((char *)left->value->data.pointer.pointer != (char *)right->value->data.pointer.pointer, LINEFILE, CNEXT_NT);
+    else if (left->value->type == V_str && right->value->type == V_str)
+        makeBoolValue(!(eqWide(left->value->data.str.str, left->value->data.str.str)), LINEFILE, CNEXT_NT);
+    else OPERATION_DEFAULT(NOTEQ, not eq);
 }
 
-#define BITMACRO(SYMBOL, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
+#define BITMACRO(SYMBOL, M_NAME, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
-    if (left->type == V_int && right->type == V_int) \
-        makeIntValue(left->data.int_.num SYMBOL right->data.int_.num, LINEFILE, CNEXT_NT); \
-    else \
-        setResultError(E_TypeException, CUL_ERROR(TYPE), LINEFILE, true, CNEXT_NT); \
+    if (left->value->type == V_int && right->value->type == V_int) \
+        makeIntValue(left->value->data.int_.num SYMBOL right->value->data.int_.num, LINEFILE, CNEXT_NT); \
+    else OPERATION_DEFAULT(M_NAME, TYPE); \
 }
 
-BITMACRO(&, band, Bit And)
-BITMACRO(|, bor, Bit Or)
-BITMACRO(^, bxor, Bit Xor)
+BITMACRO(&, BAND, band, Bit And)
+BITMACRO(|, BOR, bor, Bit Or)
+BITMACRO(^, BXOR, bxor, Bit Xor)
 #undef BITMACRO
 
-#define BITMOVEMACRO(SYMBOL1, SYMBOL2, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
+#define BITMOVEMACRO(SYMBOL1, SYMBOL2, M_NAME, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
-    if (left->type == V_int && right->type == V_int) { \
-        if (right->data.int_.num >= 0) \
-            makeIntValue(left->data.int_.num SYMBOL1 (unsigned)right->data.int_.num, LINEFILE, CNEXT_NT); \
+    if (left->value->type == V_int && right->value->type == V_int) { \
+        if (right->value->data.int_.num >= 0) \
+            makeIntValue(left->value->data.int_.num SYMBOL1 (unsigned)right->value->data.int_.num, LINEFILE, CNEXT_NT); \
         else \
-            makeIntValue(left->data.int_.num SYMBOL2 (unsigned)(-right->data.int_.num), LINEFILE, CNEXT_NT); \
-    } else \
-        setResultError(E_TypeException, CUL_ERROR(TYPE), LINEFILE, true, CNEXT_NT); \
+            makeIntValue(left->value->data.int_.num SYMBOL2 (unsigned)(-right->value->data.int_.num), LINEFILE, CNEXT_NT); \
+    } else OPERATION_DEFAULT(M_NAME, TYPE); \
 }
 
-BITMOVEMACRO(<<, >>, bl, Bit Left)
-BITMOVEMACRO(>>, <<, br, Bit Right)
+BITMOVEMACRO(<<, >>, BL, bl, Bit Left)
+BITMOVEMACRO(>>, <<, BR, br, Bit Right)
 #undef BITMOVEMACRO
 
-#define COMPAREMACRO(SYMBOL, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
+#define COMPAREMACRO(SYMBOL, M_NAME, NAME, TYPE) void vobject_##NAME##_base(FUNC_VOBJ) { \
     setResultCore(result); \
-    if (left->type == V_int && right->type == V_int) \
-        makeBoolValue(left->data.int_.num SYMBOL right->data.int_.num, LINEFILE, CNEXT_NT); \
-    else if (left->type == V_int && right->type == V_dou) \
-        makeBoolValue(left->data.int_.num SYMBOL right->data.dou.num, LINEFILE, CNEXT_NT); \
-    else if (left->type == V_dou && right->type == V_int) \
-        makeBoolValue(left->data.dou.num SYMBOL right->data.int_.num, LINEFILE, CNEXT_NT); \
-    else if (left->type == V_dou && right->type == V_dou) \
-        makeBoolValue(left->data.dou.num SYMBOL right->data.dou.num, LINEFILE, CNEXT_NT); \
-    else if (left->type == V_pointer && right->type == V_pointer) \
-        makeBoolValue((char *)left->data.pointer.pointer SYMBOL (char *)right->data.pointer.pointer, LINEFILE, CNEXT_NT); \
-    else \
-        setResultError(E_TypeException, CUL_ERROR(TYPE), LINEFILE, true, CNEXT_NT); \
+    if (left->value->type == V_int && right->value->type == V_int) \
+        makeBoolValue(left->value->data.int_.num SYMBOL right->value->data.int_.num, LINEFILE, CNEXT_NT); \
+    else if (left->value->type == V_int && right->value->type == V_dou) \
+        makeBoolValue(left->value->data.int_.num SYMBOL right->value->data.dou.num, LINEFILE, CNEXT_NT); \
+    else if (left->value->type == V_dou && right->value->type == V_int) \
+        makeBoolValue(left->value->data.dou.num SYMBOL right->value->data.int_.num, LINEFILE, CNEXT_NT); \
+    else if (left->value->type == V_dou && right->value->type == V_dou) \
+        makeBoolValue(left->value->data.dou.num SYMBOL right->value->data.dou.num, LINEFILE, CNEXT_NT); \
+    else if (left->value->type == V_pointer && right->value->type == V_pointer) \
+        makeBoolValue((char *)left->value->data.pointer.pointer SYMBOL (char *)right->value->data.pointer.pointer, LINEFILE, CNEXT_NT); \
+    else OPERATION_DEFAULT(M_NAME, TYPE); \
 }
 
-COMPAREMACRO(>, more, More)
-COMPAREMACRO(>=, moreeq, More Eq)
-COMPAREMACRO(<=, lesseq, Less Eq)
-COMPAREMACRO(<, less, Less Eq)
+COMPAREMACRO(>, MORE, more, More)
+COMPAREMACRO(>=, MOREEQ, moreeq, More Eq)
+COMPAREMACRO(<=, LESSEQ, lesseq, Less Eq)
+COMPAREMACRO(<, LESS, less, Less Eq)
 #undef COMPAREMACRO
 
 ResultType vobject_opt_core(O_FUNC, base_opt func){
-    Value *left = NULL;
-    Value *right = NULL;
+    LinkValue *left;
+    LinkValue *right;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"left", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"right", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
@@ -224,10 +217,10 @@ ResultType vobject_opt_core(O_FUNC, base_opt func){
         freeResult(result);
     }
 
-    left = ap[0].value->value;
-    right = ap[1].value->value;
+    left = ap[1].value;
+    right = ap[2].value;
 
-    func(CFUNC_VOBJ(var_list, result, belong, left, right));
+    func(CFUNC_VOBJ(var_list, result, belong, left, right, (ap[0].value == left)));  // 如果 (ap[0].value == left) 为 true 则代表 is_left 模式
     return result->type;
 }
 
@@ -254,21 +247,21 @@ COMPAREFUNCMACRO(br)
 
 void vobject_negate_base(FUNC_VOBJR) {
     setResultCore(result);
-    switch (left->type) {
+    switch (left->value->type) {
         case V_int:
-            makeIntValue(-(left->data.int_.num), LINEFILE, CNEXT_NT);
+            makeIntValue(-(left->value->data.int_.num), LINEFILE, CNEXT_NT);
             break;
         case V_dou:
-            makeDouValue(-(left->data.dou.num), LINEFILE, CNEXT_NT);
+            makeDouValue(-(left->value->data.dou.num), LINEFILE, CNEXT_NT);
             break;
         case V_str: {
-            wchar_t *new = memWidecpySelf(left->data.str.str, -1);
+            wchar_t *new = memWidecpySelf(left->value->data.str.str, -1);
             makeStringValue(new, LINEFILE, CNEXT_NT);
             memFree(new);
             break;
         }
         case V_bool:
-            makeBoolValue(!(left->data.bool_.bool_), LINEFILE, CNEXT_NT);
+            makeBoolValue(!(left->value->data.bool_.bool_), LINEFILE, CNEXT_NT);
             break;
         case V_none:
             setResult(result, inter);
@@ -281,12 +274,12 @@ void vobject_negate_base(FUNC_VOBJR) {
 
 void vobject_bnot_base(FUNC_VOBJR) {
     setResultCore(result);
-    switch (left->type) {
+    switch (left->value->type) {
         case V_int:
-            makeIntValue(~(unsigned long long)(left->data.int_.num), LINEFILE, CNEXT_NT);
+            makeIntValue(~(unsigned long long)(left->value->data.int_.num), LINEFILE, CNEXT_NT);
             break;
         case V_bool:
-            makeBoolValue(!(left->data.bool_.bool_), LINEFILE, CNEXT_NT);
+            makeBoolValue(!(left->value->data.bool_.bool_), LINEFILE, CNEXT_NT);
             break;
         case V_none:
             setResult(result, inter);
@@ -299,6 +292,7 @@ void vobject_bnot_base(FUNC_VOBJR) {
 
 ResultType vobject_negate(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"val", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
@@ -306,12 +300,13 @@ ResultType vobject_negate(O_FUNC){
         return result->type;
     freeResult(result);
 
-    vobject_negate_base(CFUNC_VOBJR(var_list, result, belong, ap[0].value->value));
+    vobject_negate_base(CFUNC_VOBJR(var_list, result, belong, ap[1].value));
     return result->type;
 }
 
 ResultType vobject_bnot(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"val", .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
@@ -319,7 +314,7 @@ ResultType vobject_bnot(O_FUNC){
         return result->type;
     freeResult(result);
 
-    vobject_bnot_base(CFUNC_VOBJR(var_list, result, belong, ap[0].value->value));
+    vobject_bnot_base(CFUNC_VOBJR(var_list, result, belong, ap[1].value));
     return result->type;
 }
 
