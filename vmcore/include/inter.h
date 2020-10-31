@@ -9,7 +9,7 @@ struct Result;
 
 #define BASEOBJSZIE (17)
 #define VARNAMESIZE (10)
-#define BASEEXCESIZE (19)
+#define BASEEXCESIZE (20)
 #define MAGFUNCSIZE (46)
 
 #define B_OBJECT (0)

@@ -60,7 +60,7 @@ void vobject_mul_base(FUNC_VOBJ) {
 void vobject_div_base(FUNC_VOBJ) {
     setResultCore(result);
     if (right->type == V_int && right->data.int_.num == 0 || right->type == V_dou && !(right->data.dou.num != 0))  // !(right->data.dou.num != 0) 因为long double检查是否位0时容易出错
-        setResultError(E_TypeException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
+        setResultError(E_ValueException, L"divisor mustn't be 0", LINEFILE, true, CNEXT_NT);
     else if (left->type == V_int && right->type == V_int) {
         lldiv_t div_result = lldiv(left->data.int_.num, right->data.int_.num);
         makeIntValue(div_result.quot, LINEFILE, CNEXT_NT);
@@ -119,7 +119,7 @@ void vobject_pow_base(FUNC_VOBJ) {
         return;
     }
     if (errno != 0)
-        setResultFromERR(E_TypeException, CNEXT_NT);  // TODO-szh 设置计算错误
+        setResultFromERR(E_ValueException, CNEXT_NT);
     else
         makeDouValue(re, LINEFILE, CNEXT_NT);
 }

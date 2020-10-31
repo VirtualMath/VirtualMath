@@ -245,6 +245,7 @@ enum BaseErrorType{
     E_SystemException,
     E_KeyInterrupt,
     E_QuitException,
+    E_ValueException,
 };
 
 Value *makeObject(Inter *inter, VarList *object, VarList *out_var, bool set_out_var, Inherit *inherit);

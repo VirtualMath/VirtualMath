@@ -81,7 +81,7 @@ Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT) {
     Value *tmp = NULL;
     setResultCore(result);
     if (isnan(num) || isinf(num)) {
-        setResultError(E_TypeException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
+        setResultError(E_ValueException, L"decimal exception / [inf/nan]", LINEFILE, true, CNEXT_NT);
         return NULL;
     }
     if (inter->data.free_mode) {

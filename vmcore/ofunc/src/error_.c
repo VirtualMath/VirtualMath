@@ -29,6 +29,7 @@ void registeredExcIter(R_FUNC){
                    {L"KeyboardInterrupt", inter->data.base_exc[E_KeyInterrupt]},
                    {L"QuitException", inter->data.base_exc[E_QuitException]},
                    {L"TypeException", inter->data.base_exc[E_TypeException]},
+                   {L"ValueException", inter->data.base_exc[E_ValueException]},
                    {L"ArgumentException", inter->data.base_exc[E_ArgumentException]},
                    {L"PermissionsException", inter->data.base_exc[E_PermissionsException]},
                    {L"ResultException", inter->data.base_exc[E_ResultException]},
@@ -66,6 +67,7 @@ void makeExcIter(Inter *inter){
     inter->data.base_exc[E_QuitException] = makeException(inter->data.base_exc[E_SystemException], inter);
 
     inter->data.base_exc[E_TypeException] = makeException(inter->data.base_exc[E_Exception], inter);
+    inter->data.base_exc[E_ValueException] = makeException(inter->data.base_exc[E_Exception], inter);
     inter->data.base_exc[E_ArgumentException] = makeException(inter->data.base_exc[E_Exception], inter);
     inter->data.base_exc[E_PermissionsException] = makeException(inter->data.base_exc[E_Exception], inter);
     inter->data.base_exc[E_ResultException] = makeException(inter->data.base_exc[E_Exception], inter);

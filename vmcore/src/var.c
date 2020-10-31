@@ -188,7 +188,7 @@ LinkValue *findVar(wchar_t *name, VarOperation operating, Var **re, HashTable *h
  * @param var_list
  * @return
  */
-LinkValue *findFromVarList(wchar_t *name, vint times, Var **re, VarOperation operating, FUNC_CORE) {  // TODO-szh 去掉对inter的依赖
+LinkValue *findFromVarList(wchar_t *name, vint times, Var **re, VarOperation operating, FUNC_CORE) {
     LinkValue *tmp = NULL;
     vint base = findDefault(var_list->default_var, name) + times;
     for (vint i = 0; i < base && var_list->next != NULL; i++)
