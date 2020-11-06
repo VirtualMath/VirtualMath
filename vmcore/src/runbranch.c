@@ -1,11 +1,12 @@
 #include "__run.h"
 
-#define SET_FOLDING_BRANCH(folding_bak, set_folding, inter)bool folding_bak[] = {(inter)->data.value_folding /*[0]*/, \
-(inter)->data.var_folding /*[1]*/, (inter)->data.opt_folding /*[2]*/}; \
+#define SET_FOLDING_BRANCH(folding_bak, set_folding, inter)bool folding_bak[] = {(inter)->data.value_folding /*[0]*/, (inter)->data.opt_folding /*[1]*/}; \
 bool set_folding = (inter)->data.func_folding; \
-if (set_folding) { (inter)->data.value_folding = (inter)->data.var_folding = (inter)->data.opt_folding = true;}
+if (set_folding) { (inter)->data.value_folding = (inter)->data.opt_folding = true;}
 
-#define SET_FOLDING_END(folding_bak, set_folding, inter) if (set_folding) {(inter)->data.value_folding = (folding_bak)[0];(inter)->data.var_folding = (folding_bak)[1];(inter)->data.opt_folding = (folding_bak)[2];}
+#define SET_FOLDING_END(folding_bak, set_folding, inter) if (set_folding) {(inter)->data.value_folding = (folding_bak)[0];(inter)->data.opt_folding = (folding_bak)[1];}
+#define GET_YIELD(st) (st->info.have_info)
+
 
 static bool checkNumber(FUNC){
     if (!isType(result->value->value, V_int)) {
@@ -15,7 +16,7 @@ static bool checkNumber(FUNC){
     return true;
 }
 
-static void newBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status, Inter *inter){
+static void newBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status){
     if (new_var != NULL)
         new_var->next = NULL;
     branch_st->info.var_list = new_var;
@@ -27,7 +28,7 @@ static void newBranchYield(Statement *branch_st, Statement *node, StatementList 
 
 static void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
                         Inter *inter, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_, LinkValue *with){
-    newBranchYield(branch_st, node, sl_node, new_var, status, inter);
+    newBranchYield(branch_st, node, sl_node, new_var, status);
     branch_st->info.branch.with_.value = value;
     branch_st->info.branch.with_._exit_ = _exit_;
     branch_st->info.branch.with_._enter_ = _enter_;
@@ -36,7 +37,7 @@ static void newWithBranchYield(Statement *branch_st, Statement *node, StatementL
 
 static void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
                         Inter *inter, LinkValue *iter){
-    newBranchYield(branch_st, node, sl_node, new_var, status, inter);
+    newBranchYield(branch_st, node, sl_node, new_var, status);
     branch_st->info.branch.for_.iter = iter;
     gc_addTmpLink(&iter->gc_status);
 }
@@ -48,18 +49,14 @@ static void updateBranchYield(Statement *branch_st, Statement *node, StatementLi
     branch_st->info.have_info = true;
 }
 
-static void setBranchResult(bool yield_run, StatementList *sl, Statement *st, Result *result, enum StatementInfoStatus status, FUNC_CORE) {
+static void setBranchResult(bool yield_run, StatementList *sl, Statement *st, Result *result, enum StatementInfoStatus status) {
     if (yield_run) {
         if (result->type == R_yield)
             updateBranchYield(st, result->node, sl, status);
         else
-            freeRunInfo(st);
-    } else {
-        if (result->type == R_yield)
-            newBranchYield(st, result->node, sl, var_list, status, inter);
-        else
-            var_list = popVarList(var_list);
-    }
+            freeRunInfo(st, false);
+    } else if (result->type == R_yield)
+        newBranchYield(st, result->node, sl, NULL, status);
 }
 
 static bool runBranchHeard(Statement *condition, Statement *var, LinkValue **condition_value, FUNC_NT) {
@@ -159,7 +156,7 @@ ResultType ifBranch(FUNC) {
     enum StatementInfoStatus result_from = info_vl_branch;
 
     setResultCore(result);
-    yield_run = popYieldVarList(st, &var_list, var_list, inter);
+    yield_run = GET_YIELD(st);  // 不设置新的作用域
 
     if (yield_run) {
         if (st->info.branch.status == info_vl_branch){
@@ -175,7 +172,6 @@ ResultType ifBranch(FUNC) {
         } else if (st->info.branch.status == info_finally_branch)
             finally = st->info.node;
         else {
-            var_list = popVarList(var_list);
             setResultError(E_SystemException, L"yield info error", st->line, st->code_file, true, CNEXT_NT);
             return R_error;
         }
@@ -207,7 +203,7 @@ ResultType ifBranch(FUNC) {
         result_from = info_finally_branch;
     }
 
-    setBranchResult(yield_run, if_list, st, result, result_from, CFUNC_CORE(var_list));
+    setBranchResult(yield_run, if_list, st, result, result_from);  // 不设置var_list
     if (set_result)
         setResult(result, inter);
     return result->type;
@@ -286,7 +282,8 @@ ResultType whileBranch(FUNC) {
     SET_FOLDING_BRANCH(folding_bak, set_folding, inter)  // 不需要分号
 
     setResultCore(result);
-    yield_run = popYieldVarList(st, &var_list, var_list, inter);
+
+    yield_run = GET_YIELD(st);
     if (yield_run) {
         if (st->info.branch.status == info_first_do)
             first = st->info.node;
@@ -309,7 +306,6 @@ ResultType whileBranch(FUNC) {
             else_st = NULL;
             finally = st->info.node;
         } else {
-            var_list = popVarList(var_list);
             setResultError(E_SystemException, L"yield info error", st->line, st->code_file, true, CNEXT_NT);
             return R_error;
         }
@@ -346,7 +342,7 @@ ResultType whileBranch(FUNC) {
         result_from = info_finally_branch;
     }
 
-    setBranchResult(yield_run, while_list, st, result, result_from, CFUNC_CORE(var_list));
+    setBranchResult(yield_run, while_list, st, result, result_from);
     if (set_result)
         setResult(result, inter);
     SET_FOLDING_END(folding_bak, set_folding, inter)  // 不需要分号
@@ -452,13 +448,10 @@ static void setForResult(bool yield_run, StatementList *sl, Statement *st, Resul
         if (result->type == R_yield)
             updateBranchYield(st, result->node, sl, status);
         else
-            freeRunInfo(st);
-    } else {
-        if (result->type == R_yield)
-            newForBranchYield(st, result->node, sl, var_list, status, inter, iter);
-        else
-            popVarList(var_list);
-    }
+            freeRunInfo(st, false);
+    } else if (result->type == R_yield)
+        newForBranchYield(st, result->node, sl, var_list, status, inter, iter);
+    // else - 正常模式, 不作任何操作
 }
 
 ResultType forBranch(FUNC) {
@@ -479,7 +472,7 @@ ResultType forBranch(FUNC) {
     SET_FOLDING_BRANCH(folding_bak, set_folding, inter)  // 不需要分号
     setResultCore(result);
 
-    yield_run = popYieldVarList(st, &var_list, var_list, inter);
+    yield_run = GET_YIELD(st);
     if (yield_run) {
         if (st->info.branch.status == info_first_do)
             first = st->info.node;
@@ -505,7 +498,6 @@ ResultType forBranch(FUNC) {
             else_st = NULL;
             finally = st->info.node;
         } else {
-            var_list = popVarList(var_list);
             setResultError(E_SystemException, L"yield info error", st->line, st->code_file, true, CNEXT_NT);
             return R_error;
         }
@@ -554,7 +546,7 @@ ResultType forBranch(FUNC) {
         result_from = info_finally_branch;
     }
 
-    setForResult(yield_run, for_list, st, result, iter, result_from, CFUNC_CORE(var_list));
+    setForResult(yield_run, for_list, st, result, iter, result_from, CFUNC_CORE(NULL));
     if (!yield_run && iter != NULL)
         gc_freeTmpLink(&iter->gc_status);
 
@@ -597,9 +589,7 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
         *with_belong = *value;
         gc_addTmpLink(&(*with_belong)->gc_status);
 
-        *new = copyVarListCore((*value)->value->object.var, inter);
-        (*new)->next = var_list;
-
+        *new = (*value)->value->object.var;
         *_enter_ = NULL;
         *_exit_ = NULL;
     } else {
@@ -629,14 +619,12 @@ static int runWithList(StatementList *with_list, LinkValue **with_belong, LinkVa
         if (!CHECK_RESULT(result))
             return 0;
 
-        *new = pushVarList(var_list, inter);
+        *new = var_list;  // 不设置作用域
         enter_value = result->value;
         freeResult(result);
         assCore(with_list->var, enter_value, false, false, CFUNC_NT(*new, result, belong));
-        if (!CHECK_RESULT(result)) {
-            *new = popVarList(*new);
+        if (!CHECK_RESULT(result))
             return 0;
-        }
         freeResult(result);
     }
     return 1;
@@ -646,25 +634,18 @@ static void setWithResult(bool yield_run, StatementList *sl, Statement *st, Resu
     if (yield_run) {
         if (result->type == R_yield)
             if (status == info_finally_branch) {
-                freeRunInfo(st);
-                newBranchYield(st, result->node, sl, NULL, status, inter);
+                freeRunInfo(st, false);
+                newBranchYield(st, result->node, sl, NULL, status);
             } else
                 updateBranchYield(st, result->node, sl, status);
         else
-            freeRunInfo(st);
-    } else {
-        if (result->type == R_yield)
-            if (status == info_finally_branch) {
-                newBranchYield(st, result->node, sl, NULL, status, inter);
-                popVarList(var_list);
-            }
-            else
-                newWithBranchYield(st, result->node, sl, var_list, status, inter, value, _exit_, _enter_, with);
-        else {
-            if (var_list != NULL)
-                popVarList(var_list);
-        }
-    }
+            freeRunInfo(st, false);
+    } else if (result->type == R_yield) {
+        if (status == info_finally_branch)
+            newBranchYield(st, result->node, sl, NULL, status);
+        else
+            newWithBranchYield(st, result->node, sl, var_list, status, inter, value, _exit_, _enter_, with);
+    }  // else - 即正常模式, 不需要任何处理
 }
 
 ResultType withBranch(FUNC) {
@@ -672,7 +653,6 @@ ResultType withBranch(FUNC) {
     Statement *else_st = st->u.with_branch.else_list;
     Statement *finally = st->u.with_branch.finally;
     Statement *vl_info = NULL;
-    VarList *new = NULL;
     LinkValue *_enter_ = NULL;
     LinkValue *_exit_ = NULL;
     LinkValue *value = NULL;
@@ -681,6 +661,7 @@ ResultType withBranch(FUNC) {
     bool run_block = true;
     bool run_exit = true;
     bool yield_run;
+    VarList *new = NULL;
     enum StatementInfoStatus result_from = info_vl_branch;
 
     setResultCore(result);
@@ -692,7 +673,8 @@ ResultType withBranch(FUNC) {
         if (st->info.var_list != NULL) {
             new = st->info.var_list;
             new->next = var_list;
-        }
+        } else
+            new = var_list;
 
         if (st->info.branch.status == info_vl_branch) {
             vl_info = st->info.node;
@@ -709,7 +691,7 @@ ResultType withBranch(FUNC) {
             finally = st->info.node;
         }
     } else {
-        int status = runWithList(with_list, &with_belong, &value, &new, &_enter_, &_exit_, st->line, st->code_file, CNEXT_NT);
+        int status = runWithList(with_list, &with_belong, &value, &new, &_enter_, &_exit_, st->line, st->code_file, CNEXT_NT);  // 若是__enter__模式则tmp设置为NULL
         if (status == -1) {
             set_result = false;
             run_block = false;
@@ -827,7 +809,7 @@ ResultType tryBranch(FUNC) {
     enum StatementInfoStatus result_from = info_first_do;
 
     setResultCore(result);
-    yield_run = popYieldVarList(st, &var_list, var_list, inter);
+    yield_run = GET_YIELD(st);
     if (yield_run && st->info.branch.status == info_first_do)
         try = st->info.node;
     else if (yield_run && st->info.branch.status == info_vl_branch){
@@ -907,7 +889,7 @@ ResultType tryBranch(FUNC) {
         result_from = info_finally_branch;
     }
 
-    setBranchResult(yield_run, except_list, st, result, result_from, CFUNC_CORE(var_list));
+    setBranchResult(yield_run, except_list, st, result, result_from);
 
     if (set_result)
         setResult(result, inter);

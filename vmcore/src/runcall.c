@@ -564,10 +564,10 @@ static ResultType callVMFunction(LinkValue *func_value, Argument *arg, fline lin
 }
 
 ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, char *file, int pt_sep, FUNC_NT) {
-    bool folding_bak[] = {inter->data.value_folding /*[0]*/, inter->data.var_folding /*[1]*/, inter->data.opt_folding /*[2]*/};
+    bool folding_bak[] = {inter->data.value_folding /*[0]*/, inter->data.opt_folding /*[1]*/};
     bool set_folding = inter->data.func_folding;
     if (set_folding)
-        inter->data.value_folding = inter->data.var_folding = inter->data.opt_folding = true;  // 全部启动
+        inter->data.value_folding = inter->data.opt_folding = true;  // 全部启动
     setResultCore(result);
     gc_addTmpLink(&function_value->gc_status);
     switch (function_value->value->type) {
@@ -598,8 +598,7 @@ ResultType callBackCore(LinkValue *function_value, Argument *arg, fline line, ch
 
     if (set_folding) {
         inter->data.value_folding = folding_bak[0];
-        inter->data.var_folding = folding_bak[1];
-        inter->data.opt_folding = folding_bak[2];
+        inter->data.opt_folding = folding_bak[1];
     }
     gc_freeTmpLink(&function_value->gc_status);
     return result->type;

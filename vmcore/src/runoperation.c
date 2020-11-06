@@ -94,7 +94,7 @@ static void setBlockResult(Statement *st, bool yield_run, Result *result, FUNC_C
             result->is_yield = true;
         }
         else
-            freeRunInfo(st);
+            freeRunInfo(st, true);
     }
     else {
         if (result->type == R_yield){
@@ -562,28 +562,13 @@ ResultType getVar(FUNC, VarInfo var_info) {
 
     setResultCore(result);
 
-    if (inter->data.var_folding && st->type == base_var && st->u.base_var.link != NULL) {
-        var = st->u.base_var.link->value;
-        name_ = st->u.base_var.link->name_;
-        gc_addTmpLink(&name_->gc_status);
-    } else {
-        var_info(&name, &int_times, CNEXT);
-        if (!CHECK_RESULT(result)) {
-            memFree(name);
-            return result->type;
-        }
-        GET_RESULT(name_, result);
-        var = findFromVarList(name, int_times, &re_var, read_var, CFUNC_CORE(var_list));
-        if (inter->data.var_folding) {
-            if (re_var != NULL && (st->u.base_var.times == NULL || st->u.base_var.times->type == base_value)) {  // 变量折叠
-                gc_addStatementLink(&re_var->gc_status);
-                st->u.base_var.link = re_var;
-            }
-        } else if (st->u.base_var.link != NULL) {  // 复位
-            gc_freeStatementLink(&st->u.base_var.link->gc_status);
-            st->u.base_var.link = NULL;
-        }
+    var_info(&name, &int_times, CNEXT);
+    if (!CHECK_RESULT(result)) {
+        memFree(name);
+        return result->type;
     }
+    GET_RESULT(name_, result);
+    var = findFromVarList(name, int_times, &re_var, read_var, CFUNC_CORE(var_list));
 
     if (var == NULL) {
         if (st->type == base_svar && !st->u.base_svar.is_var) {

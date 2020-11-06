@@ -25,8 +25,8 @@ void setRunInfo(Statement *st){
     st->info.branch.func.push = true;
 }
 
-void freeRunInfo(Statement *st) {
-    if (st->info.var_list != NULL)
+void freeRunInfo(Statement *st, bool deal_var) {
+    if (deal_var && st->info.var_list != NULL)
         freeVarList(st->info.var_list);
     if (st->info.branch.with_.value != NULL)
         gc_freeTmpLink(&st->info.branch.with_.value->gc_status);
@@ -99,7 +99,6 @@ Statement *makeBaseVarStatement(wchar_t *name, Statement *times, fline line, cha
     tmp->type = base_var;
     tmp->u.base_var.name = memWidecpy(name);
     tmp->u.base_var.times = times;
-    tmp->u.base_var.link = NULL;
     tmp->u.base_var.run = true;
     return tmp;
 }
@@ -382,8 +381,6 @@ void freeStatement(Statement *st){
             case base_var:
                 memFree(st->u.base_var.name);
                 freeStatement(st->u.base_var.times);
-                if (st->u.base_var.link != NULL)
-                    gc_freeStatementLink(&st->u.base_var.link->gc_status);
                 break;
             case del_:
                 freeStatement(st->u.del_.var);
@@ -505,7 +502,7 @@ void freeStatement(Statement *st){
             default:
                 break;
         }
-        freeRunInfo(st);
+        freeRunInfo(st, true);
         memFree(st->code_file);
         memFree(st);
     }
@@ -548,10 +545,6 @@ Statement *copyStatementCore(Statement *st){
             new->u.base_var.name = memWidecpy(st->u.base_var.name);
             new->u.base_var.times = copyStatement(st->u.base_var.times);
             new->u.base_var.run = st->u.base_var.run;
-            if (st->u.base_var.link != NULL) {
-                new->u.base_var.link = st->u.base_var.link;
-                gc_addStatementLink(&new->u.base_var.link->gc_status);
-            }
             break;
         case del_:
             new->u.del_.var = copyStatement(st->u.del_.var);
