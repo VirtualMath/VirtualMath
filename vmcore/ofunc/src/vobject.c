@@ -411,6 +411,9 @@ static ResultType vobject_bool(O_FUNC) {
         case V_file:
             result_ = value->data.file.file != NULL;
             break;
+        case V_struct:
+            result_ = value->data.struct_.len > 0;
+            break;
         default:
             setResultError(E_TypeException, CUL_ERROR(bool), LINEFILE, true, CNEXT_NT);
             return R_error;
@@ -455,6 +458,20 @@ static ResultType vobject_repo(O_FUNC) {
         }
         case V_str:
             repo = memWidecpy(value->data.str.str);
+            break;
+        case V_struct:
+            if (value->data.struct_.data != NULL ){
+                char *tmp = memStrcpy("(");
+                for (vint i = 0; i < value->data.struct_.len; i ++) {
+                    char val[20];
+                    snprintf(val, 20, "%x ", value->data.struct_.data[i]);
+                    tmp = memStrcat(tmp, val, true, false);
+                }
+                tmp[memStrlen(tmp) - 1] = ')';  // 去掉一个空格, 改成括号
+                repo = memStrToWcs(tmp, true);
+                break;
+            } else
+                repo = memWidecpy(L"(struct NULL)");
             break;
         case V_func: {
             char str[30] = {NUL};

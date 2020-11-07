@@ -48,6 +48,23 @@ Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT) {
     return tmp;
 }
 
+Value *makeStructValue(void *data, vint len, fline line, char *file, FUNC_NT) {
+    Value *tmp = NULL;
+    setResultCore(result);
+    if (inter->data.free_mode) {
+        callBackCore(inter->data.base_obj[B_STRUCT], NULL, line, file, 0, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return NULL;
+    } else
+        setResultOperation(result, structCore(belong, inter->data.base_obj[B_STRUCT], inter));
+    tmp = result->value->value;
+    if (data != NULL) {
+        tmp->data.struct_.data = MEM_CPY(tmp->data.struct_.data, data, len * sizeof(int8_t));
+        tmp->data.struct_.len = len;
+    }
+    return tmp;
+}
+
 Value *makePassValue(fline line, char *file, FUNC_NT){
     Value *tmp = NULL;
     setResultCore(result);
@@ -252,6 +269,9 @@ void freeValue(Value **value) {
         case V_str:
             memFree(free_value->data.str.str);
             break;
+        case V_struct:
+            memFree(free_value->data.struct_.data);
+            break;
         case V_file:
             memFree(free_value->data.file.mode);
             memFree(free_value->data.file.path);
@@ -277,7 +297,7 @@ void freeValue(Value **value) {
     return_: return;
 }
 
-LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority aut, Inter *inter) {  // TODO-szh 为LinkValue添加gc_tmpLink
+LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority aut, Inter *inter) {
     LinkValue *tmp;
     MACRO_CALLOC(tmp, 1, sizeof(LinkValue));
     tmp->belong = belong;

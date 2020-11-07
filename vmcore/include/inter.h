@@ -7,7 +7,7 @@ struct Result;
 #define RUNGC (100)
 #define SHOULD_RUNGC(inter) ((inter)->data.start_gc && (inter)->data.run_gc >= RUNGC)
 
-#define BASEOBJSZIE (17)
+#define BASEOBJSZIE (18)
 #define VARNAMESIZE (10)
 #define BASEEXCESIZE (20)
 #define MAGFUNCSIZE (46)
@@ -29,6 +29,7 @@ struct Result;
 #define B_LISTITER (14)
 #define B_DICTITER (15)
 #define B_POINTER (16)
+#define B_STRUCT (17)
 
 #define VN_str (0)
 #define VN_num (1)

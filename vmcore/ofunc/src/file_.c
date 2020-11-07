@@ -126,6 +126,58 @@ static ResultType file_read(O_FUNC){
     return result->type;
 }
 
+static ResultType file_read_bit(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=name_value, .must=0, .name=L"n", .long_arg=false},
+                           {.must=-1}};
+    LinkValue *file;
+    void *data = NULL;
+    size_t count = 0;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if ((file = ap[0].value)->value->type != V_file || file->value->data.file.file == NULL) {
+        setResultError(E_TypeException, INSTANCE_ERROR(file), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    fseek(file->value->data.file.file, 0L, SEEK_CUR);  // 改变文件状态(什么都没做)
+    if (ap[1].value != NULL) {  // 指定数量读取
+        vint n;
+        if (ap[1].value->value->type == V_int)
+            n = ap[1].value->value->data.int_.num;
+        else if (ap[1].value->value->type == V_dou)
+            n = (vint)ap[1].value->value->data.dou.num;
+        else {
+            setResultError(E_TypeException, ONLY_ACC(n, num), LINEFILE, true, CNEXT_NT);
+            return R_error;
+        }
+        data = memCalloc(n, sizeof(int8_t));  // TODO-szh in8_t 使用typedef
+        count = fread(data, sizeof(int8_t), n, file->value->data.file.file);
+    } else {
+        void *bak = NULL;
+        size_t get;
+        do {  // 全部读取
+            void *tmp = memCalloc(5, sizeof(int8_t));
+            get = fread(tmp, sizeof(int8_t), 5, file->value->data.file.file);
+            bak = data;
+            data = memCalloc(count, sizeof(int8_t));
+            memcpy(data, bak, count * sizeof(int8_t));  // 复制
+            memcpy(data + count * sizeof(int8_t), tmp, get * sizeof(int8_t));
+            memFree(bak);
+            memFree(tmp);
+            count += get;
+        } while (get == 5);
+    }
+
+    makeStructValue(data, count, LINEFILE, CNEXT_NT);
+    memFree(data);
+    return result->type;
+}
+
 static ResultType file_readline(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -166,6 +218,7 @@ static ResultType file_write(O_FUNC){
                            {.type=name_value, .must=1, .name=L"str", .long_arg=false},
                            {.must=-1}};
     LinkValue *file;
+    vint re;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -177,14 +230,20 @@ static ResultType file_write(O_FUNC){
         return R_error;
     }
 
-    if (ap[1].value->value->type != V_str) {
-        setResultError(E_TypeException, ONLY_ACC(str, str), LINEFILE, true, CNEXT_NT);
-        return R_error;
-    }
-
     fseek(file->value->data.file.file, 0L, 1);  // 改变文件状态(什么都没做)
-    fputws(ap[1].value->value->data.str.str, file->value->data.file.file);  // 使用fputws代替fwprintf
-    setResult(result, inter);
+    switch (ap[1].value->value->type) {
+        case V_str:
+            fputws(ap[1].value->value->data.str.str, file->value->data.file.file);  // 使用fputws代替fwprintf
+            re = memWidelen(ap[1].value->value->data.str.str);
+            break;
+        case V_struct:
+            re = (vint)fwrite(ap[1].value->value->data.struct_.data, sizeof(int8_t), ap[1].value->value->data.struct_.len, file->value->data.file.file);
+            break;
+        default:
+            setResultError(E_TypeException, ONLY_ACC(str, str), LINEFILE, true, CNEXT_NT);
+            return R_error;
+    }
+    makeIntValue(re, LINEFILE, CNEXT_NT);
     return result->type;
 }
 
@@ -412,6 +471,7 @@ void registeredFile(R_FUNC){
                       {L"clean", file_clean_err, fp_obj, .var=nfv_notpush},
                       {L"flush", file_flush, fp_obj, .var=nfv_notpush},
                       {L"getc", file_getc, fp_obj, .var=nfv_notpush},
+                      {L"readb", file_read_bit, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_ENTER], file_enter, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_DEL], file_close, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_EXIT], file_close, fp_obj, .var=nfv_notpush},

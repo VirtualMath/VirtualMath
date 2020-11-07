@@ -61,6 +61,7 @@ enum ValueType {
     V_file=11,
     V_lib=12,
     V_pointer=13,
+    V_struct=14,
 };
 
 struct Int {
@@ -73,6 +74,11 @@ struct Dou {
 
 struct String {
     wchar_t *str;
+};
+
+struct Struct_ {
+    int8_t *data;  // 列表
+    vint len;  // 长度
 };
 
 struct Function{
@@ -168,6 +174,7 @@ struct Value{
         struct File file;
         struct Lib lib;
         struct Pointer pointer;
+        struct Struct_ struct_;
     } data;
 
     struct Value *gc_next;
@@ -254,6 +261,7 @@ LinkValue *makeLinkValue(Value *value, LinkValue *belong, enum ValueAuthority au
 void freeLinkValue(LinkValue **value);
 Value *useNoneValue(Inter *inter, Result *result);
 Value *makeBoolValue(bool bool_num, fline line, char *file, FUNC_NT);
+Value *makeStructValue(void *data, vint len, fline line, char *file, FUNC_NT);
 Value *makePassValue(fline line, char *file, FUNC_NT);
 Value *makeIntValue(vint num, fline line, char *file, FUNC_NT);
 Value *makeDouValue(vdou num, fline line, char *file, FUNC_NT);

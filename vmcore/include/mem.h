@@ -31,7 +31,8 @@ wchar_t *memStrToWcs(char *str, bool free_old);
 #define memStrlen(p) (((p) == NULL) ? 0 : strlen((p)))
 #define memWidelen(p) (((p) == NULL) ? 0 : wcslen((p)))
 
-#define MACRO_CALLOC(var, n, size)                                             \
-  ((((var) = (typeof(var))calloc(n, size)) == NULL) ? (memError()) : (var))
+#define MACRO_CALLOC(var, n, size) ((((var) = (typeof(var))calloc(n, size)) == NULL) ? (memError()) : (var))
+
+#define MEM_CPY(to, from, size) (((to) = memCalloc(1, size)), memcpy(to, from, size))
 
 #endif // VIRTUALMATH_MEM_H

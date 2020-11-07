@@ -15,6 +15,7 @@ static Registered base_func_list[] = {registeredVObject,
                                       registeredFile,
                                       registeredLib,
                                       registeredPointer,
+                                      registeredStruct,
 
                                       registeredSysFunction,
                                       registeredIOFunction,
@@ -68,6 +69,7 @@ void registeredFunctionName(LinkValue *belong, Inter *inter) {
     makeBaseFile(inter);
     makeBaseLib(inter);
     makeBasePointer(inter);
+    makeBaseStruct(inter);
 
     makeBaseStr(inter);
     functionPresetting(inter->data.base_obj[B_FUNCTION], inter);  // 预设定function的__new__方法

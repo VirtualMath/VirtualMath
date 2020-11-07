@@ -19,6 +19,7 @@
 #include "file_.h"
 #include "lib_.h"
 #include "pointer.h"
+#include "struct_.h"
 
 struct Argument;
 struct VarList;
@@ -44,6 +45,7 @@ void registeredFunctionName(LinkValue *belong, Inter *inter);
 LinkValue *intCore(LinkValue *belong, LinkValue *class, Inter *inter);
 LinkValue *strCore(LinkValue *belong, LinkValue *class, Inter *inter);
 LinkValue *boolCore(LinkValue *belong, LinkValue *class, Inter *inter);
+LinkValue *structCore(LinkValue *belong, LinkValue *class, Inter *inter);
 LinkValue *douCore(LinkValue *belong, LinkValue *class, Inter *inter);
 LinkValue *passCore(LinkValue *belong, LinkValue *class, Inter *inter);
 
