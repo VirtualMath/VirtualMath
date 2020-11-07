@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType tuple_list_newCore(O_FUNC, enum ListType type){
+static ResultType tuple_list_newCore(O_FUNC, enum ListType type){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=true},
@@ -27,15 +27,15 @@ ResultType tuple_list_newCore(O_FUNC, enum ListType type){
     return result->type;
 }
 
-ResultType tuple_new(O_FUNC) {
+static ResultType tuple_new(O_FUNC) {
     return tuple_list_newCore(CO_FUNC(arg, var_list, result, belong), L_tuple);
 }
 
-ResultType list_new(O_FUNC) {
+static ResultType list_new(O_FUNC) {
     return tuple_list_newCore(CO_FUNC(arg, var_list, result, belong), L_list);
 }
 
-ResultType list_slice(O_FUNC){
+static ResultType list_slice(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
@@ -84,7 +84,7 @@ ResultType list_slice(O_FUNC){
     return result->type;
 }
 
-ResultType list_slice_assignment(O_FUNC){
+static ResultType list_slice_assignment(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -153,7 +153,7 @@ ResultType list_slice_assignment(O_FUNC){
     return result->type;
 }
 
-ResultType list_slice_del(O_FUNC){
+static ResultType list_slice_del(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
@@ -211,7 +211,7 @@ ResultType list_slice_del(O_FUNC){
     return result->type;
 }
 
-ResultType list_down_assignment(O_FUNC){
+static ResultType list_down_assignment(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -249,7 +249,7 @@ ResultType list_down_assignment(O_FUNC){
     return result->type;
 }
 
-ResultType list_down_del(O_FUNC){
+static ResultType list_down_del(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -287,7 +287,7 @@ ResultType list_down_del(O_FUNC){
     return result->type;
 }
 
-ResultType list_down(O_FUNC){
+static ResultType list_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -318,7 +318,7 @@ ResultType list_down(O_FUNC){
     return result->type;
 }
 
-ResultType list_iter(O_FUNC){
+static ResultType list_iter(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
@@ -339,7 +339,7 @@ ResultType list_iter(O_FUNC){
     return result->type;
 }
 
-ResultType listRepoStrCore(O_FUNC, bool is_repo){
+static ResultType listRepoStrCore(O_FUNC, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     wchar_t *repo = NULL;
@@ -408,11 +408,11 @@ ResultType listRepoStrCore(O_FUNC, bool is_repo){
     return result->type;
 }
 
-ResultType list_repo(O_FUNC){
+static ResultType list_repo(O_FUNC){
     return listRepoStrCore(CO_FUNC(arg, var_list, result, belong), true);
 }
 
-ResultType list_str(O_FUNC){
+static ResultType list_str(O_FUNC){
     return listRepoStrCore(CO_FUNC(arg, var_list, result, belong), false);
 }
 

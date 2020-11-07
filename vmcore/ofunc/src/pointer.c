@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType pointer_new(O_FUNC){
+static ResultType pointer_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -19,7 +19,7 @@ ResultType pointer_new(O_FUNC){
     return result->type;
 }
 
-ResultType pointer_init(O_FUNC){
+static ResultType pointer_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"p", .must=0, .long_arg=false},
                            {.must=-1}};

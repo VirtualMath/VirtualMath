@@ -6,7 +6,7 @@ static void setFunctionData(Value *value, LinkValue *cls, Inter *inter) {
     value->data.function.function_data.run = false;
 }
 
-ResultType file_new(O_FUNC){
+static ResultType file_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -29,7 +29,7 @@ ResultType file_new(O_FUNC){
     return result->type;
 }
 
-ResultType file_init(O_FUNC){
+static ResultType file_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .must=0, .name=L"file", .long_arg=false},
                            {.type=name_value, .must=0, .name=L"mode", .long_arg=false},
@@ -77,7 +77,7 @@ ResultType file_init(O_FUNC){
     return result->type;
 }
 
-ResultType file_read(O_FUNC){
+static ResultType file_read(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .must=0, .name=L"n", .long_arg=false},
                            {.must=-1}};
@@ -126,7 +126,7 @@ ResultType file_read(O_FUNC){
     return result->type;
 }
 
-ResultType file_readline(O_FUNC){
+static ResultType file_readline(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *file;
@@ -161,7 +161,7 @@ ResultType file_readline(O_FUNC){
     return result->type;
 }
 
-ResultType file_write(O_FUNC){
+static ResultType file_write(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .must=1, .name=L"str", .long_arg=false},
                            {.must=-1}};
@@ -188,7 +188,7 @@ ResultType file_write(O_FUNC){
     return result->type;
 }
 
-ResultType file_get_seek(O_FUNC){
+static ResultType file_get_seek(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *file;
@@ -209,7 +209,7 @@ ResultType file_get_seek(O_FUNC){
     return result->type;
 }
 
-ResultType file_flush(O_FUNC){
+static ResultType file_flush(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *file;
@@ -231,7 +231,7 @@ ResultType file_flush(O_FUNC){
     return result->type;
 }
 
-ResultType file_getc(O_FUNC){
+static ResultType file_getc(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *file;
@@ -257,7 +257,7 @@ ResultType file_getc(O_FUNC){
     return result->type;
 }
 
-ResultType file_err_core(O_FUNC, int type){
+static ResultType file_err_core(O_FUNC, int type){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *file;
@@ -288,19 +288,19 @@ ResultType file_err_core(O_FUNC, int type){
     return result->type;
 }
 
-ResultType file_isend(O_FUNC){
+static ResultType file_isend(O_FUNC){
     return file_err_core(CO_FUNC(arg, var_list, result, belong), 1);
 }
 
-ResultType file_iserr(O_FUNC){
+static ResultType file_iserr(O_FUNC){
     return file_err_core(CO_FUNC(arg, var_list, result, belong), 2);
 }
 
-ResultType file_clean_err(O_FUNC){
+static ResultType file_clean_err(O_FUNC){
     return file_err_core(CO_FUNC(arg, var_list, result, belong), 3);
 }
 
-ResultType file_seek(O_FUNC){
+static ResultType file_seek(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .must=1, .name=L"seek", .long_arg=false},
                            {.type=name_value, .must=0, .name=L"where", .long_arg=false},
@@ -351,7 +351,7 @@ ResultType file_seek(O_FUNC){
     return result->type;
 }
 
-ResultType file_close(O_FUNC){
+static ResultType file_close(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *file;
@@ -380,7 +380,7 @@ ResultType file_close(O_FUNC){
     return result->type;
 }
 
-ResultType file_enter(O_FUNC){
+static ResultType file_enter(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);

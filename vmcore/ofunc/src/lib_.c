@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType lib_new(O_FUNC){
+static ResultType lib_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -19,7 +19,7 @@ ResultType lib_new(O_FUNC){
     return result->type;
 }
 
-ResultType lib_init(O_FUNC){
+static ResultType lib_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"path", .must=1, .long_arg=false},
                            {.must=-1}};
@@ -63,7 +63,7 @@ ResultType lib_init(O_FUNC){
     return result->type;
 }
 
-ResultType lib_close(O_FUNC){
+static ResultType lib_close(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *clib;
@@ -109,7 +109,7 @@ ResultType lib_addCore(wchar_t *name_, LinkValue *clib, FUNC_NT) {
     return result->type;
 }
 
-ResultType lib_add(O_FUNC){
+static ResultType lib_add(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"func", .must=1, .long_arg=false},
                            {.must=-1}};
@@ -134,7 +134,7 @@ ResultType lib_add(O_FUNC){
     return result->type;
 }
 
-ResultType lib_attr(O_FUNC){
+static ResultType lib_attr(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"error", .must=1, .long_arg=false},
                            {.must=-1}};

@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType object_new(O_FUNC){
+static ResultType object_new(O_FUNC){
     LinkValue *value = NULL;
     setResultCore(result);
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -17,7 +17,7 @@ ResultType object_new(O_FUNC){
     return result->type;
 }
 
-#define OBJ_OPT(M_NAME_, NAME, FUNC) ResultType object_##FUNC (O_FUNC) {  \
+#define OBJ_OPT(M_NAME_, NAME, FUNC) static ResultType object_##FUNC (O_FUNC) {  \
     LinkValue *left, *right;  \
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},  \
                            {.type=name_value, .name=L"left", .must=1, .long_arg=false},  \
@@ -58,7 +58,7 @@ OBJ_OPT(BR, Bit Right, br)
 
 #undef OBJ_OPT
 
-ResultType object_eq (O_FUNC) {
+static ResultType object_eq (O_FUNC) {
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"left", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"right", .must=1, .long_arg=false},
@@ -72,7 +72,7 @@ ResultType object_eq (O_FUNC) {
     return result->type;
 }
 
-ResultType object_noteq (O_FUNC) {
+static ResultType object_noteq (O_FUNC) {
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"left", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"right", .must=1, .long_arg=false},
@@ -86,7 +86,7 @@ ResultType object_noteq (O_FUNC) {
     return result->type;
 }
 
-ResultType objectRepoStrCore(O_FUNC){
+static ResultType objectRepoStrCore(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     wchar_t *repo;

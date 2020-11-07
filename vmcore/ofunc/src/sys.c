@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType vm_super(O_FUNC){
+static ResultType vm_super(O_FUNC){
     Value *arg_father = NULL;
     Value *arg_child = NULL;
     LinkValue *next_father = NULL;
@@ -44,7 +44,7 @@ ResultType vm_super(O_FUNC){
     return result->type;
 }
 
-ResultType vm_setNowRunCore(O_FUNC, bool type){
+static ResultType vm_setNowRunCore(O_FUNC, bool type){
     LinkValue *function_value = NULL;
     ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
     setResultCore(result);
@@ -62,7 +62,7 @@ ResultType vm_setNowRunCore(O_FUNC, bool type){
     return R_opt;
 }
 
-ResultType vm_setMethodCore(O_FUNC, enum FunctionPtType type){
+static ResultType vm_setMethodCore(O_FUNC, enum FunctionPtType type){
     LinkValue *function_value = NULL;
     ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
     setResultCore(result);
@@ -80,79 +80,79 @@ ResultType vm_setMethodCore(O_FUNC, enum FunctionPtType type){
     return R_opt;
 }
 
-ResultType vm_cls(O_FUNC){
+static ResultType vm_cls(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_cls);
 }
 
-ResultType vm_func_cls(O_FUNC){
+static ResultType vm_func_cls(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_cls);
 }
 
-ResultType vm_no_(O_FUNC){
+static ResultType vm_no_(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_no_);
 }
 
-ResultType vm_func_(O_FUNC){
+static ResultType vm_func_(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_);
 }
 
-ResultType vm_func_class(O_FUNC){
+static ResultType vm_func_class(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_class);
 }
 
-ResultType vm_func_obj(O_FUNC){
+static ResultType vm_func_obj(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_obj);
 }
 
-ResultType vm_class(O_FUNC){
+static ResultType vm_class(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_class);
 }
 
-ResultType vm_obj(O_FUNC){
+static ResultType vm_obj(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_obj);
 }
 
-ResultType vm_all(O_FUNC){
+static ResultType vm_all(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_all);
 }
 
-ResultType vm_func_all(O_FUNC){
+static ResultType vm_func_all(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_all);
 }
 
-ResultType vm_cls_obj(O_FUNC){
+static ResultType vm_cls_obj(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_cls_obj);
 }
 
-ResultType vm_cls_class(O_FUNC){
+static ResultType vm_cls_class(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_cls_class);
 }
 
-ResultType vm_cls_all(O_FUNC){
+static ResultType vm_cls_all(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_cls_all);
 }
 
-ResultType vm_func_cls_obj(O_FUNC){
+static ResultType vm_func_cls_obj(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_cls_obj);
 }
 
-ResultType vm_func_cls_class(O_FUNC){
+static ResultType vm_func_cls_class(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_cls_class);
 }
 
-ResultType vm_func_cls_all(O_FUNC){
+static ResultType vm_func_cls_all(O_FUNC){
     return vm_setMethodCore(CO_FUNC(arg, var_list, result, belong), fp_func_cls_all);
 }
 
-ResultType vm_isnowrun(O_FUNC){
+static ResultType vm_isnowrun(O_FUNC){
     return vm_setNowRunCore(CO_FUNC(arg, var_list, result, belong), true);
 }
 
-ResultType vm_disnowrun(O_FUNC){
+static ResultType vm_disnowrun(O_FUNC){
     return vm_setNowRunCore(CO_FUNC(arg, var_list, result, belong), false);
 }
 
-ResultType vm_quit(O_FUNC){
+static ResultType vm_quit(O_FUNC){
     if (arg != NULL)
         setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
     else
@@ -160,11 +160,11 @@ ResultType vm_quit(O_FUNC){
     return R_error;
 }
 
-ResultType vm_open(O_FUNC){
+static ResultType vm_open(O_FUNC){
     return callBackCore(inter->data.base_obj[B_FILE], arg, LINEFILE, 0, CNEXT_NT);
 }
 
-ResultType vm_setAssert(O_FUNC, enum AssertRunType type){
+static ResultType vm_setAssert(O_FUNC, enum AssertRunType type){
     setResultCore(result);
     if (arg != NULL) {
         setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
@@ -176,19 +176,19 @@ ResultType vm_setAssert(O_FUNC, enum AssertRunType type){
     return result->type;
 }
 
-ResultType vm_assertignore(O_FUNC){
+static ResultType vm_assertignore(O_FUNC){
     return vm_setAssert(CO_FUNC(arg, var_list, result, belong), assert_ignore);
 }
 
-ResultType vm_assertrun(O_FUNC){
+static ResultType vm_assertrun(O_FUNC){
     return vm_setAssert(CO_FUNC(arg, var_list, result, belong), assert_run);
 }
 
-ResultType vm_assertraise(O_FUNC){
+static ResultType vm_assertraise(O_FUNC){
     return vm_setAssert(CO_FUNC(arg, var_list, result, belong), assert_raise);
 }
 
-ResultType vm_selfunCore(O_FUNC, bool type){
+static ResultType vm_selfunCore(O_FUNC, bool type){
     LinkValue *function_value = NULL;
     ArgumentParser ap[] = {{.type=name_value, .name=L"func", .must=1, .long_arg=false}, {.must=-1}};
     bool push;
@@ -216,15 +216,15 @@ ResultType vm_selfunCore(O_FUNC, bool type){
     return R_opt;
 }
 
-ResultType vm_selfun(O_FUNC){
+static ResultType vm_selfun(O_FUNC){
     return vm_selfunCore(CO_FUNC(arg, var_list, result, belong), false);
 }
 
-ResultType vm_nselfun(O_FUNC){
+static ResultType vm_nselfun(O_FUNC){
     return vm_selfunCore(CO_FUNC(arg, var_list, result, belong), true);
 }
 
-ResultType vm_setfreemode(O_FUNC, bool type){
+static ResultType vm_setfreemode(O_FUNC, bool type){
     setResultCore(result);
     if (arg != NULL) {
         setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
@@ -236,15 +236,15 @@ ResultType vm_setfreemode(O_FUNC, bool type){
     return result->type;
 }
 
-ResultType vm_freemode(O_FUNC){
+static ResultType vm_freemode(O_FUNC){
     return vm_setfreemode(CO_FUNC(arg, var_list, result, belong), true);
 }
 
-ResultType vm_nfreemode(O_FUNC){
+static ResultType vm_nfreemode(O_FUNC){
     return vm_setfreemode(CO_FUNC(arg, var_list, result, belong), false);
 }
 
-ResultType vm_opt_mode(O_FUNC, enum OptMode mode){
+static ResultType vm_opt_mode(O_FUNC, enum OptMode mode){
     setResultCore(result);
     if (arg != NULL) {
         setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
@@ -256,19 +256,19 @@ ResultType vm_opt_mode(O_FUNC, enum OptMode mode){
     return result->type;
 }
 
-ResultType vm_free_opt(O_FUNC){
+static ResultType vm_free_opt(O_FUNC){
     return vm_opt_mode(CO_FUNC(arg, var_list, result, belong), om_free);
 }
 
-ResultType vm_normal_opt(O_FUNC){
+static ResultType vm_normal_opt(O_FUNC){
     return vm_opt_mode(CO_FUNC(arg, var_list, result, belong), om_normal);
 }
 
-ResultType vm_simple_opt(O_FUNC){
+static ResultType vm_simple_opt(O_FUNC){
     return vm_opt_mode(CO_FUNC(arg, var_list, result, belong), om_simple);
 }
 
-ResultType vm_exec(O_FUNC){
+static ResultType vm_exec(O_FUNC){
     ArgumentParser ap[] = {{.type=name_value, .name=L"cm", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"var", .must=0, .long_arg=false},
                            {.type=name_value, .name=L"out", .must=0, .long_arg=false},

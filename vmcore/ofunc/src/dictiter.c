@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType dictiter_init(O_FUNC){
+static ResultType dictiter_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"dict_", .must=1, .long_arg=false},
                            {.must=-1}};
@@ -65,7 +65,7 @@ ResultType dictiter_init(O_FUNC){
     return result->type;
 }
 
-ResultType dictiter_next(O_FUNC){
+static ResultType dictiter_next(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *list_ = NULL;
@@ -98,7 +98,7 @@ ResultType dictiter_next(O_FUNC){
     return result->type;
 }
 
-ResultType dictiter_down(O_FUNC){
+static ResultType dictiter_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};

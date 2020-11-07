@@ -7,7 +7,7 @@ static void setFunctionData(Value *value, LinkValue *cls, Inter *inter) {
     value->data.function.function_data.push = true;
 }
 
-ResultType function_new(O_FUNC){
+static ResultType function_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -37,7 +37,7 @@ ResultType function_new(O_FUNC){
     return result->type;
 }
 
-ResultType function_init(O_FUNC){
+static ResultType function_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
@@ -63,7 +63,7 @@ ResultType function_init(O_FUNC){
     return result->type;
 }
 
-ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
+static ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=true},
                            {.must=-1}};

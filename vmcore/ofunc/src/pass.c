@@ -7,7 +7,7 @@ LinkValue *passCore(LinkValue *belong, LinkValue *class, Inter *inter) {
     return value;
 }
 
-ResultType pass_new(O_FUNC){
+static ResultType pass_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};

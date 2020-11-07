@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType vm_print(O_FUNC){
+static ResultType vm_print(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=true},
                            {.type=name_value, .name=L"end", .must=0, .value=NULL},
                            {.must=-1}};
@@ -30,7 +30,7 @@ ResultType vm_print(O_FUNC){
     return result->type;
 }
 
-ResultType vm_input(O_FUNC){
+static ResultType vm_input(O_FUNC){
     setResultCore(result);
     ArgumentParser ap[] = {{.type=name_value, .name=L"message", .must=0, .value=NULL},
                            {.must=-1}};

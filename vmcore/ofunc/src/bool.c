@@ -8,7 +8,7 @@ LinkValue *boolCore(LinkValue *belong, LinkValue *class, Inter *inter) {
     return value;
 }
 
-ResultType bool_new(O_FUNC){
+static ResultType bool_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -27,7 +27,7 @@ ResultType bool_new(O_FUNC){
     return result->type;
 }
 
-ResultType bool_init(O_FUNC){
+static ResultType bool_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};

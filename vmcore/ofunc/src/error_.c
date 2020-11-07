@@ -6,7 +6,7 @@ static LinkValue *makeException(LinkValue *father, Inter *inter){
     return exc;
 }
 
-ResultType base_exception_init(O_FUNC){
+static ResultType base_exception_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"message", .must=0, .long_arg=false},
                            {.must=-1}};

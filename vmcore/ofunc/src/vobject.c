@@ -202,7 +202,7 @@ COMPAREMACRO(<=, LESSEQ, lesseq, Less Eq)
 COMPAREMACRO(<, LESS, less, Less Eq)
 #undef COMPAREMACRO
 
-ResultType vobject_opt_core(O_FUNC, base_opt func){
+static ResultType vobject_opt_core(O_FUNC, base_opt func){
     LinkValue *left;
     LinkValue *right;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -290,7 +290,7 @@ void vobject_bnot_base(FUNC_VOBJR) {
     }
 }
 
-ResultType vobject_negate(O_FUNC){
+static ResultType vobject_negate(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"val", .must=1, .long_arg=false},
                            {.must=-1}};
@@ -304,7 +304,7 @@ ResultType vobject_negate(O_FUNC){
     return result->type;
 }
 
-ResultType vobject_bnot(O_FUNC){
+static ResultType vobject_bnot(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"val", .must=1, .long_arg=false},
                            {.must=-1}};
@@ -318,7 +318,7 @@ ResultType vobject_bnot(O_FUNC){
     return result->type;
 }
 
-ResultType vobject_bool(O_FUNC){
+static ResultType vobject_bool(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     bool result_ = false;
@@ -370,7 +370,7 @@ ResultType vobject_bool(O_FUNC){
     return result->type;
 }
 
-ResultType vobject_repo(O_FUNC){
+static ResultType vobject_repo(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     wchar_t *repo = NULL;

@@ -8,7 +8,7 @@ LinkValue *douCore(LinkValue *belong, LinkValue *class, Inter *inter) {
     return value;
 }
 
-ResultType dou_new(O_FUNC){
+static ResultType dou_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -27,7 +27,7 @@ ResultType dou_new(O_FUNC){
     return result->type;
 }
 
-ResultType dou_init(O_FUNC){
+static ResultType dou_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"num", .must=0, .long_arg=false},
                            {.must=-1}};

@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType dict_new(O_FUNC){
+static ResultType dict_new(O_FUNC){
     LinkValue *value = NULL;
     VarList *hash = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
@@ -33,7 +33,7 @@ ResultType dict_new(O_FUNC){
     return result->type;
 }
 
-ResultType dict_down(O_FUNC){
+static ResultType dict_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -63,7 +63,7 @@ ResultType dict_down(O_FUNC){
     return result->type;
 }
 
-ResultType dict_down_del(O_FUNC){
+static ResultType dict_down_del(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -93,7 +93,7 @@ ResultType dict_down_del(O_FUNC){
     return result->type;
 }
 
-ResultType dict_down_assignment(O_FUNC){
+static ResultType dict_down_assignment(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -116,7 +116,7 @@ ResultType dict_down_assignment(O_FUNC){
     return result->type;
 }
 
-ResultType dict_keys(O_FUNC){
+static ResultType dict_keys(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     Argument *list = NULL;
@@ -139,7 +139,7 @@ ResultType dict_keys(O_FUNC){
     return result->type;
 }
 
-ResultType dict_iter(O_FUNC){
+static ResultType dict_iter(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     setResultCore(result);
@@ -161,7 +161,7 @@ ResultType dict_iter(O_FUNC){
     return result->type;
 }
 
-ResultType dictRepoStrCore(O_FUNC, bool is_repo){
+static ResultType dictRepoStrCore(O_FUNC, bool is_repo){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     wchar_t *repo = NULL;
@@ -236,11 +236,11 @@ ResultType dictRepoStrCore(O_FUNC, bool is_repo){
     return result->type;
 }
 
-ResultType dict_repo(O_FUNC){
+static ResultType dict_repo(O_FUNC){
     return dictRepoStrCore(CO_FUNC(arg, var_list, result, belong), true);
 }
 
-ResultType dict_str(O_FUNC){
+static ResultType dict_str(O_FUNC){
     return dictRepoStrCore(CO_FUNC(arg, var_list, result, belong), false);
 }
 

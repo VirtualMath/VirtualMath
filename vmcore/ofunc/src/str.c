@@ -8,7 +8,7 @@ LinkValue *strCore(LinkValue *belong, LinkValue *class, Inter *inter) {
     return value;
 }
 
-ResultType str_new(O_FUNC){
+static ResultType str_new(O_FUNC){
     LinkValue *value = NULL;
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -28,7 +28,7 @@ ResultType str_new(O_FUNC){
     return result->type;
 }
 
-ResultType str_init(O_FUNC){
+static ResultType str_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
                            {.must=-1}};
@@ -52,7 +52,7 @@ ResultType str_init(O_FUNC){
     return result->type;
 }
 
-ResultType str_slice(O_FUNC){
+static ResultType str_slice(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=0, .long_arg=false},
@@ -99,7 +99,7 @@ ResultType str_slice(O_FUNC){
     return result->type;
 }
 
-ResultType str_down(O_FUNC){
+static ResultType str_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
@@ -130,7 +130,7 @@ ResultType str_down(O_FUNC){
     return result->type;
 }
 
-ResultType str_to_list(O_FUNC){
+static ResultType str_to_list(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     vint size;
@@ -161,7 +161,7 @@ ResultType str_to_list(O_FUNC){
     return result->type;
 }
 
-ResultType str_iter(O_FUNC){
+static ResultType str_iter(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *to_list = NULL;

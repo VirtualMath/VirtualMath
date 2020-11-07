@@ -1,6 +1,6 @@
 #include "__ofunc.h"
 
-ResultType listiter_init(O_FUNC){
+static ResultType listiter_init(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"list_", .must=1, .long_arg=false},
                            {.must=-1}};
@@ -29,7 +29,7 @@ ResultType listiter_init(O_FUNC){
     return result->type;
 }
 
-ResultType listiter_next(O_FUNC){
+static ResultType listiter_next(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     LinkValue *list_ = NULL;
