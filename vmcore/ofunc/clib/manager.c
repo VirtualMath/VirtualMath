@@ -1,10 +1,10 @@
 #include "__virtualmath.h"
-#include "clib.h"
+#include "lib.h"
 
 static struct InFo{
     char *name;
     Registered reg;
-} ManagerInFo[] = {{"sys", registeredSysFunction},
+} ManagerInFo[] = {{"sys", registeredSysLib},
                    {NULL, NULL}};
 
 bool checkCLib(char *file) {

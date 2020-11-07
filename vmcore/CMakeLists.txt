@@ -3,23 +3,24 @@ PROJECT(vmcore C)
 SET(CMAKE_C_STANDARD 11)
 
 SET(VMCORE_INCLUDE_DICT
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/parser/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/ofunc/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/md5/include
+        ${vmcore_SOURCE_DIR}/include
+        ${vmcore_SOURCE_DIR}/parser/include
+        ${vmcore_SOURCE_DIR}/src/include
+        ${vmcore_SOURCE_DIR}/ofunc/include
+        ${vmcore_SOURCE_DIR}/md5/include
+        ${vmcore_SOURCE_DIR}/ofunc/clib/include
         )
 
 SET(VMCORE_SRC_DIR
-        ${CMAKE_CURRENT_SOURCE_DIR}/memory
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/gc
-        ${CMAKE_CURRENT_SOURCE_DIR}/file
-        ${CMAKE_CURRENT_SOURCE_DIR}/parser
-        ${CMAKE_CURRENT_SOURCE_DIR}/ofunc/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/ofunc/clib
-        ${CMAKE_CURRENT_SOURCE_DIR}/signalhandler
-        ${CMAKE_CURRENT_SOURCE_DIR}/md5
+        ${vmcore_SOURCE_DIR}/memory
+        ${vmcore_SOURCE_DIR}/src
+        ${vmcore_SOURCE_DIR}/gc
+        ${vmcore_SOURCE_DIR}/file
+        ${vmcore_SOURCE_DIR}/parser
+        ${vmcore_SOURCE_DIR}/ofunc/src
+        ${vmcore_SOURCE_DIR}/ofunc/clib
+        ${vmcore_SOURCE_DIR}/signalhandler
+        ${vmcore_SOURCE_DIR}/md5
         )
 
 # 添加头文件
@@ -63,7 +64,7 @@ ENDIF()
 TARGET_LINK_LIBRARIES(vmcore ${libffi} ${libdl} m)
 TARGET_INCLUDE_DIRECTORIES(vmcore PRIVATE VMCORE_INCLUDE_DICT)
 SET_TARGET_PROPERTIES(vmcore PROPERTIES
-        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/virtualmath.h  # 设置public的头文件
+        PUBLIC_HEADER ${vmcore_SOURCE_DIR}/include/virtualmath.h  # 设置public的头文件
         OUTPUT_NAME "vmcore"  # 设置输出名
         VERSION 2.1  # 设置版本号
         )

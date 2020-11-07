@@ -67,7 +67,7 @@ int checkFileDir(char **file_dir, FUNC) {
         char arr_cwd[200];
         char *p_cwd = NULL;
         getcwd(arr_cwd, 200);
-        p_cwd = memStrcatIter(arr_cwd, false, SEP, *file_dir);
+        p_cwd = memStrcatIter(arr_cwd, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
         if (isExist(&p_cwd, false, "__init__.vm")) {
             memFree(*file_dir);
             *file_dir = p_cwd;
@@ -80,7 +80,7 @@ int checkFileDir(char **file_dir, FUNC) {
     char *path = memStrcpy(getenv("VIRTUALMATHPATH"));
     for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
         if (*(tmp + (memStrlen(tmp) - 1)) != SEP_CH)
-            new_dir = memStrcatIter(tmp, false, SEP, *file_dir);
+            new_dir = memStrcatIter(tmp, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
         else
             new_dir = memStrcat(tmp, *file_dir, false, false);
 
@@ -96,7 +96,7 @@ int checkFileDir(char **file_dir, FUNC) {
 }
 
     clib:
-    if (checkCLib(*file_dir))
+    if (checkCLib(*file_dir))  // 检查是否为 clib
         return 2;
 
     error_:
@@ -179,8 +179,7 @@ ResultType importFileCore(char **path, char **split, int *status, FUNC) {
     *path = memWcsToStr(result->value->value->data.str.str, false);
     *split = splitDir(*path);  // 自动去除末尾路径分隔符
     freeResult(result);
-    if ((*status = checkFileDir(path, CNEXT)) == 0)
-        return result->type;
+    *status = checkFileDir(path, CNEXT);
 
     return result->type;
 }
@@ -188,7 +187,7 @@ ResultType importFileCore(char **path, char **split, int *status, FUNC) {
 ResultType runImportFile(Inter *import_inter, char **path, int status, FUNC) {
     setResultCore(result);
     if (status == 2)
-        importClibCore(*path, belong, CFUNC_CORE(inter->var_list));
+        importClibCore(*path, belong, CFUNC_CORE(import_inter->var_list));
     else
         importVMFileCore(import_inter, *path, st->line, st->code_file, CNEXT_NT);
 
