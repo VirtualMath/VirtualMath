@@ -186,7 +186,6 @@ void makeBaseObject(Inter *inter, LinkValue *belong) {
     {
         Value *global_belong = makeObject(inter, copyVarList(inter->var_list, false, inter), NULL, true, NULL);
         g_belong = makeLinkValue(global_belong, belong, auto_aut, inter);
-        gc_freeTmpLink(&global_belong->gc_status);
         inter->base_belong = g_belong;
         gc_addStatementLink(&inter->base_belong->gc_status);
     }

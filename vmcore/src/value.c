@@ -4,7 +4,6 @@ Value *makeObject(Inter *inter, VarList *object, VarList *out_var, bool set_out_
     Value *tmp;
     MACRO_CALLOC(tmp, 1, sizeof(Value));
     setGC(&tmp->gc_status);
-    gc_addTmpLink(&tmp->gc_status);
     tmp->type = V_obj;
     tmp->gc_next = NULL;
 
@@ -209,6 +208,7 @@ Value *makeClassValue(VarList *var_list, Inter *inter, Inherit *father) {
     VarList *new_var = copyVarList(var_list, false, inter);
     tmp = makeObject(inter, NULL, new_var, true, father);
     tmp->type = V_class;
+    gc_addTmpLink(&tmp->gc_status);
     return tmp;
 }
 

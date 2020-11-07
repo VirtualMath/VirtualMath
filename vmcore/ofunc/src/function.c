@@ -23,7 +23,6 @@ static ResultType function_new(O_FUNC){
         Inherit *object_father = getInheritFromValueCore(inter->data.base_obj[B_FUNCTION]);
         Value *new_object = makeObject(inter, NULL, NULL, false, object_father);  // 不加入out_var
         value = makeLinkValue(new_object, belong, auto_aut, inter);
-        gc_freeTmpLink(&new_object->gc_status);
     }
 
     value->value->type = V_func;

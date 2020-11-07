@@ -645,7 +645,6 @@ LinkValue *make_new(Inter *inter, LinkValue *belong, LinkValue *class){
     VarList *new_var = copyVarList(class->value->object.out_var, false, inter);
     Value *new_object = makeObject(inter, NULL, new_var, true, object_father);
     LinkValue *re = makeLinkValue(new_object, belong, auto_aut, inter);
-    gc_freeTmpLink(&new_object->gc_status);
     return re;
 }
 
