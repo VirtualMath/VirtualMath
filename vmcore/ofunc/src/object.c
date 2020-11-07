@@ -1,13 +1,13 @@
 #include "__ofunc.h"
 
-static ResultType object_new(O_FUNC){
+static ResultType object_new(O_FUNC) {
     LinkValue *value = NULL;
     setResultCore(result);
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     int status = 1;
     arg = parserValueArgument(ap, arg, &status, NULL);
-    if (status != 1){
+    if (status != 1) {
         setResultError(E_ArgumentException, FEW_ARG, LINEFILE, true, CNEXT_NT);
         return R_error;
     }
@@ -38,27 +38,40 @@ static ResultType object_new(O_FUNC){
 }
 
 OBJ_OPT(ADD, Add, add)
+
 OBJ_OPT(SUB, Sub, sub)
+
 OBJ_OPT(MUL, Mul, mul)
+
 OBJ_OPT(DIV, Div, div)
+
 OBJ_OPT(INTDIV, Int Div, intdiv)
+
 OBJ_OPT(MOD, Mod, mod)
+
 OBJ_OPT(POW, Pow, pow)
 
 OBJ_OPT(MOREEQ, More Eq, moreeq)
+
 OBJ_OPT(LESSEQ, Less Eq, lesseq)
+
 OBJ_OPT(MORE, More, more)
+
 OBJ_OPT(LESS, Less, less)
 
 OBJ_OPT(BAND, Bit And, band)
+
 OBJ_OPT(BOR, Bit Or, bor)
+
 OBJ_OPT(BXOR, Bit Xor, bxor)
+
 OBJ_OPT(BL, Bit Left, bl)
+
 OBJ_OPT(BR, Bit Right, br)
 
 #undef OBJ_OPT
 
-static ResultType object_eq (O_FUNC) {
+static ResultType object_eq(O_FUNC) {
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"left", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"right", .must=1, .long_arg=false},
@@ -72,7 +85,7 @@ static ResultType object_eq (O_FUNC) {
     return result->type;
 }
 
-static ResultType object_noteq (O_FUNC) {
+static ResultType object_noteq(O_FUNC) {
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=name_value, .name=L"left", .must=1, .long_arg=false},
                            {.type=name_value, .name=L"right", .must=1, .long_arg=false},
@@ -86,7 +99,7 @@ static ResultType object_noteq (O_FUNC) {
     return result->type;
 }
 
-static ResultType objectRepoStrCore(O_FUNC){
+static ResultType objectRepoStrCore(O_FUNC) {
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.must=-1}};
     wchar_t *repo;
@@ -99,12 +112,13 @@ static ResultType objectRepoStrCore(O_FUNC){
         return result->type;
     freeResult(result);
 
-    name_value = findAttributes(inter->data.mag_func[M_NAME], false, LINEFILE, true, CFUNC_NT(var_list, result, ap[0].value));
+    name_value = findAttributes(inter->data.mag_func[M_NAME], false, LINEFILE, true,
+                                CFUNC_NT(var_list, result, ap[0].value));
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
-    if (name_value != NULL){
+    if (name_value != NULL) {
         if (name_value->value->type == V_str)
             name = name_value->value->data.str.str;
         else {
@@ -132,32 +146,32 @@ static ResultType objectRepoStrCore(O_FUNC){
     return result->type;
 }
 
-void registeredObject(R_FUNC){
+void registeredObject(R_FUNC) {
     LinkValue *object = inter->data.base_obj[B_OBJECT];
-    NameFunc tmp[] = {{inter->data.mag_func[M_ADD], object_add, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_SUB], object_sub, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_MUL], object_mul, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_DIV], object_div, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_INTDIV], object_intdiv, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_MOD], object_mod, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_POW], object_pow, fp_obj, .var=nfv_notpush},
+    NameFunc tmp[] = {{inter->data.mag_func[M_ADD],    object_add,        fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_SUB],    object_sub,        fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MUL],    object_mul,        fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DIV],    object_div,        fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_INTDIV], object_intdiv,     fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MOD],    object_mod,        fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_POW],    object_pow,        fp_obj, .var=nfv_notpush},
 
-                      {inter->data.mag_func[M_EQ], object_eq, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_NOTEQ], object_noteq, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_MOREEQ], object_moreeq, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_LESSEQ], object_lesseq, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_MORE], object_more, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_LESS], object_less, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_EQ],     object_eq,         fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NOTEQ],  object_noteq,      fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MOREEQ], object_moreeq,     fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_LESSEQ], object_lesseq,     fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_MORE],   object_more,       fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_LESS],   object_less,       fp_obj, .var=nfv_notpush},
 
-                      {inter->data.mag_func[M_BAND], object_band, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_BOR], object_bor, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_BXOR], object_bxor, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_BL], object_bl, fp_obj, .var=nfv_notpush},
-                      {inter->data.mag_func[M_BR], object_br, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BAND],   object_band,       fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BOR],    object_bor,        fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BXOR],   object_bxor,       fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BL],     object_bl,         fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_BR],     object_br,         fp_obj, .var=nfv_notpush},
 
-                      {inter->data.mag_func[M_NEW],  object_new,  fp_class, .var=nfv_notpush},
-                      {inter->data.mag_func[M_REPO], objectRepoStrCore, fp_all, .var=nfv_notpush},
-                      {inter->data.mag_func[M_STR],  objectRepoStrCore,  fp_all, .var=nfv_notpush},
+                      {inter->data.mag_func[M_NEW],    object_new,        fp_class, .var=nfv_notpush},
+                      {inter->data.mag_func[M_REPO],   objectRepoStrCore, fp_all, .var=nfv_notpush},
+                      {inter->data.mag_func[M_STR],    objectRepoStrCore, fp_all, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"object", object, belong, inter);
@@ -165,7 +179,7 @@ void registeredObject(R_FUNC){
     gc_freeTmpLink(&object->gc_status);
 }
 
-void makeBaseObject(Inter *inter, LinkValue *belong){
+void makeBaseObject(Inter *inter, LinkValue *belong) {
     LinkValue *g_belong;
     Value *object = makeClassValue(inter->var_list, inter, NULL);
 
@@ -180,7 +194,7 @@ void makeBaseObject(Inter *inter, LinkValue *belong){
     inter->data.base_obj[B_OBJECT] = makeLinkValue(object, g_belong, auto_aut, inter);
     gc_freeTmpLink(&object->gc_status);
     gc_addStatementLink(&inter->data.base_obj[B_OBJECT]->gc_status);
-    for (Inherit *ih=g_belong->value->object.inherit; ih != NULL; ih = ih->next) {
+    for (Inherit *ih = g_belong->value->object.inherit; ih != NULL; ih = ih->next) {
         if (ih->value->value == object)
             ih->value->belong = g_belong;
     }

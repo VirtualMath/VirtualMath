@@ -64,7 +64,6 @@ int checkFileDir(char **file_dir, FUNC) {
         return 1;
 
     {
-        char *getcwd(char *buf,size_t size);
         char arr_cwd[200];
         char *p_cwd = NULL;
         getcwd(arr_cwd, 200);

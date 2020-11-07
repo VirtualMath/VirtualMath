@@ -26,8 +26,7 @@ static void newBranchYield(Statement *branch_st, Statement *node, StatementList 
     branch_st->info.have_info = true;
 }
 
-static void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
-                        Inter *inter, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_, LinkValue *with){
+static void newWithBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status, LinkValue *value, LinkValue *_exit_, LinkValue *_enter_, LinkValue *with, VarList *new_var){
     newBranchYield(branch_st, node, sl_node, new_var, status);
     branch_st->info.branch.with_.value = value;
     branch_st->info.branch.with_._exit_ = _exit_;
@@ -35,8 +34,7 @@ static void newWithBranchYield(Statement *branch_st, Statement *node, StatementL
     branch_st->info.branch.with_.with_belong = with;
 }
 
-static void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, VarList *new_var, enum StatementInfoStatus status,
-                        Inter *inter, LinkValue *iter){
+static void newForBranchYield(Statement *branch_st, Statement *node, StatementList *sl_node, enum StatementInfoStatus status, LinkValue *iter, VarList *new_var){
     newBranchYield(branch_st, node, sl_node, new_var, status);
     branch_st->info.branch.for_.iter = iter;
     gc_addTmpLink(&iter->gc_status);
@@ -450,7 +448,7 @@ static void setForResult(bool yield_run, StatementList *sl, Statement *st, Resul
         else
             freeRunInfo(st, false);
     } else if (result->type == R_yield)
-        newForBranchYield(st, result->node, sl, var_list, status, inter, iter);
+        newForBranchYield(st, result->node, sl, status, iter, var_list);
     // else - 正常模式, 不作任何操作
 }
 
@@ -644,7 +642,7 @@ static void setWithResult(bool yield_run, StatementList *sl, Statement *st, Resu
         if (status == info_finally_branch)
             newBranchYield(st, result->node, sl, NULL, status);
         else
-            newWithBranchYield(st, result->node, sl, var_list, status, inter, value, _exit_, _enter_, with);
+            newWithBranchYield(st, result->node, sl, status, value, _exit_, _enter_, with, var_list);
     }  // else - 即正常模式, 不需要任何处理
 }
 

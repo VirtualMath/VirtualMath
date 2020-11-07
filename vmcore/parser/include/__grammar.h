@@ -5,7 +5,7 @@
 #define P_FUNC ParserMessage *pm, Inter *inter /*pasers函数的统一签名*/
 #define CP_FUNC pm, inter /*pasers函数调用的统一实参*/
 
-#define addStatementToken(type, st, pm) addBackToken(pm->tm->ts, makeStatementToken(type, st))
+#define addStatementToken(type, st, pm) addBackToken((pm)->tm->ts, makeStatementToken(type, st))
 #define delToken(pm) (freeToken(popNewToken(pm->tm), false))
 #define backToken_(pm, token) addBackToken(pm->tm->ts, (token))
 #define addLexToken(pm, type) backToken_(pm, makeLexToken(type, NULL, NULL, 0))
