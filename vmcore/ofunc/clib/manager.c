@@ -5,6 +5,7 @@ static struct InFo{
     char *name;
     Registered reg;
 } ManagerInFo[] = {{"sys", registeredSysLib},
+                   {"time", registeredTimeLib},
                    {NULL, NULL}};
 
 bool checkCLib(char *file) {
