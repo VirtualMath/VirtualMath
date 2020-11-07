@@ -9,6 +9,7 @@ struct Args{
     char *in_file;
     bool run_commandLine;
     bool p_clock;
+    char *locale;
 };
 extern struct Args args;
 typedef struct Args Args;

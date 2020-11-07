@@ -14,6 +14,6 @@
 #include "inter.h"
 #include "run.h"
 
-bool initVirtualMath();
+bool initVirtualMath(char const *locale);
 
 #endif //VIRTUALMATH_VIRTUALMATH_H

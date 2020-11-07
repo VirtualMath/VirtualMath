@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     if (getArgs(argc, argv) == -1)  // 命令行参数设定
         return 2;
 
-    initVirtualMath();
+    initVirtualMath(args.locale);
     inter = makeInter(args.out_file, args.error_file, args.in_file, NULL);
     runCodeFile(inter, argv + optind);  // 从文件中运行代码
     if (args.run_commandLine)
