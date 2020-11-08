@@ -71,6 +71,52 @@ static ResultType struct_init(O_FUNC){
     return result->type;
 }
 
+static ResultType struct_slice(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=false},
+                           {.type=only_value, .must=0, .long_arg=false},
+                           {.must=-1}};
+    vint size;
+    vint first;
+    vint second;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != V_struct) {
+        setResultError(E_TypeException, INSTANCE_ERROR(struct), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+    size = ap[0].value->value->data.struct_.len;
+
+    first = 0;
+    second = size;
+    for (vint *list[]={&first, &second}, i=0; i < 2; i++) {
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_int)  // 检查是否存在或是否为数字
+            *(list[i]) = ap[i + 1].value->value->data.int_.num;
+        else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {  // 若不是数字则报错
+            setResultError(E_TypeException, VALUE_ERROR(first/second, num or null), LINEFILE, true, CNEXT_NT);
+            return R_error;
+        }
+    }
+
+    first = first < 0 ? first + size : first;
+    second = second < 0 ? second + size : second;
+    if (second > size || first >= size || first > size){
+        setResultError(E_IndexException, L"index too max", LINEFILE, true, CNEXT_NT);
+        return false;
+    } else if (first < 0 || second < 0){  // second可以和first相等, 所以second可以为0
+        setResultError(E_IndexException, L"index is less than 0", LINEFILE, true, CNEXT_NT);
+        return false;
+    }
+
+    makeStructValue(ap[0].value->value->data.struct_.data + first, (second - first), LINEFILE, CNEXT_NT);
+    return result->type;
+}
+
 static ResultType struct_down(O_FUNC){
     ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
                            {.type=only_value, .must=1, .long_arg=false},
@@ -105,6 +151,7 @@ void registeredStruct(R_FUNC){
     NameFunc tmp[] = {{inter->data.mag_func[M_NEW], struct_new, fp_class, .var=nfv_notpush},
                       {inter->data.mag_func[M_INIT], struct_init, fp_obj, .var=nfv_notpush},
                       {inter->data.mag_func[M_DOWN], struct_down, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_SLICE], struct_slice, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"struct", object, belong, inter);

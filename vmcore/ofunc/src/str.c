@@ -78,9 +78,9 @@ static ResultType str_slice(O_FUNC){
     second = size;
     stride = 1;
     for (vint *list[]={&first, &second, &stride}, i=0; i < 3; i++) {
-        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_int)
+        if (ap[i + 1].value != NULL && ap[i + 1].value->value->type == V_int)  // 检查是否存在或是否为数字
             *(list[i]) = ap[i + 1].value->value->data.int_.num;
-        else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {
+        else if (ap[i + 1].value != NULL && ap[i + 1].value->value->type != V_none) {  // 若不是数字则报错
             setResultError(E_TypeException, VALUE_ERROR(first/second/stride, num or null), LINEFILE, true, CNEXT_NT);
             return R_error;
         }

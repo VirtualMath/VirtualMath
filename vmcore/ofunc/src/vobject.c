@@ -460,7 +460,7 @@ static ResultType vobject_repo(O_FUNC) {
             repo = memWidecpy(value->data.str.str);
             break;
         case V_struct:
-            if (value->data.struct_.data != NULL ){
+            if (value->data.struct_.len != 0){
                 char *tmp = memStrcpy("(");
                 for (vint i = 0; i < value->data.struct_.len; i ++) {
                     char val[20];
