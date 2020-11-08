@@ -62,7 +62,7 @@ static ResultType dou_init(O_FUNC){
             base->value->data.dou.num = 0;
             break;
         case V_struct:
-            if (ap[1].value->value->data.struct_.len * sizeof(int8_t) >= sizeof(vdou))
+            if (ap[1].value->value->data.struct_.len * sizeof(vstruct) >= sizeof(vdou))
                 base->value->data.dou.num = *(vdou *)ap[1].value->value->data.struct_.data;  // 转换为 vdou
             else
                 setResultError(E_ValueException, NOT_ENOUGH_LEN(dou), LINEFILE, true, CNEXT_NT);  // 出现错误
@@ -83,7 +83,7 @@ void registeredDou(R_FUNC){
                       {inter->data.mag_func[M_INIT], dou_init, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
-    addBaseClassVar(L"dou", object, belong, inter);
+    addBaseClassVar(L"double", object, belong, inter);
     iterBaseClassFunc(tmp, object, CFUNC_CORE(inter->var_list));
     gc_freeTmpLink(&object->gc_status);
 }

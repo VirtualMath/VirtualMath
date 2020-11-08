@@ -78,7 +78,7 @@ struct String {
 };
 
 struct Struct_ {
-    int8_t *data;  // 列表
+    vstruct *data;  // 列表
     vint len;  // 长度
 };
 

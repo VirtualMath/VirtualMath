@@ -59,7 +59,7 @@ Value *makeStructValue(void *data, vint len, fline line, char *file, FUNC_NT) {
         setResultOperation(result, structCore(belong, inter->data.base_obj[B_STRUCT], inter));
     tmp = result->value->value;
     if (data != NULL) {
-        tmp->data.struct_.data = MEM_CPY(tmp->data.struct_.data, data, len * sizeof(int8_t));
+        tmp->data.struct_.data = MEM_CPY(tmp->data.struct_.data, data, len * sizeof(vstruct));
         tmp->data.struct_.len = len;
     }
     return tmp;

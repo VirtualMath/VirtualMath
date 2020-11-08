@@ -51,6 +51,6 @@ typedef long long vint;
 typedef long double vdou;
 typedef unsigned long long vhashn;
 typedef unsigned long long fline;
-
+typedef int8_t vstruct;
 
 #endif //VIRTUALMATH___MACRO_H

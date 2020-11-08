@@ -48,19 +48,19 @@ static ResultType struct_init(O_FUNC){
         switch (data->value->type) {
             case V_int:
                 MEM_CPY(base->value->data.struct_.data, &(data->value->data.int_.num), sizeof(vint));
-                base->value->data.struct_.len = sizeof(vint) / sizeof(int8_t);
+                base->value->data.struct_.len = sizeof(vint) / sizeof(vstruct);
                 break;
             case V_dou:
                 MEM_CPY(base->value->data.struct_.data, &(data->value->data.dou.num), sizeof(vdou));
-                base->value->data.struct_.len = sizeof(vdou) / sizeof(int8_t);
+                base->value->data.struct_.len = sizeof(vdou) / sizeof(vstruct);
                 break;
             case V_struct:
-                MEM_CPY(base->value->data.struct_.data, &data->value->data.struct_.data, data->value->data.struct_.len * sizeof(int8_t));
+                MEM_CPY(base->value->data.struct_.data, &data->value->data.struct_.data, data->value->data.struct_.len * sizeof(vstruct));
                 base->value->data.struct_.len = data->value->data.struct_.len;
                 break;
             case V_str:
                 MEM_CPY(base->value->data.struct_.data, &data->value->data.str.str, memWidelen(data->value->data.str.str) * sizeof(wchar_t));
-                base->value->data.struct_.len = (sizeof(wchar_t) * memWidelen(data->value->data.str.str)) / sizeof(int8_t);
+                base->value->data.struct_.len = (sizeof(wchar_t) * memWidelen(data->value->data.str.str)) / sizeof(vstruct);
                 break;
             default:
                 setResultError(E_ArgumentException, ONLY_ACC(data, int/str/struct), LINEFILE, true, CNEXT_NT);

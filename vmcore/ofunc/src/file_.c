@@ -155,18 +155,18 @@ static ResultType file_read_bit(O_FUNC){
             setResultError(E_TypeException, ONLY_ACC(n, num), LINEFILE, true, CNEXT_NT);
             return R_error;
         }
-        data = memCalloc(n, sizeof(int8_t));  // TODO-szh in8_t 使用typedef
-        count = fread(data, sizeof(int8_t), n, file->value->data.file.file);
+        data = memCalloc(n, sizeof(vstruct));
+        count = fread(data, sizeof(vstruct), n, file->value->data.file.file);
     } else {
         void *bak = NULL;
         size_t get;
         do {  // 全部读取
-            void *tmp = memCalloc(5, sizeof(int8_t));
-            get = fread(tmp, sizeof(int8_t), 5, file->value->data.file.file);
+            void *tmp = memCalloc(5, sizeof(vstruct));
+            get = fread(tmp, sizeof(vstruct), 5, file->value->data.file.file);
             bak = data;
-            data = memCalloc(count, sizeof(int8_t));
-            memcpy(data, bak, count * sizeof(int8_t));  // 复制
-            memcpy(data + count * sizeof(int8_t), tmp, get * sizeof(int8_t));
+            data = memCalloc(count, sizeof(vstruct));
+            memcpy(data, bak, count * sizeof(vstruct));  // 复制
+            memcpy(data + count * sizeof(vstruct), tmp, get * sizeof(vstruct));
             memFree(bak);
             memFree(tmp);
             count += get;
@@ -237,7 +237,7 @@ static ResultType file_write(O_FUNC){
             re = memWidelen(ap[1].value->value->data.str.str);
             break;
         case V_struct:
-            re = (vint)fwrite(ap[1].value->value->data.struct_.data, sizeof(int8_t), ap[1].value->value->data.struct_.len, file->value->data.file.file);
+            re = (vint)fwrite(ap[1].value->value->data.struct_.data, sizeof(vstruct), ap[1].value->value->data.struct_.len, file->value->data.file.file);
             break;
         default:
             setResultError(E_TypeException, ONLY_ACC(str, str), LINEFILE, true, CNEXT_NT);

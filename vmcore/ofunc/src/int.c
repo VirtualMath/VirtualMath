@@ -62,7 +62,7 @@ static ResultType int_init(O_FUNC){
             base->value->data.int_.num = 0;
             break;
         case V_struct:
-            if (ap[1].value->value->data.struct_.len * sizeof(int8_t) >= sizeof(vint))
+            if (ap[1].value->value->data.struct_.len * sizeof(vstruct) >= sizeof(vint))
                 base->value->data.int_.num = *(vint *)ap[1].value->value->data.struct_.data;  // 转换为 vint
             else
                 setResultError(E_ValueException, NOT_ENOUGH_LEN(int), LINEFILE, true, CNEXT_NT);  // 出现错误
