@@ -66,6 +66,6 @@ TARGET_INCLUDE_DIRECTORIES(vmcore PRIVATE VMCORE_INCLUDE_DICT)
 SET_TARGET_PROPERTIES(vmcore PROPERTIES
         PUBLIC_HEADER ${vmcore_SOURCE_DIR}/include/virtualmath.h  # 设置public的头文件
         OUTPUT_NAME "vmcore"  # 设置输出名
-        VERSION 2.1  # 设置版本号
+        VERSION 3.1  # 设置版本号
         )
 INSTALL(TARGETS vmcore)
