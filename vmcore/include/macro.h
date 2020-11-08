@@ -21,7 +21,6 @@
 #include <locale.h>
 #include <getopt.h>
 #include <unistd.h>
-#include "direct.h"
 #include <dlfcn.h>
 #include <ffi.h>
 
@@ -31,6 +30,10 @@
 #define false 0
 #define NUL ((char)0)
 #define WNUL ((wchar_t)0)
+
+#ifndef __linux
+#include <direct.h>  // linux系统不需要包含该头文件
+#endif
 
 #ifdef NDEBUG
 #define err_asert(e) ((void)0)

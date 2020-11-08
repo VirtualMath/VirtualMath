@@ -33,6 +33,6 @@ wchar_t *memStrToWcs(char *str, bool free_old);
 
 #define MACRO_CALLOC(var, n, size) ((((var) = (typeof(var))calloc(n, size)) == NULL) ? (memError()) : (var))
 
-#define MEM_CPY(to, from, size) (((to) = memCalloc(1, size)), memcpy(to, from, size))
+#define MEM_CPY(to, from, size) (((size) != 0) ? ((to) = memCalloc(1, size)), memcpy(to, from, size) : NULL)
 
 #endif // VIRTUALMATH_MEM_H
