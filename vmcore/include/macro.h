@@ -21,6 +21,7 @@
 #include <locale.h>
 #include <getopt.h>
 #include <unistd.h>
+#include "direct.h"
 #include <dlfcn.h>
 #include <ffi.h>
 

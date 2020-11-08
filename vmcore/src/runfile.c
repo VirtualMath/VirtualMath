@@ -62,7 +62,6 @@ int checkFileDir(char **file_dir, FUNC) {
 
     if (isExist(file_dir, false, "__init__.vm"))
         return 1;
-
     {
         char arr_cwd[200];
         char *p_cwd = NULL;

@@ -71,10 +71,40 @@ static ResultType struct_init(O_FUNC){
     return result->type;
 }
 
+static ResultType struct_down(O_FUNC){
+    ArgumentParser ap[] = {{.type=only_value, .must=1, .long_arg=false},
+                           {.type=only_value, .must=1, .long_arg=false},
+                           {.must=-1}};
+    vint size;
+    vint index;
+    setResultCore(result);
+    parserArgumentUnion(ap, arg, CNEXT_NT);
+    if (!CHECK_RESULT(result))
+        return result->type;
+    freeResult(result);
+
+    if (ap[0].value->value->type != V_struct){
+        setResultError(E_TypeException, INSTANCE_ERROR(struct), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+    if (ap[1].value->value->type != V_int){
+        setResultError(E_TypeException, ONLY_ACC(struct index, int), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    size = ap[0].value->value->data.struct_.len;
+    index = ap[1].value->value->data.int_.num;
+    if (!checkIndex(&index, &size, CNEXT_NT))
+        return result->type;
+    makeStructValue(ap[0].value->value->data.struct_.data + index, 1, LINEFILE, CNEXT_NT);
+    return result->type;
+}
+
 void registeredStruct(R_FUNC){
     LinkValue *object = inter->data.base_obj[B_BOOL];
     NameFunc tmp[] = {{inter->data.mag_func[M_NEW], struct_new, fp_class, .var=nfv_notpush},
                       {inter->data.mag_func[M_INIT], struct_init, fp_obj, .var=nfv_notpush},
+                      {inter->data.mag_func[M_DOWN], struct_down, fp_obj, .var=nfv_notpush},
                       {NULL, NULL}};
     gc_addTmpLink(&object->gc_status);
     addBaseClassVar(L"struct", object, belong, inter);

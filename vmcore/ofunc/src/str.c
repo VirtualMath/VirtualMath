@@ -117,7 +117,7 @@ static ResultType str_down(O_FUNC){
         return R_error;
     }
     if (ap[1].value->value->type != V_int){
-        setResultError(E_TypeException, ONLY_ACC(str index, V_int), LINEFILE, true, CNEXT_NT);
+        setResultError(E_TypeException, ONLY_ACC(str index, int), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
 
