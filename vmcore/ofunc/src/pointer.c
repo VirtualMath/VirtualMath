@@ -41,6 +41,12 @@ static ResultType pointer_init(O_FUNC){
         case V_ell:
             base->value->data.pointer.pointer = NULL;
             break;
+        case V_struct:
+            base->value->data.pointer.pointer = &ap[1].value->value->data.struct_.data;  // 获取指向结构体指针的指针
+            break;
+        case V_pointer:
+            base->value->data.pointer.pointer = ap[1].value->value->data.pointer.pointer;
+            break;
         default:
             setResultError(E_TypeException, ERROR_INIT(num), LINEFILE, true, CNEXT_NT);
             return result->type;

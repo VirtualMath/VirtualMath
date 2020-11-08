@@ -61,6 +61,12 @@ static ResultType dou_init(O_FUNC){
         case V_ell:
             base->value->data.dou.num = 0;
             break;
+        case V_struct:
+            if (ap[1].value->value->data.struct_.len * sizeof(int8_t) >= sizeof(vdou))
+                base->value->data.dou.num = *(vdou *)ap[1].value->value->data.struct_.data;  // 转换为 vdou
+            else
+                setResultError(E_ValueException, NOT_ENOUGH_LEN(dou), LINEFILE, true, CNEXT_NT);  // 出现错误
+            break;
         default:
             setResultError(E_TypeException, ERROR_INIT(num), LINEFILE, true, CNEXT_NT);
             return result->type;
