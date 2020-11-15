@@ -1,4 +1,4 @@
-#include "lib.h"
+#include "__ofunc.h"
 
 static ResultType vm_setNowRunCore(O_FUNC, bool type){
     LinkValue *function_value = NULL;
@@ -215,7 +215,7 @@ static ResultType vm_exec(O_FUNC){
     return result->type;
 }
 
-void registeredSysLib(R_FUNC){
+void registered(R_FUNC){
     NameFunc tmp[] = {{L"is_now_run",             vm_isnowrun,       fp_no_, .var=nfv_notpush},
                       {L"dis_now_run",            vm_disnowrun,      fp_no_, .var=nfv_notpush},
                       {L"quit",                   vm_quit,           fp_no_, .var=nfv_notpush},

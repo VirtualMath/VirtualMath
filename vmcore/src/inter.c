@@ -191,6 +191,7 @@ void freeInter(Inter *inter, bool show_gc) {
 
     while (inter->hash_base != NULL)
         freeHashTable(&inter->hash_base);
+    freeClibInfoFromInter(inter);
     memFree(inter);
     return_:
     return;
@@ -201,6 +202,7 @@ void mergeInter(Inter *new, Inter *base){
     LinkValue **base_linkValue = NULL;
     HashTable **base_hash = NULL;
     Var **base_var = NULL;
+    ClibInfo **info = NULL;
 
     gc_runDelAll(new);
     freeBaseInterData(new);
@@ -214,11 +216,14 @@ void mergeInter(Inter *new, Inter *base){
         PASS;
     for (base_var = &base->base_var; *base_var != NULL; base_var = &(*base_var)->gc_next)
         PASS;
+    for (info = &base->clib_info; *info != NULL; info = &(*info)->next)
+        PASS;
 
     *base_value = new->base;
     *base_linkValue = new->link_base;
     *base_hash = new->hash_base;
     *base_var = new->base_var;
+    *info = new->clib_info;
     if (base->package == NULL)
         base->package = new->package;
     memFree(new);
@@ -233,6 +238,33 @@ Inter *deriveInter(LinkValue *belong, Inter *inter) {
     import_inter->data.is_stderr = true;
     import_inter->data.is_stdin = true;
     return import_inter;
+}
+
+ClibInfo *makeClibInfo() {
+    ClibInfo *tmp = memCalloc(1, sizeof(ClibInfo));
+    tmp->dl = NULL;
+    tmp->next = NULL;
+    return tmp;
+}
+
+void makeClibInfoToInter(void *dl, Inter *inter) {
+    ClibInfo *tmp = makeClibInfo();
+    tmp->next = inter->clib_info;
+    tmp->dl = dl;
+    inter->clib_info = tmp;
+}
+
+ClibInfo *freeClibInfo(ClibInfo *info) {
+    ClibInfo *next = info->next;
+    if (info->dl != NULL)
+        dlclose(info->dl);
+    memFree(info);
+    return next;
+}
+
+void freeClibInfoFromInter(Inter *inter) {
+    for (ClibInfo *tmp = inter->clib_info; tmp != NULL; tmp = freeClibInfo(tmp))
+        PASS;
 }
 
 #if DEBUG

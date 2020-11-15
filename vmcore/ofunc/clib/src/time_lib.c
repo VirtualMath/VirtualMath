@@ -1,4 +1,4 @@
-#include "lib.h"
+#include "__ofunc.h"
 
 static ResultType vm_selfunCore(O_FUNC){
     time_t t;
@@ -12,7 +12,7 @@ static ResultType vm_selfunCore(O_FUNC){
     return result->type;
 }
 
-void registeredTimeLib(R_FUNC){
+void registered(R_FUNC){
     NameFunc tmp[] = {{L"time", vm_selfunCore, fp_no_, .var=nfv_notpush},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));

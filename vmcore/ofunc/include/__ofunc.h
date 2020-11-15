@@ -4,7 +4,6 @@
 #include "__base.h"
 #include "__run.h"
 
-void newObjectSettingPresetting(LinkValue *func, LinkValue *name, Inter *inter);
 LinkValue *registeredFunctionCore(OfficialFunction of, wchar_t *name, enum NameFuncVar nfv, FUNC_NT);
 
 bool iterNameFunc(NameFunc *list, FUNC_NT);

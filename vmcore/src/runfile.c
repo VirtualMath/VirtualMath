@@ -95,7 +95,7 @@ int checkFileDir(char **file_dir, FUNC) {
 }
 
     clib:
-    if (checkCLib(*file_dir))  // 检查是否为 clib
+    if (checkCLib(file_dir))  // 检查是否为 clib
         return 2;
 
     error_:

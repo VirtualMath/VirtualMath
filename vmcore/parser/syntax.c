@@ -368,7 +368,7 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         strMatherMacro(MATHER_REGO, "fall");
         strMatherMacro(MATHER_RESTART, "restart");
         strMatherMacro(MATHER_RETURN, "return");
-        strMatherMacro(MATHER_YIELD, "pause");
+        strMatherMacro(MATHER_YIELD, "yield");
         strMatherMacro(MATHER_IMPORT, "import");
         strMatherMacro(MATHER_INCLUDE, "include");
 

@@ -131,12 +131,3 @@ void addBaseClassVar(wchar_t *name, LinkValue *obj, LinkValue *belong, Inter *in
         printError(&result, inter, true);
     freeResult(&result);
 }
-
-void newObjectSettingPresetting(LinkValue *func, LinkValue *name, Inter *inter) {
-    Result result;
-    setResultCore(&result);
-    newObjectSetting(name, LINEFILE, func, &result, inter, NULL);
-    if (RUN_TYPE(result.type))
-        printError(&result, inter, true);
-    freeResult(&result);
-}

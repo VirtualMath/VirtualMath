@@ -93,6 +93,11 @@ struct Result;
 #define M_NOT (44)
 #define M_NEGATE (45)
 
+struct ClibInfo {
+    void *dl;
+    struct ClibInfo *next;
+};
+
 struct Inter{
     struct Value *base;
     struct LinkValue *link_base;
@@ -100,7 +105,7 @@ struct Inter{
     struct Var *base_var;
     struct LinkValue *base_belong;
     struct Package *package;
-
+    struct ClibInfo *clib_info;
     struct VarList *var_list;
     struct InterData{
         FILE *inter_stdout;
@@ -143,6 +148,7 @@ struct Inter{
 typedef struct Inter Inter;
 typedef struct Statement Statement;
 typedef enum ResultType ResultType;
+typedef struct ClibInfo ClibInfo;
 
 Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
@@ -152,4 +158,10 @@ void runCodeFile(Inter *inter, char *file[]);
 bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st);
 void mergeInter(Inter *new, Inter *base);
 Inter *deriveInter(LinkValue *belong, Inter *inter);
+
+ClibInfo *makeClibInfo();
+void makeClibInfoToInter(void *dl, Inter *inter);
+ClibInfo *freeClibInfo(ClibInfo *info);
+void freeClibInfoFromInter(Inter *inter);
+
 #endif //VIRTUALMATH_INTER_H
