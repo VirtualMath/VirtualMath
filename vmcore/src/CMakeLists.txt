@@ -34,8 +34,6 @@ ELSE()
 ENDIF()
 
 IF (PG)
-    ADD_COMPILE_OPTIONS(-pg)
-    ADD_LINK_OPTIONS(-pg)
     ADD_LIBRARY(vmcore_src STATIC ${SRC})  ## debug模式下, 以静态库形式链接
 ELSE()
     ADD_LIBRARY(vmcore_src SHARED ${SRC})

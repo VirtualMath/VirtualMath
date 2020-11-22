@@ -20,6 +20,12 @@ FOREACH(DIR ${VMCORE_SRC_DIR})
 ENDFOREACH()
 MESSAGE(STATUS "vmcore src list = ${SRC}")
 
+IF (PG)
+    ADD_COMPILE_OPTIONS(-pg)
+    ADD_LINK_OPTIONS(-pg)
+ENDIF()
+
+ADD_COMPILE_OPTIONS(-fPIC)
 # 处理内部依赖库
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/signalhandler)
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/memory)
