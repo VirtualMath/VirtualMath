@@ -6,6 +6,14 @@ SET(CMAKE_C_STANDARD 11)
 AUX_SOURCE_DIRECTORY(${vmcore_src_SOURCE_DIR} SRC)
 MESSAGE(STATUS "vmcore src list = ${SRC}")
 
+# 添加内部依赖库
+SET(SRC
+        ${SRC}
+        ${vm_gc_src}
+        ${vm_ofunc_src}
+        ${vm_parser_src}
+        )
+
 # 处理外部依赖库
 FIND_PATH(ffih ffi.h REQUIRED)
 INCLUDE_DIRECTORIES(${ffih})

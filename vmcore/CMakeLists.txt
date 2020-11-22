@@ -22,21 +22,24 @@ MESSAGE(STATUS "vmcore src list = ${SRC}")
 
 # 处理内部依赖库
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/signalhandler)
-ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/parser)
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/memory)
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/md5)
-ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/gc)
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/file)
+
+# 添加子目录(没有生成新的lib)
+ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/parser)
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/ofunc)
+ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/gc)
 
 # 添加头文件
 INCLUDE_DIRECTORIES(${VMCORE_INCLUDE_DICT} BEFORE)
-INCLUDE_DIRECTORIES(${OFUNC_INCLUDE_DICT} BEFORE)
+INCLUDE_DIRECTORIES(${vm_ofunc_include} BEFORE)
+INCLUDE_DIRECTORIES(${vm_parser_include} BEFORE)
 MESSAGE(STATUS "VMCORE_INCLUDE_DICT = ${VMCORE_INCLUDE_DICT}")
 
 # 编译和链接vmcore
 ADD_SUBDIRECTORY(${vmcore_SOURCE_DIR}/src)
-TARGET_LINK_LIBRARIES(vmcore_src vm_signal vm_parser vm_memory vm_md5 vm_gc vm_clib vm_obj vm_file)
+TARGET_LINK_LIBRARIES(vmcore_src vm_signal vm_memory vm_md5 vm_file)
 
 # 安装vmlib
 SET(VMLIB_PATH ${CMAKE_INSTALL_PREFIX}/vmlib)
