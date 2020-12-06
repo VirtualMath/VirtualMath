@@ -131,7 +131,7 @@ static ResultType lib_add(O_FUNC){
     }
 
     lib_addCore(ap[1].value->value->data.str.str, clib, CNEXT_NT);
-    return result->type;
+    return result->type;  // 返回函数本身
 }
 
 static ResultType lib_attr(O_FUNC){
@@ -167,7 +167,7 @@ static ResultType lib_attr(O_FUNC){
     }
 
     lib_addCore(error->value->data.str.str, clib, CNEXT_NT);
-    return result->type;
+    return result->type;  // 返回函数本身
 }
 
 void registeredLib(R_FUNC){

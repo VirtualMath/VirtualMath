@@ -833,7 +833,7 @@ ArgumentParser *parserArgumentNameDefault(ArgumentParser *ap){
     return ap;
 }
 
-void setArgumentFFICore(ArgumentFFI *af) {
+void setArgumentFFICore(ArgumentFFI *af) {  // 初始化设定
     af->type = NULL;
     af->arg = NULL;
     af->arg_v = NULL;
@@ -921,7 +921,8 @@ static bool setFFIArgFromValue(ArgumentFFI *af, Argument *arg, unsigned int i) {
         setFFIValue(V_dou, ffi_type_double, af_double, double, arg->data.value->value->data.dou.num);
         setFFIValue(V_bool, ffi_type_sint32, af_int, double, arg->data.value->value->data.bool_.bool_);
         setFFIValue(V_str, ffi_type_pointer, af_str, char *, memWcsToStr(arg->data.value->value->data.str.str, false));
-        setFFIValue(V_pointer, ffi_type_void, af_int, void *, arg->data.value->value->data.pointer.pointer);
+        setFFIValue(V_pointer, ffi_type_void, af_pointer, void *, arg->data.value->value->data.pointer.pointer);
+        setFFIValue(V_struct, ffi_type_void, af_pointer, void *, arg->data.value->value->data.struct_.data);
 
         case V_ell:
         setFFIValue(V_none, ffi_type_sint32, af_int, int, 0);
@@ -992,6 +993,9 @@ static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
                 case V_pointer:
                     *(void **) (af->arg_v[i]) = (void *)arg->data.value->value->data.pointer.pointer;
                     break;
+                case V_struct:
+                    *(void **) (af->arg_v[i]) = (void *)arg->data.value->value->data.struct_.data;
+                    break;
                 default:
                     return 0;
             }
@@ -1027,7 +1031,7 @@ static bool setFFIArgFromType(ArgumentFFI *af, Argument *arg, unsigned int i) {
 
 bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
     for (unsigned int i=0; arg != NULL && i < af->size; arg = arg->next, i++) {
-        if (af->arg[i] == NULL) {
+        if (af->arg[i] == NULL) {  // af->arg即ffi_type, 为NULL则表示该参数类型没有指定
             if (!setFFIArgFromValue(af, arg, i))
                 return false;
         } else{
@@ -1038,7 +1042,7 @@ bool setArgumentToFFI(ArgumentFFI *af, Argument *arg) {
     return arg == NULL;  // 若arg还没迭代完, 则证明有问题
 }
 
-ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {
+ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {  // 从str中翻译ffi类型
     ffi_type *return_ = NULL;
     if (eqWide(str, L"int")) {
         return_ = &ffi_type_sint32;
@@ -1089,7 +1093,7 @@ ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft) {
     return return_;
 }
 
-ffi_type *getFFITypeUp(wchar_t *str, enum ArgumentFFIType *aft) {
+ffi_type *getFFITypeUp(wchar_t *str, enum ArgumentFFIType *aft) {  // 自带参数类型提升
     ffi_type *return_ = NULL;
     if (eqWide(str, L"int") || eqWide(str, L"sint") || eqWide(str, L"char")) {
         return_ = &ffi_type_sint32;

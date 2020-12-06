@@ -72,7 +72,7 @@ static ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
-    if ((func = ap[0].value)->value->type != V_func || (func = ap[0].value)->value->data.function.type != f_func) {
+    if ((func = ap[0].value)->value->type != V_func || func->value->data.function.type != f_func) {
         setResultError(E_TypeException, INSTANCE_ERROR(func), LINEFILE, true, CNEXT_NT);
         return R_error;
     }
@@ -90,7 +90,7 @@ static ResultType function_set(O_FUNC){  // 针对FFI设置vaargs
 
     if (CHECK_RESULT(result))
         setResultOperation(result, func);
-    return result->type;
+    return result->type;  // 返回函数本身, 方便set完之后直接回调
 }
 
 void registeredFunction(R_FUNC){

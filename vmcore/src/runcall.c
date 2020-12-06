@@ -346,7 +346,7 @@ static bool FFIReturnValue(enum ArgumentFFIType aft, void *re_v, fline line, cha
             setResult(result, inter);
             break;
         default:
-            setResultError(E_ArgumentException, (wchar_t *) L"no-support return type for C function", line, file, true, CNEXT_NT);
+            setResultError(E_ArgumentException, L"no-support return type for C function", line, file, true, CNEXT_NT);
             return false;
     }
     return true;
@@ -365,8 +365,8 @@ static ffi_type *getRearg(LinkValue *function_value, enum ArgumentFFIType *aft, 
             return NULL;
         }
         re = getFFIType(re_var->value->data.str.str, aft);
-        if (re == NULL) {
-            setResultError(E_ArgumentException, (wchar_t *) L"no-support argument type for C function", line, file, true, CNEXT_NT);
+        if (re == NULL) {  // 遇到了不支持的返回值类型
+            setResultError(E_ArgumentException, L"no-support argument type for C function", line, file, true, CNEXT_NT);
             return NULL;
         }
     } else
@@ -379,12 +379,12 @@ static ResultType getFuncargs(LinkValue *function_value, ArgumentFFI *af, fline 
     LinkValue *vaarg_var = NULL;
     setResultCore(result);
 
-    arg_var = findAttributes(L"funcargs", false, line, file, true, CFUNC_NT(var_list, result, function_value));
+    arg_var = findAttributes(L"funcargs", false, line, file, true, CFUNC_NT(var_list, result, function_value));  // 获取 arg 类型
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
 
-    vaarg_var = findAttributes(L"vaargs", false, line, file, true, CFUNC_NT(var_list, result, function_value));
+    vaarg_var = findAttributes(L"vaargs", false, line, file, true, CFUNC_NT(var_list, result, function_value));  // 获取 可变参数部分的 参数类型
     if (!CHECK_RESULT(result))
         return result->type;
     freeResult(result);
@@ -400,7 +400,7 @@ static ResultType getFuncargs(LinkValue *function_value, ArgumentFFI *af, fline 
         }
 
         if (!listToArgumentFFI(af, arg_var->value->data.list.list, arg_var->value->data.list.size, valist, vasize)) {
-            setResultError(E_ArgumentException, (wchar_t *) L"no-support argument type for C function", line, file, true, CNEXT_NT);
+            setResultError(E_ArgumentException, L"no-support argument type for C function", line, file, true, CNEXT_NT);
             return R_error;
         }
     }
@@ -411,55 +411,55 @@ static ResultType callFFunction(LinkValue *function_value, Argument *arg, fline 
     ffi_cif cif;
     ffi_type *re;
     unsigned int size;
-    ArgumentFFI af;
-    enum ArgumentFFIType aft = af_int;
+    ArgumentFFI af;  // 记录ffi函数的参数信息，包括具体类型和具体参数
+    enum ArgumentFFIType aft = af_void;  // 返回值类型 (默认为void)
     void *re_v = NULL;  // 存放返回值的函數
 
     setResultCore(result);
     if (function_value->value->data.function.function_data.cls->value->type != V_lib) {
-        setResultError(E_ArgumentException, (wchar_t *) L"c function source is not clear", line, file, true, CNEXT_NT);
+        setResultError(E_ArgumentException, L"c function source is not clear", line, file, true, CNEXT_NT);  // ffi函数应该来自lib
         return R_error;
     }
 
     if (function_value->value->data.function.function_data.cls->value->data.lib.handle == NULL) {
-        setResultError(E_ArgumentException, (wchar_t *) L"dynamic library is closed", line, file, true, CNEXT_NT);
+        setResultError(E_ArgumentException, L"dynamic library is closed", line, file, true, CNEXT_NT);  // 检查对应的lib的handle是否已经关闭
         return R_error;
     }
 
     setArgumentFFICore(&af);
-    if (pt_sep != 0 || (size = checkArgument(arg, value_arg)) == -1) {
-        setResultError(E_ArgumentException, (wchar_t *) L"does not support key-value arguments", line, file, true, CNEXT_NT);
+    if (pt_sep != 0 || (size = checkArgument(arg, value_arg)) == -1) {  // 不支持pt_sep, 不支持key-value, 并且统计arg的个数
+        setResultError(E_ArgumentException, L"does not support key-value arguments", line, file, true, CNEXT_NT);
         return R_error;
     }
 
-    re = getRearg(function_value, &aft, line, file, CNEXT_NT);
+    re = getRearg(function_value, &aft, line, file, CNEXT_NT);  // 获取返回值类型
     if (!CHECK_RESULT(result))
         return result->type;
 
-    setArgumentFFI(&af, size);
-    getFuncargs(function_value, &af, line, file, CNEXT_NT);
+    setArgumentFFI(&af, size);  // 为af中的数组申请内存
+    getFuncargs(function_value, &af, line, file, CNEXT_NT);  // 设定类型
     if (!CHECK_RESULT(result))
         goto return_;
 
-    if (!setArgumentToFFI(&af, arg)) {
-        setResultError(E_ArgumentException, (wchar_t *) L"parameter exception when calling C function", line, file, true, CNEXT_NT);
+    if (!setArgumentToFFI(&af, arg)) {  // 设定ffi_type和ffi参数的真实数据
+        setResultError(E_ArgumentException, L"parameter exception when calling C function", line, file, true, CNEXT_NT);
         goto return_;
     }
 
-    if (af.size == af.b_va)
+    if (af.size == af.b_va)  // b_va是确定参数的个数, size是总个数
         ffi_prep_cif(&cif, FFI_DEFAULT_ABI, af.size, re, af.arg);
     else
         ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, af.b_va, af.size, re, af.arg);
 
     if (makeFFIReturn(aft, &re_v)) {
-        ffi_call(&cif, function_value->value->data.function.ffunc, re_v, af.arg_v);
+        ffi_call(&cif, function_value->value->data.function.ffunc, re_v, af.arg_v); // 调用函数
         FFIReturnValue(aft, re_v, line, file, CNEXT_NT);
         memFree(re_v);
     } else
-        setResultError(E_ArgumentException, (wchar_t *) L"no-support return type for C function", line, file, true, CNEXT_NT);
+        setResultError(E_ArgumentException, L"no-support return type for C function", line, file, true, CNEXT_NT);
 
     return_:
-    freeArgumentFFI(&af);
+    freeArgumentFFI(&af);  // 释放af中的列表
     return result->type;
 }
 
