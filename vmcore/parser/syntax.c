@@ -394,9 +394,9 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
         strMatherMacro(MATHER_BITLEFT, "<<");
         strMatherMacro(MATHER_BITRIGHT, ">>");
 
-        strMatherMacro(MATHER_BOOLAND, "&&");
-        strMatherMacro(MATHER_BOOLOR, "||");
-        charMatherMacro(MATHER_BOOLNOT, '!');
+        strMatherMacro(MATHER_BOOLAND, "and");
+        strMatherMacro(MATHER_BOOLOR, "or");
+        strMatherMacro(MATHER_BOOLNOT, "not");
 
         charMatherMacro(MATHER_ASSIGNMENT, '=');
         charMatherMacro(MATHER_POINT, '.');

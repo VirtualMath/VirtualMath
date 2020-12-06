@@ -52,21 +52,27 @@ static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参�
 }
 
 #define GOTO_RETURN(num) do{return_num = num; goto return_;}while(0)
-#define CHECK_TYPE(file) do { \
+#define CHECK_TYPE(file) do { /* 判断文件类型 */ \
     void *dl; \
-    if (CHECK_CLIB(file, dl)) { \
-        GOTO_RETURN(2);  /* return 2 表示clib模式 */ \
-    } else \
-        GOTO_RETURN(1);  /* return 1 表示.vm模式 */  \
+    if (eqWide((file) + memStrlen(file) - 3, ".vm")) { \
+        GOTO_RETURN(1);  /* return 2 表示clib模式 */ \
+    } else if (CHECK_CLIB(file, dl)) { \
+        GOTO_RETURN(2);  /* return 1 表示.vm模式 */ \
+    } else { \
+        goto error_; \
+    } \
     goto return_; \
 }while(0)
 
 int checkFileDir(char **file_dir, FUNC) {
     int return_num;
     char *arr_cwd = inter->data.env;
-    char *lib_file = strncmp(*file_dir, "lib", 3) == 0 ? memStrcpy(*file_dir) : memStrcat("libvm", *file_dir, false, false);  // 自动增加libvm前缀
-    if (strstr(lib_file, SHARED_MARK) == NULL)
+    bool diff = false;
+    char *lib_file = strncmp(*file_dir, "lib", 3) == 0 ? memStrcpy(*file_dir) : (diff = true, memStrcat("libvm", *file_dir, false, false));  // 自动增加libvm前缀
+    if (strstr(lib_file, SHARED_MARK) == NULL) {
         lib_file = memStrcat(lib_file, SHARED_MARK, true, false);
+        diff = true;
+    }
 
     switch (isAbsolutePath(*file_dir)) {
         case 1:  // 表示输入的一定是绝对路径
@@ -74,6 +80,7 @@ int checkFileDir(char **file_dir, FUNC) {
                 CHECK_TYPE(*file_dir);
             goto error_;
         case 2:  // 表示仅为clib
+            diff = true;
             goto clib;
         case 3:  // 表示一定是全局包
             goto path;
@@ -89,18 +96,16 @@ int checkFileDir(char **file_dir, FUNC) {
         if (isExist(&p_cwd, false, "__init__.vm")) {
             memFree(*file_dir);
             *file_dir = p_cwd;  // p_cwd 不需要释放
-            GOTO_RETURN(1);
-        }
-        memFree(p_cwd);
-    }
-
-    {
-        void *tmp_dl;
-        char *p_cwd = memStrcatIter(arr_cwd, false, SEP, lib_file, NULL);  // 以NULL结尾表示结束
-        if (CHECK_CLIB(p_cwd, tmp_dl)) {
-            memFree(*file_dir);
-            *file_dir = p_cwd;  // p_cwd 不需要释放
-            GOTO_RETURN(2);
+            CHECK_TYPE(*file_dir);
+        } else if (diff) {  // 检查是否为动态库, 若 lib_file 和 file_dir 一致则不检查
+            void *tmp_dl;
+            memFree(p_cwd);
+            p_cwd = memStrcatIter(arr_cwd, false, SEP, lib_file, NULL);  // 以NULL结尾表示结束
+            if (CHECK_CLIB(p_cwd, tmp_dl)) {
+                memFree(*file_dir);
+                *file_dir = p_cwd;  // p_cwd 不需要释放
+                GOTO_RETURN(2);
+            }
         }
         memFree(p_cwd);
     }
@@ -116,14 +121,15 @@ int checkFileDir(char **file_dir, FUNC) {
                 memFree(*file_dir);
                 *file_dir = new_dir;
                 memFree(path);  // 释放path
-                GOTO_RETURN(1);
+                CHECK_TYPE(*file_dir);
             }
             memFree(new_dir);
         }
         memFree(path);
     }
 
-    clib: {
+    clib:
+    if (diff) {  // 检查是否为动态库, 若 lib_file 和 file_dir 一致则不检查
         void *tmp_dl;
         char *path = memStrcpy(getenv("VIRTUALMATHPATH"));  // 因为 strtok 需要修改path, 所以path不能重复使用
         for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {

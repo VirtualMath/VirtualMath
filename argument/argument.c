@@ -46,13 +46,13 @@ int getArgs(const int argc, char **argv)
             case 'n':
                 args.run_commandLine = false;
                 break;
-            case 'p':
+            case 'l':
                 if (optarg != NULL)
                     args.locale = optarg;  // 不需要复制
                 else
                     args.locale = "";
                 break;
-            case 'l':
+            case 'p':
                 args.p_clock = true;
                 break;
             case '?':
