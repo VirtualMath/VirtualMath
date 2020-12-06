@@ -1,12 +1,13 @@
 #include "__virtualmath.h"
 
-Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong) {
+Inter *makeInter(char *out, char *error_, char *in, char *env, LinkValue *belong) {
     Inter *tmp = memCalloc(1, sizeof(Inter));
     tmp->base = NULL;
     tmp->link_base = NULL;
     tmp->hash_base = NULL;
     tmp->base_var = NULL;
     tmp->package = NULL;
+    tmp->data.env = memStrcpy(env);
 
     setBaseInterData(tmp);
     tmp->var_list = makeVarList(tmp, true, NULL);
@@ -158,6 +159,7 @@ void freeBaseInterData(struct Inter *inter){
         fclose(inter->data.inter_stderr);
     if (!inter->data.is_stdin)
         fclose(inter->data.inter_stdin);
+    memFree(inter->data.env);
 }
 
 void freeInter(Inter *inter, bool show_gc) {
@@ -229,8 +231,8 @@ void mergeInter(Inter *new, Inter *base){
     memFree(new);
 }
 
-Inter *deriveInter(LinkValue *belong, Inter *inter) {
-    Inter *import_inter = makeInter(NULL, NULL, NULL, belong);
+Inter *deriveInter(char *env, LinkValue *belong, Inter *inter) {
+    Inter *import_inter = makeInter(NULL, NULL, NULL, env, belong);
     import_inter->data.inter_stdout = inter->data.inter_stdout;
     import_inter->data.inter_stderr = inter->data.inter_stderr;
     import_inter->data.inter_stdin = inter->data.inter_stdin;
@@ -265,6 +267,19 @@ ClibInfo *freeClibInfo(ClibInfo *info) {
 void freeClibInfoFromInter(Inter *inter) {
     for (ClibInfo *tmp = inter->clib_info; tmp != NULL; tmp = freeClibInfo(tmp))
         PASS;
+}
+
+void changeInterEnv(char *env, bool split, Inter *inter) {
+    char *bak;
+    if (split) {
+        bak = strrchr(env, SEP_CH);
+        *bak = NUL;
+    }
+
+    memFree(inter->data.env);
+    inter->data.env = memStrcpy(env);
+    if (split)
+        *bak = SEP_CH;
 }
 
 #if DEBUG

@@ -15,6 +15,7 @@ void runCodeFile(Inter *inter, char *file[]) {
                 continue;
         }
         if (runParser(*file, inter, false, &pst)) {
+            changeInterEnv(*file, true, inter);  // 设置运行环境
             globalIterStatement(&result, inter, pst, true);
             if (result.type == R_error) {
                 printError(&result, inter, args.p_clock);

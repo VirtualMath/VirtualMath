@@ -1,4 +1,5 @@
 #include "__run.h"
+#define CHECK_CLIB(path, dl) ((dl = dlopen(path, RTLD_NOW)) != NULL) && (dlsym(dl, "registered") != NULL)
 
 bool importRunParser(ParserMessage *pm, fline line, char *file, Statement *run_st, FUNC_NT) {
     setResultCore(result);
@@ -13,7 +14,7 @@ bool importRunParser(ParserMessage *pm, fline line, char *file, Statement *run_s
     return CHECK_RESULT(result);
 }
 
-int isAbsolutePath(const char *path) {
+int isAbsolutePath(const char *path) {  // 检查路径模式
     switch (*path) {
         case ':':
             return 1;
@@ -26,82 +27,133 @@ int isAbsolutePath(const char *path) {
     }
 }
 
-static bool isExist(char **path, bool is_ab, char *file) {
-    char *backup = is_ab ? memStrcpy((*path) + 1) : memStrcpy(*path);
+static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参见 isAbsolutePath
+    char *backup = is_ab ? memStrcpy((*path) + 1) : memStrcpy(*path);  // 是否跳过第一个字符
     int status;
-    if ((status = checkFileReadble(backup)) != 3 || (status = checkFileReadble(backup = memStrcat(backup, ".vm", true, false))) != 3) {
-        memFree(*path);
+    if ((status = checkFileReadble(backup)) != 3) {
+        memFree(*path);  // 若文件存在则替换文件路径
         *path = backup;
-        if (status == 2) {
-            if (file == NULL)
-                return false;
-            if ((*path)[memStrlen(*path) - 1] != SEP_CH)
-                *path = memStrcat(*path, SEP, true, false);
-            *path = memStrcat(*path, file, true, false);
+        if (status == 2) {  // 如果是文件夹
+            if (file == NULL)  // file 表示路径后缀
+                return false;  // 无路径后缀则返回false
+            if ((*path)[memStrlen(*path) - 1] != SEP_CH)  // 检查path最后一个字符是否为分隔符
+                *path = memStrcat(*path, SEP, true, false);  // 拼接路径
+            *path = memStrcat(*path, file, true, false);  // 拼接路径
             return isExist(path, false, NULL);
         } else
             return true;
+    } else if (checkFileReadble(backup = memStrcat(backup, ".vm", true, false)) == 1) {
+        memFree(*path);  // 若文件存在则替换文件路径
+        *path = backup;
+        return true;
     }
     memFree(backup);
     return false;
 }
 
+#define GOTO_RETURN(num) do{return_num = num; goto return_;}while(0)
+#define CHECK_TYPE(file) do { \
+    void *dl; \
+    if (CHECK_CLIB(file, dl)) { \
+        GOTO_RETURN(2);  /* return 2 表示clib模式 */ \
+    } else \
+        GOTO_RETURN(1);  /* return 1 表示.vm模式 */  \
+    goto return_; \
+}while(0)
+
 int checkFileDir(char **file_dir, FUNC) {
+    int return_num;
+    char *arr_cwd = inter->data.env;
+    char *lib_file = strncmp(*file_dir, "lib", 3) == 0 ? memStrcpy(*file_dir) : memStrcat("libvm", *file_dir, false, false);  // 自动增加libvm前缀
+    if (strstr(lib_file, SHARED_MARK) == NULL)
+        lib_file = memStrcat(lib_file, SHARED_MARK, true, false);
+
     switch (isAbsolutePath(*file_dir)) {
-        case 1:
+        case 1:  // 表示输入的一定是绝对路径
             if (isExist(file_dir, true, "__init__.vm"))
-                return 1;
+                CHECK_TYPE(*file_dir);
             goto error_;
-        case 2:
+        case 2:  // 表示仅为clib
             goto clib;
-        case 3:
+        case 3:  // 表示一定是全局包
             goto path;
         default:
             break;
     }
 
     if (isExist(file_dir, false, "__init__.vm"))
-        return 1;
+        CHECK_TYPE(*file_dir);
+
     {
-        char arr_cwd[200];
-        char *p_cwd = NULL;
-        getcwd(arr_cwd, 200);
-        p_cwd = memStrcatIter(arr_cwd, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
+        char *p_cwd = memStrcatIter(arr_cwd, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
         if (isExist(&p_cwd, false, "__init__.vm")) {
             memFree(*file_dir);
-            *file_dir = p_cwd;
-            return 1;
+            *file_dir = p_cwd;  // p_cwd 不需要释放
+            GOTO_RETURN(1);
+        }
+        memFree(p_cwd);
+    }
+
+    {
+        void *tmp_dl;
+        char *p_cwd = memStrcatIter(arr_cwd, false, SEP, lib_file, NULL);  // 以NULL结尾表示结束
+        if (CHECK_CLIB(p_cwd, tmp_dl)) {
+            memFree(*file_dir);
+            *file_dir = p_cwd;  // p_cwd 不需要释放
+            GOTO_RETURN(2);
         }
         memFree(p_cwd);
     }
 
     path: {
-    char *path = memStrcpy(getenv("VIRTUALMATHPATH"));
-    for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
-        if (*(tmp + (memStrlen(tmp) - 1)) != SEP_CH)
-            new_dir = memStrcatIter(tmp, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
-        else
-            new_dir = memStrcat(tmp, *file_dir, false, false);
-
-        if (isExist(&new_dir, false, "__init__.vm")) {
-            memFree(*file_dir);
-            *file_dir = new_dir;
-            return 1;
+        char *path = memStrcpy(getenv("VIRTUALMATHPATH"));  // 因为 strtok 需要修改path, 所以path不能重复使用
+        for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
+            if (*(tmp + (memStrlen(tmp) - 1)) != SEP_CH)
+                new_dir = memStrcatIter(tmp, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
+            else
+                new_dir = memStrcat(tmp, *file_dir, false, false);
+            if (isExist(&new_dir, false, "__init__.vm")) {
+                memFree(*file_dir);
+                *file_dir = new_dir;
+                memFree(path);  // 释放path
+                GOTO_RETURN(1);
+            }
+            memFree(new_dir);
         }
-        memFree(new_dir);
-
+        memFree(path);
     }
-    memFree(path);
-}
 
-    clib:
-    if (checkCLib(file_dir))  // 检查是否为 clib
-        return 2;
+    clib: {
+        void *tmp_dl;
+        char *path = memStrcpy(getenv("VIRTUALMATHPATH"));  // 因为 strtok 需要修改path, 所以path不能重复使用
+        for (char *tmp = strtok(path, ";"), *new_dir; tmp != NULL; tmp = strtok(NULL, ";")) {
+            if (*(tmp + (memStrlen(tmp) - 1)) != SEP_CH)
+                new_dir = memStrcatIter(tmp, false, SEP, lib_file, NULL);  // 以NULL结尾表示结束
+            else
+                new_dir = memStrcat(tmp, lib_file, false, false);
+            if (CHECK_CLIB(new_dir, tmp_dl)) {
+                dlclose(tmp_dl);
+                memFree(path);
+                memFree(*file_dir);
+                *file_dir = new_dir;
+                GOTO_RETURN(2);
+            }
+            memFree(new_dir);
+        }
+        memFree(path);
+    }
 
     error_:
+    memFree(lib_file);
     setResultErrorSt(E_ImportException, L"import/include file is not readable", true, st, CNEXT_NT);
-    return 0;
+    return 0;  // return 0 表示文件不存在
+
+    return_:
+    memFree(lib_file);
+    return return_num;
 }
+
+#undef CHECK_TYPE
 
 ResultType includeFile(FUNC) {
     Statement *new_st = NULL;
@@ -201,7 +253,8 @@ static bool getPackage(LinkValue **imp_value, char *md5_str, char *split, int st
     if (is_lock || (pg = checkPackage(inter->package, md5_str, split)) == NULL) {
         setResultCore(result);
         *is_new = true;
-        imp_inter = deriveInter(belong, inter);
+        imp_inter = deriveInter(inter->data.env, belong, inter);
+        changeInterEnv(*path, true, imp_inter);  // 设置运行环境
         pg = makeObject(inter, imp_inter->var_list, copyVarList(var_list, false, inter), true, NULL);
         if (!is_lock)
             inter->package = makePackage(pg, md5_str, split, inter->package);  // 只有当不是保护读入或私密读入的时才可以记录

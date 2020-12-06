@@ -38,9 +38,11 @@
 #ifdef __linux__
 #define SEP "/"
 #define SEP_CH '/'
+#define SHARED_MARK ".so"
 #else
 #define SEP "\\"
 #define SEP_CH '\\'
+#define SHARED_MARK ".dll"
 #endif
 
 #define MD5_SIZE (16)

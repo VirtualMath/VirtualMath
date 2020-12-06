@@ -142,6 +142,7 @@ struct Inter{
         bool opt_folding;  // 表达式折叠[on]
         bool cyc_folding;  // 在循环内部自动打开折叠
         bool func_folding;  // 在函数内部自动打开
+        char *env;  // 执行目录
     } data;
 };
 
@@ -150,18 +151,19 @@ typedef struct Statement Statement;
 typedef enum ResultType ResultType;
 typedef struct ClibInfo ClibInfo;
 
-Inter *makeInter(char *out, char *error_, char *in, LinkValue *belong);
+Inter *makeInter(char *out, char *error_, char *in, char *env, LinkValue *belong);
 void freeInter(Inter *inter, bool show_gc);
 void setBaseInterData(struct Inter *inter);
 void runCodeStdin(Inter *inter, char *hello_string);
 void runCodeFile(Inter *inter, char *file[]);
 bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st);
 void mergeInter(Inter *new, Inter *base);
-Inter *deriveInter(LinkValue *belong, Inter *inter);
+Inter *deriveInter(char *env, LinkValue *belong, Inter *inter);
 
 ClibInfo *makeClibInfo();
 void makeClibInfoToInter(void *dl, Inter *inter);
 ClibInfo *freeClibInfo(ClibInfo *info);
 void freeClibInfoFromInter(Inter *inter);
+void changeInterEnv(char *env, bool split, Inter *inter);
 
 #endif //VIRTUALMATH_INTER_H
