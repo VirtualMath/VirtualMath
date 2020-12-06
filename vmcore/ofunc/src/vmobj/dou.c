@@ -45,9 +45,6 @@ static ResultType dou_init(O_FUNC){
         case V_int:
             base->value->data.dou.num = (vdou)ap[1].value->value->data.int_.num;
             break;
-        case V_pointer:
-            base->value->data.dou.num = (vdou)(vint)(ap[1].value->value->data.pointer.pointer);  // 需要两次转换
-            break;
         case V_dou:
             base->value->data.dou.num = ap[1].value->value->data.dou.num;
             break;

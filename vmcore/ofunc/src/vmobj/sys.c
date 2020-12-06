@@ -157,6 +157,36 @@ static ResultType vm_open(O_FUNC){
     return callBackCore(inter->data.base_obj[B_FILE], arg, LINEFILE, 0, CNEXT_NT);
 }
 
+static ResultType vm_getValuePointer(O_FUNC){
+    ArgumentParser ap[] = {{.type=name_value, .name=L"value", .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+
+    makePointerValue((void *)ap[0].value->value, LINEFILE, CNEXT_NT);
+    return result->type;
+}
+
+static ResultType vm_getLinkValuePointer(O_FUNC){
+    ArgumentParser ap[] = {{.type=name_value, .name=L"link", .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+
+    makePointerValue((void *)ap[0].value, LINEFILE, CNEXT_NT);
+    return result->type;
+}
+
 void registeredSysFunction(R_FUNC){
     NameFunc tmp[] = {{L"super",                  vm_super,          fp_no_, .var=nfv_notpush},
                       {L"static_method",          vm_no_,            fp_no_, .var=nfv_notpush},
@@ -179,6 +209,9 @@ void registeredSysFunction(R_FUNC){
                       {L"is_now_run",             vm_isnowrun,       fp_no_, .var=nfv_notpush},
                       {L"dis_now_run",            vm_disnowrun,      fp_no_, .var=nfv_notpush},
                       {L"open",                   vm_open,           fp_no_, .var=nfv_notpush},
+
+                      {L"getValuePointer",        vm_getValuePointer,fp_no_, .var=nfv_notpush},
+                      {L"getLinkValuePointer",    vm_getLinkValuePointer,fp_no_, .var=nfv_notpush},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }
