@@ -187,6 +187,14 @@ static ResultType vm_getLinkValuePointer(O_FUNC){
     return result->type;
 }
 
+static ResultType vm_quit(O_FUNC){
+    if (arg != NULL)
+        setResultError(E_ArgumentException, MANY_ARG, LINEFILE, true, CNEXT_NT);
+    else
+        setResultError(E_QuitException, L"vmcore quit()", LINEFILE, true, CNEXT_NT);
+    return R_error;
+}
+
 void registeredSysFunction(R_FUNC){
     NameFunc tmp[] = {{L"super",                  vm_super,          fp_no_, .var=nfv_notpush},
                       {L"static_method",          vm_no_,            fp_no_, .var=nfv_notpush},
@@ -212,6 +220,8 @@ void registeredSysFunction(R_FUNC){
 
                       {L"getValuePointer",        vm_getValuePointer,fp_no_, .var=nfv_notpush},
                       {L"getLinkValuePointer",    vm_getLinkValuePointer,fp_no_, .var=nfv_notpush},
+
+                      {L"quit",                   vm_quit,           fp_no_, .var=nfv_notpush},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }
