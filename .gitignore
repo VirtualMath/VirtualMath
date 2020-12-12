@@ -229,6 +229,10 @@ gen
 # Compiled Static libraries
 *.lai
 
+# vscode
+.vscode
+build
+
 #VirtualMath file
 /Demo
 vgcore.*
