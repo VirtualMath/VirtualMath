@@ -7,7 +7,8 @@ Inter *makeInter(char *out, char *error_, char *in, char *env, LinkValue *belong
     tmp->hash_base = NULL;
     tmp->base_var = NULL;
     tmp->package = NULL;
-    tmp->data.env = memStrcpy(env);
+    tmp->data.env = NULL;
+    changeInterEnv(env, false, tmp);
 
     setBaseInterData(tmp);
     tmp->var_list = makeVarList(tmp, true, NULL);
@@ -277,7 +278,10 @@ void changeInterEnv(char *env, bool split, Inter *inter) {
     }
 
     memFree(inter->data.env);
-    inter->data.env = memStrcpy(env);
+    if (env[memStrlen(env)] == SEP_CH)
+        inter->data.env = memStrcpy(env);
+    else
+        inter->data.env = memStrcat(env, SEP, false, false);  // 确保以SEP_CH结尾
     if (split)
         *bak = SEP_CH;
 }

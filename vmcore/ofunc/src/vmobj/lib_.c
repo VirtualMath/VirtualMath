@@ -44,6 +44,10 @@ static ResultType lib_init(O_FUNC){
     path = memWcsToStr(ap[1].value->value->data.str.str, false);
     handle = dlopen(path, RTLD_NOW);
     if (handle == NULL) {
+        path = memStrcat(inter->data.env, path, false, true);  // 检查env地址下是否存在这个包
+        handle = dlopen(path, RTLD_NOW);
+    }
+    if (handle == NULL) {
         wchar_t *tmp = memWidecat(L"load lib error: ", memStrToWcs(dlerror(), false), false, true);
         setResultError(E_ImportException, tmp, LINEFILE, true, CNEXT_NT);
         memFree(tmp);

@@ -66,7 +66,6 @@ static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参�
 
 int checkFileDir(char **file_dir, FUNC) {
     int return_num;
-    char *arr_cwd = inter->data.env;
     bool diff = false;
     char *lib_file = strncmp(*file_dir, "lib", 3) == 0 ? memStrcpy(*file_dir) : (diff = true, memStrcat("libvm", *file_dir, false, false));  // 自动增加libvm前缀
     if (strstr(lib_file, SHARED_MARK) == NULL) {
@@ -92,7 +91,7 @@ int checkFileDir(char **file_dir, FUNC) {
         CHECK_TYPE(*file_dir);
 
     {
-        char *p_cwd = memStrcatIter(arr_cwd, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
+        char *p_cwd = memStrcatIter(inter->data.env, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
         if (isExist(&p_cwd, false, "__init__.vm")) {
             memFree(*file_dir);
             *file_dir = p_cwd;  // p_cwd 不需要释放
@@ -100,7 +99,7 @@ int checkFileDir(char **file_dir, FUNC) {
         } else if (diff) {  // 检查是否为动态库, 若 lib_file 和 file_dir 一致则不检查
             void *tmp_dl;
             memFree(p_cwd);
-            p_cwd = memStrcatIter(arr_cwd, false, SEP, lib_file, NULL);  // 以NULL结尾表示结束
+            p_cwd = memStrcatIter(inter->data.env, false, SEP, lib_file, NULL);  // 以NULL结尾表示结束
             if (CHECK_CLIB(p_cwd, tmp_dl)) {
                 memFree(*file_dir);
                 *file_dir = p_cwd;  // p_cwd 不需要释放
