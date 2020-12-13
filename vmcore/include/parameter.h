@@ -138,7 +138,7 @@ void setArgumentFFI(ArgumentFFI *af, unsigned int size);
 void freeArgumentFFI(ArgumentFFI *af);
 
 unsigned int checkArgument(Argument *arg, enum ArgumentType type);
-bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size, LinkValue **valist, vint vasize);
+enum ResultType listToArgumentFFI(ArgumentFFI *af, LinkValue *list_b, LinkValue *valiste_b, FUNC_NT);
 bool setArgumentToFFI(ArgumentFFI *af, Argument *arg);
 ffi_type *getFFIType(wchar_t *str, enum ArgumentFFIType *aft);
 ffi_type *getFFITypeUp(wchar_t *str, enum ArgumentFFIType *aft);

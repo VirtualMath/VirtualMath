@@ -65,3 +65,4 @@ SET_TARGET_PROPERTIES(VirtualMath PROPERTIES
         )
 
 INSTALL(TARGETS VirtualMath)
+MESSAGE(STATUS "hellovm cmake configure finish")

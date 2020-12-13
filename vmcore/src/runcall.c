@@ -390,19 +390,8 @@ static ResultType getFuncargs(LinkValue *function_value, ArgumentFFI *af, fline 
     freeResult(result);
 
     if (arg_var != NULL) {
-        LinkValue **valist = vaarg_var != NULL ? vaarg_var->value->data.list.list : NULL;
-        vint vasize = vaarg_var != NULL ? vaarg_var->value->data.list.size : 0;
         af->b_va = arg_var->value->data.list.size;
-
-        if (arg_var->value->type != V_list || vaarg_var != NULL && vaarg_var->value->type != V_list) {
-            setResultError(E_TypeException, ONLY_ACC(funcargs / vaarg_var, list), line, file, true, CNEXT_NT);
-            return R_error;
-        }
-
-        if (!listToArgumentFFI(af, arg_var->value->data.list.list, arg_var->value->data.list.size, valist, vasize)) {
-            setResultError(E_ArgumentException, L"no-support argument type for C function", line, file, true, CNEXT_NT);
-            return R_error;
-        }
+        listToArgumentFFI(af, arg_var, vaarg_var, CNEXT_NT);
     }
     return result->type;
 }
@@ -440,6 +429,8 @@ static ResultType callFFunction(LinkValue *function_value, Argument *arg, fline 
     getFuncargs(function_value, &af, line, file, CNEXT_NT);  // 设定类型
     if (!CHECK_RESULT(result))
         goto return_;
+    else
+        freeResult(result);
 
     if (!setArgumentToFFI(&af, arg)) {  // 设定ffi_type和ffi参数的真实数据
         setResultError(E_ArgumentException, L"parameter exception when calling C function", line, file, true, CNEXT_NT);

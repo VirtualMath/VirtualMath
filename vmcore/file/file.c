@@ -4,7 +4,7 @@
  * @param dir 文件地址
  * @return 0-错误, 1-普通文件, 2-目录
  */
-int checkFileReadble(char *dir){
+int checkFileReadable(char *dir){
     struct stat my_stat;
     int status;
     if (dir == NULL)

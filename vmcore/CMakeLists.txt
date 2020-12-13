@@ -56,3 +56,6 @@ INSTALL(CODE "MESSAGE(STATUS \"Now Install\")")  # 安装时运行
 
 # 安装clib
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/clib)
+
+# 结束语
+MESSAGE(STATUS "vmcore cmake configure finish")

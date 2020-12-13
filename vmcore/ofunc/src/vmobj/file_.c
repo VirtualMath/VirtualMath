@@ -62,7 +62,7 @@ static ResultType file_init(O_FUNC){
     else
         mode = memStrcpy("rt");  // 默认模式是rt
 
-    if (checkFileReadble(path) != 1) {
+    if (checkFileReadable(path) != 1) {
         setResultError(E_TypeException, L"file is not readable", LINEFILE, true, CNEXT_NT);
         return R_error;
     }

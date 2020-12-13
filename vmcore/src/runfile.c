@@ -30,7 +30,7 @@ int isAbsolutePath(const char *path) {  // 检查路径模式
 static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参见 isAbsolutePath
     char *backup = is_ab ? memStrcpy((*path) + 1) : memStrcpy(*path);  // 是否跳过第一个字符
     int status;
-    if ((status = checkFileReadble(backup)) != 3) {
+    if ((status = checkFileReadable(backup)) != 3) {
         memFree(*path);  // 若文件存在则替换文件路径
         *path = backup;
         if (status == 2) {  // 如果是文件夹
@@ -42,7 +42,7 @@ static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参�
             return isExist(path, false, NULL);
         } else
             return true;
-    } else if (checkFileReadble(backup = memStrcat(backup, ".vm", true, false)) == 1) {
+    } else if (checkFileReadable(backup = memStrcat(backup, ".vm", true, false)) == 1) {
         memFree(*path);  // 若文件存在则替换文件路径
         *path = backup;
         return true;

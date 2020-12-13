@@ -883,33 +883,77 @@ unsigned int checkArgument(Argument *arg, enum ArgumentType type) {
     return count;
 }
 
-bool listToArgumentFFI(ArgumentFFI *af, LinkValue **list, vint size, LinkValue **valist, vint vasize) {
-    int i=0;
-    if ((size + vasize) != af->size)
-        return false;
+enum ResultType listToArgumentFFI(ArgumentFFI *af, LinkValue *list_b, LinkValue *valiste_b, FUNC_NT) {  // TODO-szh 内存检查
+    int i = 0;
+    LinkValue *iter[3] = {};  // 待遍历列表 (默认三个都为NULL)
 
-    for (PASS; i < size; i++) {
-        LinkValue *str = list[i];
-        if (str->value->type != V_str)
-            return false;
-        af->arg[i] = getFFIType(str->value->data.str.str, af->type + i);
-        if (af->arg[i] == NULL || af->type[i] == af_void)
-            return false;
+    setResultCore(result);
+    gc_addTmpLink(&list_b->gc_status);
+    if (valiste_b != NULL)
+        gc_addTmpLink(&valiste_b->gc_status);
+
+    getIter(list_b, 1, LINEFILE, CNEXT_NT);  // 获取__iter__对象
+    if (!CHECK_RESULT(result))
+        goto return_;
+    iter[0] = result->value;
+    result->value = NULL;
+    freeResult(result);
+
+    if (valiste_b != NULL) {
+        getIter(valiste_b, 1, LINEFILE, CNEXT_NT);  // 获取__iter__对象
+        if (!CHECK_RESULT(result))
+            goto return_;
+        iter[1] = result->value;
+        result->value = NULL;
+        freeResult(result);
+    } else
+        iter[1] = NULL;
+
+    for (int a=0; iter[a] != NULL; a++) {  // 开始遍历
+        while (1) {
+            LinkValue *str;
+            getIter(iter[a], 0, LINEFILE, CNEXT_NT);
+            if (is_iterStop(result->value, inter)) {  // 执行__next__
+                freeResult(result);
+                break;
+            } else if (!CHECK_RESULT(result))
+                return result->type;
+            else
+                str = result->value;
+
+            if (str->value->type != V_str) {  // 检查是否为str
+                freeResult(result);
+                setResultError(E_ArgumentException, L"no-support argument type for C function", LINEFILE, true,
+                               CNEXT_NT);
+                goto return_;
+            }
+
+            af->arg[i] = getFFIType(str->value->data.str.str, af->type + i);
+            i++;
+            freeResult(result);
+
+            if (af->arg[i] == NULL || af->type[i] == af_void) { // 不支持的类型
+                setResultError(E_ArgumentException, L"no-support argument type for C function", LINEFILE, true,
+                               CNEXT_NT);
+                goto return_;
+            }
+        }
     }
 
-    for (PASS; i < af->size; i++) {  // 处理可变参数
-        LinkValue *str = valist[i - size];
-        if (str->value->type != V_str)
-            return false;
-        af->arg[i] = getFFITypeUp(str->value->data.str.str, af->type + i);
-        if (af->arg[i] == NULL || af->type[i] == af_void)
-            return false;
+    setResult(result, inter);
+
+    return_:
+    gc_freeTmpLink(&list_b->gc_status);
+    gc_freeTmpLink(&iter[0]->gc_status);
+    if (valiste_b != NULL) {
+        gc_freeTmpLink(&valiste_b->gc_status);
+        gc_freeTmpLink(&iter[1]->gc_status);
     }
-    return true;
+    return result->type;
 }
 
 #define setFFIValue(v_t, ffi_t, af_t, type_, data_) case v_t: \
-af->arg[i] = &ffi_t;  /* af->arg是ffi_type **arg, 即*arg[] */ \
+af->arg[i] = &(ffi_t);  /* af->arg是ffi_type **arg, 即*arg[] */ \
 af->type[i] = af_t; \
 af->arg_v[i] = (type_ *)memCalloc(1, sizeof(type_));  /* af->arg_v是ffi_type **arg_v, 即 *arg_v[] */ \
 *(type_ *)(af->arg_v[i]) = (type_)(data_); \

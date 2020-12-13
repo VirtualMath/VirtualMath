@@ -531,6 +531,13 @@ ResultType getElement(LinkValue *from, LinkValue *index, fline line, char *file,
     return result->type;
 }
 
+
+/**
+ * 执行__iter__或__next__函数
+ * @param value 遍历对象
+ * @param status 1-执行__iter__, 否则执行__next__
+ * @return
+ */
 ResultType getIter(LinkValue *value, int status, fline line, char *file, FUNC_NT) {
     LinkValue *_func_ = NULL;
     setResultCore(result);

@@ -7,11 +7,11 @@ void runCodeFile(Inter *inter, char *file[]) {
     setResultCore(&result);
     for (PASS; !should_break && *file != NULL; file++) {
         int status;
-        if ((status = checkFileReadble((*file))) == 3)
+        if ((status = checkFileReadable((*file))) == 3)
             continue;
         else if (status == 2) {
             *file = memStrcat(*file, ((*file)[memStrlen(*file) - 1] != SEP_CH ? SEP"__main__.vm" : "__main__.vm"), false, false);
-            if (checkFileReadble(*file) != 1)
+            if (checkFileReadable(*file) != 1)
                 continue;
         }
         if (runParser(*file, inter, false, &pst)) {
