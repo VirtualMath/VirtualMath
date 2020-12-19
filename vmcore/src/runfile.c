@@ -42,7 +42,7 @@ static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参�
             return isExist(path, false, NULL);
         } else
             return true;
-    } else if (checkFileReadable(backup = memStrcat(backup, ".vm", true, false)) == 1) {
+    } else if (checkFileReadable(backup = memStrcat(backup, ".vm", true, false)) == 1) {  // 添加.vm检查文件是否存在
         memFree(*path);  // 若文件存在则替换文件路径
         *path = backup;
         return true;
@@ -54,7 +54,7 @@ static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参�
 #define GOTO_RETURN(num) do{return_num = num; goto return_;}while(0)
 #define CHECK_TYPE(file) do { /* 判断文件类型 */ \
     void *dl; \
-    if (eqWide((file) + memStrlen(file) - 3, ".vm")) { \
+    if (eqString((file) + memStrlen(file) - 3, ".vm")) { \
         GOTO_RETURN(1);  /* return 2 表示clib模式 */ \
     } else if (CHECK_CLIB(file, dl)) { \
         GOTO_RETURN(2);  /* return 1 表示.vm模式 */ \
@@ -66,7 +66,7 @@ static bool isExist(char **path, bool is_ab, char *file) {  // is_ab 参数参�
 
 int checkFileDir(char **file_dir, FUNC) {
     int return_num;
-    bool diff = false;
+    bool diff = false;  // diff为true的时候表示lib_file和file_dir不同(避免重复检查)
     char *lib_file = strncmp(*file_dir, "lib", 3) == 0 ? memStrcpy(*file_dir) : (diff = true, memStrcat("libvm", *file_dir, false, false));  // 自动增加libvm前缀
     if (strstr(lib_file, SHARED_MARK) == NULL) {
         lib_file = memStrcat(lib_file, SHARED_MARK, true, false);
@@ -87,27 +87,9 @@ int checkFileDir(char **file_dir, FUNC) {
             break;
     }
 
+    findPath(file_dir, inter->data.env, true);  // 调整地址
     if (isExist(file_dir, false, "__init__.vm"))
         CHECK_TYPE(*file_dir);
-
-    {
-        char *p_cwd = memStrcatIter(inter->data.env, false, SEP, *file_dir, NULL);  // 以NULL结尾表示结束
-        if (isExist(&p_cwd, false, "__init__.vm")) {
-            memFree(*file_dir);
-            *file_dir = p_cwd;  // p_cwd 不需要释放
-            CHECK_TYPE(*file_dir);
-        } else if (diff) {  // 检查是否为动态库, 若 lib_file 和 file_dir 一致则不检查
-            void *tmp_dl;
-            memFree(p_cwd);
-            p_cwd = memStrcatIter(inter->data.env, false, SEP, lib_file, NULL);  // 以NULL结尾表示结束
-            if (CHECK_CLIB(p_cwd, tmp_dl)) {
-                memFree(*file_dir);
-                *file_dir = p_cwd;  // p_cwd 不需要释放
-                GOTO_RETURN(2);
-            }
-        }
-        memFree(p_cwd);
-    }
 
     path: {
         char *path = memStrcpy(getenv("VIRTUALMATHPATH"));  // 因为 strtok 需要修改path, 所以path不能重复使用

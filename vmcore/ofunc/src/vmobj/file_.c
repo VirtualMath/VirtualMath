@@ -37,6 +37,7 @@ static ResultType file_init(O_FUNC){
     LinkValue *file;
     char *path;
     char *mode;
+    FILE *f;
     setResultCore(result);
     parserArgumentUnion(ap, arg, CNEXT_NT);
     if (!CHECK_RESULT(result))
@@ -62,8 +63,12 @@ static ResultType file_init(O_FUNC){
     else
         mode = memStrcpy("rt");  // 默认模式是rt
 
-    if (checkFileReadable(path) != 1) {
-        setResultError(E_TypeException, L"file is not readable", LINEFILE, true, CNEXT_NT);
+    findPath(&path, inter->data.env, true);  // 更新env
+    f = fopen(path, mode);
+    if (f == NULL) {
+        wchar_t *message = memStrToWcs(memStrcat("file is not readable : ", strerror(errno), false, false), true);
+        setResultError(E_TypeException, message, LINEFILE, true, CNEXT_NT);
+        memFree(message);
         return R_error;
     }
     file->value->data.file.path = path;

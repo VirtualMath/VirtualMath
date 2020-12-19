@@ -25,7 +25,7 @@ wchar_t *memStrToWcs(char *str, bool free_old);
 
 #define memFree(p) ((p) = ((p) != NULL ? (free((p)), NULL) : NULL))
 #define eqString(str1, str2) (!strcmp((str1), (str2)))
-#define eqWide(wid1, wid2) (!wcscmp((wchar_t *)(wid1), (wchar_t *)(wid2)))
+#define eqWide(wid1, wid2) (!wcscmp((wid1), (wid2)))
 #define memString(size) (char *)memCalloc((size) + 1, sizeof(char))
 #define memWide(size) (wchar_t *)memCalloc((size) + 1, sizeof(wchar_t))
 #define memStrlen(p) (((p) == NULL) ? 0 : strlen((p)))

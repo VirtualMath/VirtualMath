@@ -46,3 +46,15 @@ char *splitDir(char * dir){
             *tmp = '_';
     return return_char;
 }
+
+
+char *findPath(char **path, char *env, bool need_free) {  // env 必须以 SEP 结尾
+#ifdef __linux
+    if (**path == SEP_CH) {
+#else
+    if (!(isupper(**path) && *path[1] == ':')) {
+#endif
+        *path = memStrcat(env, *path, false, need_free);  // 调整为相对路径模式
+    }
+    return *path;
+}
