@@ -52,7 +52,7 @@ char *findPath(char **path, char *env, bool need_free) {  // env 必须以 SEP �
 #ifdef __linux
     if (**path == SEP_CH) {
 #else
-    if (!(isupper(**path) && *path[1] == ':')) {
+    if (!(isupper(**path) && (*path)[1] == ':')) {
 #endif
         *path = memStrcat(env, *path, false, need_free);  // 调整为相对路径模式
     }
