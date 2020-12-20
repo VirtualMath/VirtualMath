@@ -195,6 +195,26 @@ static ResultType vm_quit(O_FUNC){
     return R_error;
 }
 
+static ResultType vm_raise(O_FUNC){
+    ArgumentParser ap[] = {{.type=name_value, .name=L"signal", .must=1, .long_arg=false},
+                           {.must=-1}};
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+
+    if (ap[0].value->value->type != V_int) {
+        setResultError(E_TypeException, ONLY_ACC(signal, int), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+    raise(ap[0].value->value->data.int_.num);
+    setResult(result, inter);
+    return result->type;
+}
+
 void registeredSysFunction(R_FUNC){
     NameFunc tmp[] = {{L"super",                  vm_super,          fp_no_, .var=nfv_notpush},
                       {L"static_method",          vm_no_,            fp_no_, .var=nfv_notpush},
@@ -222,6 +242,7 @@ void registeredSysFunction(R_FUNC){
                       {L"getLinkValuePointer",    vm_getLinkValuePointer,fp_no_, .var=nfv_notpush},
 
                       {L"quit",                   vm_quit,           fp_no_, .var=nfv_notpush},
+                      {L"raise",                  vm_raise,          fp_no_, .var=nfv_notpush},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }
