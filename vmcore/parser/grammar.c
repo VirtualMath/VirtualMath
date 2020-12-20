@@ -48,19 +48,14 @@ void parserCommandList(P_FUNC, bool global, Statement *st) {
     int token_type;
     int save_enter = pm->tm->file->filter_data.enter;
     char *command_message = global ? "ERROR from command list(get parserCommand)" : NULL;
-    void *bak = NULL;
     fline line = 0;
     bool should_break = false;
     bool have_command = false;
 
-    pm_KeyInterrupt = signal_reset;
-    bak = signal(SIGINT, signalStopPm);
     pm->tm->file->filter_data.enter = 0;
-    bool is_one = pm->short_cm;
-
     while (!should_break){
         token_type = readBackToken(pm);
-        if (token_type == -3 || token_type == -2)
+        if (token_type == -3 || token_type == -2)  // 出现错误(syntax error或者检测到退出信号)
             break;
         else if (token_type == MATHER_EOF){
             delToken(pm);
@@ -68,7 +63,7 @@ void parserCommandList(P_FUNC, bool global, Statement *st) {
         }
         else if (token_type == MATHER_ENTER || token_type == MATHER_SEMICOLON){
             delToken(pm);
-            if (is_one && have_command)
+            if (pm->short_cm && have_command)
                 break;
         }
         else{
@@ -81,7 +76,7 @@ void parserCommandList(P_FUNC, bool global, Statement *st) {
             stop = readBackToken(pm);
             if (stop == MATHER_ENTER) {
                 delToken(pm);
-                if (is_one)
+                if (pm->short_cm)
                     should_break = true;
             } else if (stop == MATHER_SEMICOLON)
                 delToken(pm);
@@ -102,13 +97,8 @@ void parserCommandList(P_FUNC, bool global, Statement *st) {
             freeToken(command_token, false);
         }
     }
-    if (is_one)
-        clearLexFile(pm->tm->file);
-    signal(SIGINT, bak);
-    if (pm_KeyInterrupt != signal_reset) {
-        pm_KeyInterrupt = signal_reset;
-        syntaxError(pm, int_error, line, 1, "KeyInterrupt");
-    }
+    if (pm->short_cm)
+        clearLexFile(pm->tm->file);  // 清理输入的内容
     pm->tm->file->filter_data.enter = save_enter;
 }
 

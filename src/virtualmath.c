@@ -49,14 +49,37 @@ void runCodeStdin(Inter *inter, char *hello_string) {
     }
 }
 
+void safe_sleep(double ms) {
+    time_t start = clock();
+    time_t now;
+    double d_time;
+    do {
+        now = clock();
+        d_time = (double)(now - start) / CLOCKS_PER_SEC;
+        if (d_time >= ms)
+            break;
+    } while (true);
+}
+
+bool checkSignalPm() {  // 兜底检查
+    if (signal_tag.status == signal_appear) {
+        signal_tag.status = signal_reset;
+        return true;
+    }
+    return false;
+}
+
 bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st) {
     ParserMessage *pm = makeParserMessageFile(code_file, is_one);
     *st = makeStatement(0, (code_file == NULL) ? "stdin" : code_file);
     parserCommandList(pm, inter, true, *st);
-    if (pm->status == int_error) {
-        fprintf(stderr, "KeyInterrupt\n");
+    safe_sleep(0.005);  // 等待 0.005s 捕捉信号 (若信号捕捉不到可能要适当调高此处的等待时间)
+    if (checkSignalPm()) {
+        fprintf(stdout, "Signal: KeyInterrupt\n");
+    } else if (pm->status == int_error) {
+        fprintf(stdout, "Singal Error: %s\n", pm->status_message);
     } else if (pm->status != success)
-        fprintf(stderr, "Syntax Error: %s\n", pm->status_message);
+        fprintf(stdout, "Syntax Error: %s\n", pm->status_message);
     else {
         freeParserMessage(pm, true);
         return true;

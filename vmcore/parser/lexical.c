@@ -31,7 +31,7 @@ wint_t readChar(LexFile *file){
 void backChar(LexFile *file){
     file->back.is_back = true;
     if (file->back.p == L'\n')
-        file->line --;
+        file->line --;  // 函数减一行
 }
 
 void clearLexFile(LexFile *file) {

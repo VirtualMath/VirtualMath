@@ -320,9 +320,9 @@ int getMatherStatus(LexFile *file, LexMathers *mathers) {
     setupMathers(mathers);
     while (status == -1){
         p = readChar(file);
-        if (pm_KeyInterrupt == signal_appear) {
-            pm_KeyInterrupt = signal_check;
-            file->errsyntax = L"singal KeyInterrupt";
+        if (signal_tag.status == signal_appear) {
+            signal_tag.status = signal_reset;
+            file->errsyntax = L"Signal KeyInterrupt";
             return -3;
         }
 

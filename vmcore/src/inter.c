@@ -172,7 +172,7 @@ void freeInter(Inter *inter, bool show_gc) {
 
 #if DEBUG
     wint_t ch;
-    if (show_gc && (printf("\nEnter '1' to show gc: "), (fgetwc(stdin)) == L'1')) {
+    if (show_gc && (printf("\nEnter '1' to show gc info: "), (fgetwc(stdin)) == L'1')) {
         printGC(inter);
         while ((ch = fgetwc(stdin)) != '\n' || ch == WEOF)
             PASS;

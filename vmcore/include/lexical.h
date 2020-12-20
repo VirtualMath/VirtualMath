@@ -15,7 +15,7 @@ struct LexFile{
         int enter;  // 若计数为0则不忽略enter
     } filter_data;
     fline line;
-    wchar_t *errsyntax;
+    wchar_t *errsyntax;  // 匹配器出错信息，如：字符串缺少结尾双引号
 };
 
 struct LexMather{

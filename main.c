@@ -29,5 +29,6 @@ int main(int argc, char *argv[]) {
         runCodeStdin(inter, HelloString);  // 从stdin中运行代码
     freeInter(inter, true);
 
+    system("pause");  // 按任意键继续...
     return 0;
 }

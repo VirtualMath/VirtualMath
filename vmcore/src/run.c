@@ -176,8 +176,8 @@ ResultType runStatementOpt(bool run_gc, FUNC) {  // 不运行gc机制
 }
 
 static bool checkSignal(fline line, char *file, FUNC_NT) {
-    if (is_KeyInterrupt == signal_appear){
-        is_KeyInterrupt = signal_reset;
+    if (signal_tag.status == signal_appear){
+        signal_tag.status = signal_reset;
         setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CNEXT_NT);
         return true;
     }
@@ -209,7 +209,6 @@ static bool gotoStatement(Statement **next, FUNC) {
 ResultType iterStatement(FUNC) {
     Statement *base;
     ResultType type;
-    void *bak = NULL;
 
     setResultCore(result);
     if (st == NULL){
@@ -217,15 +216,9 @@ ResultType iterStatement(FUNC) {
         return result->type;
     }
 
-    is_KeyInterrupt = signal_reset;
-    bak = signal(SIGINT, signalStopInter);
     gc_addTmpLink(&belong->gc_status);
     do {
         base = st;
-        if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
-            type = result->type;
-            break;
-        }
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CFUNC(base, var_list, result, belong));
@@ -251,7 +244,6 @@ ResultType iterStatement(FUNC) {
     result->node = base;
 
     gc_freeTmpLink(&belong->gc_status);
-    signal(SIGINT, bak);
     return result->type;
 }
 
@@ -265,26 +257,18 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool
     VarList *var_list = NULL;
     Statement *base;
     LinkValue *belong = inter->base_belong;
-    void *bak = NULL;
-    clock_t start, stop;
+    clock_t start = clock();
+    clock_t stop;
 
     if (st == NULL){
         setResult(result, inter);
         return result->type;
     }
 
-    is_KeyInterrupt = signal_reset;
-    bak = signal(SIGINT, signalStopInter);
     gc_addTmpLink(&belong->gc_status);
-
-    start = clock();
     do {
         base = st;
         var_list = inter->var_list;
-        if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
-            type = result->type;
-            break;
-        }
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CFUNC(base, var_list, result, belong));
@@ -313,7 +297,6 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool
     if (p_clock)
         printf("run times = %Lf sec\n", (double long)(stop - start) / CLOCKS_PER_SEC);
     gc_freeTmpLink(&belong->gc_status);
-    signal(SIGINT, bak);
     return result->type;
 }
 

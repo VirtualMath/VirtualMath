@@ -1,15 +1,8 @@
 #include "__virtualmath.h"
-volatile SignalType is_KeyInterrupt = signal_reset;
-volatile SignalType pm_KeyInterrupt = signal_reset;
+volatile SignalTag signal_tag = {.signum=0, .status=signal_reset};
 
 void signalStopInter(int signum) {
-    if (is_KeyInterrupt == signal_reset)
-        is_KeyInterrupt = signal_appear;
-    signal(signum, signalStopInter);
-}
-
-void signalStopPm(int signum) {
-    if (pm_KeyInterrupt == signal_reset)
-        pm_KeyInterrupt = signal_appear;
-    signal(signum, signalStopPm);
+    signal_tag.status = signal_appear;
+    signal_tag.signum = signum;
+    signal(signum, signalStopInter);  // signalStopInter 触发后，会和信号解除绑定，因此必须再次绑定
 }
