@@ -5,7 +5,7 @@
 struct LexFile{
     FILE *file;
     wchar_t *str;
-    int status;  // 0-stdin模式 1-文件模式 2-字符串模式
+    int status;  // 0-文件模式 1-stdin模式 2-字符串模式
     size_t seek;  // 字符串模式下需要使用
     struct LexFileBack{
         bool is_back;

@@ -20,6 +20,7 @@ typedef struct ParserMessage ParserMessage;
 
 ParserMessage *makeParserMessageFile(char *file_dir, bool short_cm);
 ParserMessage *makeParserMessageStr(wchar_t *str, bool short_cm);
+bool checkParserMessageIO(ParserMessage *pm);
 void freeParserMessage(ParserMessage *pm, bool self);
 void parserCommandList(ParserMessage *pm, Inter *inter, bool global, Statement *st);
 

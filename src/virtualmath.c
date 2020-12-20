@@ -74,12 +74,14 @@ bool runParser(char *code_file, Inter *inter, bool is_one, Statement **st) {
     *st = makeStatement(0, (code_file == NULL) ? "stdin" : code_file);
     parserCommandList(pm, inter, true, *st);
     safe_sleep(0.005);  // 等待 0.005s 捕捉信号 (若信号捕捉不到可能要适当调高此处的等待时间)
-    if (checkSignalPm()) {
-        fprintf(stdout, "Signal: KeyInterrupt\n");
-    } else if (pm->status == int_error) {
-        fprintf(stdout, "Singal Error: %s\n", pm->status_message);
-    } else if (pm->status != success)
-        fprintf(stdout, "Syntax Error: %s\n", pm->status_message);
+    if (checkSignalPm())
+        fprintf(stderr, "Signal: KeyInterrupt\n");
+    else if (pm->status == int_error)
+        fprintf(stderr, "Signal Error: %s\n", pm->status_message);
+    else if (pm->status != success)
+        fprintf(stderr, "Syntax Error: %s\n", pm->status_message);
+    else if (!checkParserMessageIO(pm))
+        fprintf(stderr, "IO Error\n");
     else {
         freeParserMessage(pm, true);
         return true;

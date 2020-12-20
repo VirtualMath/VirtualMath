@@ -23,6 +23,16 @@ ParserMessage *makeParserMessageStr(wchar_t *str, bool short_cm) {
     return tmp;
 }
 
+bool checkParserMessageIO(ParserMessage *pm) {  // 如果有错误则返回false, 否则返回true
+    if (pm->tm->file->file != NULL && pm->tm->file->status != 2) {
+        if (pm->tm->file->status == 1)
+            return !ferror(pm->tm->file->file) && !feof(pm->tm->file->file);  // 如果是stdin模式则还要检查feof
+        else
+            return !ferror(pm->tm->file->file);
+    } else
+        return true;
+}
+
 void freeParserMessage(ParserMessage *pm, bool self) {
     FREE_BASE(pm, return_);
     freeTokenMessage(pm->tm, true, true);
