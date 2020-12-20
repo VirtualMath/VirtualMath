@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
     if (args.run_commandLine)
         runCodeStdin(inter, HelloString);  // 从stdin中运行代码
     freeInter(inter, true);
-
-    system("pause");  // 按任意键继续...
+    fgetwc(stdin);  // 按任意键继续...
     return 0;
 }

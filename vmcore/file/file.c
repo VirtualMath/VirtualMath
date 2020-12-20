@@ -50,7 +50,7 @@ char *splitDir(char * dir){
 
 char *findPath(char **path, char *env, bool need_free) {  // env 必须以 SEP 结尾
 #ifdef __linux
-    if (**path == SEP_CH) {
+    if (**path != SEP_CH) {
 #else
     if (!(isupper(**path) && (*path)[1] == ':')) {
 #endif
