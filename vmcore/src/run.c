@@ -175,13 +175,43 @@ ResultType runStatementOpt(bool run_gc, FUNC) {  // 不运行gc机制
     return type;
 }
 
-static bool checkSignal(fline line, char *file, FUNC_NT) {
-    if (signal_tag.status == signal_appear){
-        signal_tag.status = signal_reset;
-        setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CNEXT_NT);
-        return true;
+void signalDefault(vsignal sig_num, fline line, char *file, FUNC_NT) {
+    switch (sig_num) {  // 信号的默认处理 (使用switch-case分支)
+        case SIGINT:
+            setResultError(E_KeyInterrupt, KEY_INTERRUPT, line, file, true, CNEXT_NT);
+            break;
+        default:
+            break;
     }
-    return false;
+}
+
+static bool checkSignal(fline line, char *file, FUNC_NT) {  // 检查信号
+    if (signal_tag.status == signal_appear){  // 出现信号
+        SignalList *sig_list;
+        vsignal sig_num = signal_tag.signum;
+        Result bak = *result;  // 备份result
+        setResultCore(result);  // 重置result
+        signal_tag.status = signal_reset;  // 复位
+        if ((sig_list = checkSignalList(sig_num, inter->sig_list)) == NULL)
+            signalDefault(sig_num, line, file, CNEXT_NT);
+        else {
+            Argument *arg;
+            makeIntValue(sig_num, LINEFILE, CNEXT_NT);
+            arg = makeValueArgument(result->value);
+            freeResult(result);
+            callBackCore(sig_list->value, arg, line, file, 0, CNEXT_NT);  // 运行指定函数
+            freeArgument(arg, true);
+        }
+        if (CHECK_RESULT(result)) {
+            freeResult(result);
+            *result = bak;  // 恢复result
+            return false;
+        } else {
+            freeResult(&bak);  // 释放原有result
+            return true;
+        }
+    }
+    return false;  // 返回false表示未遇到error
 }
 
 static bool gotoStatement(Statement **next, FUNC) {
@@ -206,6 +236,12 @@ static bool gotoStatement(Statement **next, FUNC) {
  * @param var_list
  * @return
  */
+
+#define RUN_CHECK_SIGNAL if (checkSignal(base->line, base->code_file, CNEXT_NT)) { \
+type = result->type; \
+break; \
+}
+
 ResultType iterStatement(FUNC) {
     Statement *base;
     ResultType type;
@@ -222,10 +258,7 @@ ResultType iterStatement(FUNC) {
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CFUNC(base, var_list, result, belong));
-            if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
-                type = result->type;
-                break;
-            }
+            RUN_CHECK_SIGNAL;
             if (type == R_goto && result->times == 0){
                 if (!gotoStatement(&base, CNEXT)) {
                     type = result->type;
@@ -272,10 +305,7 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool
         while (base != NULL) {
             freeResult(result);
             type = runStatement(CFUNC(base, var_list, result, belong));
-            if (checkSignal(base->line, base->code_file, CNEXT_NT)) {
-                type = result->type;
-                break;
-            }
+            RUN_CHECK_SIGNAL;
             if (type == R_goto){
                 if (!gotoStatement(&base, CNEXT)) {
                     type = result->type;
@@ -299,6 +329,8 @@ ResultType globalIterStatement(Result *result, Inter *inter, Statement *st, bool
     gc_freeTmpLink(&belong->gc_status);
     return result->type;
 }
+
+#undef RUN_CHECK_SIGNAL
 
 // 若需要中断执行, 则返回true
 bool operationSafeInterStatement(FUNC){

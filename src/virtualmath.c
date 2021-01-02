@@ -61,8 +61,8 @@ void safe_sleep(double ms) {
     } while (true);
 }
 
-bool checkSignalPm() {  // 兜底检查
-    if (signal_tag.status == signal_appear) {
+bool checkSignalPm() {  // 检查信号
+    if (signal_tag.status == signal_appear && PARSER_STOP_SIGNAL(signal_tag.signum)) {
         signal_tag.status = signal_reset;
         return true;
     }

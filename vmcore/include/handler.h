@@ -2,7 +2,7 @@
 #define VIRTUALMATH_HANDLER_H
 
 struct SignalTag{
-    volatile int signum;  // 信号
+    volatile vsignal signum;  // 信号
     volatile enum SignalType{
         signal_reset=0,  // 没有信号
         signal_appear,  // 信号未被处理
@@ -12,6 +12,6 @@ struct SignalTag{
 typedef struct SignalTag SignalTag;
 extern volatile SignalTag signal_tag;
 
-void signalStopInter(int signum);;
+void vmSignalHandler(int signum);;
 
 #endif //VIRTUALMATH_HANDLER_H

@@ -614,6 +614,51 @@ Value *checkPackage(Package *base, char *md5, char *name) {
     return NULL;
 }
 
+SignalList *makeSignalList(vsignal sig_num, LinkValue *value) {
+    SignalList *tmp;
+    gc_addStatementLink(&value->gc_status);
+    tmp = memCalloc(1, sizeof(SignalList));
+    tmp->sig_num = sig_num;
+    tmp->value = value;
+    tmp->next = NULL;
+    return tmp;
+}
+
+LinkValue *exchangeSignalFunc(SignalList *sig_list, LinkValue *new) {
+    LinkValue *old = sig_list->value;
+    gc_addTmpLink(&old->gc_status);
+    gc_freeStatementLink(&old->gc_status);
+    gc_addStatementLink(&new->gc_status);
+    sig_list->value = new;
+    return old;
+}
+
+SignalList *freeSignalList(SignalList *sig_list) {
+    SignalList *next = sig_list->next;
+    gc_freeStatementLink(&sig_list->value->gc_status);
+    memFree(sig_list);
+    return next;
+}
+
+SignalList *checkSignalList(vsignal sig_num, SignalList *sig_list) {  // 找到sig_num指定的sig_list
+    for (PASS; sig_list != NULL && sig_list->sig_num != sig_num; sig_list = sig_list->next)
+        PASS;
+    return sig_list;
+}
+
+LinkValue *delSignalList(vsignal sig_num, SignalList **sig_list) {  // 找到sig_num指定的sig_list, 并且删除
+    LinkValue *re = NULL;
+    for (SignalList **sl = sig_list; *sl != NULL; sl = &((*sl)->next)) {
+        if ((*sl)->sig_num == sig_num) {
+            re = (*sl)->value;
+            gc_addTmpLink(&re->gc_status);
+            *sl = freeSignalList(*sl);
+            break;
+        }
+    }
+    return re;
+}
+
 bool needDel(Value *object_value, Inter *inter) {
     LinkValue *_del_ = checkStrVar(inter->data.mag_func[M_DEL], false, CFUNC_CORE(object_value->object.var));
     enum FunctionPtType type;

@@ -6,6 +6,7 @@ Inter *makeInter(char *out, char *error_, char *in, char *env, LinkValue *belong
     tmp->link_base = NULL;
     tmp->hash_base = NULL;
     tmp->base_var = NULL;
+    tmp->sig_list = NULL;
     tmp->package = NULL;
     tmp->data.env = NULL;
     changeInterEnv(env, false, tmp);
@@ -170,6 +171,10 @@ void freeInter(Inter *inter, bool show_gc) {
     freePackage(inter->package);
     freeVarList(inter->var_list);
 
+    for (SignalList *sl = inter->sig_list; sl != NULL; PASS)
+        sl = freeSignalList(sl);
+    inter->sig_list = NULL;
+
 #if DEBUG
     wint_t ch;
     if (show_gc && (printf("\nEnter '1' to show gc info: "), (fgetwc(stdin)) == L'1')) {
@@ -196,11 +201,10 @@ void freeInter(Inter *inter, bool show_gc) {
         freeHashTable(&inter->hash_base);
     freeClibInfoFromInter(inter);
     memFree(inter);
-    return_:
-    return;
+    return_: return;
 }
 
-void mergeInter(Inter *new, Inter *base){
+void mergeInter(Inter *new, Inter *base){  // 合并inter (sig_list内容不合并)
     Value **base_value = NULL;
     LinkValue **base_linkValue = NULL;
     HashTable **base_hash = NULL;
@@ -227,12 +231,17 @@ void mergeInter(Inter *new, Inter *base){
     *base_hash = new->hash_base;
     *base_var = new->base_var;
     *info = new->clib_info;
-    if (base->package == NULL)
+    if (base->package == NULL)  // 合并 package
         base->package = new->package;
+
+    for (SignalList *sl = new->sig_list; sl != NULL; PASS)  // 释放sl的内容
+        sl = freeSignalList(sl);
+    new->sig_list = NULL;
+
     memFree(new);
 }
 
-Inter *deriveInter(char *env, LinkValue *belong, Inter *inter) {
+Inter *deriveInter(char *env, LinkValue *belong, Inter *inter) {  // 派生一个inter
     Inter *import_inter = makeInter(NULL, NULL, NULL, env, belong);
     import_inter->data.inter_stdout = inter->data.inter_stdout;
     import_inter->data.inter_stderr = inter->data.inter_stderr;

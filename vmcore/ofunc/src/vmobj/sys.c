@@ -215,6 +215,91 @@ static ResultType vm_raise(O_FUNC){
     return result->type;
 }
 
+static ResultType vm_signal(O_FUNC){
+    ArgumentParser ap[] = {{.type=name_value, .name=L"signal", .must=1, .long_arg=false},
+                           {.type=name_value, .name=L"func", .must=1, .long_arg=false},
+                           {.must=-1}};
+    SignalList *sl = inter->sig_list;
+    SignalList *tmp;
+    vsignal sig;
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+
+    if (ap[0].value->value->type != V_int) {
+        setResultError(E_TypeException, ONLY_ACC(signal, int), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    sig = ap[0].value->value->data.int_.num;
+    if ((tmp = checkSignalList(sig, inter->sig_list)) == NULL) {
+        inter->sig_list = makeSignalList(ap[0].value->value->data.int_.num, ap[1].value);  // 添加新的节点
+        inter->sig_list->next = sl;  // 重新拼接
+        setResult(result, inter);  // 返回值为null
+    } else {
+        LinkValue *old = exchangeSignalFunc(tmp, ap[1].value);  // 此处会为 old 添加 tmp_link
+        setResultOperation(result, old);  // 更换函数, 旧函数作为返回值 （此处也会为 old 添加 tmp_link）
+        gc_freeTmpLink(&old->gc_status);  // 释放掉 exchangeSignalFunc 为 old 添加到 tmp_link
+    }
+    signal(sig, vmSignalHandler);  // 绑定函数
+    return result->type;
+}
+
+static ResultType vm_signal_core(O_FUNC, int status){
+    ArgumentParser ap[] = {{.type=name_value, .name=L"signal", .must=1, .long_arg=false},
+                           {.must=-1}};
+    vsignal sig;
+    LinkValue *old;
+    setResultCore(result);
+    {
+        parserArgumentUnion(ap, arg, CNEXT_NT);
+        if (!CHECK_RESULT(result))
+            return result->type;
+        freeResult(result);
+    }
+
+    if (ap[0].value->value->type != V_int) {
+        setResultError(E_TypeException, ONLY_ACC(signal, int), LINEFILE, true, CNEXT_NT);
+        return R_error;
+    }
+
+    sig = ap[0].value->value->data.int_.num;
+    if ((old = delSignalList(sig, &(inter->sig_list))) != NULL) {
+        setResultOperation(result, old);
+        gc_freeTmpLink(&old->gc_status);  // 释放 delSignalList 中设置 old 的 tmp_link
+    } else
+        setResult(result, inter);  // 默认返回none
+    switch (status) {
+        default:
+        case 1:
+            signal(sig, SIG_IGN);  // vm 不捕捉该信号
+            break;
+        case 2:
+            signal(sig, vmSignalHandler);  // 用 vm 的默认方式处理信号
+            break;
+        case 3:
+            signal(sig, SIG_ERR);  // 按错误处理
+            break;
+    }
+    return result->type;
+}
+
+static ResultType vm_signal_ignore(O_FUNC) {
+    return vm_signal_core(CO_FUNC(arg, var_list, result, belong), 1);
+}
+
+static ResultType vm_signal_default(O_FUNC) {
+    return vm_signal_core(CO_FUNC(arg, var_list, result, belong), 2);
+}
+
+static ResultType vm_signal_err(O_FUNC) {
+    return vm_signal_core(CO_FUNC(arg, var_list, result, belong), 3);
+}
+
 void registeredSysFunction(R_FUNC){
     NameFunc tmp[] = {{L"super",                  vm_super,          fp_no_, .var=nfv_notpush},
                       {L"static_method",          vm_no_,            fp_no_, .var=nfv_notpush},
@@ -243,6 +328,10 @@ void registeredSysFunction(R_FUNC){
 
                       {L"quit",                   vm_quit,           fp_no_, .var=nfv_notpush},
                       {L"raise",                  vm_raise,          fp_no_, .var=nfv_notpush},
+                      {L"signal",                 vm_signal,         fp_no_, .var=nfv_notpush},
+                      {L"signal_ignore",          vm_signal_ignore,  fp_no_, .var=nfv_notpush},
+                      {L"signal_default",         vm_signal_default, fp_no_, .var=nfv_notpush},
+                      {L"signal_err",             vm_signal_err,     fp_no_, .var=nfv_notpush},
                       {NULL, NULL}};
     iterBaseNameFunc(tmp, belong, CFUNC_CORE(var_list));
 }

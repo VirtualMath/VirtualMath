@@ -36,6 +36,7 @@ typedef struct Result Result;
 typedef struct Error Error;
 typedef struct Inherit Inherit;
 typedef struct Package Package;
+typedef struct SignalList SignalList;
 
 typedef enum ResultType (*OfficialFunction)(O_FUNC);
 typedef void (*Registered)(R_FUNC);
@@ -233,6 +234,12 @@ struct Package {
     struct Package *next;
 };
 
+struct SignalList {
+    vsignal sig_num;  // 信号
+    LinkValue *value;  // 处理函数
+    struct SignalList *next;
+};
+
 enum BaseErrorType{
     E_BaseException = 0,
     E_Exception,
@@ -291,6 +298,12 @@ void freeResult(Result *ru);
 Package *makePackage(Value *value, char *md5, char *name, Package *base);
 void freePackage(Package *base);
 Value *checkPackage(Package *base, char *md5, char *name);
+
+SignalList *makeSignalList(vsignal sig_num, LinkValue *value);
+LinkValue *exchangeSignalFunc(SignalList *sig_list, LinkValue *new);
+SignalList *freeSignalList(SignalList *sig_list);
+SignalList *checkSignalList(vsignal sig_num, SignalList *sig_list);
+LinkValue *delSignalList(vsignal sig_num, SignalList **sig_list);
 
 Error *makeError(wchar_t *type, wchar_t *message, fline line, char *file);
 void freeError(Result *base);

@@ -6,6 +6,8 @@
 // PASS语句的定义
 #define PASS
 
+#define PARSER_STOP_SIGNAL(sig) ((sig) == SIGINT)
+
 #define RUN_TYPE(type) (type == R_not || type == R_opt)
 #define CHECK_RESULT(result) (result->type == R_not || result->type == R_opt)
 
@@ -49,6 +51,7 @@
 #define MD5_STR_LEN (MD5_SIZE * 2)
 #define MD5_STRING (MD5_STR_LEN + 1)
 
+typedef int vsignal;
 typedef long long vint;
 typedef long double vdou;
 typedef unsigned long long vhashn;

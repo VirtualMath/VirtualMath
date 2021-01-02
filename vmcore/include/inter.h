@@ -105,6 +105,7 @@ struct Inter{
     struct Var *base_var;
     struct LinkValue *base_belong;
     struct Package *package;
+    struct SignalList *sig_list;
     struct ClibInfo *clib_info;
     struct VarList *var_list;
     struct InterData{
